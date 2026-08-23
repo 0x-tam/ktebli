@@ -1,0 +1,39 @@
+# Benchmark storage objects pending deletion
+#
+# The 2026-08-23 benchmark cleanup removed the 13 synthetic orders and
+# dropped public.bench_cases. These 22 objects in the 'order-files' bucket
+# belonged to those orders and are the last remaining benchmark residue.
+#
+# They were NOT deleted: this session's egress policy blocks
+# uocauqflcqefgdixbzpf.supabase.co (403 to CONNECT), so the Storage API
+# was unreachable, and no service_role key is available here.
+#
+# Their storage.objects metadata rows are intact, so nothing is orphaned.
+# Remove them from the dashboard, or with the Storage API, e.g.:
+#   supabase storage rm ss:///order-files/<path> --experimental
+#
+# Paths are relative to the 'order-files' bucket.
+# Delete this file once the objects are gone.
+
+2ad9dd4b-3434-4451-9839-233db6bf2d60/daec4657-0688-42a0-a137-a22a3a672c92/Proposal-narrative.docx
+3b94a1cb-aacc-49d7-a87c-80dd9f89d27f/079f6267-3644-4ae9-8cab-e56d2b0ae5ed/Before-you-submit.docx
+3b94a1cb-aacc-49d7-a87c-80dd9f89d27f/079f6267-3644-4ae9-8cab-e56d2b0ae5ed/Proposal-narrative.docx
+454c5732-6132-4bea-bdc3-d65e47653adb/9cb1ea79-84e9-4ff5-ad8a-94f0f49a2a0a/Before-you-submit.docx
+454c5732-6132-4bea-bdc3-d65e47653adb/9cb1ea79-84e9-4ff5-ad8a-94f0f49a2a0a/Proposal-narrative.docx
+6101cecd-ca82-4b79-99ea-c0b918252ef4/46e8c75c-2991-42c2-ac72-53d5087e5e88/Proposal-narrative.docx
+71ece271-577d-47e9-9983-45368bc95854/4b28598d-7466-4ddb-bd5c-b1d80cd35b80/Proposal-narrative.docx
+73beb486-7d4a-4969-971b-19440d9f8897/0503a4f1-dc39-4899-ae79-028d03a8eab6/Proposal-narrative.docx
+797dde0f-6347-4ca0-8652-b70c29800d31/4d2200d6-06d8-44e8-9885-d184860fa86c/Proposal-narrative.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Board-summary.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Budget-justification.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Budget.xlsx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Concept-note.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Covering-email.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Logframe-and-M-E-plan.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Proposal-narrative.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Review-report.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Risk-table.docx
+93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/a9e4c676-72c4-4978-bc98-e2fed94ecf16/Workplan.docx
+bbe1fd69-ff06-42d2-89e8-79d16ec94c9b/d6e84714-49f4-428d-b9f4-35ede82de063/Proposal-narrative.docx
+d7203d9c-7b6e-4feb-9f3a-1ebe06d8cf30/6a328716-05d4-4359-b7b3-d9fcb5fa505c/Proposal-narrative.docx
+e7ce6fc3-333d-4417-a791-30250cd040d3/2d9284a8-50ad-45b1-8425-08eec9027413/Proposal-narrative.docx

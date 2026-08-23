@@ -211,3 +211,56 @@ columns, constraints, indexes, grants, RLS flags, functions, policies, trigger.
 
 `db/schema.sql` is unchanged and still useful as the human-readable reference; the
 executable source of truth is now `supabase/migrations/`.
+
+---
+
+## Benchmark cleanup executed (2026-08-23)
+
+The `bench_cases` drift recorded above is resolved. The table and the 13 synthetic
+orders it indexed were deleted from production in one guarded transaction, after an
+approved dry run.
+
+**Scope.** `bench_cases.order_id` was the sole manifest. The email pattern
+`^(real)?bench-` was used only to corroborate it — both sets contained exactly the same
+13 orders, with no discrepancy in either direction. Scope was never widened on the
+strength of an email pattern.
+
+**Removed:** 13 orders, 13 order_proposals, 142 job_stages, 14 claims (13 explicit
+exclusivity reservations plus 1 stale claim by cascade), 11 organisations, 11
+voice_profiles, 3 org_intel rows, 10 grants, 1 intake_files row, and the `bench_cases`
+table itself.
+
+**Deliberately retained:**
+
+- **Two organisations** — Amel Association International and Horizon Development
+  Foundation — each also carried a non-benchmark `test-org*` order. Deleting them would
+  have taken real non-manifest data with them. Their orders, claims, voice profiles and
+  org_intel are untouched.
+- **`public.events`** — 70 rows, 26 of which reference benchmark entities. The
+  `events_immutable` trigger makes deletion impossible by design, and any attempt would
+  have aborted the whole transaction. The audit history is intact and the trigger was
+  not weakened.
+- `pre_intakes`, `link_previews`, `stripe_events` and the four `test-org*` orders, none
+  of which are in the manifest.
+
+**Verification.** All 13 manifest orders gone; zero orphaned rows across every foreign
+key in both directions; both shared organisations and their data intact; `events` still
+70 rows with its trigger present; `bench_cases` gone. The worker cron returned HTTP 200
+on all 30 runs in the surrounding half hour, including after the cleanup.
+
+**Schema fingerprint now matches with no exclusion.** All eight categories equal the
+values the replayed migrations produce. Before the cleanup this held only when
+`bench_cases` was excluded; production and `supabase/migrations/` now describe the same
+schema.
+
+**Metrics.** Orders 19 → 6. Gross `amount_usd` $2,538 → $598 — the benchmark rows had
+been inflating it by $1,940 in a table any revenue query reads. Of the 6 remaining, 4
+are `test-org*` and 2 are genuine addresses.
+
+**Outstanding: 22 storage objects.** The benchmark files in the `order-files` bucket
+were not deleted. This session's egress policy blocks
+`uocauqflcqefgdixbzpf.supabase.co` (403 to CONNECT) and no service_role key is
+available here, so the Storage API could not be reached. Nothing is orphaned — the
+`storage.objects` metadata is intact — and the paths are listed in
+`db/pending_benchmark_storage_cleanup.txt` for removal from the dashboard or an
+authenticated machine.

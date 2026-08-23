@@ -100,9 +100,11 @@ you have several projects linked and want to be explicit.
   fingerprints against production: columns, constraints, indexes, grants, RLS flags,
   functions, policies and the trigger all matched exactly. Re-check any database with
   `db/verify_schema_fingerprint.sql`.
-- **`public.bench_cases` is in production but in no migration** — the single thing the
-  replay does not reproduce. See `db/untracked_bench_cases.sql`; it is also the only
-  table with RLS disabled.
+- **`public.bench_cases` was dropped on 2026-08-23**, together with the 13 synthetic
+  benchmark orders and their organisations, grants, claims, proposals and stages. It
+  had been the one object production held that no migration described. Production now
+  matches the migration history exactly, with no exclusions. Twenty-two benchmark files
+  remain in the `order-files` bucket — see `db/pending_benchmark_storage_cleanup.txt`.
 - **Do not `supabase db push`.** These migrations are already applied in production;
   the versions match the remote history, so the CLI should see nothing to do. If it
   ever reports them as pending, repair the history rather than re-running them.

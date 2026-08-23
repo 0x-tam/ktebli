@@ -5,26 +5,20 @@
 -- row must match. Each hash covers names AND full definitions, so a silently
 -- altered policy, constraint or function body changes its hash.
 --
--- Live values, 2026-08-23 (Postgres 17.6.1.155):
---   columns_nonvector  2f8a993f003e6879a45336d99ad7083f
---   constraints        bd2d1280d3e1c7ec71414d096c0d1ece
+-- Live values, 2026-08-23, AFTER the benchmark cleanup dropped
+-- public.bench_cases (Postgres 17.6.1.155):
+--   columns_nonvector  c549a92d3b33261b3061439cc144807a
+--   constraints        c899d726f2fdf0909af373fa255b79d3
 --   functions          946d52d37d2c6d9523e7d960e3f32c9b
---   grants             b2d82d9d227035f3c42bca88dd35e1cb
---   indexes            4784a79f6b90d38c76f23e5b0d5f02f9
+--   grants             53540d7b048d4d0dd424f4e20cbb8d04
+--   indexes            6f49e9526ad6b87e8db221eb73c63e71
 --   policies           66d57dd2e060c72c312926123b48dc22
---   rls_flags          6bc5f5540b7ddcfb2c969c3b9aea03a4
+--   rls_flags          5f8af02255d31b263dfdd3d9856bd76a
 --   triggers           ec7f46725697aa62c2d33efd33b3fa41
 --
--- Replaying supabase/migrations/ into a clean Postgres reproduces every one
--- of these EXCEPT where public.bench_cases participates, because that table
--- is in production but in no migration (see db/untracked_bench_cases.sql).
--- Excluding it, the replay matched live exactly:
---   columns_excl_bench      c549a92d3b33261b3061439cc144807a
---   constraints_excl_bench  c899d726f2fdf0909af373fa255b79d3
---   grants_excl_bench       53540d7b048d4d0dd424f4e20cbb8d04
---   indexes_excl_bench      6f49e9526ad6b87e8db221eb73c63e71
---   rls_flags_excl_bench    5f8af02255d31b263dfdd3d9856bd76a
--- (functions, policies and triggers matched in full, bench_cases having none.)
+-- Replaying supabase/migrations/ into a clean Postgres reproduces all eight
+-- exactly. There is no longer any bench_cases exclusion: production and the
+-- migration history now describe the same schema.
 --
 -- The two pgvector columns (fingerprints.narrative_embedding,
 -- grants.guidelines_embedding) are excluded from columns_nonvector so this
