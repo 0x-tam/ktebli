@@ -104,8 +104,13 @@ paid launch. Summary of what is open:
 
 - `bench_cases` **no longer exists** — dropped 2026-08-23 with the 13 synthetic orders it
   indexed, to stop benchmark rows distorting production metrics. B1–B10 were archetypes;
-  R1–R3 used real organisations with real websites. Any future benchmark run needs its own
-  manifest, and should not create orders in the production project.
+  R1–R3 used real organisations with real websites. The four `test-org*` orders were removed
+  in the same pass. **Production now contains only the two $1 trial orders** (KT-10001,
+  KT-10002). Any future benchmark run needs its own manifest and must not create orders in
+  the production project.
+- The one live similarity-gate failure is preserved as a regression fixture at
+  `tests/regression/similarity-gate/`, so that case survives without a fake order in
+  production.
 - Quality is judged **blind** by a different model family from the generator — the generator never
   grades its own work. Evaluator sees only the grant text, the applicant identity, and the narrative.
 - Language models cannot count words. Two critics wrongly claimed a 596-word document exceeded a

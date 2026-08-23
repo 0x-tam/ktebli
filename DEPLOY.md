@@ -100,11 +100,16 @@ you have several projects linked and want to be explicit.
   fingerprints against production: columns, constraints, indexes, grants, RLS flags,
   functions, policies and the trigger all matched exactly. Re-check any database with
   `db/verify_schema_fingerprint.sql`.
-- **`public.bench_cases` was dropped on 2026-08-23**, together with the 13 synthetic
-  benchmark orders and their organisations, grants, claims, proposals and stages. It
-  had been the one object production held that no migration described. Production now
-  matches the migration history exactly, with no exclusions. Twenty-two benchmark files
-  remain in the `order-files` bucket — see `db/pending_benchmark_storage_cleanup.txt`.
+- **Synthetic data was removed from production on 2026-08-23**, in two passes: the 13
+  benchmark orders plus `public.bench_cases` (which no migration described), then the four
+  `test-org*` orders. Production now holds only the two $1 trial orders, KT-10001 and
+  KT-10002, and its schema matches the migration history exactly, with no exclusions.
+- **27 storage objects from those deleted orders are still in the `order-files` bucket.**
+  They could not be removed from the cleanup session — see
+  `db/pending_storage_cleanup.txt` for the paths and the exact blockers. Their
+  `storage.objects` rows are intact, so nothing is orphaned.
+- Three zero-referenced benchmark grant rows (`... (RB-R1/R2/R3)`) also remain; they hold no
+  claims and no locks. Noted rather than deleted, being outside the approved scope.
 - **Do not `supabase db push`.** These migrations are already applied in production;
   the versions match the remote history, so the CLI should see nothing to do. If it
   ever reports them as pending, repair the history rather than re-running them.

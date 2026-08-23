@@ -264,3 +264,46 @@ available here, so the Storage API could not be reached. Nothing is orphaned —
 `storage.objects` metadata is intact — and the paths are listed in
 `db/pending_benchmark_storage_cleanup.txt` for removal from the dashboard or an
 authenticated machine.
+
+
+---
+
+## Second cleanup pass — `test-org*` orders removed (2026-08-23)
+
+The four remaining synthetic orders (`test-orga` KT-10003, `test-orgb` KT-10005,
+`test-orgc` KT-10004, `test-orgd` KT-10006) were deleted in one guarded transaction, scoped
+by explicit order ID rather than by email pattern. Dependencies were re-verified against
+current production state first, not carried over from the earlier report.
+
+**Removed:** 4 orders, 4 order_proposals, 39 job_stages, 4 claims, 4 organisations,
+4 voice_profiles, 1 org_intel, 1 grant. The two organisations preserved during the
+benchmark pass — Amel Association International and Horizon Development Foundation —
+existed only to serve `test-orga` and `test-orgb`, so they were correctly removed here.
+
+**Production now holds two orders:** KT-10001 and KT-10002, both $1 trials, gross $2.00.
+
+**Regression evidence preserved outside production.** `test-orgb` was the only live example
+of the similarity gate firing. Its reproduction case is now
+`tests/regression/similarity-gate/`, holding the synthetic grant and applicant, the abstract
+strategy record, the 25-word cap, the observed 26-word run after 2 automated rewrites, the
+`held` (not `failed`) classification, and a passing negative control at 16 words. The
+colliding narrative concerned a real, identifiable NGO and is deliberately not reproduced —
+only the abstract descriptors the exclusivity architecture already compares on.
+
+**Two things noted, not acted on:**
+
+1. **27 storage objects remain** (22 benchmark + 5 test-org) in the `order-files` bucket.
+   Deletion is blocked three ways from this session: the Supabase MCP server exposes no
+   storage-object delete tool, the project host and management API are both refused by
+   egress policy (403 to CONNECT), and no service_role key is available. Paths and blockers
+   are recorded in `db/pending_storage_cleanup.txt`. Deleting `storage.objects` rows over
+   SQL was deliberately avoided — it would strand the backing blobs.
+2. **Three zero-referenced benchmark grants survive** — titles suffixed `(RB-R1)`, `(RB-R2)`,
+   `(RB-R3)`, from the realbench cases. They were never linked to an order_proposal, so the
+   benchmark pass did not reach them. They hold no claims and no exclusivity locks, and do
+   not affect the schema fingerprint or any order/revenue metric. Left in place as outside
+   the approved scope.
+
+**Stripe was not touched.** The four test orders carried real Stripe sessions; those remain
+in Stripe as the historical development transactions they are. Nothing was refunded,
+cancelled or mutated.
