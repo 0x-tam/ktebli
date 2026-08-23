@@ -307,3 +307,32 @@ only the abstract descriptors the exclusivity architecture already compares on.
 **Stripe was not touched.** The four test orders carried real Stripe sessions; those remain
 in Stripe as the historical development transactions they are. Nothing was refunded,
 cancelled or mutated.
+
+
+---
+
+## Final baseline pass (2026-08-23)
+
+**Three zero-referenced benchmark grants removed.** The `(RB-R1)`, `(RB-R2)` and `(RB-R3)`
+rows noted above were re-verified against current production — zero `order_proposals`, zero
+claims of any status, zero fingerprints, zero merge reviews, zero `merged_into` references,
+zero legacy proposals, zero retained orders depending on them — and then deleted by explicit
+ID inside a guarded transaction. Production now holds three grants, all belonging to the two
+retained trial orders. No other grant was touched.
+
+**Production dataset is final:** 2 orders (KT-10001, KT-10002), gross $2.00, 2 organisations,
+3 grants, 3 claims (2 active), 2 order_proposals, 32 job_stages, 0 revision_requests,
+2 voice_profiles, 0 org_intel. Zero FK orphans in either direction. `public.events` unchanged
+at 70 rows with `events_immutable` intact. Migration history untouched at 11 rows. Worker
+secret resolves from Vault; cron returning HTTP 200 with zero non-200 responses. Schema
+fingerprint matches the reconstructed migration replay across all eight categories with zero
+exclusions. Repository secret scan clean.
+
+**Storage remains the single open item.** The 27 objects could not be deleted from any agent
+session — this was re-tested a third time, and all three routes still fail: no storage-object
+delete tool in the Supabase MCP server, and 403-to-CONNECT egress denials for both the project
+host and the management API, with no service_role key available. Rather than delete
+`storage.objects` rows over SQL (which would strand the backing blobs) or claim a cleanup that
+did not happen, `db/pending_storage_cleanup.txt` was converted into an actionable dashboard
+procedure: 15 folders to delete, 2 to keep, with every path listed. The baseline is therefore
+reported as NOT clean until those objects are gone.

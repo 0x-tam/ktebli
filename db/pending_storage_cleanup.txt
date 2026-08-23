@@ -1,25 +1,71 @@
-# Storage objects pending deletion — 27 in the 'order-files' bucket
+# STATUS: PENDING — 27 objects awaiting manual deletion
 #
-# All 27 belonged to synthetic orders that have been deleted from the
-# database: 22 from the 13 benchmark orders (removed 2026-08-23) and 5
-# from the four test-org* orders (removed 2026-08-23).
+# Bucket: order-files   (Supabase project uocauqflcqefgdixbzpf)
 #
-# THEY ARE NOT DELETED. Every available route is blocked from the
-# session that performed the DB cleanup:
-#   - the Supabase MCP server exposes no storage-object delete tool
-#     (only list_storage_buckets / get_storage_config / update_storage_config)
-#   - uocauqflcqefgdixbzpf.supabase.co is refused by egress policy (403 to CONNECT),
-#     so the Storage REST API is unreachable
-#   - api.supabase.com is refused the same way, and no service_role key is available
+# All 27 belonged to synthetic orders already deleted from the database:
+# 22 from the 13 benchmark orders, 5 from the four test-org* orders, both
+# removed 2026-08-23. Their storage.objects metadata rows are intact, so
+# nothing is orphaned and everything below is listable in the dashboard.
 #
-# Nothing is orphaned: the storage.objects metadata rows are intact, so these
-# remain listable and deletable through the dashboard or any authenticated client.
-# Deleting storage.objects rows over SQL was deliberately NOT done, because that
-# strands the backing blobs.
+# WHY THEY ARE STILL HERE (re-tested 2026-08-23, all three still blocking):
+#   1. The Supabase MCP server exposes no storage-object delete tool. Its
+#      storage surface is list_storage_buckets / get_storage_config /
+#      update_storage_config only.
+#   2. uocauqflcqefgdixbzpf.supabase.co is refused by this environment's
+#      egress policy (403 to CONNECT), so the Storage REST API is unreachable.
+#   3. api.supabase.com is refused the same way; no service_role key is
+#      available and the Supabase CLI is unauthenticated.
 #
-# Paths are relative to the 'order-files' bucket. Delete this file once empty.
+# Deleting storage.objects rows over SQL was deliberately NOT done: it removes
+# the metadata and strands the backing blob.
+#
+# ---------------------------------------------------------------------------
+# DASHBOARD PROCEDURE
+# ---------------------------------------------------------------------------
+# Every object sits under a top-level folder named after its order id, so this
+# is 15 folder deletions, not 27 file deletions.
+#
+#   1. Open  https://supabase.com/dashboard/project/uocauqflcqefgdixbzpf/storage/buckets/order-files
+#   2. The root lists one folder per order id.
+#   3. Delete each of the 15 folders listed under DELETE below (row menu -> Delete).
+#   4. Do NOT touch the 2 folders listed under KEEP.
+#   5. When done, tell me and I will re-verify from the database side.
+#
+# After deletion the bucket should contain exactly 2 objects.
+#
+# ---------------------------------------------------------------------------
+# KEEP — retained $1 trial orders, must remain untouched
+# ---------------------------------------------------------------------------
+# 7e434c35-2ac3-4bdb-a88d-f930b5041793/   KT-10001  tamam.elalti@gmail.com  (1 file)
+# c00771a6-0821-4a92-aa7a-0594d7bbe146/   KT-10002  bhz7bgz@gmail.com       (1 file)
+#
+# ---------------------------------------------------------------------------
+# DELETE — 15 folders / 27 objects
+# ---------------------------------------------------------------------------
+# Benchmark suite — 11 folders, 22 objects:
+#   3b94a1cb-aacc-49d7-a87c-80dd9f89d27f/   B1   2 files
+#   797dde0f-6347-4ca0-8652-b70c29800d31/   B2   1 file
+#   73beb486-7d4a-4969-971b-19440d9f8897/   B3   1 file
+#   6101cecd-ca82-4b79-99ea-c0b918252ef4/   B4   1 file
+#   d7203d9c-7b6e-4feb-9f3a-1ebe06d8cf30/   B5   1 file
+#   454c5732-6132-4bea-bdc3-d65e47653adb/   B6   2 files
+#   2ad9dd4b-3434-4451-9839-233db6bf2d60/   B8   1 file
+#   93ce01c7-96cf-4940-9ef9-f7c3af22ebb6/   B9   10 files
+#   71ece271-577d-47e9-9983-45368bc95854/   B10  1 file
+#   bbe1fd69-ff06-42d2-89e8-79d16ec94c9b/   R1   1 file
+#   e7ce6fc3-333d-4417-a791-30250cd040d3/   R3   1 file
+#
+# test-org suite — 4 folders, 5 objects:
+#   325273fd-b5a1-4a90-bd95-7b3328fc09f4/   test-orga  1 file
+#   2de63e0c-351f-4489-a902-cfb2cb83cf0e/   test-orgb  2 files
+#   4ba6613e-75a3-4dc8-83e3-11d9d37a6fc8/   test-orgc  1 file
+#   fdefa206-f081-4381-bf2c-fb0a1d364d43/   test-orgd  1 file
+#
+# ---------------------------------------------------------------------------
+# FULL OBJECT PATHS (relative to the order-files bucket)
+# ---------------------------------------------------------------------------
 
-## 22 objects — benchmark orders (bench-*, realbench-*)
+## 22 objects — benchmark suite
 2ad9dd4b-3434-4451-9839-233db6bf2d60/daec4657-0688-42a0-a137-a22a3a672c92/Proposal-narrative.docx
 3b94a1cb-aacc-49d7-a87c-80dd9f89d27f/079f6267-3644-4ae9-8cab-e56d2b0ae5ed/Before-you-submit.docx
 3b94a1cb-aacc-49d7-a87c-80dd9f89d27f/079f6267-3644-4ae9-8cab-e56d2b0ae5ed/Proposal-narrative.docx
@@ -43,7 +89,7 @@ bbe1fd69-ff06-42d2-89e8-79d16ec94c9b/d6e84714-49f4-428d-b9f4-35ede82de063/Propos
 d7203d9c-7b6e-4feb-9f3a-1ebe06d8cf30/6a328716-05d4-4359-b7b3-d9fcb5fa505c/Proposal-narrative.docx
 e7ce6fc3-333d-4417-a791-30250cd040d3/2d9284a8-50ad-45b1-8425-08eec9027413/Proposal-narrative.docx
 
-## 5 objects — test-org* orders
+## 5 objects — test-org suite
 2de63e0c-351f-4489-a902-cfb2cb83cf0e/66d4fc3b-da43-41cb-93a8-34544486fac1/Proposal-narrative.docx
 2de63e0c-351f-4489-a902-cfb2cb83cf0e/66d4fc3b-da43-41cb-93a8-34544486fac1/V2-Proposal-narrative.docx
 325273fd-b5a1-4a90-bd95-7b3328fc09f4/45e13c10-f9f9-44a6-b878-3917da61f01c/Proposal-narrative.docx
