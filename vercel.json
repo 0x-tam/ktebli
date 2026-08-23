@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/orders/session/:sid", "destination": "/order.html" },
+    { "source": "/orders/:token", "destination": "/order.html" }
+  ]
+}

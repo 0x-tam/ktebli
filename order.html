@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your order — Ktebli</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='14' width='52' height='36' rx='7' fill='none' stroke='%231F9E5A' stroke-width='6' transform='rotate(-6 32 32)'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='26' font-weight='bold' fill='%231F9E5A' text-anchor='middle' transform='rotate(-6 32 32)'%3EK!%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FBFAF7;--mint:#EAF7EF;--green:#1F9E5A;--forest:#14532D;--coral:#FF6B5A;--ink:#1A1A1A;--grey:#5F6B63;--line:#E2E0D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 22px 80px}
+nav{border-bottom:1px solid var(--line);background:rgba(251,250,247,.95)}
+nav .wrap{display:flex;align-items:center;height:72px;padding-bottom:0}
+.stamp{font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:var(--green);border:2.5px solid var(--green);border-radius:6px;padding:3px 11px 4px;transform:rotate(-3deg);text-decoration:none}
+.stamp .dot{color:var(--coral)}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,40px);margin:46px 0 8px;letter-spacing:-.01em}
+.meta{color:var(--grey);margin-bottom:4px}
+.ordno{font-weight:700;color:var(--ink)}
+.chip{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 12px;border-radius:100px;margin:10px 0 30px}
+.chip.processing{background:#FFF3C9;color:#7a5b00}
+.chip.complete{background:var(--mint);color:var(--forest)}
+.chip.attention{background:#FFE3DF;color:#8a2418}
+.comfort{background:var(--mint);border:1.5px solid var(--green);border-radius:12px;padding:12px 16px;font-size:14.5px;color:var(--forest);margin:-14px 0 26px}
+.pcard{background:#fff;border:2px solid var(--ink);border-radius:16px;margin-bottom:26px;overflow:hidden;box-shadow:6px 6px 0 var(--green)}
+.pcard.attention{box-shadow:6px 6px 0 var(--coral)}
+.phead{background:var(--ink);color:#fff;padding:14px 22px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;gap:12px}
+.pbody{padding:10px 22px 20px}
+.stage{display:flex;align-items:flex-start;gap:13px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:15.5px}
+.stage:last-child{border-bottom:none}
+.ic{flex:0 0 22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px}
+.ic.done{background:var(--mint);color:var(--forest)}
+.ic.running{border:2.5px solid var(--line);border-top-color:var(--green);animation:sp 1s linear infinite}
+.ic.pending{border:2px solid var(--line)}
+.ic.held,.ic.failed{background:#FFF3C9;color:#7a5b00}
+@keyframes sp{to{transform:rotate(360deg)}}
+.stage .lbl{flex:1}
+.stage.pending .lbl{color:#A8AFA9}
+.stage .note{display:block;font-size:13.5px;color:#7a5b00}
+.stage .t{font-size:13px;color:var(--grey);flex:0 0 auto}
+.files{background:var(--mint);border-top:2px solid var(--ink);padding:16px 22px}
+.files .ft{font-weight:700;margin:10px 0 8px;color:var(--forest)}
+.files .ft:first-child{margin-top:0}
+.fbtn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:9px 16px;border-radius:100px;margin:0 8px 8px 0;box-shadow:0 2px 0 var(--forest)}
+.fbtn:hover{background:#23b366}
+.revzone{border-top:2px solid var(--ink);padding:16px 22px;background:#fff}
+.revbtn{background:transparent;color:var(--ink);border:2px solid var(--ink);font-weight:700;font-size:14.5px;padding:10px 18px;border-radius:100px;cursor:pointer;font-family:inherit}
+.revbtn:hover{background:var(--ink);color:#fff}
+.revleft{font-size:13.5px;color:var(--grey);margin-top:8px}
+.revform{display:none;margin-top:16px}
+.revform.open{display:block}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+.opt{font-size:13.5px;border:2px solid var(--line);border-radius:100px;padding:6px 13px;cursor:pointer;user-select:none}
+.opt.sel{border-color:var(--green);background:var(--mint);color:var(--forest);font-weight:700}
+.revform textarea{width:100%;border:2px solid var(--ink);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:15px;min-height:90px;resize:vertical}
+.revform textarea:focus{outline:none;border-color:var(--green)}
+.revsend{margin-top:10px;background:var(--green);color:#fff;border:none;font-weight:700;font-size:15px;padding:11px 20px;border-radius:100px;cursor:pointer;font-family:inherit;box-shadow:0 2px 0 var(--forest)}
+.bigmsg{background:#fff;border:2px solid var(--ink);border-radius:16px;padding:34px;text-align:center;box-shadow:6px 6px 0 var(--green)}
+.bigmsg h2{font-family:'Fraunces',serif;font-size:24px;margin-bottom:8px}
+.bigmsg p{color:var(--grey)}
+.spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:sp 1s linear infinite;margin-bottom:14px}
+.foot{margin-top:34px;font-size:14px;color:var(--grey)}
+.foot a{color:var(--forest)}
+</style>
+</head>
+<body>
+<nav><div class="wrap"><a class="stamp" href="/">KTEBLI<span class="dot">!</span></a></div></nav>
+<div class="wrap">
+  <div id="app">
+    <div class="bigmsg" style="margin-top:60px"><span class="spin"></span><h2>Finding your order…</h2><p>One moment.</p></div>
+  </div>
+  <p class="foot" id="foot">Keep this page's link — it is your order page and works from any device.</p>
+</div>
+<script>
+var FN = "https://uocauqflcqefgdixbzpf.supabase.co/functions/v1";
+var path = location.pathname.split('/').filter(Boolean);
+var query = path[1] === 'session' ? ('session=' + encodeURIComponent(path[2] || ''))
+                                  : ('token=' + encodeURIComponent(path[1] || ''));
+var app = document.getElementById('app');
+var timer = null, misses = 0, formState = {}; // per-proposal open form + selections
+
+var REV_OPTIONS = ["Tone / writing style","Make it more concise","Add more detail",
+  "Change positioning / messaging","Strengthen a specific section","Correct organisation information",
+  "Change formatting / structure","Other"];
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+function fmtDur(a,b){ if(!a)return ''; var ms=(b?new Date(b):new Date())-new Date(a);
+  var s=Math.max(1,Math.round(ms/1000)); return s<60? s+'s' : Math.round(s/60)+'m'; }
+
+function render(d){
+  var support = d.support || 'hello@ktebli.com';
+  if (d.pending){
+    misses++;
+    app.innerHTML = '<div class="bigmsg" style="margin-top:60px"><span class="spin"></span>' +
+      '<h2>Payment confirmed. Setting up your order…</h2>' +
+      '<p>This takes a few seconds. We\'ll also email you a tracking link shortly.' +
+      (misses>8 ? '<br>Taking longer than usual — this page keeps trying on its own. If no email arrives either, contact <b>' + esc(support) + '</b>.' : '') +
+      '</p></div>';
+    return;
+  }
+  if (d.order && d.order.token && path[1]==='session'){
+    history.replaceState(null,'','/orders/'+d.order.token);
+    path = ['orders', d.order.token];
+    query = 'token=' + d.order.token;
+  }
+  var o = d.order;
+  document.getElementById('foot').innerHTML =
+    'Keep this page\'s link — it works from any device. Need help? Write to <a href="mailto:' + esc(support) + '">' + esc(support) + '</a> and quote <b>Order ' + esc(o.order_no) + '</b>.';
+  var h = '<h1>' + (o.status==='complete' ? 'Everything is ready.' : o.status==='attention' ? 'Still working — final checks in progress.' : 'Ktebli is writing.') + '</h1>';
+  h += '<div class="meta"><span class="ordno">Order ' + esc(o.order_no) + '</span> · ' + esc(o.org_name) + ' · ' + esc(o.tier.charAt(0).toUpperCase()+o.tier.slice(1)) + ' package</div>';
+  h += '<span class="chip ' + esc(o.status) + '">' + (o.status==='processing'?'In progress':o.status==='complete'?'Complete':'Final checks') + '</span>';
+  var mailTo = o.email ? ' to <b>' + esc(o.email) + '</b>' : ' to your email';
+  h += o.status === 'complete'
+    ? '<div class="comfort">Your order confirmation and the "everything is ready" email were sent' + mailTo + '. Can\'t find them? Check spam, or write to <b>' + esc(support) + '</b> quoting Order ' + esc(o.order_no) + '.</div>'
+    : '<div class="comfort">Your order confirmation with this tracking link has been emailed' + mailTo + '. Most proposals are ready within 5–30 minutes, depending on complexity. You can close this page anytime — the work continues on its own, and we\'ll email you again the moment everything is ready.</div>';
+
+  d.proposals.forEach(function(p){
+    h += '<div class="pcard ' + esc(p.status) + '"><div class="phead"><span>' + esc(p.title) + '</span><span>' +
+      (p.status==='complete'?'✓ Done':p.status==='attention'?'Final checks':'Working…') + '</span></div><div class="pbody">';
+    p.stages.forEach(function(s){
+      var ic = s.status==='done'?'✓': s.status==='running'?'': s.status==='held'||s.status==='failed'?'…':'';
+      h += '<div class="stage ' + esc(s.status) + '"><div class="ic ' + esc(s.status) + '">' + ic + '</div>' +
+        '<div class="lbl">' + esc(s.label) +
+        (s.note? '<span class="note">' + esc(s.note) + '</span>':'') + '</div>' +
+        '<div class="t">' + (s.status==='done'? fmtDur(s.started_at,s.finished_at) : s.status==='running'? fmtDur(s.started_at,null):'') + '</div></div>';
+    });
+    h += '</div>';
+
+    if (p.files && p.files.length){
+      var maxV = 0; p.files.forEach(function(f){ if((f.version||1)>maxV) maxV=f.version||1; });
+      h += '<div class="files">';
+      for (var v = maxV; v >= 1; v--) {
+        var vf = p.files.filter(function(f){ return (f.version||1) === v; });
+        if (!vf.length) continue;
+        h += '<div class="ft">' + (maxV>1 ? 'Version ' + v + (v===maxV?' — latest':'') : 'Your files') + '</div>';
+        vf.forEach(function(f){ h += '<a class="fbtn" href="' + f.url + '">⬇ ' + esc(f.name) + '</a>'; });
+      }
+      h += '</div>';
+    }
+
+    if (p.status === 'complete') {
+      var left = p.revisions_cap - p.revisions_used;
+      h += '<div class="revzone" data-pid="' + esc(p.id) + '">';
+      if (left > 0) {
+        h += '<button class="revbtn" data-open="' + esc(p.id) + '">Request changes</button>' +
+          '<div class="revleft">' + left + ' round' + (left>1?'s':'') + ' of changes included in your package.</div>' +
+          '<div class="revform' + (formState[p.id] ? ' open':'') + '" id="rf-' + esc(p.id) + '">' +
+          '<div style="font-weight:700;margin-top:6px">What kind of changes?</div><div class="opts">' +
+          REV_OPTIONS.map(function(op,i){ var sel = (formState[p.id]&&formState[p.id].opts||[]).indexOf(op)>=0;
+            return '<div class="opt'+(sel?' sel':'')+'" data-pid="'+esc(p.id)+'" data-op="'+esc(op)+'">'+esc(op)+'</div>'; }).join('') +
+          '</div>' +
+          '<textarea id="rd-' + esc(p.id) + '" placeholder="Tell us exactly what you want changed.">' + esc((formState[p.id]&&formState[p.id].details)||'') + '</textarea>' +
+          '<br><button class="revsend" data-send="' + esc(p.id) + '">Send revision request</button>' +
+          '</div>';
+      } else {
+        h += '<div class="revleft">All included rounds of changes for this package have been used. Need more? Write to ' + esc(support) + ' quoting Order ' + esc(o.order_no) + '.</div>';
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+  });
+  app.innerHTML = h;
+
+  // wire revision UI
+  app.querySelectorAll('[data-open]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var pid = b.getAttribute('data-open');
+      formState[pid] = formState[pid] || { opts: [], details: '' };
+      document.getElementById('rf-' + pid).classList.toggle('open');
+    });
+  });
+  app.querySelectorAll('.opt').forEach(function(el){
+    el.addEventListener('click', function(){
+      var pid = el.getAttribute('data-pid'), op = el.getAttribute('data-op');
+      formState[pid] = formState[pid] || { opts: [], details: '' };
+      var i = formState[pid].opts.indexOf(op);
+      if (i >= 0) formState[pid].opts.splice(i,1); else formState[pid].opts.push(op);
+      el.classList.toggle('sel');
+    });
+  });
+  app.querySelectorAll('[data-send]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var pid = b.getAttribute('data-send');
+      var details = (document.getElementById('rd-' + pid) || {}).value || '';
+      var opts = (formState[pid] && formState[pid].opts) || [];
+      if (!opts.length && !details.trim()) { alert('Pick at least one change type or describe what you want changed.'); return; }
+      b.disabled = true; b.textContent = 'Sending…';
+      fetch(FN + '/request-revision', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ token: path[1], proposal_id: pid, options: opts, details: details }) })
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if (j.ok) { formState = {}; if (!timer) timer = setInterval(tick, 3500); tick(); }
+          else { b.disabled = false; b.textContent = 'Send revision request';
+                 alert(j.reason === 'no_revisions_left' ? 'All included rounds of changes have been used.' : 'Could not send — try again.'); }
+        })
+        .catch(function(){ b.disabled = false; b.textContent = 'Send revision request'; alert('Could not send — try again.'); });
+    });
+  });
+
+  // keep textarea edits across polls
+  app.querySelectorAll('.revform textarea').forEach(function(t){
+    t.addEventListener('input', function(){
+      var pid = t.id.slice(3);
+      formState[pid] = formState[pid] || { opts: [], details: '' };
+      formState[pid].details = t.value;
+    });
+  });
+
+  if (o.status==='complete' && timer){ clearInterval(timer); timer=null; }
+}
+
+function tick(){
+  fetch(FN + '/order-status?' + query)
+    .then(function(r){ return r.json(); })
+    .then(render)
+    .catch(function(){ /* keep last view; retry next tick */ });
+}
+tick();
+timer = setInterval(tick, 3500);
+</script>
+</body>
+</html>

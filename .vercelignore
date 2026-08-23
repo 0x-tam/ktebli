@@ -1,0 +1,9 @@
+# Static site: Vercel serves the repo root. Keep everything that is not the
+# front end out of the deployment, or it becomes publicly fetchable on the domain.
+supabase/
+db/
+reports/
+render-service/
+CLAUDE.md
+DEPLOY.md
+BLUEPRINT.md

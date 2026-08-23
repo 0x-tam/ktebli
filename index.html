@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ktebli — get the proposal only you could have written</title>
+<meta name="description" content="Paste the grant you're applying for, answer a few questions, get a complete submission-ready package in your organisation's own voice. Nobody else applying to the same grant can be given anything like it.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='14' width='52' height='36' rx='7' fill='none' stroke='%231F9E5A' stroke-width='6' transform='rotate(-6 32 32)'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='26' font-weight='bold' fill='%231F9E5A' text-anchor='middle' transform='rotate(-6 32 32)'%3EK!%3C/text%3E%3C/svg%3E">
+<meta property="og:title" content="Ktebli — get the proposal only you could have written">
+<meta property="og:description" content="Complete grant proposals in your organisation's own voice, never resembling anyone else's on the same grant.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBFAF7;
+  --mint:#EAF7EF;
+  --green:#1F9E5A;
+  --forest:#14532D;
+  --coral:#FF6B5A;
+  --ink:#1A1A1A;
+  --grey:#5F6B63;
+  --line:#E2E0D8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 30px}
+.disp{font-family:'Fraunces',Georgia,serif;font-weight:600;letter-spacing:-.02em;line-height:1.08}
+
+.stamp{
+  display:inline-block;font-family:'Fraunces',serif;font-weight:700;
+  font-size:20px;letter-spacing:.02em;color:var(--green);
+  border:2.5px solid var(--green);border-radius:6px;padding:3px 11px 4px;
+  transform:rotate(-3deg);text-decoration:none;
+}
+.stamp .dot{color:var(--coral)}
+
+nav{position:sticky;top:0;z-index:60;background:rgba(251,250,247,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px}
+.navlinks{display:flex;gap:30px;align-items:center}
+.navlinks a{color:var(--grey);text-decoration:none;font-size:15.5px;font-weight:500}
+.navlinks a:hover{color:var(--ink)}
+.btn{
+  display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;
+  font-size:15.5px;padding:13px 24px;border-radius:100px;border:none;cursor:pointer;
+  font-family:inherit;transition:transform .14s,box-shadow .14s,background .14s;
+  box-shadow:0 3px 0 var(--forest);
+}
+.btn:hover{background:#23b366;transform:translateY(-2px);box-shadow:0 5px 0 var(--forest)}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--forest)}
+.navlinks a.btn,.navlinks a.btn:hover{color:#fff}
+.btn.coral{background:var(--coral);box-shadow:0 3px 0 #C7412F}
+.btn.coral:hover{background:#ff8071;box-shadow:0 5px 0 #C7412F}
+.btn.plain{background:transparent;color:var(--ink);box-shadow:none;border:2px solid var(--ink)}
+.btn.plain:hover{background:var(--ink);color:var(--bg);box-shadow:none}
+.btn.big{font-size:17.5px;padding:16px 32px}
+
+header{padding:92px 0 76px}
+.herosplit{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center}
+.tag{
+  display:inline-flex;align-items:center;gap:9px;background:var(--mint);color:var(--forest);
+  font-size:14px;font-weight:700;padding:8px 16px;border-radius:100px;margin-bottom:28px;
+}
+h1{font-size:clamp(42px,6.6vw,76px);max-width:15ch;margin-bottom:26px}
+.squig{position:relative;display:inline-block;white-space:nowrap}
+.squig svg{position:absolute;left:0;bottom:-.16em;width:100%;height:.24em;overflow:visible}
+.lede{font-size:20px;color:var(--grey);max-width:56ch;margin-bottom:34px}
+.lede b{color:var(--ink);font-weight:700}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.undercta{font-size:15px;color:var(--grey);margin-top:20px}
+
+.heroviz{background:#fff;border:2px solid var(--ink);border-radius:18px;box-shadow:8px 8px 0 var(--coral);overflow:hidden}
+.heroviz .hv-top{background:var(--forest);color:#fff;padding:14px 20px;font-size:13.5px;font-weight:700;letter-spacing:.04em}
+.heroviz .hv-body{padding:18px 20px 22px}
+.hv-row{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px dashed var(--line)}
+.hv-row:last-child{border-bottom:none}
+.hv-av{width:34px;height:34px;border-radius:9px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:0 0 auto}
+.hv-a{background:var(--mint)}.hv-b{background:#FFE3DF}.hv-c{background:#FFF3C9}
+.hv-txt{flex:1;font-size:14.5px;line-height:1.42}
+.hv-txt b{display:block;font-size:12.5px;color:var(--grey);font-weight:700;letter-spacing:.04em}
+.hv-lock{font-size:15px}
+.hv-foot{background:var(--mint);border-top:2px solid var(--ink);padding:13px 20px;font-size:14px;font-weight:700;color:var(--forest)}
+
+section{padding:92px 0}
+.mintbg{background:var(--mint)}
+.inkbg{background:var(--forest);color:var(--bg)}
+.inkbg .sub{color:#B8D4C4}
+.kicker{font-size:14px;font-weight:700;color:var(--coral);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+.inkbg .kicker{color:#7FE0A8}
+h2{font-size:clamp(32px,4.8vw,50px);max-width:19ch;margin-bottom:18px}
+.sub{font-size:19px;color:var(--grey);max-width:60ch;margin-bottom:50px}
+
+.rows{border-top:2px solid var(--ink)}
+.row{display:grid;grid-template-columns:auto 1fr;gap:28px;padding:26px 0;border-bottom:1px solid var(--line);align-items:start}
+.row .mark{font-family:'Fraunces',serif;font-size:30px;color:var(--coral);line-height:1}
+.row h3{font-size:20px;font-weight:700;margin-bottom:6px}
+.row p{color:var(--grey);max-width:62ch;font-size:16.5px}
+
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.card{background:#fff;border:2px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:8px 8px 0 var(--green)}
+.card .chead{
+  background:var(--ink);color:#fff;padding:14px 20px 14px 24px;font-size:14.5px;font-weight:700;
+  letter-spacing:.03em;display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.extag{background:var(--coral);color:#fff;font-size:11px;font-weight:700;letter-spacing:.09em;padding:3px 9px;border-radius:100px;flex:0 0 auto}
+.card .cbody{padding:24px}
+.cline{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px dashed var(--line);font-size:15.5px}
+.cline .lbl{color:var(--grey)}
+.cline .val{font-weight:700;text-align:right}
+.val.good{color:var(--green)}
+.allow{font-weight:400;color:var(--grey)}
+.cleared{
+  margin-top:20px;background:var(--mint);border:2px solid var(--green);border-radius:12px;
+  padding:14px 18px;font-size:15px;font-weight:700;color:var(--forest);
+}
+.cardnote{margin-top:14px;font-size:14.5px;color:var(--grey);text-align:center}
+
+.lockgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));border:2px solid rgba(255,255,255,.22);border-radius:16px;overflow:hidden;margin-top:8px}
+.lockcell{padding:28px 26px;border-right:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16)}
+.lockcell .n{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:#7FE0A8;margin-bottom:10px;display:block}
+.lockcell h3{font-size:18.5px;font-weight:700;margin-bottom:8px}
+.lockcell p{font-size:15.5px;color:#B8D4C4}
+.callout{margin-top:44px;background:rgba(255,255,255,.07);border-left:4px solid var(--coral);padding:26px 28px;border-radius:0 12px 12px 0;max-width:76ch}
+.callout h3{font-size:20px;margin-bottom:10px}
+.callout p{color:#CFE6DA;font-size:16.5px}
+
+.stepgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:38px 34px;margin-top:12px}
+.stepitem .sn{width:40px;height:40px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;margin-bottom:14px}
+.stepitem h3{font-size:19px;font-weight:700;margin-bottom:7px}
+.stepitem p{color:var(--grey);font-size:16px}
+.pill{display:inline-block;background:var(--mint);color:var(--forest);font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:100px;margin-left:6px;vertical-align:2px}
+
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:24px;margin-top:14px}
+.tier{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:30px 28px;display:flex;flex-direction:column}
+.tier.hot{box-shadow:8px 8px 0 var(--coral);position:relative}
+.tier.hot .badge{position:absolute;top:-15px;left:26px;background:var(--coral);color:#fff;font-size:12.5px;font-weight:700;padding:5px 13px;border-radius:100px;border:2px solid var(--ink)}
+.tname{font-size:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grey);margin-bottom:12px}
+.price{font-family:'Fraunces',serif;font-size:50px;font-weight:700;line-height:1;margin-bottom:8px}
+.tdesc{font-size:15.5px;color:var(--grey);margin-bottom:22px;min-height:52px}
+.tier ul{list-style:none;margin-bottom:26px;flex:1}
+.tier li{font-size:15.5px;padding:6px 0 6px 27px;position:relative}
+.tier li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+.tier li.no{color:#A8AFA9}
+.tier li.no::before{content:'·';color:#C9CFC9;font-size:20px;left:5px;top:2px}
+.tier .btn{text-align:center}
+.after{margin-top:32px;font-size:16px;color:var(--grey);max-width:66ch}
+
+.faq{max-width:820px}
+.faq details{border-bottom:2px solid var(--line);padding:22px 0}
+.faq summary{font-size:19px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;font-family:'Fraunces',serif}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--green);font-size:26px;font-weight:400;line-height:1}
+.faq details[open] summary::after{content:'–'}
+.faq p{color:var(--grey);margin-top:13px;font-size:16.5px;max-width:70ch}
+
+form{max-width:660px;margin-top:10px}
+.field{margin-bottom:20px}
+label{display:block;font-size:15px;font-weight:700;margin-bottom:7px}
+label .hint{display:block;font-weight:400;font-size:14.5px;color:var(--grey);margin-top:3px}
+label .rq{color:var(--coral)}
+input,textarea,select{width:100%;background:#fff;border:2px solid var(--ink);border-radius:11px;padding:13px 15px;color:var(--ink);font-family:inherit;font-size:16px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px var(--mint)}
+textarea{resize:vertical;min-height:112px}
+select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='13' height='9'><path d='M1.5 1.5l5 5 5-5' stroke='%231A1A1A' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 16px center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.fnote{font-size:15px;color:var(--grey);margin-top:14px}
+.done{display:none;background:#fff;border:2px solid var(--green);border-radius:18px;padding:30px;box-shadow:8px 8px 0 var(--green);max-width:660px}
+.done h3{font-family:'Fraunces',serif;font-size:26px;margin-bottom:10px}
+.done p{color:var(--grey)}
+
+footer{background:var(--ink);color:#C7CCC8;padding:56px 0 44px;font-size:15.5px}
+footer a{color:#fff;text-decoration:none}
+footer a:hover{color:var(--coral)}
+.frow{display:flex;justify-content:space-between;gap:36px;flex-wrap:wrap}
+.fdisc{max-width:48ch;margin-top:16px;font-size:14.5px;line-height:1.6;color:#98A09A}
+.fnav div{margin-bottom:7px}
+
+@media(max-width:900px){
+  .herosplit,.split{grid-template-columns:1fr;gap:44px}
+  .heroviz{box-shadow:5px 5px 0 var(--coral)}
+  .lockcell{border-right:none}
+}
+@media(max-width:700px){
+  .navlinks a:not(.btn){display:none}
+  header{padding:58px 0 52px}
+  section{padding:66px 0}
+  .two{grid-template-columns:1fr}
+  .card{box-shadow:5px 5px 0 var(--green)}
+  .tier.hot{box-shadow:5px 5px 0 var(--coral)}
+}
+
+/* trial strip */
+.trialstrip{
+  margin-top:24px;background:#fff;border:2px dashed var(--ink);border-radius:16px;
+  padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;
+}
+.trialstrip .tleft{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.trialstrip .tprice{font-family:'Fraunces',serif;font-size:34px;font-weight:700}
+.trialstrip .ttxt{font-size:15.5px;color:var(--grey);max-width:52ch}
+.trialstrip .ttxt b{color:var(--ink)}
+
+/* wizard */
+.wiz-overlay{
+  display:none;position:fixed;inset:0;z-index:100;background:rgba(20,30,24,.55);
+  backdrop-filter:blur(3px);overflow-y:auto;padding:30px 16px;
+}
+.wiz-overlay.open{display:block}
+.wiz{
+  max-width:640px;margin:0 auto;background:var(--bg);border:2px solid var(--ink);
+  border-radius:20px;box-shadow:10px 10px 0 rgba(31,158,90,.9);overflow:hidden;
+}
+.wiz-head{background:var(--ink);color:#fff;padding:18px 26px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.wiz-head .wt{font-weight:700;font-size:15.5px;letter-spacing:.03em}
+.wiz-x{background:none;border:none;color:#fff;font-size:26px;cursor:pointer;line-height:1;padding:2px 8px}
+.wiz-dots{display:flex;gap:8px;padding:18px 26px 0}
+.wiz-dots .d{height:6px;flex:1;border-radius:100px;background:var(--line)}
+.wiz-dots .d.on{background:var(--green)}
+.wiz-body{padding:20px 26px 6px}
+.wiz-step{display:none}
+.wiz-step.on{display:block}
+.wiz-step h3{font-family:'Fraunces',serif;font-size:24px;margin-bottom:6px}
+.wiz-step .ws-sub{font-size:15px;color:var(--grey);margin-bottom:18px}
+.wiz-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 26px 24px}
+.wiz-back{background:none;border:none;color:var(--grey);font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;padding:10px 6px}
+.wiz-back:hover{color:var(--ink)}
+.pkg{display:grid;gap:12px}
+.pkg label{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;background:#fff;
+  border:2px solid var(--line);border-radius:12px;padding:14px 18px;cursor:pointer;font-weight:400;margin:0;
+}
+.pkg label.sel{border-color:var(--green);box-shadow:0 0 0 3px var(--mint)}
+.pkg input{display:none}
+.pkg .pk-n{font-weight:700;font-size:16px}
+.pkg .pk-d{font-size:13.5px;color:var(--grey);display:block;font-weight:400}
+.pkg .pk-p{font-family:'Fraunces',serif;font-size:22px;font-weight:700;flex:0 0 auto}
+.filebox{
+  border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;
+  font-size:15px;color:var(--grey);cursor:pointer;background:#fff;
+}
+.filebox:hover{border-color:var(--green)}
+.filelist{margin-top:10px;font-size:14px;color:var(--forest)}
+.filelist div{padding:3px 0}
+.sumbox{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:6px 18px;margin-bottom:16px}
+.sumrow{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+.sumrow:last-child{border-bottom:none}
+.sumrow .sk{color:var(--grey);flex:0 0 auto}
+.sumrow .sv{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.paynote{font-size:13.5px;color:var(--grey);margin-top:12px;text-align:center}
+.gpreview{background:#fff;border:2px solid var(--green);border-radius:12px;padding:14px 18px;margin:-6px 0 20px;font-size:14.5px}
+.gpreview.err{border-color:var(--line);color:var(--grey)}
+.gpreview .gp-t{font-weight:700;margin-bottom:4px}
+.gpreview .gp-r{display:flex;gap:10px;padding:3px 0}
+.gpreview .gp-k{color:var(--grey);flex:0 0 92px}
+.gpreview .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:700px){
+  .wiz-overlay{padding:12px 8px}
+  .trialstrip{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#" class="stamp">KTEBLI<span class="dot">!</span></a>
+    <div class="navlinks">
+      <a href="#how">How it works</a>
+      <a href="#lock">No copies</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#start" class="btn">Start yours</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap herosplit">
+    <div>
+      <span class="tag">🔒 No two proposals alike. Ever.</span>
+      <h1 class="disp">Get the proposal only <span class="squig">you<svg viewBox="0 0 100 12" preserveAspectRatio="none"><path d="M2,8 C18,2 32,10 50,6 C66,2 82,10 98,4" stroke="#FF6B5A" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span> could have written.</h1>
+      <p class="lede">Paste the grant you are going for, answer a few questions, and get a full submission-ready package written in your organisation's own voice. <b>Nobody else applying to that same grant can be given anything close to it.</b></p>
+      <div class="cta-row">
+        <a href="#start" class="btn big">Start yours</a>
+        <a href="#lock" class="btn plain big">How we stop copies</a>
+      </div>
+      <p class="undercta"><b style="color:var(--ink)">Ktebli</b> means &ldquo;write it for me.&rdquo; So we do. &nbsp;·&nbsp; Pay once, per proposal. No subscription.</p>
+    </div>
+
+    <div class="heroviz">
+      <div class="hv-top">ONE GRANT. THREE APPLICANTS. THREE PROPOSALS.</div>
+      <div class="hv-body">
+        <div class="hv-row">
+          <div class="hv-av hv-a">A</div>
+          <div class="hv-txt"><b>ORGANISATION A</b>Youth training academies across two districts</div>
+          <div class="hv-lock">🔒</div>
+        </div>
+        <div class="hv-row">
+          <div class="hv-av hv-b">B</div>
+          <div class="hv-txt"><b>ORGANISATION B</b>Newsroom mentoring for regional radio</div>
+          <div class="hv-lock">🔒</div>
+        </div>
+        <div class="hv-row">
+          <div class="hv-av hv-c">C</div>
+          <div class="hv-txt"><b>ORGANISATION C</b>Verification desks inside municipalities</div>
+          <div class="hv-lock">🔒</div>
+        </div>
+      </div>
+      <div class="hv-foot">Nothing shared. Not the idea, not the shape, not the opening.</div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Why this exists</div>
+    <h2 class="disp">Everyone is writing proposals with the same chatbot now.</h2>
+    <p class="sub">Which means the same reviewers keep opening the same application, in the same voice, with the same plan. Three things happen, and none of them are good for you.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="mark">01</div>
+        <div>
+          <h3>They can tell</h3>
+          <p>Someone who has read four hundred applications spots generated writing in a paragraph. What it signals is that nobody at your organisation cared enough to write it themselves, which is a strange message to send while asking for a quarter of a million dollars.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="mark">02</div>
+        <div>
+          <h3>It misses the points</h3>
+          <p>Every donor gives your application a mark, and the marks sit in specific places. A smooth proposal that ignores where they sit loses to a plainer one that hits them squarely.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="mark">03</div>
+        <div>
+          <h3>It collides with your neighbours</h3>
+          <p>The circle of organisations chasing any one grant is smaller than it looks, and many of them are typing into the same tool. When two applications land on one desk looking like siblings, the reviewer notices, and it goes badly for both. This is the one that ends organisations, and it is the reason the next section exists.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mintbg">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <div class="kicker">No copies</div>
+        <h2 class="disp">One organisation per idea. Enforced, not promised.</h2>
+        <p class="sub" style="margin-bottom:26px">Your approach is written down and reserved to you before a single sentence is drafted. From that moment, nobody else applying to the same grant can be given it. Not steered away from it. Given it is not possible. Approaches are reserved in the order organisations arrive, so there is a good reason to start early.</p>
+        <a href="#lock" class="btn coral">How we make that true</a>
+      </div>
+      <div>
+        <div class="card">
+          <div class="chead"><span>WHAT YOUR CHECK LOOKS LIKE</span><span class="extag">EXAMPLE</span></div>
+          <div class="cbody">
+            <div class="cline"><span class="lbl">Grant</span><span class="val">Civil society fund, 2027 round</span></div>
+            <div class="cline"><span class="lbl">Your approach</span><span class="val">Verification desks inside municipal offices, two districts</span></div>
+            <div class="cline"><span class="lbl">Reserved to you since</span><span class="val">12 August</span></div>
+            <div class="cline"><span class="lbl">Others we are writing for on this grant</span><span class="val">4</span></div>
+            <div class="cline"><span class="lbl">Any of them using your approach?</span><span class="val good">None</span></div>
+            <div class="cline"><span class="lbl">Any sharing your structure or opening?</span><span class="val good">None</span></div>
+            <div class="cline"><span class="lbl">Longest wording in common</span><span class="val good">6 words <span class="allow">(we allow 25)</span></span></div>
+            <div class="cleared">✓ Cleared. Nothing in your proposal overlaps with theirs.</div>
+          </div>
+        </div>
+        <p class="cardnote">Made-up example. Yours arrives with your own proposal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="inkbg" id="lock">
+  <div class="wrap">
+    <div class="kicker">No two ways about it</div>
+    <h2 class="disp">Four locks, and none of them are a polite request to the AI.</h2>
+    <p class="sub" style="max-width:64ch">Asking a model nicely to "be different" is not a guarantee, it is a hope. So we do not do that. Your approach is reserved in a database before writing starts, and the finished text is checked against the others before anything reaches you.</p>
+
+    <div class="lockgrid">
+      <div class="lockcell">
+        <span class="n">LOCK ONE</span>
+        <h3>Your approach is written down first</h3>
+        <p>Before any writing, your project is recorded plainly: what the activity is, who it serves, where, and how it is delivered. That record is filed against the grant and reserved to your organisation.</p>
+      </div>
+      <div class="lockcell">
+        <span class="n">LOCK TWO</span>
+        <h3>A repeat is refused outright</h3>
+        <p>A second organisation asking for the same combination on the same grant is rejected by the system and has to be planned differently. It is not a preference that somebody can override.</p>
+      </div>
+      <div class="lockcell">
+        <span class="n">LOCK THREE</span>
+        <h3>Different shape, different opening</h3>
+        <p>The structure and the first paragraph are reserved the same way, so two proposals for one grant cannot be built the same way or begin the same way even when the subject is close.</p>
+      </div>
+      <div class="lockcell">
+        <span class="n">LOCK FOUR</span>
+        <h3>The finished text is checked, and can fail</h3>
+        <p>Every draft is compared with every other proposal we have written for that grant. Too close and it is automatically rewritten and re-checked until it is genuinely its own. Nothing that fails the check is ever delivered.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>But what if someone already took my idea?</h3>
+      <p>Far less likely than it sounds. A grant this size has thousands of workable combinations once you account for the activity, who it serves, where, and how it is delivered. More to the point, your proposal is built out of your own partners, your own communities and your own track record, so your strongest approach is usually one no other organisation could credibly claim anyway. In the rare case where the obvious approach is already taken, we show you what is open before you pay a thing.</p>
+    </div>
+
+    <div class="callout" style="border-left-color:#7FE0A8">
+      <h3>What we will not claim</h3>
+      <p>We cannot speak for the other applicants who never came near us, and we will not pretend otherwise. Our promise covers every proposal written here, and every package arrives with its own check so you can see it rather than take our word for it. Your writing is never shown to another organisation, and what we keep on file is only the shape of an approach, never anybody's text.</p>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 class="disp">About fifteen minutes of your time.</h2>
+    <p class="sub">Most of it is you answering things only you know. That is the point. The specifics you give are what make it sound like your organisation and what make it unlike anyone else's.</p>
+    <div class="stepgrid">
+      <div class="stepitem">
+        <div class="sn">1</div>
+        <h3>Give us the grant</h3>
+        <p>Paste the link, or the guidelines themselves. We read all of it, including the parts everyone skips, and work out exactly what the donor is asking for and how they say they decide.</p>
+      </div>
+      <div class="stepitem">
+        <div class="sn">2</div>
+        <h3>Upload old proposals <span class="pill">optional</span></h3>
+        <p>One to three, funded or not. We learn how your organisation writes and everything after that comes out in your voice. Skip it and you get a distinct house voice instead.</p>
+      </div>
+      <div class="stepitem">
+        <div class="sn">3</div>
+        <h3>Answer a few questions</h3>
+        <p>Who you are, where you work, who you serve, what you have already done and with what numbers. We ask again when an answer is thin, and we never invent a track record you did not give us.</p>
+      </div>
+      <div class="stepitem">
+        <div class="sn">4</div>
+        <h3>Pick your pieces</h3>
+        <p>Full narrative, short concept note, budget, budget justification, logframe, donor forms, and a brief for your own board. Take one or take everything.</p>
+      </div>
+      <div class="stepitem">
+        <div class="sn">5</div>
+        <h3>Download and send</h3>
+        <p>Word and Excel, ready to submit, with your no-copies check attached. Most proposals are ready within 5&ndash;30 minutes, depending on complexity, and you watch the progress live.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mintbg" id="pricing">
+  <div class="wrap">
+    <div class="kicker">Pricing</div>
+    <h2 class="disp">Pay for the proposal. Not for a subscription you forget to cancel.</h2>
+    <p class="sub">You apply three or four times a year. Charging you every month for that would be daft, so we do not.</p>
+
+    <div class="tiers">
+      <div class="tier">
+        <div class="tname">Draft</div>
+        <div class="price">$149</div>
+        <p class="tdesc">One strong document, quickly. For when you already know roughly what you want to say.</p>
+        <ul>
+          <li>A check that you are actually eligible, before we start</li>
+          <li>Full narrative or short concept note</li>
+          <li>Checklist against the donor's requirements</li>
+          <li>Light voice matching</li>
+          <li>All four locks, and your check</li>
+          <li>One round of changes</li>
+          <li class="no">Budget and justification</li>
+          <li class="no">Logframe and M&amp;E plan</li>
+          <li class="no">The deeper final review against the grant's requirements</li>
+        </ul>
+        <a href="#start" id="buy-draft" class="btn plain">Start with Draft</a>
+      </div>
+
+      <div class="tier hot">
+        <div class="badge">most take this</div>
+        <div class="tname">Competitive</div>
+        <div class="price">$299</div>
+        <p class="tdesc">The complete written application, in your organisation's own voice.</p>
+        <ul>
+          <li>Everything in Draft, and then</li>
+          <li>Full narrative <em>and</em> concept note</li>
+          <li>Proper voice matching from your old work</li>
+          <li>Line-item budget in Excel with live formulas</li>
+          <li>Budget justification</li>
+          <li>The covering email, written and ready to send</li>
+          <li>Three rounds of changes</li>
+          <li class="no">Month-by-month workplan</li>
+          <li class="no">Logframe and M&amp;E plan</li>
+          <li class="no">The deeper final review against the grant's requirements</li>
+        </ul>
+        <a href="#start" id="buy-competitive" class="btn">Start with Competitive</a>
+      </div>
+
+      <div class="tier">
+        <div class="tname">Full</div>
+        <div class="price">$449</div>
+        <p class="tdesc">Everything, plus a deeper final review of the whole package against the grant before it reaches you.</p>
+        <ul>
+          <li>Everything in Competitive, and then</li>
+          <li><b>Every stated requirement and question cross-checked and covered</b></li>
+          <li>Facts, figures, dates and your organisation's details verified for consistency</li>
+          <li>Checked for alignment with the donor's published evaluation criteria, where available</li>
+          <li>A written review report showing exactly what was checked</li>
+          <li>Month-by-month workplan</li>
+          <li>Logframe and M&amp;E plan</li>
+          <li>Risk table, the way donors expect to see it</li>
+          <li>One-page summary for your board or partners</li>
+          <li>Support letters drafted for your partners to sign</li>
+          <li>Job descriptions for the roles in your budget</li>
+          <li>Prep for the questions the donor will come back with</li>
+          <li>Ten rounds of changes within two weeks</li>
+        </ul>
+        <a href="#start" id="buy-full" class="btn plain">Start with Full</a>
+      </div>
+    </div>
+
+    <div class="trialstrip">
+      <div class="tleft">
+        <span class="tprice">$1</span>
+        <span class="ttxt"><b>Early-access trial.</b> Walk through the whole thing with your real grant, intake to checkout, for a dollar. Credited toward your first package.</span>
+      </div>
+      <a href="#" id="buy-trial" class="btn plain">Try it for $1</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Questions</div>
+    <h2 class="disp">Straight answers.</h2>
+    <div class="faq" style="margin-top:36px">
+      <details open>
+        <summary>You work with organisations competing for the same money. Is that not a conflict?</summary>
+        <p>Two organisations going for the same grant can both be customers here. That is exactly why the locks exist and why they run on their own rather than depending on someone remembering to check. Your writing is never shown to anybody, and the only thing we keep in a shared record is the shape of your approach, which is what lets us refuse it to the next person.</p>
+      </details>
+      <details>
+        <summary>Is there a limit on how many organisations you will work with on one grant?</summary>
+        <p>No. We never turn you away because a grant is busy. Approaches are reserved in the order organisations arrive, and since the proposal is built from your own partners, communities and history, the approach that suits you is rarely one somebody else could have taken. Arriving early does help, so if you know which grant you are going for, start before the week of the deadline rather than during it.</p>
+      </details>
+      <details>
+        <summary>Will it make things up about my organisation?</summary>
+        <p>No. It will not produce claims about your track record, your staff, your partners or your finances that you have not given it. Where something is missing the draft says so plainly instead of papering over it, so you can fill it in or take it out. A funded proposal built on an invented claim is a serious problem for you, and we are not going to create one.</p>
+      </details>
+      <details>
+        <summary>Do I need old proposals to upload?</summary>
+        <p>No, it is optional, but it is the single biggest difference in what comes out. With one to three old documents it sounds like your organisation. Without them it sounds like a capable stranger. If you have nothing, you are given a house voice chosen so it is not the one somebody else applying to the same grant received.</p>
+      </details>
+      <details>
+        <summary>Which donors does this work for?</summary>
+        <p>Any of them. Embassies, EU institutions, UN agencies, development agencies, private foundations — the method is the same everywhere, because it works from the donor's own document: what they ask for, what they require, and how they describe their decision. Where a donor publishes evaluation criteria, we check your proposal against those exact criteria. Where they publish none, we say so plainly rather than inventing a standard.</p>
+      </details>
+      <details>
+        <summary>How do I pay?</summary>
+        <p>By card, through Stripe's secure checkout, in dollars. Stablecoin on request. You get a receipt your finance officer can file, and if the eligibility check finds your organisation cannot apply to that grant, the payment comes back automatically in full. Payment comes before work starts.</p>
+      </details>
+      <details>
+        <summary>How long does it take?</summary>
+        <p>Most proposals are ready within 5 to 30 minutes, depending on the length and complexity of the grant, how many documents your package includes, and how much material you give us to work with. You watch every step happen live on your order page, and we email you the moment everything is ready — so you can close the page and get on with your day.</p>
+      </details>
+      <details>
+        <summary>What happens to my data?</summary>
+        <p>Your uploads and drafts are yours. We keep them so you can reuse your voice next time, and we delete them the day you ask. Nothing you write is ever used to write somebody else's proposal.</p>
+      </details>
+      <details>
+        <summary>Will this get me the grant?</summary>
+        <p>Nobody can promise that, and be careful with anyone who does. What this does is make sure you send something complete, correct, checked against what the donor actually asks for, written like a person, and unlike anything else we have written for that grant. That part is inside your control. The decision is the panel's.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="mintbg" id="start">
+  <div class="wrap">
+    <div class="kicker">Get started</div>
+    <h2 class="disp">Pick a package and go. Or talk to us first.</h2>
+    <p class="sub" style="margin-bottom:26px">Starting takes about fifteen minutes: choose a package above, answer the questions step by step, pay, and Ktebli gets to work. Not sure which package, or on a deadline inside 72 hours? Write to us and we answer within one working day.</p>
+    <div class="cta-row">
+      <a href="#pricing" class="btn big">Choose a package</a>
+      <a href="mailto:hello@ktebli.com" class="btn plain big">hello@ktebli.com</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="frow">
+      <div>
+        <a href="#" class="stamp" style="background:transparent">KTEBLI<span class="dot">!</span></a>
+        <div style="margin-top:16px">Ktebli: Proposals like no other, ever.</div>
+        <p class="fdisc">We work with organisations that compete for the same money. No proposal written here is ever shown to another client, and no two proposals for the same grant can share an approach, a structure or an opening.</p>
+      </div>
+      <div class="fnav">
+        <div><a href="#how">How it works</a></div>
+        <div><a href="#lock">No copies</a></div>
+        <div><a href="#pricing">Pricing</a></div>
+        <div style="margin-top:14px"><a href="mailto:hello@ktebli.com">hello@ktebli.com</a></div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="wiz-overlay" id="wiz">
+  <div class="wiz" role="dialog" aria-modal="true" aria-label="Start your proposal">
+    <div class="wiz-head">
+      <span class="wt" id="wiz-title">START YOUR PROPOSAL</span>
+      <button class="wiz-x" id="wiz-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="wiz-dots" id="wiz-dots"></div>
+    <div class="wiz-body">
+
+      <div class="wiz-step" data-step="0">
+        <h3>Your package</h3>
+        <p class="ws-sub">You can change this later. Nothing is charged until the last step.</p>
+        <div class="pkg" id="pkg">
+          <label data-tier="trial"><span><span class="pk-n">Trial</span><span class="pk-d">The whole flow with your real grant. Credited to your first package.</span></span><span class="pk-p">$1</span><input type="radio" name="tier" value="trial"></label>
+          <label data-tier="draft"><span><span class="pk-n">Draft</span><span class="pk-d">One strong document, quickly.</span></span><span class="pk-p">$149</span><input type="radio" name="tier" value="draft"></label>
+          <label data-tier="competitive"><span><span class="pk-n">Competitive</span><span class="pk-d">The complete written application.</span></span><span class="pk-p">$299</span><input type="radio" name="tier" value="competitive"></label>
+          <label data-tier="full"><span><span class="pk-n">Full</span><span class="pk-d">Everything, with the deeper final review.</span></span><span class="pk-p">$449</span><input type="radio" name="tier" value="full"></label>
+        </div>
+      </div>
+
+      <div class="wiz-step" data-step="1">
+        <h3>Your organisation</h3>
+        <p class="ws-sub">Who is applying, and who we talk to.</p>
+        <div class="two">
+          <div class="field"><label>Organisation <span class="rq">*</span></label><input type="text" id="w-org" placeholder="Registered name"></div>
+          <div class="field"><label>Registration no.</label><input type="text" id="w-reg" placeholder="If your organisation has one — optional"></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Your name <span class="rq">*</span></label><input type="text" id="w-name" placeholder="Who we reply to"></div>
+          <div class="field"><label>Email <span class="rq">*</span></label><input type="email" id="w-email" placeholder="you@organisation.org"></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>WhatsApp</label><input type="text" id="w-wa" placeholder="Phone number"></div>
+          <div class="field"><label>Website</label><input type="text" id="w-web" placeholder="www.yourorganisation.org — optional"></div>
+        </div>
+      </div>
+
+      <div class="wiz-step" data-step="2">
+        <h3>The grant</h3>
+        <p class="ws-sub">Paste the link, or the donor's guidelines if there is nothing public.</p>
+        <div class="field"><label>Which grant <span class="rq">*</span></label><textarea id="w-grant" placeholder="https://... or paste the guidelines here"></textarea></div>
+        <div id="gpreview" class="gpreview" style="display:none"></div>
+        <div class="field" id="deadline-manual" style="max-width:260px;display:none"><label>Deadline<span class="hint">We could not detect it, so tell us.</span></label><input type="date" id="w-deadline"></div>
+      </div>
+
+      <div class="wiz-step" data-step="3">
+        <h3>How should we write it?</h3>
+        <p class="ws-sub">Everything on this page is optional. Skip it entirely and your order still works.</p>
+        <div class="field">
+          <label>Anything you'd like us to emphasise or avoid? <span class="pill">optional</span>
+            <span class="hint">e.g. highlight a strength, focus on a certain approach, avoid mentioning something, keep the tone more formal.</span>
+          </label>
+          <textarea id="w-directions" placeholder="Your directions, in your own words."></textarea>
+        </div>
+        <div class="field">
+          <label>Old proposals, up to three <span class="pill">optional</span>
+            <span class="hint">They help us match how your organisation writes, but they are not required.</span>
+          </label>
+          <div class="filebox" id="filebox">Click to choose files (.pdf, .doc, .docx) — or skip this</div>
+          <input type="file" id="w-files" multiple accept=".pdf,.doc,.docx" style="display:none">
+          <div class="filelist" id="filelist"></div>
+        </div>
+      </div>
+
+      <div class="wiz-step" data-step="4">
+        <h3>Ready when you are</h3>
+        <p class="ws-sub">Check it over, then pay and Ktebli gets to work.</p>
+        <div class="sumbox" id="summary"></div>
+      </div>
+
+    </div>
+    <div class="wiz-foot">
+      <button class="wiz-back" id="wiz-back">Back</button>
+      <button class="btn" id="wiz-next">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Form submission endpoint (Formspree / Supabase edge function). Optional but recommended:
+// without it, answers travel only inside the Stripe checkout's own fields.
+var ENDPOINT = "";
+
+// Stripe payment links. Paste competitive/full when created in the dashboard.
+var PAYLINKS = {
+  trial: "https://buy.stripe.com/dRm6oHgXLe2jb76a7S5wI04",
+  draft: "https://buy.stripe.com/5kQ4gz22Rf6n3EE5RC5wI03",
+  competitive: "",
+  full: ""
+};
+var PRICES = { trial: "$1", draft: "$149", competitive: "$299", full: "$449" };
+var FN = "https://uocauqflcqefgdixbzpf.supabase.co/functions/v1";
+var NAMES  = { trial: "Trial", draft: "Draft", competitive: "Competitive", full: "Full" };
+
+var wiz = {
+  el: document.getElementById('wiz'),
+  step: 0, last: 4, tier: 'competitive', files: [],
+  open: function (tier) {
+    this.tier = tier || 'competitive';
+    // A specific package was clicked: skip choosing it again and start the assessment.
+    // Back from the first question still returns to the package step if they want to switch.
+    this.step = tier ? 1 : 0;
+    this.el.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    this.render();
+  },
+  close: function () {
+    this.el.classList.remove('open');
+    document.body.style.overflow = '';
+  },
+  val: function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; },
+  validate: function () {
+    if (this.step === 1) {
+      var need = [['w-org','organisation'],['w-name','your name'],['w-email','email']];
+      for (var i=0;i<need.length;i++){
+        if (!this.val(need[i][0])) { document.getElementById(need[i][0]).focus(); alert('Please add your ' + need[i][1] + '.'); return false; }
+      }
+      if (!/.+@.+\..+/.test(this.val('w-email'))) { document.getElementById('w-email').focus(); alert('That email does not look right.'); return false; }
+    }
+    if (this.step === 2 && !this.val('w-grant')) {
+      document.getElementById('w-grant').focus(); alert('Please paste the grant link or its guidelines.'); return false;
+    }
+    return true;
+  },
+  render: function () {
+    var steps = this.el.querySelectorAll('.wiz-step');
+    for (var i=0;i<steps.length;i++) steps[i].classList.toggle('on', i === this.step);
+    var dots = document.getElementById('wiz-dots'); dots.innerHTML = '';
+    for (var d=0; d<=this.last; d++){ var el=document.createElement('div'); el.className='d'+(d<=this.step?' on':''); dots.appendChild(el); }
+    var pk = this.el.querySelectorAll('.pkg label');
+    for (var k=0;k<pk.length;k++) pk[k].classList.toggle('sel', pk[k].getAttribute('data-tier') === this.tier);
+    document.getElementById('wiz-back').style.visibility = this.step === 0 ? 'hidden' : 'visible';
+    document.getElementById('wiz-back').textContent = this.step === 1 ? 'Change package' : 'Back';
+    document.getElementById('wiz-title').textContent = 'START YOUR PROPOSAL · ' + NAMES[this.tier].toUpperCase() + ' ' + PRICES[this.tier];
+    var next = document.getElementById('wiz-next');
+    if (this.step === this.last) {
+      this.summary();
+      next.textContent = 'Pay ' + PRICES[this.tier] + ' — Ktebli gets to work';
+    } else {
+      next.textContent = 'Continue';
+    }
+  },
+  summary: function () {
+    var rows = [
+      ['Package', NAMES[this.tier] + ', ' + PRICES[this.tier]],
+      ['Organisation', this.val('w-org')],
+      ['Registration no.', this.val('w-reg')],
+      ['Website', this.val('w-web')],
+      ['Contact', this.val('w-name') + ' · ' + this.val('w-email')],
+      ['Grant', this.val('w-grant').slice(0, 90) + (this.val('w-grant').length > 90 ? '…' : '')],
+      ['Deadline', (analyzedDeadline || this.val('w-deadline')) || '—'],
+      ['Directions', this.val('w-directions') ? 'Noted' : '—'],
+      ['Old proposals', this.files.length ? this.files.length + ' file(s) chosen' : 'None']
+    ];
+    var h = '';
+    rows.forEach(function (r) { h += '<div class="sumrow"><span class="sk">' + r[0] + '</span><span class="sv">' + (r[1] || '—') + '</span></div>'; });
+    document.getElementById('summary').innerHTML = h;
+    var note = this.files.length
+      ? 'Payment is a secure Stripe checkout. Your uploaded proposals are already with us, and the writing starts the moment payment clears — most proposals are ready within 5–30 minutes, depending on complexity.'
+      : 'Payment is a secure Stripe checkout. The writing starts the moment payment clears — most proposals are ready within 5–30 minutes, depending on complexity.';
+    document.getElementById('summary').insertAdjacentHTML('afterend', '');
+    var pn = this.el.querySelector('.paynote');
+    if (!pn) { pn = document.createElement('p'); pn.className = 'paynote'; document.getElementById('summary').parentNode.appendChild(pn); }
+    pn.textContent = note;
+  },
+  pay: function () {
+    var data = {
+      tier: this.tier, price: PRICES[this.tier],
+      org: this.val('w-org'), registration: this.val('w-reg'), website: this.val('w-web'),
+      name: this.val('w-name'), email: this.val('w-email'), whatsapp: this.val('w-wa'),
+      grant: this.val('w-grant'), deadline: analyzedDeadline || this.val('w-deadline'),
+      directions: this.val('w-directions'), files: this.files
+    };
+    var link = PAYLINKS[this.tier];
+    function go(refId) {
+      if (link) {
+        var url = link + '?prefilled_email=' + encodeURIComponent(data.email);
+        if (refId) url += '&client_reference_id=' + encodeURIComponent(refId);
+        window.location.href = url;
+      } else {
+        window.location.href = 'mailto:hello@ktebli.com?subject=' +
+          encodeURIComponent('Proposal request (' + NAMES[wiz.tier] + '), ' + data.org) + '&body=' +
+          encodeURIComponent(Object.keys(data).map(function (k) { return k + ': ' + data[k]; }).join('\n'));
+      }
+    }
+    var btn = document.getElementById('wiz-next');
+    btn.disabled = true; btn.textContent = 'Opening secure checkout…';
+    var doneNav = false;
+    var fallback = setTimeout(function () { if (!doneNav) { doneNav = true; go(null); } }, 2500);
+    fetch(FN + '/save-intake', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!doneNav) { doneNav = true; clearTimeout(fallback); go(j && j.id ? j.id : null); } })
+      .catch(function () { if (!doneNav) { doneNav = true; clearTimeout(fallback); go(null); } });
+  }
+};
+
+// openers: pricing buttons, trial strip, nav + hero CTAs
+[['buy-trial','trial'],['buy-draft','draft'],['buy-competitive','competitive'],['buy-full','full']].forEach(function (pair) {
+  var el = document.getElementById(pair[0]);
+  if (el) el.addEventListener('click', function (e) { e.preventDefault(); wiz.open(pair[1]); });
+});
+document.querySelectorAll('a[href="#start"]').forEach(function (a) {
+  if (a.closest('footer') || (a.id && a.id.indexOf('buy-') === 0)) return;
+  a.addEventListener('click', function (e) { e.preventDefault(); wiz.open(null); });
+});
+
+// live grant analysis: starts automatically, blocks Continue only while a URL
+// is being read, autofills the deadline, and fails with a retry path.
+var lastAnalyzed = "", analyzing = false, analysisOk = false, analyzedDeadline = "";
+var STAGES_MSG = ["Opening grant page…", "Reading requirements…", "Extracting eligibility and submission details…"];
+function setContinueEnabled(on) {
+  var btn = document.getElementById('wiz-next');
+  btn.disabled = !on;
+  btn.style.opacity = on ? '1' : '.55';
+}
+function analyzeGrant(force) {
+  var input = wiz.val('w-grant');
+  if (!input || input.length < 12) return;
+  if (!force && input === lastAnalyzed) return;
+  lastAnalyzed = input; analyzing = true; analysisOk = false; analyzedDeadline = "";
+  var isUrl = /^https?:\/\//i.test(input) && !/\s/.test(input.trim());
+  var box = document.getElementById('gpreview');
+  box.style.display = 'block'; box.className = 'gpreview';
+  var mi = 0;
+  box.innerHTML = '<span class="spin"></span><span id="gp-msg">' + STAGES_MSG[0] + '</span>';
+  var rot = setInterval(function () {
+    mi = Math.min(mi + 1, STAGES_MSG.length - 1);
+    var m = document.getElementById('gp-msg'); if (m) m.textContent = STAGES_MSG[mi];
+  }, 2600);
+  if (isUrl) setContinueEnabled(false); // reading their link: hold Continue briefly
+  function finish() { clearInterval(rot); analyzing = false; setContinueEnabled(true); updateDeadlineField(); }
+  fetch(FN + '/analyze-grant', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input: input })
+  }).then(function (r) { return r.json(); }).then(function (a) {
+    finish();
+    if (!a.ok || (!a.title && !a.issuer)) {
+      box.className = 'gpreview err';
+      box.innerHTML = 'We could not open or understand that link' +
+        (a.reason === 'unreachable' || (a.reason||'').indexOf('fetch') === 0 ? ' (the page did not respond)' : '') +
+        '. <a href="#" id="gp-retry">Try again</a>, or paste the grant text itself into the box above — that always works.';
+      var rt = document.getElementById('gp-retry');
+      if (rt) rt.addEventListener('click', function (e) { e.preventDefault(); analyzeGrant(true); });
+      return;
+    }
+    analysisOk = true;
+    var h = '<div class="gp-t">✓ Got it. Here is what we can already see:</div>';
+    if (a.issuer) h += '<div class="gp-r"><span class="gp-k">Issuer</span><span>' + a.issuer + '</span></div>';
+    if (a.title) h += '<div class="gp-r"><span class="gp-k">Opportunity</span><span>' + a.title + '</span></div>';
+    if (a.looking_for) h += '<div class="gp-r"><span class="gp-k">Looking for</span><span>' + a.looking_for + '</span></div>';
+    if (a.amount) h += '<div class="gp-r"><span class="gp-k">Funding</span><span>' + a.amount + '</span></div>';
+    if (a.deadline) {
+      analyzedDeadline = a.deadline;
+      h += '<div class="gp-r"><span class="gp-k">Deadline</span><span><b>' + a.deadline + '</b> — detected automatically</span></div>';
+    } else {
+      h += '<div class="gp-r"><span class="gp-k">Deadline</span><span>Not stated on the page — add it below if you know it</span></div>';
+    }
+    box.innerHTML = h;
+    updateDeadlineField();
+  }).catch(function () {
+    finish();
+    box.className = 'gpreview err';
+    box.innerHTML = 'The check did not go through. <a href="#" id="gp-retry">Try again</a>, or paste the grant text itself instead of the link.';
+    var rt = document.getElementById('gp-retry');
+    if (rt) rt.addEventListener('click', function (e) { e.preventDefault(); analyzeGrant(true); });
+  });
+}
+function updateDeadlineField() {
+  // manual deadline appears only when analysis could not supply one
+  var show = !analyzing && lastAnalyzed && !analyzedDeadline;
+  document.getElementById('deadline-manual').style.display = show ? 'block' : 'none';
+}
+var debounceT = null;
+document.getElementById('w-grant').addEventListener('input', function () {
+  clearTimeout(debounceT);
+  debounceT = setTimeout(function () { analyzeGrant(false); }, 900);
+});
+document.getElementById('w-grant').addEventListener('blur', function () { analyzeGrant(false); });
+
+// wizard controls
+document.getElementById('wiz-close').addEventListener('click', function(){ wiz.close(); });
+document.getElementById('wiz').addEventListener('click', function(e){ if (e.target === wiz.el) wiz.close(); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') wiz.close(); });
+document.getElementById('wiz-back').addEventListener('click', function(){ if (wiz.step>0){ wiz.step--; wiz.render(); } });
+document.getElementById('wiz-next').addEventListener('click', function(){
+  if (wiz.step === wiz.last) { wiz.pay(); return; }
+  if (!wiz.validate()) return;
+  if (wiz.step === 2) analyzeGrant();
+  wiz.step++; wiz.render();
+});
+document.querySelectorAll('.pkg label').forEach(function (l) {
+  l.addEventListener('click', function(){ wiz.tier = l.getAttribute('data-tier'); wiz.render(); });
+});
+
+// old proposals: uploaded and read immediately, so the voice analysis is real
+var fb = document.getElementById('filebox'), fi = document.getElementById('w-files');
+fb.addEventListener('click', function(){ fi.click(); });
+fi.addEventListener('change', function(){
+  var list = Array.prototype.slice.call(fi.files, 0, 3);
+  wiz.files = list.map(function (f) { return f.name; });
+  var fl = document.getElementById('filelist');
+  fl.innerHTML = list.map(function (f) { return '<div id="fs-' + f.name.replace(/[^a-z0-9]/gi,'') + '">⏳ ' + f.name + ' — uploading…</div>'; }).join('');
+  var analysed = 0, doneCount = 0;
+  list.forEach(function (f) {
+    var fd = new FormData();
+    fd.append('file', f);
+    fd.append('email', wiz.val('w-email'));
+    var row = document.getElementById('fs-' + f.name.replace(/[^a-z0-9]/gi,''));
+    fetch(FN + '/upload-intake-file', { method: 'POST', body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        doneCount++;
+        if (j.ok && j.analysed) { analysed++; if (row) row.innerHTML = '✓ ' + f.name + ' — read and understood'; }
+        else if (j.ok) { if (row) row.innerHTML = '✓ ' + f.name + ' — saved (we will read this format soon)'; }
+        else { if (row) row.innerHTML = '⚠ ' + f.name + ' — upload failed, you can still continue'; }
+        if (doneCount === list.length && analysed > 0) {
+          fl.insertAdjacentHTML('beforeend',
+            '<div style="margin-top:6px;font-weight:700">We’ve analysed ' + analysed +
+            ' previous proposal' + (analysed>1?'s':'') + ' and will use them to understand your organisation and writing style.</div>');
+        }
+      })
+      .catch(function () { doneCount++; if (row) row.innerHTML = '⚠ ' + f.name + ' — upload failed, you can still continue'; });
+  });
+  if (fi.files.length > 3) fl.insertAdjacentHTML('beforeend', '<div style="color:var(--coral)">Only the first three are used.</div>');
+});
+</script>
+
+</body>
+</html>
