@@ -371,6 +371,54 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# ---------------------------------------------------------------------------
+# Edge function JWT configuration
+#
+# All eight functions are deployed with verify_jwt = false. Each authenticates
+# itself rather than relying on the Supabase gateway's JWT check:
+#
+#   worker              x-worker-secret header, resolved from Vault at request time
+#   stripe-webhook      Stripe signature, HMAC with constant-time comparison
+#   analyze-grant       public wizard endpoint, per-IP rate limited
+#   save-intake         public wizard endpoint, per-IP and per-email rate limited
+#   upload-intake-file  public wizard endpoint, per-IP and per-email rate limited
+#   order-status        unguessable order token or Stripe session id, rate limited
+#   request-revision    unguessable order token, rate limited
+#   qa-visual-test      retired stub, returns 410
+#
+# The CLI defaults verify_jwt to TRUE. Without these stanzas a plain
+# `supabase functions deploy` would switch JWT verification back on and break
+# the pg_cron worker tick, the Stripe webhook, the public wizard and the order
+# page. Encoding it here means the setting no longer depends on remembering
+# --no-verify-jwt on every deploy.
+#
+# These stanzas describe authentication at the GATEWAY only. They do not change
+# any function's own authentication logic.
+# ---------------------------------------------------------------------------
+[functions.analyze-grant]
+verify_jwt = false
+
+[functions.order-status]
+verify_jwt = false
+
+[functions.qa-visual-test]
+verify_jwt = false
+
+[functions.request-revision]
+verify_jwt = false
+
+[functions.save-intake]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.upload-intake-file]
+verify_jwt = false
+
+[functions.worker]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

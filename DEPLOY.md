@@ -31,9 +31,15 @@ Run subsequent commands from the directory that contains `supabase/`.
 
 ## Deployed functions
 
-All eight functions currently have `verify_jwt = false`, so **every** deploy command
-below needs `--no-verify-jwt`. Deploying without it would turn JWT verification on and
-break the callers (Stripe, pg_cron, the public web wizard, the order page).
+All eight functions run with `verify_jwt = false`. **This is now encoded in
+`supabase/config.toml`** as a `[functions.<slug>]` stanza per function, so a plain
+`supabase functions deploy` preserves it. The CLI defaults `verify_jwt` to true, and before
+those stanzas existed a deploy that forgot `--no-verify-jwt` would have turned JWT
+verification on and broken every caller: Stripe, pg_cron's worker tick, the public wizard
+and the order page.
+
+The `--no-verify-jwt` flag is kept on the commands below as belt-and-braces. It is no longer
+the only thing protecting the setting, but it costs nothing and matches what is deployed.
 
 | slug                 | deployed version | verify_jwt | files                  |
 | -------------------- | ---------------- | ---------- | ---------------------- |

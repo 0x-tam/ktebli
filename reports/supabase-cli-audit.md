@@ -361,3 +361,44 @@ eight categories with zero exclusions. Repository secret scan clean.
 `db/pending_storage_cleanup.txt` has been deleted, its work complete. The record of why it
 existed stays in the sections above; nothing here has been rewritten to suggest these problems
 never occurred.
+
+
+---
+
+## Deploy-time `verify_jwt` gap closed (2026-08-23)
+
+The carry-over risk recorded in §1 is resolved.
+
+**Confirmed deployed state:** all eight functions report `verify_jwt: false`, worker at v26.
+
+**Why the repo failed to encode it:** `supabase init` generates a `config.toml` with no
+`[functions.*]` section at all — the file had `[api]`, `[db]`, `[auth]`, `[edge_runtime]` and
+others, but not a single mention of `verify_jwt`. Supabase's documented default is that edge
+functions *require* a valid JWT, so the repository was silently describing the opposite of
+production. The only thing holding the real setting in place was remembering
+`--no-verify-jwt` on every deploy command, by hand, forever.
+
+**Change applied:** eight `[functions.<slug>]` stanzas, each `verify_jwt = false`. Purely
+additive — 48 lines inserted, nothing removed or modified. All eight slugs were checked
+against both the deployed slugs and the on-disk directory names; all three sets are identical.
+No function source was touched, and no function's own authentication logic was changed:
+`x-worker-secret` remains the worker's real authentication, the Stripe signature check remains
+the webhook's, and the token/rate-limit gates remain the public endpoints'. These stanzas
+govern the gateway check only.
+
+**Scope note.** The gap was raised for `worker`, but the fix covers all eight deliberately. A
+bare `supabase functions deploy` deploys every function, so encoding only `worker` would have
+left seven identical landmines. Eight stanzas is the smallest change that is actually correct.
+
+**No deployment was performed, and none was needed.** Production already has
+`verify_jwt = false` everywhere; the config only affects future deploys. Redeploying to
+"prove" it would have bumped worker from v26 to v27 on a live payments system for a
+configuration-only change, with nothing gained. Verified instead by parsing the file
+(`tomllib`, 8 stanzas resolved), by confirming the CLI itself loads it without error, and by
+re-checking that the live project is untouched: worker still v26, all eight still
+`verify_jwt: false`, cron still returning HTTP 200.
+
+`supabase config push` was deliberately **not** run. It pushes the whole local config to the
+linked project, and this `config.toml` is otherwise `supabase init` defaults for auth, API,
+storage and SMTP that have never been reconciled with production — pushing it would overwrite
+real settings.

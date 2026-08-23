@@ -45,7 +45,9 @@ fine. The byte comparison caught it; nothing else would have.
 With the Supabase CLI this is much easier than it was through the MCP API — the CLI uploads from
 disk, so the corruption class that produced v25 cannot occur. Still diff after deploying.
 
-All eight functions run with `verify_jwt = false`, so every deploy needs `--no-verify-jwt`.
+All eight functions run with `verify_jwt = false`. That is encoded per function in
+`supabase/config.toml`, so a normal deploy preserves it; `--no-verify-jwt` is kept on the
+documented commands as redundancy rather than as the only safeguard.
 See DEPLOY.md.
 
 ## Architecture in one pass
