@@ -169,3 +169,45 @@ the substitution was one line for one line, so line numbers below map directly t
 3. `supabase functions download <slug>` from an authenticated machine, to close the loop on §3.
 4. Ask whoever owns the egress policy to allow `api.supabase.com` if this environment is meant to
    do Supabase CLI work.
+
+---
+
+## Follow-up (same day): real migration history recovered
+
+After the Supabase MCP connection was authorised, the migration gap in §2 was closed —
+though not the way it was framed there.
+
+**The remote was tracking migrations all along.** `supabase_migrations.schema_migrations`
+on the live project holds 11 migrations with their full SQL. The repo simply never had
+the files. So the fix was not to synthesise a baseline but to recover the authentic
+history, which is now in `supabase/migrations/`.
+
+I did first build a synthetic baseline from catalog queries and verified it reproduced
+production exactly. It was then discarded: its timestamp sat after the recorded history,
+so the CLI would have read it as unapplied and invited a push against production. The
+real files carry the versions the remote already knows, so there is nothing to push.
+
+**Verification.** Ten of the 11 files are byte-identical to the recorded statements
+(checked per file against the stored byte length). All 11 were replayed in order into a
+clean Postgres 16 behind a shim harness for the Supabase-only objects (auth, storage,
+vault, cron, net, pgvector). Every schema fingerprint then matched production exactly —
+columns, constraints, indexes, grants, RLS flags, functions, policies, trigger.
+
+**Two findings came out of it, both worth acting on:**
+
+1. **A live secret is in the migration history.** `20260820145930_secrets_grants_and_cron`
+   embeds the real `worker_secret` as a literal in `vault.create_secret`. The committed
+   file redacts it to `__WORKER_SECRET__`, and a scan of all 11 migrations confirms this
+   is the only one carrying secret material. But the plaintext value is still in the
+   remote `supabase_migrations` table, readable by anything with database access, and it
+   is the shared secret pg_cron uses to authenticate to the worker. **Rotate it**, and
+   note that a `supabase db pull` on any machine would write it straight to disk.
+
+2. **`public.bench_cases` is in production but in no migration.** It is the sole
+   difference between a clean replay and live, and the only table with RLS disabled —
+   it never passed through the deny-by-default migration, so `anon` and `authenticated`
+   hold full DML on it with nothing constraining them. DDL and options in
+   `db/untracked_bench_cases.sql`.
+
+`db/schema.sql` is unchanged and still useful as the human-readable reference; the
+executable source of truth is now `supabase/migrations/`.

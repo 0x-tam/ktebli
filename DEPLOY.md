@@ -89,5 +89,23 @@ you have several projects linked and want to be explicit.
   function with the `x-worker-secret` header. It lives in the database, not in this
   repo — see `db/schema.sql` section 7. Redeploying `worker` does not disturb it.
 - `db/schema.sql` is a reference dump assembled from catalog queries. It is **not**
-  replayable as a migration and there are no migration files in this handoff. Use
-  `supabase db pull` against the linked project if you need real migrations.
+  replayable as a migration — it has no `CREATE TABLE`, no constraints, and its RLS,
+  policy and cron sections are comments. Keep it as the human-readable reference.
+- **`supabase/migrations/` now holds the real migration history** — all 11 migrations,
+  recovered from `supabase_migrations.schema_migrations` on the live project, which had
+  been tracking them all along even though the files were never in this repo. Ten are
+  byte-identical to the recorded statements; `20260820145930_secrets_grants_and_cron.sql`
+  is deliberately redacted (see below).
+- Verified by replaying all 11 in order into a clean Postgres and comparing schema
+  fingerprints against production: columns, constraints, indexes, grants, RLS flags,
+  functions, policies and the trigger all matched exactly. Re-check any database with
+  `db/verify_schema_fingerprint.sql`.
+- **`public.bench_cases` is in production but in no migration** — the single thing the
+  replay does not reproduce. See `db/untracked_bench_cases.sql`; it is also the only
+  table with RLS disabled.
+- **Do not `supabase db push`.** These migrations are already applied in production;
+  the versions match the remote history, so the CLI should see nothing to do. If it
+  ever reports them as pending, repair the history rather than re-running them.
+- **`20260820145930` contained the live `worker_secret` in plaintext** in its
+  `vault.create_secret` call. The committed file replaces it with `__WORKER_SECRET__`.
+  The real value is still sitting in the remote migration history — rotate it.
