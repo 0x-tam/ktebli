@@ -104,12 +104,12 @@ you have several projects linked and want to be explicit.
   benchmark orders plus `public.bench_cases` (which no migration described), then the four
   `test-org*` orders. Production now holds only the two $1 trial orders, KT-10001 and
   KT-10002, and its schema matches the migration history exactly, with no exclusions.
-- **27 storage objects from those deleted orders are still in the `order-files` bucket** —
-  the one open item. They cannot be removed from an agent session: the Supabase MCP server
-  has no storage-object delete tool, and both the project host and the management API are
-  refused by egress policy with no service_role key available. `db/pending_storage_cleanup.txt`
-  carries the full paths plus a 15-folder dashboard procedure. Their `storage.objects` rows
-  are intact, so nothing is orphaned.
+- **Storage is clean.** The 27 objects belonging to those deleted orders were removed from the
+  `order-files` bucket on 2026-08-23. The bucket now holds exactly two objects, one each for
+  KT-10001 and KT-10002. No agent session could perform that deletion — the Supabase MCP server
+  exposes no storage-object delete tool, and both the project host and the management API are
+  refused by this environment's egress policy — so it was done from the dashboard and verified
+  from the database side afterwards.
 - The three zero-referenced benchmark grant rows (`... (RB-R1/R2/R3)`) were deleted on
   2026-08-23 after re-verifying that nothing referenced them. Production now holds three
   grants, all belonging to the two retained trial orders.

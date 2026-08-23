@@ -336,3 +336,28 @@ host and the management API, with no service_role key available. Rather than del
 did not happen, `db/pending_storage_cleanup.txt` was converted into an actionable dashboard
 procedure: 15 folders to delete, 2 to keep, with every path listed. The baseline is therefore
 reported as NOT clean until those objects are gone.
+
+
+---
+
+## Baseline closed (2026-08-23)
+
+The last open item is resolved. All 27 storage objects belonging to deleted synthetic orders
+were removed from the `order-files` bucket via the dashboard — the deletion an agent session
+could not perform — and verified from the database side afterwards.
+
+`storage.objects` now holds **two** rows in `order-files`, one each for KT-10001 and KT-10002.
+Zero of the 27 pending prefixes remain; zero objects belong to any non-existent order. Both
+retained files are byte-for-byte untouched: sizes 18,596 and 18,173, and `updated_at` values of
+2026-08-21 and 2026-08-22 that predate the cleanup entirely.
+
+Final state: 2 orders, gross $2.00, 2 organisations, 3 grants, 3 claims (2 active), 2
+order_proposals, 32 job_stages, 0 revision_requests, 2 voice_profiles, 0 org_intel. Zero FK
+orphans. `public.events` unchanged at 70 rows with `events_immutable` intact. Migration history
+untouched at 11 rows. Worker secret resolves from Vault and cron is returning HTTP 200 with no
+non-200 responses. Schema fingerprint matches the reconstructed migration replay across all
+eight categories with zero exclusions. Repository secret scan clean.
+
+`db/pending_storage_cleanup.txt` has been deleted, its work complete. The record of why it
+existed stays in the sections above; nothing here has been rewritten to suggest these problems
+never occurred.
