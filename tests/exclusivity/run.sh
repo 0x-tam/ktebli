@@ -36,6 +36,11 @@ echo "=== ceiling probe (fails while any ceiling exists) ==="
 psql_ "-d $DB -f $REPO/tests/exclusivity/ceiling_test.sql"
 rc=$?
 [ $stranded -ne 0 ] && rc=$stranded
+
+echo
+RUNDIR="$RUNDIR" PORT="$PORT" DB="$DB" "$REPO/tests/exclusivity/concurrency_test.sh"
+conc=$?
+[ $conc -ne 0 ] && rc=$conc
 echo
 if [ $rc -ne 0 ]; then
   echo "EXCLUSIVITY TEST FAILING — a ceiling still exists on a single grant."
