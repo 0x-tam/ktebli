@@ -102,9 +102,52 @@ a single prompt matched or beat the architecture. On `evidence-poor` the pipelin
 
 **The absolute bar is still failed.** Across 16 document-level judgements there is exactly **one**
 `fundable: yes`: critic_b on variant B, `evidence-poor`. That is the first fundable verdict this
-project has recorded, and it is one out of sixteen. Critic_a funds nothing at all. Asked whether they
-were reading four applicants or one system, **all four critic runs said one system.** One called the
-weakest document *"the unfilled master; the others are filled variants."*
+project has recorded, and it is one out of sixteen. Critic_a funds nothing at all.
+
+> ### CORRECTED 2026-08-26 — the one-system result was an instrument artefact
+>
+> This paragraph originally continued: *"Asked whether they were reading four applicants or one
+> system, all four critic runs said one system. One called the weakest document 'the unfilled
+> master; the others are filled variants.'"* Both halves were reported with more weight than they
+> could carry.
+>
+> **The "unfilled master" was the single-prompt baseline, not the pipeline.** `Doc 2` decodes to
+> variant **D** — one message to one model, which never touched `GEN_SPECS`, `STYLE_RULES`,
+> `FORMAT_RULES`, the seeded templates or the logframe schema. It read as a template because it
+> carried **35 `[INSERT: …]` placeholders** against **zero** in both pipeline arms: it was the one
+> document that made the evidence hole visible, and both critics ranked it last.
+>
+> **The one-system question could not discriminate.** Experiment E-1 re-judged the same eight
+> documents with the leading elements removed — a forced choice against ground truth, the
+> nine-item reject list deleted, the "most proposals are mediocre" prior deleted, and the
+> applicant identity stripped from the header:
+>
+> - **Forced choice: 1 of 4 correct against a chance rate of 1/3.** Below chance. The critics
+>   cannot identify which documents actually share a writing process.
+> - **Neutral open question: every item named was either mandated by the call's own required
+>   sections or was the applicant's own identity**, which the experiment held constant. The one
+>   partial exception was three of four ukyouth bids clustering near the £120k ceiling.
+> - **Not one critic, on either case, named prose, diction, cadence, phase tables, three-part
+>   constructions, "template diction", or "reads machine-generated"** once that vocabulary was
+>   not supplied to them in the prompt.
+>
+> On this evidence the 4/4 unanimity measured **the shared client and the shared call**, not a
+> shared system. It must not be used as a launch gate.
+>
+> **This reaches further than the one-system claim.** Iteration 1's critic prompt supplied the
+> reject list, and the critics returned its vocabulary; E-1 withheld it, and they did not. Every
+> "reads machine-generated" verdict in this report was produced by an instrument that named the
+> failure it was asking about. The fundability and ranking results do not depend on that
+> vocabulary and stand. The sameness verdicts do, and are downgraded to unproven.
+>
+> Consequences: the pre-delivery quality gate must use a **neutral** instrument, or it will hold
+> documents for failures it invented. And the real exclusivity question — do documents for
+> *different* applicants read as one writer — remains open, because it has never been asked.
+> `reports/design/one-system.md` specifies E-2, which asks it.
+
+**A note on what this does not excuse.** None of the above makes the output good. Fifteen of
+sixteen judgements still say not fundable, and that verdict never depended on the supplied
+vocabulary.
 
 ---
 
