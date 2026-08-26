@@ -103,7 +103,13 @@ async function ins(table: string, row: unknown) {
 }
 
 let API_KEY: string | null = null;
-let MODEL = "google/gemini-3.7-flash";          // workhorse: extraction, drafting, checks
+// Variant B in the iteration-1 2x2: the full pipeline at the stronger generator. It was the
+// only arm in the top two on BOTH cases under both critic families, and it produced the one
+// "fundable: yes" in sixteen document-level judgements. ~$1.20 per order against a $149 floor,
+// so roughly 20x the previous generator cost and still a gross margin above 99%.
+// Two cases is not decisive. It is cheap and probably right, which is enough to make it the
+// default. The Vault secret openrouter_model still overrides this at runtime.
+let MODEL = "anthropic/claude-opus-5";           // workhorse: extraction, drafting, checks
 let MODEL_STRATEGY = "";                          // strategy/design/deep review (defaults to MODEL)
 
 // The reaper marks a stage timed out after 3 minutes without a heartbeat. A

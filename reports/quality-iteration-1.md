@@ -128,10 +128,25 @@ Two calibration notes, because the deterministic counts and the critic counts di
   being credited as a named referent. An earlier version also counted `UNKNOWN`, `E-WEB-1` and other
   ledger scaffolding as content, which manufactured a specificity failure out of an evidence failure.
 
-**Conclusion: the constraint is the evidence, not the pipeline and not the model.** The pipeline uses
-what it is given — on the case offering four ledger referents the winning variant used three of them,
-and the critics independently confirmed those three. Where the ledger offers nothing, no
-configuration produces particularity, because grounding correctly forbids inventing it.
+> ### RETRACTED 2026-08-26
+>
+> This section originally concluded: *"the constraint is the evidence, not the pipeline and not
+> the model."* **That conclusion is withdrawn. This run did not establish it.**
+>
+> The evidence contrast was **inverted**. The arm labelled evidence-rich carried **3** named
+> referents; the arm labelled evidence-poor carried **5**. So evidence richness was never varied
+> — and on the axis that was varied, the "rich" case was the poorer of the two. A conclusion about
+> evidence being the binding constraint rests on a comparison that was never run.
+>
+> What survives: the two ledgers offered 3 and 5 referents, which bounds how particular any of
+> these eight documents could have been. That is a *ceiling*, not a demonstration that raising the
+> ceiling raises fundability.
+>
+> The mode effect found on UK Youth (pipeline above single prompt, both critics) is real. It is
+> **unlabelled**: it cannot be attributed to evidence richness, because richness did not vary.
+>
+> `reports/referent-ladder.md` runs the comparison this one did not: one organisation, one grant,
+> referent counts of 3/6/9/12 as strict supersets, plus a specificity contrast at fixed count.
 
 ---
 
