@@ -56,3 +56,34 @@ completion problem is fixed.
 
 **Nor is throughput, cold-start latency, or the 5-to-30-minute delivery promise.** Those are
 launch-shape observations, watched per order on the first real customers.
+
+## Chromium, and what it is for
+
+`ground-truth.sh` renders each site with a real browser and counts the named referents a
+person would see. The six-site run compares that against what the crawler extracted:
+
+- a large gap on a site the crawler called `succeeded` is an **extraction bug**
+- a large gap on one it called `js_only` is the **taxonomy working correctly**
+
+"The crawler got nothing" and "there was nothing to get" are different findings and only one
+of them is a bug. Without ground truth they are indistinguishable, which is how the silent
+failure survived this long.
+
+The browser is a **test harness only**. The production crawler is a Deno edge function doing
+one fetch per page with no JavaScript engine, and that stays true — eight functions, no new
+services. A JS-rendered site is reported as `js_only`, not worked around.
+
+### TLS trust for Chromium
+
+Chromium keeps its own NSS trust store, so it does not pick up the system CA bundle:
+
+```
+apt-get install -y libnss3-tools
+mkdir -p ~/.pki/nssdb && certutil -d sql:$HOME/.pki/nssdb -N --empty-password
+cd /tmp && csplit -z -f cert- -b '%03d.pem' /path/to/ca-bundle.crt '/BEGIN CERTIFICATE/' '{*}'
+for f in cert-*.pem; do certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "ca-$f" -i "$f"; done
+```
+
+Note `certutil -A` imports only the **first** certificate in a bundle, which is why the bundle
+is split first. On a machine behind a TLS-inspecting proxy, skipping this produces a "Your
+connection is not private" page that looks exactly like a site being down.
