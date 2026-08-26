@@ -26,7 +26,11 @@ BLUEPRINT.md           long-form product and architecture history
 
 ## Source-of-truth warning
 
-`supabase/functions/worker/` was verified **byte-identical to deployed v26** (sha256 on both files).
+`supabase/functions/worker/` was verified byte-identical to deployed v26, and **no longer is** —
+it carries undeployed changes (stranded-claim release, terminal-failure notification, two
+typing-only assertions). Deployed is still v26. `supabase/migrations/` is likewise ahead of
+production by `20260826150000`. `tests/replay/run.sh` reports exactly which schema categories
+are undeployed; there is no equivalent check for the functions, so diff before deploying.
 
 The other seven functions were transcribed from API output and have **not** been byte-verified.
 Before touching any of them, re-pull the authoritative copy:

@@ -934,7 +934,9 @@ async function renderService(bytes: Uint8Array): Promise<RenderOutcome> {
       const r = await fetch(`${String(url).replace(/\/$/, "")}/render`, {
         method: "POST",
         headers: { "content-type": "application/octet-stream", ...(secret ? { authorization: `Bearer ${secret}` } : {}) },
-        body: bytes,
+        // Deno's BodyInit does not admit Uint8Array<ArrayBufferLike> even though the
+        // runtime accepts it. Assertion only — no runtime change.
+        body: bytes as BodyInit,
         signal: AbortSignal.timeout(45_000),
       });
       if (r.status === 429 || r.status >= 500) { reason = "http_" + r.status; continue; }
@@ -1012,7 +1014,7 @@ async function upload(path: string, bytes: Uint8Array, contentType: string) {
   const r = await fetch(`${SB}/storage/v1/object/order-files/${path}`, {
     method: "POST",
     headers: { apikey: KEY, authorization: `Bearer ${KEY}`, "content-type": contentType, "x-upsert": "true" },
-    body: bytes,
+    body: bytes as BodyInit,   // see renderService(): typing-only assertion
   });
   if (!r.ok) throw new Error(`upload ${path}: ${r.status}`);
   return path;
@@ -1043,6 +1045,57 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
     body: JSON.stringify({ from, to: [to], subject, html }),
   });
   return r.ok;
+}
+
+// Terminal-failure notification.
+//
+// Until now `sendEmail` appeared exactly once in this file — in the deliver stage —
+// so a paid order that died terminally told nobody: not the customer, not the
+// operator. order-status even shows the customer "we will follow up by email",
+// which no code in the repository was capable of doing. The single escalations
+// insert in stripe-webhook violated the kind CHECK and omitted a due_at that had
+// no default, and it was wrapped in .catch(() => {}) — so the one operator-alerting
+// mechanism in the system was a silent no-op.
+//
+// job_stages.notified_at makes this idempotent: a stage is notified at most once,
+// however many times the worker ticks over it afterwards. The operator escalation
+// is written BEFORE the email, so the alert lands even where Resend is not
+// configured — and neither is allowed to throw, because a failure to notify must
+// never mask the failure being notified.
+//
+// NOTE FOR THE OWNER: the customer-facing wording below deliberately makes no
+// promise about refunds or retries, because that is a policy decision and not one
+// this code should invent. Replace the marked paragraph with your actual policy.
+async function notifyTerminal(stageId: number, proposalId: string, status: string, error: string) {
+  try {
+    const st = (await sel(`job_stages?id=eq.${stageId}&select=notified_at,key,label`))[0];
+    if (!st || st.notified_at) return;
+    await patch(`job_stages?id=eq.${stageId}`, { notified_at: new Date().toISOString() });
+
+    const prop = (await sel(`order_proposals?id=eq.${proposalId}&select=id,order_id`))[0];
+    if (!prop) return;
+    const order = (await sel(`orders?id=eq.${prop.order_id}&select=id,email,org_name,tier`))[0];
+    if (!order) return;
+
+    await ins("escalations", {
+      kind: status === "held" ? "stage_held" : "stage_failed",
+      order_id: order.id,
+      order_proposal_id: prop.id,
+      priority: "deadline_72h",
+      detail: { stage: st.key, label: st.label, error, tier: order.tier },
+    }).catch(() => {});
+
+    await sendEmail(
+      order.email,
+      `About your Ktebli proposal for ${order.org_name}`,
+      `<p>We were not able to finish your proposal, and we would rather tell you that ` +
+      `than leave you watching a progress bar.</p>` +
+      `<p>It stopped at: <strong>${st.label}</strong>.</p>` +
+      // --- owner: replace this paragraph with your refund / retry policy ---
+      `<p>Our team has been alerted and will be in touch about what happens next. ` +
+      `You do not need to do anything.</p>`,
+    ).catch(() => false);
+  } catch { /* never let notification failure mask the original failure */ }
 }
 
 const GEN_SPECS: Record<string, { title: string; max: number; brief: string }> = {
@@ -1367,6 +1420,16 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   if (stage.key === "strategy") {
     if (!analysis) throw new Error("analysis missing");
     const grantId = c.prop.grant_id;
+    // A previous attempt at this proposal may still hold a claim: either this
+    // proposal's own (an operator reset at or before `strategy`), or an orphan
+    // left by an isolate that died between claim_approach and the claim_id patch
+    // below. Either way the retry would be refused with existing_claim_same_org —
+    // the organisation competing against itself — and the slot would be burnt for
+    // the life of the grant. This releases only a claim this proposal could
+    // legitimately own; a genuine second concurrent order from the same
+    // organisation is untouched and stays blocked. It must run BEFORE takenRows
+    // is read, so the freed template and opening are visible to this same run.
+    await rpc("release_stranded_claim", { p_proposal: stage.proposal_id }).catch(() => {});
     let vp = (await sel(`voice_profiles?organisation_id=eq.${c.order.organisation_id}&select=id&limit=1`))[0];
     if (!vp) vp = await ins("voice_profiles", { organisation_id: c.order.organisation_id, kind: "custom", profile: {} });
     // Reserved approaches on this grant: ABSTRACT strategy records only — never
@@ -1915,10 +1978,13 @@ Deno.serve(async (req) => {
       } catch (e) {
         const msg = String(e).slice(0, 300);
         const final = st.attempt >= 3 || msg.includes("claim blocked") || msg.includes("similarity gate");
-        await patch(`job_stages?id=eq.${st.stage_id}`, {
-          status: final ? (msg.includes("similarity gate") || msg.includes("claim blocked") ? "held" : "failed") : "pending",
-          error: msg,
-        }).catch(() => {});
+        const status = final
+          ? (msg.includes("similarity gate") || msg.includes("claim blocked") ? "held" : "failed")
+          : "pending";
+        await patch(`job_stages?id=eq.${st.stage_id}`, { status, error: msg }).catch(() => {});
+        // A non-final failure is retried on the next tick and is not worth an email.
+        // A final one is the end of the road for a paid order, so somebody is told.
+        if (final) await notifyTerminal(st.stage_id, st.proposal_id, status, msg);
       } finally {
         ACTIVE_BEATS.delete(stBeat);
       }
