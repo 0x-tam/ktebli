@@ -1,0 +1,4 @@
+comment = 'REPLAY SHIM: net.http_post records the request instead of sending it'
+default_version = '0.0.0-shim'
+relocatable = false
+schema = net
