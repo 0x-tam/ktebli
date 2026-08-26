@@ -104,9 +104,18 @@ interface PNAudit {
 // applicantName is always legitimate and is excluded from both counts: using your
 // own name is not particularity, and it is never unsourced.
 function properNounAudit(narrative: string, ledger: Array<Record<string, unknown>>, applicantName: string): PNAudit {
-  const ledgerText = ledger.map((e) => String(e.claim ?? "")).join("\n");
+  // Read the ledger's CONTENT, not its scaffolding. Evidence ids and
+  // all-caps placeholders ("UNKNOWN", "NOT RECORDED") are how a ledger says it
+  // knows nothing, and counting them as named referents inflates the denominator
+  // and invents a specificity failure that is really an evidence failure.
+  const ledgerText = ledger
+    .map((e) => String(e.claim ?? "").replace(/\bE-(?:INTAKE|WEB|PROP)-\d+\b/g, " "))
+    .join("\n");
   const ledgerNouns = new Map<string, string>();
-  for (const p of properNouns(ledgerText)) ledgerNouns.set(normPN(p), p);
+  for (const p of properNouns(ledgerText)) {
+    if (p === p.toUpperCase()) continue;          // UNKNOWN / NOT RECORDED / NOT SUPPLIED
+    ledgerNouns.set(normPN(p), p);
+  }
 
   const own = new Set<string>();
   for (const p of properNouns(applicantName || "")) own.add(normPN(p));
