@@ -34,6 +34,7 @@ import {
 } from "npm:docx@8.5.0";
 import * as XLSX from "npm:xlsx@0.18.5";
 import { marked } from "npm:marked@18.0.10";
+import { properNounAudit } from "./proper_nouns.ts";
 import { unzipSync, strFromU8 } from "npm:fflate@0.8.2";
 import { safeFetchText, stripHtml } from "./ssrf.ts";
 
@@ -335,6 +336,7 @@ function consistencyFindings(docs: Record<string, string>, dn: DesignNumbers, bu
   }
   return v;
 }
+
 
 // ================= donor format spec =================
 interface Fmt {
@@ -1661,6 +1663,10 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       const detFindings: string[] = [];
       detFindings.push(...consistencyFindings(docs, dn, budget?.total_usd ?? null, evidenceNums));
       detFindings.push(...jargonFindings(narrative));
+      // Does the narrative actually USE the evidence, and does it use only the
+      // evidence? Both halves are deterministic and neither asks a model to count.
+      const pnAudit = properNounAudit(narrative, allowedEvidence, String(c.order.org_name ?? ""));
+      detFindings.push(...pnAudit.findings);
 
       // ---- Claim Ledger on the CURRENT narrative (all tiers — truth is not a premium upsell) ----
       const ledgerOut = jsonOf(await llm(
@@ -1703,6 +1709,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       const blocking = groundingProblems.length + missingMandatory.length + detFindings.filter((f) => !f.startsWith("repeated development jargon") && !f.startsWith("heavy development jargon")).length;
       rounds.push({
         round, deterministic: detFindings, grounding_problems: groundingProblems.length,
+        proper_nouns: { offered: pnAudit.ledger_offers, used: pnAudit.used, unsourced: pnAudit.unsourced.length },
         missing_mandatory: missingMandatory.length, review_findings: reviewFindings.length, blocking,
       });
       if (blocking === 0 && (round > 0 || reviewFindings.length === 0 || !mid)) break;
