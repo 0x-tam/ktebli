@@ -35,6 +35,7 @@ import {
 import * as XLSX from "npm:xlsx@0.18.5";
 import { marked } from "npm:marked@18.0.10";
 import { properNounAudit } from "./proper_nouns.ts";
+import { contactAudit } from "./contact_claims.ts";
 import { unzipSync, strFromU8 } from "npm:fflate@0.8.2";
 import { safeFetchText, stripHtml } from "./ssrf.ts";
 
@@ -1673,6 +1674,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       // evidence? Both halves are deterministic and neither asks a model to count.
       const pnAudit = properNounAudit(narrative, allowedEvidence, String(c.order.org_name ?? ""));
       detFindings.push(...pnAudit.findings);
+      // Contact details are the quiet fabrication. A donor form mandating a telephone
+      // field is not evidence the applicant supplied one, and the Claim Ledger's
+      // donor_required_certification class is designed to permit exactly this kind of
+      // administrative self-statement. BLOCKING, unlike the proper-noun findings:
+      // there is no legitimate reason to print a number no evidence carries.
+      const ctAudit = contactAudit(narrative, allowedEvidence);
+      detFindings.push(...ctAudit.findings);
 
       // ---- Claim Ledger on the CURRENT narrative (all tiers — truth is not a premium upsell) ----
       const ledgerOut = jsonOf(await llm(
@@ -1724,6 +1732,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       rounds.push({
         round, deterministic: detFindings, grounding_problems: groundingProblems.length,
         proper_nouns: { offered: pnAudit.ledger_offers, used: pnAudit.used, unsourced: pnAudit.unsourced.length },
+        contact_claims: { seen: ctAudit.claims.length, fabricated: ctAudit.fabricated.length },
         missing_mandatory: missingMandatory.length, review_findings: reviewFindings.length, blocking,
       });
       if (blocking === 0 && (round > 0 || reviewFindings.length === 0 || !mid)) break;
@@ -1744,7 +1753,10 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       const fixList = [
         ...groundingProblems.map((g) => `UNGROUNDED (${g.classification}): "${String(g.claim).slice(0, 160)}" — remove it, qualify it honestly, or recast it as a designed future feature. NEVER replace it with a different factual claim.`),
         ...missingMandatory.map((m) => `MISSING MANDATORY REQUIREMENT: ${m.req} — answer it using the project design and evidence.`),
-        ...detFindings.map((f) => `CONSISTENCY/QUALITY: ${f} — align the document with the project design figures.`),
+        ...detFindings.map((f) =>
+          f.startsWith("FABRICATED CONTACT DETAILS")
+            ? `GROUNDING (BLOCKING): ${f}`
+            : `CONSISTENCY/QUALITY: ${f} — align the document with the project design figures.`),
         ...(mid ? reviewFindings.slice(0, deep ? 8 : 4).map((f) => `REVIEWER: ${f}`) : []),
       ].slice(0, 14);
       narrative = await generateValidated(

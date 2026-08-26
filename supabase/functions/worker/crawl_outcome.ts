@@ -131,6 +131,8 @@ export interface PageObservation {
   kept_chars: number;
   /** Characters inside <script> elements. High ratio + no text is an app shell. */
   script_chars: number;
+  /** Whether the stripped text reads as prose at all — see proseSignals(). */
+  prose: boolean;
   /** Capped head of the body, kept only so the classifier can see challenge markers. */
   body_sample: string;
 }
@@ -192,6 +194,8 @@ export interface CrawlReport {
     kept_chars: number;
     text_chars: number;
     fetch_budget_exhausted: boolean;
+    /** Of the parsed pages, how many read as prose rather than junk. */
+    prose_pages: number;
     identity_gate: IdentityGateState;
     elapsed_ms: number;
   };
@@ -353,18 +357,51 @@ export function scriptChars(html: string): number {
 export function looksLikeJsShell(
   html: string,
   textChars: number,
+  sizes?: { script_chars: number; html_chars: number },
 ): { shell: boolean; marker: string | null; script_ratio: number } {
   const h = String(html ?? "");
-  const sc = scriptChars(h);
-  const ratio = h.length ? sc / h.length : 0;
+  const sc = sizes ? sizes.script_chars : scriptChars(h);
+  const len = sizes ? sizes.html_chars : h.length;
+  const ratio = len ? sc / len : 0;
   if (textChars >= 600) return { shell: false, marker: null, script_ratio: ratio };
   for (const [re, name] of SHELL_MARKERS) {
     if (re.test(h)) return { shell: true, marker: name, script_ratio: ratio };
   }
-  if (ratio > 0.4 && h.length > 500) {
+  if (ratio > 0.4 && len > 500) {
     return { shell: true, marker: "body is mostly script with no prose", script_ratio: ratio };
   }
   return { shell: false, marker: null, script_ratio: ratio };
+}
+
+// ---------------------------------------------------------------------------
+// Pure helper: is this prose at all?
+// ---------------------------------------------------------------------------
+//
+// A 200 whose body is mis-declared, mis-encoded or binary strips to a long run of
+// junk. The paragraph filter cannot tell that from a paragraph — it only measures
+// length — so junk used to be "parsed", then extracted nothing, and the crawl was
+// reported as a site that simply names nothing. Those are different findings:
+// `extraction_failed` is ours to fix, `nothing_relevant` is the site being thin.
+
+export function proseSignals(text: string): {
+  words: number; letter_ratio: number; replacement_ratio: number; avg_word_len: number; is_prose: boolean;
+} {
+  const t = String(text ?? "");
+  const words = t.split(/\s+/).filter(Boolean);
+  if (!t.length || words.length < 20) {
+    return { words: words.length, letter_ratio: 0, replacement_ratio: 0, avg_word_len: 0, is_prose: false };
+  }
+  let letters = 0, replacement = 0;
+  for (const ch of t) {
+    if (ch === "\uFFFD") replacement++;
+    else if (/[\p{L}\p{N}\s.,;:!?'"()\/&%$£€–—-]/u.test(ch)) letters++;
+  }
+  const letter_ratio = letters / t.length;
+  const replacement_ratio = replacement / t.length;
+  const avg_word_len = words.reduce((a, w) => a + w.length, 0) / words.length;
+  const is_prose = letter_ratio >= 0.9 && replacement_ratio < 0.02 &&
+    avg_word_len >= 2 && avg_word_len <= 14;
+  return { words: words.length, letter_ratio, replacement_ratio, avg_word_len, is_prose };
 }
 
 // ---------------------------------------------------------------------------
@@ -420,6 +457,7 @@ export function observePage(i: ObservePageInput): PageObservation {
     text_chars: text.length,
     kept_chars: i.keptChars ?? 0,
     script_chars: scriptChars(body),
+    prose: proseSignals(text).is_prose,
     body_sample: body.slice(0, 4_000),
   };
 }
@@ -544,6 +582,7 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
   const content = contentPages(input.pages);
   const fetched = content.filter((p) => p.status !== null && p.status >= 200 && p.status < 300);
   const parsed = content.filter((p) => p.kept_chars >= PAGE_MIN_CHARS);
+  const proseParsed = parsed.filter((p) => p.prose);
   const keptChars = content.reduce((a, p) => a + p.kept_chars, 0);
   const textChars = content.reduce((a, p) => a + p.text_chars, 0);
 
@@ -561,12 +600,17 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
       kept_chars: keptChars,
       text_chars: textChars,
       fetch_budget_exhausted: input.fetch_budget_exhausted,
+      prose_pages: proseParsed.length,
       identity_gate: input.identity_gate,
       elapsed_ms: input.elapsed_ms,
     },
   };
   const report = (outcome: CrawlOutcome, reason: string): CrawlReport => {
     const r: CrawlReport = { outcome, reason, ...base };
+    // A discarded site keeps nothing. The count of what was thrown away stays in
+    // referents_extracted; what survived is zero, by construction rather than by
+    // the caller remembering to zero it.
+    if (outcome !== "succeeded") r.referents_surviving = 0;
     assertReportConsistent(r);
     return r;
   };
@@ -587,8 +631,10 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
 
   const home = input.pages.find((p) => p.role === "home");
 
-  // 3. No HTTP response at all for the homepage.
-  if (!home || home.status === null) {
+  // 3. No usable HTTP response for the homepage. An offsite hop counts: a parked
+  //    domain that redirects to a marketplace is not the applicant's website, and
+  //    its text must never be read as theirs.
+  if (!home || home.status === null || (home.error ?? "").startsWith("offsite:")) {
     const err = home?.error ?? "the homepage was never fetched";
     return report("fetch_failed", `${input.domain} could not be reached: ${err}`);
   }
@@ -611,7 +657,7 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
   // 6. 2xx, but nothing was parsed out of any page.
   if (parsed.length === 0) {
     const shell = content
-      .map((p) => ({ p, s: looksLikeJsShell(p.body_sample, p.text_chars) }))
+      .map((p) => ({ p, s: looksLikeJsShell(p.body_sample, p.text_chars, { script_chars: p.script_chars, html_chars: p.html_chars }) }))
       .find((x) => x.s.shell);
     if (shell) {
       return report(
@@ -630,6 +676,18 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
         `${fetched.length} page(s) fetched, ${textChars} characters of text, ` +
         `none of it forming a paragraph over ${PARA_MIN_CHARS} characters` +
         (home.content_type ? ` (content-type ${home.content_type})` : ""),
+    );
+  }
+
+  // 6b. Pages were parsed, but none of them reads as prose: a mis-encoded or
+  //     binary body that the length-only paragraph filter could not tell from
+  //     text. That is an extraction failure, not a thin site.
+  if (proseParsed.length === 0) {
+    return report(
+      "extraction_failed",
+      `${input.domain} answered HTTP ${home.status} and returned ${keptChars} characters, ` +
+        `but none of it reads as text (mis-declared encoding or a non-text body` +
+        (home.content_type ? `, content-type ${home.content_type}` : "") + `)`,
     );
   }
 
@@ -668,6 +726,66 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
     `${input.domain}: ${fetched.length} page(s) fetched, ${parsed.length} parsed, ` +
       `${input.referents_extracted} referent(s) extracted, ${input.referents_surviving} surviving the identity gate`,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Cached crawls
+// ---------------------------------------------------------------------------
+//
+// `org_intel` caches a site understanding for 30 days, and only a clean, freshly
+// extracted, gate-cleared crawl is ever written there — so a cached report is a
+// `succeeded` report. It still may not be reused unchanged: the identity gate has
+// to be re-applied to THIS order, exactly as it is on the live path, because a
+// cached extraction of the wrong organisation's site is as damaging as a live one.
+//
+// A cached row that carries no recorded outcome (written before this contract
+// existed) is not classifiable and must not be reused: the caller re-crawls. That
+// is `hasRecordedOutcome()`, and it is a refusal by default.
+
+export function hasRecordedOutcome(cachedCrawl: unknown): boolean {
+  const o = (cachedCrawl as { outcome?: unknown } | null)?.outcome;
+  return typeof o === "string" && (CRAWL_OUTCOMES as readonly string[]).includes(o);
+}
+
+export function reclassifyCached(
+  prev: CrawlReport,
+  cache: "hit" | "content_unchanged",
+  g: {
+    identity_gate: IdentityGateState;
+    referents_extracted: number;
+    referents_surviving: number;
+    site_derived_output: boolean;
+  },
+): CrawlReport {
+  const detail = { ...prev.detail, identity_gate: g.identity_gate };
+  const base: CrawlReport = {
+    ...prev, detail,
+    referents_extracted: g.referents_extracted,
+    referents_surviving: g.referents_surviving,
+  };
+  const note = cache === "hit" ? "from the 30-day cache" : "the site is unchanged since the last crawl";
+  const out = (outcome: CrawlOutcome, reason: string): CrawlReport => {
+    const r: CrawlReport = { ...base, outcome, reason };
+    if (outcome !== "succeeded") r.referents_surviving = 0;
+    assertReportConsistent(r);
+    return r;
+  };
+  if (prev.outcome !== "succeeded") {
+    return out(prev.outcome, `${prev.reason} (${note})`);
+  }
+  if (g.site_derived_output || g.referents_extracted > 0) {
+    if (g.identity_gate !== "cleared") {
+      return out("identity_mismatch",
+        `the website supplied (${prev.domain}) does not appear to belong to the applicant; ` +
+        `${g.referents_extracted} cached referent(s) from it were discarded (${note})`);
+    }
+  }
+  if (g.referents_surviving === 0) {
+    return out("nothing_relevant",
+      `${prev.domain}: the cached understanding of the site carries no named referent (${note})`);
+  }
+  return out("succeeded",
+    `${prev.domain}: ${g.referents_surviving} referent(s) reused ${note}, identity gate re-cleared`);
 }
 
 // ---------------------------------------------------------------------------
@@ -717,12 +835,18 @@ export function assertReportConsistent(r: CrawlReport): void {
   if (r.outcome === "blocked_robots" && r.pages_fetched !== 0) {
     bad("robots_with_fetches", "blocked_robots must not have read any page");
   }
-  if ((r.outcome === "js_only" || r.outcome === "extraction_failed" ||
-       r.outcome === "blocked_bot" || r.outcome === "fetch_failed") && r.pages_parsed !== 0) {
+  if ((r.outcome === "js_only" || r.outcome === "blocked_bot" || r.outcome === "fetch_failed") &&
+      r.pages_parsed !== 0) {
     bad("failure_with_parsed_pages", `${r.outcome} must not carry parsed pages`);
   }
-  if (r.outcome === "nothing_relevant" && r.pages_parsed < 1) {
-    bad("nothing_relevant_without_pages", "nothing_relevant means prose WAS parsed and named nothing");
+  if (r.outcome === "extraction_failed" && r.pages_parsed !== 0 && r.detail.prose_pages !== 0) {
+    bad("extraction_failed_with_prose", "extraction_failed must not carry a page that reads as prose");
+  }
+  if (r.outcome === "nothing_relevant" && r.detail.prose_pages < 1) {
+    bad("nothing_relevant_without_prose", "nothing_relevant means prose WAS parsed and named nothing");
+  }
+  if (r.outcome === "succeeded" && r.detail.prose_pages < 1) {
+    bad("succeeded_without_prose", "succeeded with no page that reads as prose");
   }
 }
 
@@ -759,9 +883,12 @@ export function crawlGap(r: CrawlReport): { gap: string; severity: string } | nu
         `${domain} answered, but we could not extract readable text from it. Nothing from the site was used. ` +
         `Paste the relevant text or upload a document instead.` };
     case "nothing_relevant":
+      // Deliberately NOT "nothing was used": evidence with no proper noun in it
+      // (a founding year, a stated sector) may still have been extracted. What is
+      // missing is particularity, which is the thing donors notice.
       return { severity: "important", gap:
-        `we read ${domain} but found nothing concrete about your work — no places, partners, venues or dated results. ` +
-        `Nothing from the site could be used as evidence.` };
+        `we read ${domain}, but it does not name the places, partners, venues or dated results ` +
+        `that make a proposal specific. Sending us those details directly is the fastest way to add them.` };
     case "identity_mismatch":
       return { severity: "important", gap:
         `the website supplied (${domain}) does not appear to belong to your organisation, so nothing from it was used. ` +
@@ -925,6 +1052,7 @@ export async function crawlSiteObserved(
 
   // ---- traversal ---------------------------------------------------------
   const fetchedHtml = new Map<string, string>();
+  const obsByUrl = new Map<string, PageObservation>();
   let budgetExhausted = false;
   const get = async (u: string, role: PageRole): Promise<string | null> => {
     if (fetchedHtml.has(u)) return fetchedHtml.get(u)!;
@@ -941,7 +1069,9 @@ export async function crawlSiteObserved(
         observations.push(observePage({ url: u, role, status: res.status, contentType: res.contentType, body: res.body }));
         return null;
       }
-      observations.push(observePage({ url: u, role, status: res.status, contentType: res.contentType, body: res.body }));
+      const obs = observePage({ url: u, role, status: res.status, contentType: res.contentType, body: res.body });
+      observations.push(obs);
+      obsByUrl.set(u, obs);
       fetchedHtml.set(u, res.body);
       return res.body;
     } catch (e) {
@@ -999,7 +1129,10 @@ export async function crawlSiteObserved(
     if (html === null) continue;
     const raw = stripHtml(html, 40_000);
     const text = keepParagraphs(raw, seenPara).join(" ").slice(0, PER_PAGE_CHARS);
-    const obs = observations.find((o) => o.url === u && (o.role === "home" || o.role === "page"));
+    // The picked list is normalised without a trailing slash; the homepage was
+    // fetched WITH one. Looking the observation up by the wrong key used to leave
+    // kept_chars at zero, which reported a fully parsed homepage as unparseable.
+    const obs = obsByUrl.get(u) ?? ((u === rootKey || u === rootUrl.toString()) ? obsByUrl.get(rootUrl.toString()) : undefined);
     if (obs) obs.kept_chars = text.length;
     if (text.length > PAGE_MIN_CHARS) { pages.push({ url: u, text }); total += text.length; }
   }
