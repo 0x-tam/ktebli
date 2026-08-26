@@ -77,6 +77,23 @@ function normPN(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
+// Order-insensitive key: "Municipality of Tripoli" and "Tripoli Municipality" are
+// the same referent, and a ledger written one way must match prose written the
+// other. Short connectives are dropped so they cannot make two spellings differ.
+const PN_GLUE = new Set(["of", "and", "the", "de", "la", "le", "du", "el", "al"]);
+function pnKey(s: string): Set<string> {
+  return new Set(normPN(s).split(" ").filter((w) => w && !PN_GLUE.has(w)));
+}
+function pnOverlap(a: Set<string>, b: Set<string>): boolean {
+  if (!a.size || !b.size) return false;
+  const [small, big] = a.size <= b.size ? [a, b] : [b, a];
+  let hit = 0;
+  for (const w of small) if (big.has(w)) hit++;
+  // Every word of the shorter name appears in the longer one: "Tower Hamlets"
+  // matches "Tower Hamlets Council", and word order is irrelevant.
+  return hit === small.size;
+}
+
 interface PNAudit {
   ledger_offers: number;      // distinct proper nouns the ledger could supply
   used: number;               // of those, how many the narrative actually uses
@@ -98,16 +115,28 @@ function properNounAudit(narrative: string, ledger: Array<Record<string, unknown
   const inNarrative = properNouns(narrative);
   const used = new Set<string>();
   const unsourced: string[] = [];
-  const ledgerNorm = [...ledgerNouns.keys()];
+  const ledgerKeys = [...ledgerNouns.keys()].map((k) => [k, pnKey(k)] as const);
+  const ownKeys = [...own].map((k) => pnKey(k));
 
   for (const p of inNarrative) {
     const n = normPN(p);
-    if (!n || own.has(n)) continue;
-    // Containment either way: the ledger may hold "Tower Hamlets Council" while the
-    // narrative says "Tower Hamlets", or the reverse.
-    const hit = ledgerNorm.find((l) => l === n || l.includes(n) || n.includes(l));
-    if (hit) used.add(hit);
-    else unsourced.push(p);
+    if (!n) continue;
+    const key = pnKey(p);
+    if (own.has(n) || ownKeys.some((o) => pnOverlap(key, o))) continue;
+
+    const hit = ledgerKeys.find(([k, kk]) => k === n || pnOverlap(key, kk));
+    if (hit) { used.add(hit[0]); continue; }
+
+    // Only MULTI-WORD names are reported as unsourced. A lone capitalised word is
+    // overwhelmingly document furniture — a heading fragment, a table label, a
+    // sentence-initial noun the stop list does not carry — and flagging those
+    // buries the real signal. An invented entity is almost always multi-word
+    // ("Cedar Valley Trust"), so the cost of this is small and the noise removed
+    // is large. All-caps runs are headings, never names.
+    const words = p.split(/\s+/);
+    if (words.length < 2) continue;
+    if (p === p.toUpperCase()) continue;
+    unsourced.push(p);
   }
 
   const offers = ledgerNouns.size;

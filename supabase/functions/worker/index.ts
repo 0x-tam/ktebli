@@ -1706,7 +1706,15 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       reviewFindings = (Array.isArray(revOut.findings) ? revOut.findings : []).map((f: unknown) => String(f).slice(0, 300));
       const missingMandatory = coverage.filter((r) => r.mandatory !== false && r.status === "missing");
 
-      const blocking = groundingProblems.length + missingMandatory.length + detFindings.filter((f) => !f.startsWith("repeated development jargon") && !f.startsWith("heavy development jargon")).length;
+      // Advisory findings drive a rewrite but must never block delivery. The two
+      // proper-noun findings are advisory for a specific reason: naming your own
+      // new project ("the Progression Pathways Initiative") is legitimate and
+      // reads as unsourced to a string matcher, so this signal steers the
+      // correction loop and the Claim Ledger stays the actual grounding gate.
+      const ADVISORY = ["repeated development jargon", "heavy development jargon",
+                        "UNSOURCED PROPER NOUNS", "SPECIFICITY"];
+      const blocking = groundingProblems.length + missingMandatory.length +
+        detFindings.filter((f) => !ADVISORY.some((a) => f.startsWith(a))).length;
       rounds.push({
         round, deterministic: detFindings, grounding_problems: groundingProblems.length,
         proper_nouns: { offered: pnAudit.ledger_offers, used: pnAudit.used, unsourced: pnAudit.unsourced.length },
