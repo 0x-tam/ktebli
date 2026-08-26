@@ -45,7 +45,8 @@ begin
 
   -- ---- the first run claims and confirms, exactly as the strategy stage does
   v := public.claim_approach(v_org, v_grant, 'i1','d1','b1','g1','m1',
-                             1::smallint, 1::smallint, v_vp, 'custom');
+                             repeat('a', 64), '{"spine":"place"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp, 'custom');
   if not (v->>'granted')::boolean then raise exception 'setup failed: first claim refused'; end if;
   v_claim := (v->>'claim_id')::uuid;
   perform public.confirm_claim(v_claim);
@@ -53,7 +54,8 @@ begin
 
   -- ---- BEFORE the fix: an operator resets the stage and the retry is blocked
   v := public.claim_approach(v_org, v_grant, 'i2','d2','b2','g2','m2',
-                             2::smallint, 2::smallint, v_vp, 'custom');
+                             repeat('b', 64), '{"spine":"phase"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp, 'custom');
   if (v->>'granted')::boolean then
     raise exception 'expected the retry to be blocked before release, but it was granted';
   end if;
@@ -71,11 +73,12 @@ begin
 
   -- ---- the retry now succeeds, and the freed template/opening are re-issuable
   v := public.claim_approach(v_org, v_grant, 'i2','d2','b2','g2','m2',
-                             1::smallint, 1::smallint, v_vp, 'custom');
+                             repeat('a', 64), '{"spine":"place"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp, 'custom');
   if not (v->>'granted')::boolean then
     raise exception 'retry still blocked after release: %', v->>'blocked_by';
   end if;
-  raise notice 'retry after release    -> granted, and template 1 / opening 1 were re-issued';
+  raise notice 'retry after release    -> granted, and the freed fingerprint was re-issued';
   perform public.confirm_claim((v->>'claim_id')::uuid);
   update public.order_proposals set claim_id = (v->>'claim_id')::uuid where id = v_prop;
 
@@ -95,7 +98,8 @@ begin
   raise notice 'second concurrent order-> released nothing (exclusivity intact)';
 
   v := public.claim_approach(v_org, v_grant, 'i3','d3','b3','g3','m3',
-                             3::smallint, 3::smallint, v_vp, 'custom');
+                             repeat('c', 64), '{"spine":"actor"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp, 'custom');
   if (v->>'granted')::boolean then
     raise exception 'SAFETY FAILURE: the organisation now holds two live claims on one grant';
   end if;
@@ -103,7 +107,8 @@ begin
 
   -- ---- a DIFFERENT organisation is unaffected
   v := public.claim_approach(v_sib, v_grant, 'i4','d4','b4','g4','m4',
-                             4::smallint, 4::smallint, v_vp_sib, 'custom');
+                             repeat('d', 64), '{"spine":"place"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp_sib, 'custom');
   if not (v->>'granted')::boolean then
     raise exception 'a different organisation was wrongly blocked: %', v->>'blocked_by';
   end if;
