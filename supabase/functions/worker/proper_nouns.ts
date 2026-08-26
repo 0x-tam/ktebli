@@ -45,11 +45,11 @@ function properNouns(md: string): string[] {
   const out = new Set<string>();
   // A run of capitalised words. Three continuations are allowed, because real
   // names are messier than "Two Capitalised Words":
-  //   ... of/and/the/de/van ... Capitalised   -> "Church of St Mark"
+  //   ... of/the/de/van ... Capitalised      -> "Church of St Mark"
   //   al-Tabbaneh, d'Ivoire                   -> a lowercase particle bound by a
   //                                              hyphen or apostrophe to a capital
   //   plain Capitalised                       -> "Tower Hamlets"
-  const re = /([A-Z][\w'’-]*(?:\s+(?:of|and|the|de|al|bin|van|von|du|la|le|el)\s+[A-Z][\w'’-]*|\s+[a-z]{1,3}[-'’][A-Z][\w'’-]*|\s+[A-Z][\w'’-]*)*)/g;
+  const re = /([A-Z][\w'’-]*(?:\s+(?:of|the|de|al|bin|van|von|du|la|le|el)\s+[A-Z][\w'’-]*|\s+[a-z]{1,3}[-'’][A-Z][\w'’-]*|\s+[A-Z][\w'’-]*)*)/g;
 
   for (const m of text.matchAll(re)) {
     let words = m[1].trim().split(/\s+/);
@@ -80,7 +80,7 @@ function normPN(s: string): string {
 // Order-insensitive key: "Municipality of Tripoli" and "Tripoli Municipality" are
 // the same referent, and a ledger written one way must match prose written the
 // other. Short connectives are dropped so they cannot make two spellings differ.
-const PN_GLUE = new Set(["of", "and", "the", "de", "la", "le", "du", "el", "al"]);
+const PN_GLUE = new Set(["of", "the", "de", "la", "le", "du", "el", "al"]);
 function pnKey(s: string): Set<string> {
   return new Set(normPN(s).split(" ").filter((w) => w && !PN_GLUE.has(w)));
 }
@@ -131,7 +131,10 @@ function properNounAudit(narrative: string, ledger: Array<Record<string, unknown
     const n = normPN(p);
     if (!n) continue;
     const key = pnKey(p);
-    if (own.has(n) || ownKeys.some((o) => pnOverlap(key, o))) continue;
+    // Containment in EITHER direction: "Mashghal Community Association In Bab
+    // al-Tabbaneh's" is still the applicant naming itself, and crediting it as a
+    // named referent inflates exactly the metric this is meant to measure.
+    if (own.has(n) || ownKeys.some((o) => pnOverlap(key, o) || [...o].every((w) => key.has(w)))) continue;
 
     const hit = ledgerKeys.find(([k, kk]) => k === n || pnOverlap(key, kk));
     if (hit) { used.add(hit[0]); continue; }
