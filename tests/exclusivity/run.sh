@@ -26,8 +26,16 @@ psql_ "-d postgres -qc 'create database $DB'"
 psql_ "-d $DB -q -f $REPO/tests/replay/shim.sql"
 for f in "$REPO"/supabase/migrations/*.sql; do psql_ "-d $DB -q -f $f" >/dev/null; done
 
+echo "=== stranded-claim test (must PASS) ==="
+psql_ "-d $DB -f $REPO/tests/exclusivity/stranded_claim_test.sql"
+stranded=$?
+[ $stranded -ne 0 ] && echo "STRANDED-CLAIM TEST FAILED"
+
+echo
+echo "=== ceiling probe (fails while any ceiling exists) ==="
 psql_ "-d $DB -f $REPO/tests/exclusivity/ceiling_test.sql"
 rc=$?
+[ $stranded -ne 0 ] && rc=$stranded
 echo
 if [ $rc -ne 0 ]; then
   echo "EXCLUSIVITY TEST FAILING — a ceiling still exists on a single grant."

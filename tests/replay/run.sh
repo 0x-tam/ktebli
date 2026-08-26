@@ -43,7 +43,7 @@ for f in "$REPO"/supabase/migrations/*.sql; do
 done
 
 echo
-echo "==> schema fingerprint (must match production exactly)"
+echo "==> schema fingerprint (must match what the migration history produces)"
 EXPECTED="$REPO/tests/replay/expected-fingerprint.txt"
 ACTUAL="$RUNDIR/actual-fingerprint.txt"
 psql_ "-d $DB -tAF'|' --no-align -f $REPO/db/verify_schema_fingerprint.sql" \
@@ -57,7 +57,22 @@ if ! diff -u "$EXPECTED" "$ACTUAL" >/dev/null; then
   diff -u "$EXPECTED" "$ACTUAL" || true
   fail=1
 else
-  echo "  -> all 8 categories match production"
+  echo "  -> all 8 categories match the recorded migration-history fingerprint"
+fi
+
+# The repo may legitimately be AHEAD of production while a migration is written but
+# not yet deployed. That is not a parity failure, but it must never be invisible.
+echo
+echo "==> deployment state"
+PROD="$RUNDIR/prod-fingerprint.txt"
+grep -vE '^\s*(#|$)' "$REPO/tests/replay/production-fingerprint.txt" | sort > "$PROD"
+if diff -q "$EXPECTED" "$PROD" >/dev/null 2>&1; then
+  echo "  in sync: the migration history produces exactly what production last reported"
+else
+  echo "  UNDEPLOYED MIGRATIONS: the repo is ahead of production in these categories:"
+  { diff "$PROD" "$EXPECTED" || true; } | grep -E '^[<>]' | awk '{print "    " $0}'
+  echo "  (production-fingerprint.txt records the live project as last observed;"
+  echo "   re-read it from the live project after deploying, in the same commit.)"
 fi
 
 echo
