@@ -1,25 +1,31 @@
-> # DECODING CORRECTED 2026-08-27 — the arm letters below are WRONG
+> # THE 2026-08-27 "DECODING CORRECTED" BANNER WAS ITSELF WRONG — WITHDRAWN 2026-08-27
 >
-> This file was decoded with `.map-n06-critic_b.txt` = `DCAB`. That map does not belong to the
-> packet that was sent. The orchestrator's workflow script paired **critic_a's packet**
-> (`.prompt-n06-critic_a.txt`) with **critic_b's map** — an orchestration error, not the
-> judging agent's.
+> A banner was prepended to this file claiming the packet sent was critic_a's
+> (`.prompt-n06-critic_a.txt`, order `BDAC`), and re-decoding the verdict from
+> `D > B > C > A` to `B > C > D > A` — which changed the funded document from a
+> single-prompt arm to the shipped pipeline default. **That claim does not survive a
+> content check and is withdrawn.** The original decoding below, `DCAB`, stands.
 >
-> The packet's true document order is **BDAC**, derived twice by independent methods: a
-> mid-document probe, then three probes per document (head/mid/tail), all four documents
-> consistent and non-overlapping.
+> The banner reasoned about which packet *was sent*. The decisive question is which
+> document the critic actually *read*, and the critic's own quoted arithmetic answers it:
 >
-> The critic's RAW ranking is unaffected: `Doc 1 > Doc 4 > Doc 2 > Doc 3`. Only the decoding
-> changes.
+> | critic wrote | figure | appears in | under `DCAB` | under `BDAC` |
+> | --- | --- | --- | --- | --- |
+> | Doc 4's budget states 55,385 and sums to 53,885 | `55,385` | **only `out-n06-B.md`** | Doc 4 = B ✓ | Doc 4 = C ✗ |
+> | Doc 1: 38,840 + 4,660 = 43,500 | `38,840` | **only `out-n06-D.md`** | Doc 1 = D ✓ | Doc 1 = B ✗ |
 >
-> | | as published below | CORRECTED |
-> | --- | --- | --- |
-> | ranking | D > B > C > A | **B > C > D > A** |
-> | would fund | D — single prompt + stronger generator | **B — pipeline + stronger generator** |
+> Neither figure occurs in any other arm at this rung. `DCAB` fits both; `BDAC` fits
+> neither. Structurally, `.packet-n06-critic_b.txt` decodes to `DCAB` and
+> `.prompt-n06-critic_a.txt` to `BDAC` — both self-consistent — so the map files were
+> never the problem; the banner simply picked the wrong packet as the one that was read.
 >
-> The published version was evidence AGAINST the pipeline. The corrected version funds the
-> shipped default. Nothing about the critic's judgement changed; only which document it was
-> looking at. Every arm letter in the table below must be re-read through BDAC.
+> Re-runnable: `tests/ladder/bytematch.py`, which derives every packet's permutation from
+> the documents and re-checks all eleven fingerprints. The ladder documents and packets
+> now live in `tests/ladder/`; they were previously only in a scratch directory.
+>
+> **Standing result for this cell: ranking `D > B > C > A`, would fund `D`
+> (single prompt + stronger generator). Both pipeline arms were judged not fundable.**
+> `reports/referent-ladder.md` §1 and §2 already record `DCAB` and need no change.
 
 # Blind critic evaluation — rung n06, critic_b (x-ai/grok-4.6) — REPLAY OBTAINED 2026-08-27
 

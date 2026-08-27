@@ -10,6 +10,10 @@ run() { echo; echo "=============== $1"; shift; "$@"; local s=$?; [ $s -ne 0 ] &
 
 run "migration replay and schema parity"   "$REPO/tests/replay/run.sh"
 run "exclusivity: ceiling, stranded claims, concurrency" "$REPO/tests/exclusivity/run.sh"
+# Blinding is derived from each packet, never trusted from a .map file, and each landed
+# verdict is pinned to the document the critic quoted. A wrong decoding once inverted a
+# result in favour of the shipped default; this is what catches that.
+run "ladder blinding byte-match"            python3 "$REPO/tests/ladder/bytematch.py"
 run "proper-noun audit"                    $DENO run "$REPO/tests/proper-nouns/proper_nouns_test.ts"
 run "numeric register"                     $DENO run "$REPO/tests/numeric-register/numeric_register_test.ts"
 # --allow-read: these assert against their own module source, so that a threshold or a
