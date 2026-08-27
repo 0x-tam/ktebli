@@ -159,5 +159,54 @@ const acct = (md: string, hs: string[] = []) => {
 ok(acct(DOC) && acct(TRAP) && acct(PHASED, ["Q2. What will you do?"]) && acct(VFM) && acct(FAKE),
   "no document loses words with an empty exclusion record");
 
+
+console.log("\nF2 — the section-exclusion hole found by the parser audit");
+// A per-paragraph prose test was defeated by pressing Enter: an "## Annex" heading
+// followed by paragraphs each under PROSE_LINE_WORDS hid 541 words of a 550-word
+// document and the limit counted 9. The test is now cumulative over the SECTION, with
+// an independent size cap behind it.
+const HIDDEN = `## Q1. Who are you?
+
+We are a small charity.
+
+## Annex
+
+` + Array.from({ length: 45 }, (_, i) =>
+  `Paragraph ${i} carries real argument about the work and the people served.`).join("\n\n");
+const hidWhole = words(limitedText(HIDDEN, "whole").text);
+const hidCount = words(limitedText(HIDDEN, "answers").text);
+ok(hidCount === hidWhole, `prose relabelled as an annex is still counted (${hidCount}/${hidWhole})`);
+
+console.log("\nand a genuine attachment still leaves the count");
+const REAL_ATTACH = `## Q1. Who are you?
+
+We run a supper club in Marlpit and have done since 2016, four evenings a week.
+
+## Budget table
+
+| Item | Cost |
+| --- | --- |
+${Array.from({ length: 30 }, (_, i) => `| Line item ${i} | ${i * 100} |`).join("\n")}
+
+## Declaration
+
+I confirm the information given above is true and complete to the best of my knowledge.`;
+const realCount = words(limitedText(REAL_ATTACH, "answers").text);
+ok(realCount < 40, `a real budget table and declaration are excluded (${realCount})`);
+ok(/supper club in Marlpit/.test(limitedText(REAL_ATTACH, "answers").text), "the answer survives");
+
+console.log("\na table-only section is not prose however long it runs");
+const LONG_TABLE = `## Q1. Who are you?
+
+We work in Marlpit.
+
+## Annex
+
+| Item | Cost |
+| --- | --- |
+${Array.from({ length: 120 }, (_, i) => `| Line ${i} | ${i} |`).join("\n")}`;
+ok(words(limitedText(LONG_TABLE, "answers").text) < 20,
+  "120 table rows do not re-enter the count");
+
 console.log(bad ? `\n${bad} FAILURE(S)` : "\nALL WORD-LIMIT TESTS PASSED");
 if (bad) Deno.exit(1);

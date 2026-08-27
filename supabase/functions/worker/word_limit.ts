@@ -43,6 +43,8 @@ export type LimitScope = "whole" | "answers";
 // A paragraph longer than this inside a section named as an attachment is prose, and
 // prose is part of the application whatever the section is called.
 const PROSE_LINE_WORDS = 25;
+// A one-page budget table and a declaration are both well under this.
+const MAX_EXCLUDED_SECTION_WORDS = 250;
 
 // The only section names that may leave the count without the donor naming them.
 // EXACT normalised matches, never prefixes: "budget table" is an attachment,
@@ -173,18 +175,33 @@ export function limitedText(
 
   const isTableLine = (s: string) => /^\s*\|/.test(s);
 
-  // Prose is measured over the PARAGRAPH, not the line. A per-line test is defeated
-  // by hard-wrapping, which is a formatting choice the model makes, and no gate may
-  // depend on one. A block of table rows is not prose however long it runs.
+  // Prose is measured CUMULATIVELY OVER THE SECTION, not per paragraph. A per-paragraph
+  // test was defeated by pressing Enter: an "## Annex" heading followed by forty-five
+  // paragraphs of under twenty-five words each hid 541 words of a 550-word document,
+  // and the limit saw 9. Paragraph breaks are a formatting choice the model makes, and
+  // no gate may depend on one -- the same reason the per-LINE test was replaced.
+  //
+  // A block of table rows is not prose however long it runs, so a genuine budget table
+  // still leaves the count.
+  const sectionWords = () =>
+    [...held, ...para].filter((l) => l.trim().length > 0 && !isTableLine(l))
+      .reduce((n, l) => n + wordsIn(l), 0);
   const paraIsProse = () => {
-    const nb = para.filter((l) => l.trim().length > 0);
+    const nb = [...held, ...para].filter((l) => l.trim().length > 0);
     if (nb.length === 0) return false;
     if (nb.every(isTableLine)) return false;
-    return nb.reduce((n, l) => n + wordsIn(l), 0) > PROSE_LINE_WORDS;
+    return sectionWords() > PROSE_LINE_WORDS;
   };
 
   // An attachment that carries prose is not an attachment. Put the section back into
   // the count from its heading onwards, and withdraw the exclusion record.
+  // A second, independent guard. Even if a section never trips the prose test -- every
+  // line a table row, say -- a real attached budget table is SHORT. A single excluded
+  // section that removes more than this is not an attachment, whatever it looks like.
+  // Belt and braces on purpose: this bug class silently disables a gate, and one
+  // heuristic guarding a compliance limit is one too few.
+  const overCap = () => sectionWords() > MAX_EXCLUDED_SECTION_WORDS;
+
   const restore = () => {
     dropping = false;
     excluded.pop();
@@ -194,7 +211,7 @@ export function limitedText(
     para = [];
   };
   const settleParagraph = () => {
-    if (paraIsProse()) restore();
+    if (paraIsProse() || overCap()) restore();
     else { held.push(...para); para = []; }
   };
 
