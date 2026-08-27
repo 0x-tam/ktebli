@@ -1,4 +1,394 @@
-===== DOC 1 =====
+<!-- SYNTHETIC FIXTURE. Halewater Commons Trust, Kelverton, Marlpit, Dunmore Sixth Form College, the Wren Hill Foundation and the Neighbourhood Futures Fund do not exist. Every name, figure and date in this file is invented for a test fixture and is not a fact about any real organisation. -->
+
+You are a grant assessor — a program officer for a small independent foundation. You have read several hundred applications to this fund and its predecessors. Most of them are mediocre: competent, plausible, forgettable. You are hard to please by disposition and by experience, and a high mark from you has to be EARNED, not assumed. You are not here to encourage anybody. You are here to decide where scarce money goes.
+
+Below you have (1) the published guidance and assessment criteria for the round, (2) the applicant's identity, and (3) four applications, labelled Doc 1 to Doc 4. Read all four before you write anything.
+
+Do not attempt to count words. Word-limit compliance has been checked separately and is not at issue in this review. Every other number IS at issue.
+
+=========================================================
+PART 1 — THE CALL
+=========================================================
+
+THE WREN HILL FOUNDATION - NEIGHBOURHOOD FUTURES FUND, ROUND 3
+Guidance for applicants (read in full before you start; this guidance is the only document we assess against)
+
+ABOUT THE FUND
+The Neighbourhood Futures Fund backs small community organisations doing sustained work in single neighbourhoods in the United Kingdom. We make about 25 awards a round. We are a small independent grant-maker with no delivery arm and no regional offices, so we rely entirely on what an applicant tells us about its own place. We fund delivery. We do not fund research, one-off events, festivals, capital works, vehicles, premises purchase, or the general running costs of an organisation that has no specific plan attached to them.
+
+WHAT WE ARE LOOKING FOR IN ROUND 3
+Round 3 has three stated priorities. An application that addresses fewer than two of them is not taken to assessment.
+1. Work rooted in a named place. We want to know which streets, estates, wards or buildings the work happens in, who else operates there, and why that place and not the next one over. Applications that describe "the local community" without naming it score poorly on this criterion; assessors are instructed to treat unnamed geography as a gap in the plan, not as a stylistic preference.
+2. Progression to a defined next step. We fund work that moves a person to something specific and nameable - a course, a qualification, a job, a return to education, a named local service that takes them on. Attendance counts are not an outcome for this fund. Tell us what the next step is, who provides it, and how many people you expect to reach it.
+3. Something that outlasts the grant. We would rather fund a practice somebody keeps doing after the money stops than an activity that ends on the last day of the grant period. Say what continues, who owns it, what it costs to run without us, and who pays for it.
+
+WHO CAN APPLY
+Applicants must be a charity, charitable incorporated organisation, community interest company or constituted community group registered in the United Kingdom, with at least two years of filed accounts and total income under GBP 1.5 million in the last financial year. We do not accept applications from individuals, from statutory bodies, from organisations with total income above that ceiling, or from any organisation that holds a current Neighbourhood Futures award. Consortium bids are accepted; one organisation must be named as lead and accountable body and must meet the eligibility test in its own right.
+
+WHAT WE WILL FUND
+Awards are between GBP 25,000 and GBP 75,000, over a period of up to 18 months. Direct delivery costs, staff time, participant costs, venue hire, transport, training, evaluation and a proportionate share of overheads are eligible. Overhead recovery is capped at 12 per cent of direct costs and must appear as a single separate line. We do not fund deficits, retrospective costs, or activity already funded from another source. Match funding is welcome but not required, and an application is not scored more highly for having it.
+
+HOW TO APPLY
+Answer the five questions below, in order, using each question as a heading, exactly as written. The five answers together must not exceed 1,200 words. This is a hard limit: applications over it are returned unread and cannot be resubmitted in the same round. Headings, the budget table and the declaration are not counted towards the limit.
+
+Q1. Who are you and what do you do? Your organisation, the people you already work with, and the geography you work in.
+Q2. What is the problem, and how do you know? Be specific about place and population. Describe the causes you intend to act on, not only the symptoms, and say what your evidence for them is.
+Q3. What will you do? The activities, the sequence, who delivers each part, where each part happens, and how many people take part. Show how the activities follow from the causes in Q2.
+Q4. What will change, and how will you know? Intended outcomes, the numbers you expect, how you will measure them, and what you would count as this work not having worked.
+Q5. What happens after the grant? Name what continues, who owns it, what it costs and who pays.
+
+BUDGET AND DECLARATION
+Attach a one-page budget table showing direct costs by category, the single overhead line, and any match funding with its source and status (secured or pending). In the declaration the signatory confirms: that the organisation is in good standing with its regulator; that it holds a bank account in the organisation's own name; that neither the organisation nor any trustee is debarred or under investigation; and that safeguarding and equal opportunities policies are in place and were reviewed within the last two years. These are self-certifications; no supporting evidence is required at application stage.
+
+HOW WE ASSESS
+Two independent assessors score each application against the published criteria and weights below. Each criterion is scored 1-5. A score of 1 on any single criterion removes the application from the round regardless of the total.
+
+DEADLINE
+Applications close at 17:00 GMT on Friday 27 November 2026. Late applications are not considered. Decisions are communicated by 12 February 2027.
+
+--- PUBLISHED CRITERIA AND WEIGHTS ---
+
+Published assessment criteria and weights (Wren Hill Foundation, Neighbourhood Futures Fund Round 3). Each criterion is scored 1-5 by two independent assessors; a score of 1 on any criterion is disqualifying.
+- Work rooted in a named place, with the geography, partners and venues identified - 25%
+- Quality and coherence of the project design (problem, causes, activities, outcomes) - 30%
+- Capability of the applicant to deliver what is described, evidenced by what it has already done - 20%
+- Value for money at the requested amount - 15%
+- Credibility of what continues after the grant - 10%
+
+=========================================================
+PART 2 — THE APPLICANT
+=========================================================
+
+Legal name: Halewater Commons Trust
+Country: United Kingdom
+Town: Kelverton
+Website: halewatercommons.org.uk
+
+A small community organisation: a charitable incorporated organisation constituted in 2016, six paid staff (4.2 FTE), about 25 regular volunteers, annual expenditure around GBP 214,000. It runs open-access youth sessions for 11-19 year olds, a weekly supper club, and a small family advice desk, across two neighbourhoods on the east side of the town.
+
+=========================================================
+PART 3 — THE FOUR APPLICATIONS
+=========================================================
+
+===== DOC 1 — BEGINS =====
+
+## Q1. Who are you and what do you do?
+
+Halewater Commons Trust is a charitable incorporated organisation, constituted in 2016 and registered in the UK (charity number and website, halewatercommons.org.uk, on the cover form). We have two years of filed accounts and expenditure of GBP 214,000 in the last filed year, well below the GBP 1.5 million income ceiling. We hold no current Neighbourhood Futures award and are not a statutory body. The Trust applies alone, as lead and accountable body. This application is submitted ahead of the deadline of 17:00 GMT on Friday 27 November 2026.
+
+We employ six paid staff (4.2 FTE) and work with around 25 regular volunteers. We run open-access youth sessions for 11 to 19 year olds three evenings a week, a weekly supper club, and a small family advice desk.
+
+The place is Marlpit ward, east bank of the river in Kelverton, a post-industrial town of about 41,000 people in northern England. At the 2021 census, 38 per cent of Marlpit households sat in the lowest income decile. Dunmore Sixth Form College sits one mile from our Marlpit site, and since 2023 we have referred school-leavers there. We work in Marlpit because our building, sessions, volunteers and advice desk are already there.
+
+## Q2. What is the problem, and how do you know?
+
+In 2024-25 the Trust referred 27 young people from Marlpit to Dunmore Sixth Form College. Eighteen enrolled; nine did not. We do not currently track what happens to those who enrol after enrolment; building that record is part of this project.
+
+The problem in one line: school-leavers aged 16 to 19 in Marlpit are referred onward but drop out in the gap between a school leaving date and a college start date, and again in the first weeks after enrolment. Our own referral record is the evidence of a route that works to a point and then lets go.
+
+We act on four causes rather than the symptom of low enrolment.
+
+1. No named person owns a case between referral and enrolment, so the summer gap goes unmanaged.
+2. There is no written handover to the college, so knowledge of support needs does not travel with the young person.
+3. The first six weeks after enrolment are unsupported, so early wobbles about travel, money, attendance and confidence can become withdrawals.
+4. Referral is informal and event-based rather than a sequenced, recorded route with a defined next step.
+
+The group course model works here. In 2025 the Trust ran a twelve-week progression course, Second Chances, in Marlpit from January to April: of 24 starters, 19 finished and 11 moved into a college place, apprenticeship or paid work. The design we now propose adds accompaniment after handover, a feature the Trust has not previously run. This application buys that missing accompaniment, not a new service.
+
+## Q3. What will you do?
+
+**Held Through: Marlpit Progression Keyworking**, 18 months, delivered in Marlpit ward and at Dunmore Sixth Form College. Target group: school-leavers aged 16 to 19, plus Year 11 leavers approaching a leaving date, identified through our existing youth sessions and family advice desk. No eligibility test beyond age, ward, and being at or past a leaving date without a held next step. Caseload: 70 young people.
+
+The signature mechanic is a named progression keyworker who holds each young person from the youth session, through referral, and through the first six weeks after enrolment, using a written handover sheet agreed with the college.
+
+| Months | Activity | Delivered by | Where |
+|---|---|---|---|
+| 1-2 | Recruit and induct one progression keyworker, 0.8 FTE | Trust manager | Marlpit premises |
+| 2-18 | Rolling caseload: identification at weekly youth sessions, one-to-one plan naming the next step, contact through the summer gap | Keyworker | Marlpit and community |
+| 2-4 | Agree handover protocol, building on the referral route in place since 2023 | Manager and keyworker with college | Dunmore Sixth Form College |
+| 4-18 | Handover sheet completed and signed by the young person, passed to a named college contact, reviewed at enrolment | Keyworker | Both sites |
+| 5-8 and 11-14 | Two twelve-week group progression courses, up to 20 each | Trust youth staff, keyworker, volunteers | Marlpit premises |
+| 6-18 | Six-week accompaniment after enrolment: week 1 contact, recorded checks at weeks 2 and 6, problem-solving | Keyworker | College and Marlpit |
+| 9-17 | Write up curriculum and protocol as a retained document; quarterly trustee review | Manager and trustees | Trust |
+| 3-18 | Track the referral-to-enrolment-to-retention chain; independent read at month 17 | Keyworker, external reader | Trust |
+| 16-18 | Embed protocol in youth session routine; hand caseload function to existing staff | Trust manager | Marlpit premises |
+
+Each activity answers a cause: keyworker (one), handover sheet (two), six-week accompaniment (three), recorded plan and protocol (four). Dunmore is the named next-step provider. We will also approach local schools on early identification of Year 11 leavers, and employers and apprenticeship providers so an apprenticeship or paid work counts as a defined next step.
+
+Main risks: the college declines or delays formal handover, in which case the protocol is scoped light and consent-based and worked from the Trust's side; recruitment slips, so recruitment starts at month 1 and cohort 1 not until month 5; small numbers make percentages volatile, so we report absolute numbers too.
+
+## Q4. What will change, and how will you know?
+
+Three outcomes: more of those referred actually enrol; more of those who enrol are still in place at six weeks; and the Trust ends the grant holding a documented progression route it can run itself.
+
+| Point in the chain | Target over 18 months |
+|---|---|
+| Young people on the keyworker caseload | 70 |
+| Course participants | Two cohorts of up to 20 |
+| Referrals taken to a defined next step | 55 of 70 |
+| Enrolments or equivalent next steps | 40 of 55 |
+| Still in place at six weeks | 33 of 40 |
+
+We measure the chain per young person in a simple spreadsheet, not attendance. Baseline: our 2024-25 record of 27 referrals and 18 enrolments. We will ask the college to share retention information with consent and to name a contact for the accompaniment period. An independent read of the retention record takes place at month 17.
+
+Failure is defined in advance: enrolment gains that do not survive six weeks, and fewer than 33 young people in place at six weeks. If the chain breaks where it breaks now, the work has not worked, and we will report that.
+
+## Q5. What happens after the grant?
+
+Three things continue: the handover sheet and referral protocol as a standing agreement with Dunmore; the written-up twelve-week curriculum; and the retention tracking record. All are owned by the Trust and reviewed quarterly by trustees. From month 16 the caseload function is absorbed into the existing youth sessions and held by existing staff.
+
+Ongoing cost is low but not nil: staff time within the existing team plus modest materials and participant travel, in the low thousands a year, delivered from the Marlpit premises we already use for youth sessions. We will meet this from unrestricted income and small local grants. No future funder is secured and the design assumes none. The 0.8 FTE keyworker post does not continue unless separately funded, which is why the transferable asset is the protocol, curriculum and tracking record.
+
+## One-page budget table
+
+| Item | Basis | Amount (GBP) |
+| --- | --- | --- |
+| Progression keyworker | 0.8 FTE, 18 months, including employer costs | 45,000 |
+| Group progression courses | Two twelve-week courses: sessional staff time, materials | 7,500 |
+| Participant travel and barrier costs | Bus fares, interview and enrolment costs | 3,000 |
+| Manager supervision and governance | Supervision, reporting, trustee review | 5,000 |
+| Independent read | Retention record read at month 17 | 2,500 |
+| Monitoring | Caseload and retention tracking, consent and handover documentation | 1,400 |
+| Volunteer expenses | Course session support | 900 |
+| Recruitment and induction | Keyworker recruitment and induction | 600 |
+| Contingency | Recruitment slippage and cohort re-scheduling | 1,000 |
+| **Total direct costs** |  | **66,900** |
+| Overhead | 12 per cent of direct costs | 8,028 |
+| **Total requested** | 18 months | **74,928** |
+| Match funding | None claimed | 0 |
+
+## Declaration
+
+On behalf of Halewater Commons Trust, I confirm the following four self-certifications in support of this application.
+
+First, the organisation is in good standing with its regulator, with all required returns and filings submitted as due.
+
+Second, the organisation holds a bank account in its own name, and any grant awarded would be received into and administered through that account.
+
+Third, neither the organisation nor any of its trustees is debarred from receiving public or charitable funds, and neither the organisation nor any trustee is currently under investigation by any regulator, funder, or statutory authority.
+
+Fourth, the organisation has safeguarding and equal opportunities policies in place, and both policies have been formally reviewed within the last two years.
+
+I confirm that the information given in this application, including the budget above, is accurate and complete to the best of my knowledge, and I undertake to notify the funder promptly if any of these certifications ceases to be true.
+
+Signed on behalf of Halewater Commons Trust:
+
+Name:
+
+Position:
+
+Date:
+
+===== DOC 1 — ENDS =====
+
+===== DOC 2 — BEGINS =====
+
+## Q1. Who are you and what do you do? Your organisation, the people you already work with, and the geography you work in.
+
+Halewater Commons Trust is a charitable incorporated organisation constituted in 2016 in Kelverton, a post-industrial town of approximately 41,000 residents in northern England. The Trust operates with six paid staff (4.2 full-time equivalent) and 25 regular volunteers, with total expenditure in the last filed financial year of £214,000 across two years of filed accounts.
+
+Our operational focus is Marlpit, an urban ward on the east bank of the river where 38 per cent of households sat in the lowest national income decile at the 2021 census. On the east side of town, we deliver:
+- Open-access youth sessions running three evenings a week for young people aged 11 to 19.
+- A weekly community supper club.
+- A walk-in advice desk for local families.
+
+These services provide continuous contact with local young people and families facing severe economic disadvantage.
+
+We have established direct progression links for local school-leavers. In the 2024–25 academic year, the Trust referred 27 young people to Dunmore Sixth Form College, located one mile from our Marlpit site, resulting in 18 enrolments. From January to April 2025, we ran "Second Chances", a 12-week progression pilot in Marlpit: 24 young people started, 19 completed, and 11 progressed into a college place, an apprenticeship, or paid employment. This proposal expands that model into an 18-month structured pathway directly addressing all three Round 3 priorities: place-based delivery in Marlpit, verified progression to named destinations, and sustainable practices that outlast the grant.
+
+## Q2. What is the problem, and how do you know? Be specific about place and population. Describe the causes you intend to act on, not only the symptoms, and say what your evidence for them is.
+
+In Marlpit, disengaged 16- to 19-year-olds face acute barriers moving from informal community settings into structured education, training, or sustained employment.
+
+While youth disengagement and low local progression rates are visible symptoms, our frontline delivery identifies three specific operational causes:
+
+1. **Progression vacuum in informal youth spaces:** Young people attend regular evening youth clubs and community sessions but lack structured, low-barrier navigation within those trusted spaces to turn informal contact into concrete career and educational pathways.
+2. **Institutional and procedural friction:** Mainstream application processes, travel logistics across town, and unfamiliar formal environments present major hurdles that cause young people to drop out during enrolment transitions.
+3. **Absence of early post-transition retention support:** Once enrolled or placed, young people lack structured check-ins during the first 90 days to resolve initial transport, financial, or workplace challenges before they result in disengagement.
+
+Our evidence rests on local intake and delivery data: 38% of Marlpit households sit in the lowest income decile; our 2024–25 referral baseline with Dunmore Sixth Form College showed that 18 of 27 referred young people successfully enrolled; and our January–April 2025 Second Chances pilot demonstrated that 19 of 24 starters completed the course and 11 secured an immediate college place, apprenticeship, or job.
+
+## Q3. What will you do? The activities, the sequence, who delivers each part, where each part happens, and how many people take part. Show how the activities follow from the causes in Q2.
+
+The Trust will deliver "Second Chances: Marlpit Youth Progression Pathway", supporting 66 disengaged young people aged 16 to 19 across three sequential 12-week cohorts over 18 months (22 participants per cohort).
+
+| Phase and Sequence | Core Activities | Lead Role & Venue | Target Participation |
+| :--- | :--- | :--- | :--- |
+| **Phase 1: Months 1–6** *(Mobilisation & Cohort 1)* | Activity 1: Intake and engagement through Marlpit evening sessions. Activity 2: 1-to-1 progression planning and barrier reduction. Activity 3: 12-week progression syllabus (skills and application clinics). | Progression Lead (0.6 FTE) and Sessional Worker (0.2 FTE) at Marlpit youth site. | 22 young people; 12 group workshops; 1-to-1 mentoring. |
+| **Phase 2: Months 7–11** *(Cohort 2 & Transition)* | Repeat Activities 1–3 for Cohort 2. Activity 4: Dunmore Sixth Form College taster visits and enrolment navigation. Activity 5: 30/60/90-day retention tracking for Cohort 1. | Progression Lead, Sessional Worker, and core staff at Marlpit site and Dunmore campus. | 22 young people; Dunmore campus visits; ongoing retention casework. |
+| **Phase 3: Months 12–18** *(Cohort 3 & Embedding)* | Repeat Activities 1–3 for Cohort 3. Activity 4: Transition clinics and Dunmore liaison. Activity 5: 90-day retention casework; embed permanent intake protocol. | Progression Lead and core youth team at Marlpit site and Dunmore campus. | 22 young people; full protocol codification into core work. |
+
+### How Activities Address Root Causes
+
+- **Overcoming the progression vacuum (Cause 1):** Delivery staff engage participants directly during open-access evening sessions and the weekly supper club, using established relationships to onboard them into structured 12-week cohorts.
+- **Removing procedural friction (Cause 2):** Tailored 1-to-1 action planning provides direct help with application forms, travel costs, and interview preparation, accompanied by supported visits to Dunmore Sixth Form College.
+- **Securing sustained retention (Cause 3):** Dedicated contact at 30, 60, and 90 days post-placement resolves initial operational or personal hurdles to sustain engagement.
+
+## Q4. What will change, and how will you know? Intended outcomes, the numbers you expect, how you will measure them, and what you would count as this work not having worked.
+
+The project will achieve four defined outcomes across 18 months:
+
+1. **Curriculum Completion:** 52 participants (79% of starters) complete the 12-week curriculum with a verified individual progression plan.
+2. **Positive Destination Progression:** 34 participants (52% of starters) progress into a verified destination (Dunmore Sixth Form College, an apprenticeship, or paid employment).
+3. **Sustained Placement:** 28 participants (82% of placed individuals) sustain their placement for at least 90 days.
+4. **Permanent Systemic Integration:** A permanent progression intake and referral toolkit is fully embedded into Halewater Commons Trust's ongoing youth sessions.
+
+### Measurement Framework
+
+| Metric | Target | Verification Method & Source | Frequency |
+| :--- | :--- | :--- | :--- |
+| Second Chances Enrolment | 66 young people | Intake logs and baseline registers | Start of each cohort |
+| Completed Progression Plan | 52 young people | Signed individual progression portfolios | Week 12 of each cohort |
+| Confirmed Positive Destination | 34 young people | Enrolment confirmation, apprenticeship agreements, employer letters | Monthly post-cohort |
+| Sustained 90-Day Placement | 28 young people | 90-day review records and provider check-ins | 30, 60, 90 days post-placement |
+
+### Project Non-Performance Criteria
+
+We would count this work as not having worked if fewer than 40 participants complete individual action plans, if fewer than 25 secure a verified positive progression destination, or if 90-day retention falls below 60 per cent of placed individuals.
+
+## Q5. What happens after the grant? Name what continues, who owns it, what it costs and who pays.
+
+### What Continues
+The 12-week Second Chances curriculum, the 1-to-1 intake toolkit, and the structured referral corridor to Dunmore Sixth Form College will continue as permanent operating practices embedded within our weekly Marlpit youth provision.
+
+### Who Owns It
+Halewater Commons Trust's core youth work team (4.2 FTE) owns the delivery model, intake tools, and referral relationships.
+
+### Ongoing Costs and Financing
+Ongoing direct running costs are approximately £1,200 per year for workshop resources, progression materials, and travel assistance.
+- **Material Costs (£1,200 annually):** Absorbed directly into Halewater Commons Trust's core operating budget, supported by our ongoing organisational turnover (£214,000 in the last filed accounts).
+- **Staffing and Mentoring:** Delivered by our permanent core youth work team as part of regular open-access sessions.
+
+## Project Budget
+
+| Budget Category | Description | Amount (GBP) |
+| :--- | :--- | :--- |
+| **Direct Staff Costs** | Progression Lead Youth Worker (0.6 FTE for 18 months) | £25,200 |
+| **Direct Staff Costs** | Sessional Youth Support Worker (0.2 FTE for 18 months) | £6,600 |
+| **Participant Barrier Reduction** | Travel passes, interview clothing, session refreshments | £5,400 |
+| **Curriculum Delivery** | Workshop resources, taster visits, accreditation materials | £3,200 |
+| **Monitoring & Evaluation** | Outcome tracking, verification, and data collation | £2,500 |
+| **Total Direct Costs** | Sum of direct delivery expenditure | **£42,900** |
+| **Overhead Recovery** | Single line overhead recovery capped at 12.0% of direct costs | £5,148 |
+| **Total Grant Requested** | Total funding requested from The Wren Hill Foundation | **£48,048** |
+| **Match Funding** | Internal core staff contribution: Supervision (0.05 FTE core youth management contribution) | Secured (Trust core reserves) |
+
+## Applicant Declaration and Submission Timetable
+
+Halewater Commons Trust hereby self-certifies that:
+1. The organisation is in good standing with its charity regulator and has filed two consecutive years of annual accounts.
+2. The organisation maintains a dedicated bank account in its own legal name.
+3. No trustees, directors, or senior managers are debarred, disqualified, or subject to active regulatory investigation.
+4. Safeguarding and equal opportunities policies have been formally reviewed and adopted within the last two years.
+5. This proposal will be formally submitted prior to the deadline of 17:00 GMT on Friday 27 November 2026.
+
+===== DOC 2 — ENDS =====
+
+===== DOC 3 — BEGINS =====
+
+## Q1. Who are you and what do you do?
+
+Halewater Commons Trust is a charitable incorporated organisation, constituted in 2016, working on the east side of Kelverton, a post-industrial town of about 41,000 people in northern England. We have six paid staff (4.2 full-time equivalent) and around 25 regular volunteers. Total expenditure in our last filed financial year was £214,000, and two years of accounts are filed.
+
+Three things run week in, week out. Open-access youth sessions for 11 to 19 year olds run three evenings a week in Marlpit, the ward on the east bank of the river. A supper club runs weekly. A small advice desk supports families.
+
+Since 2023 we have referred school-leavers to Dunmore Sixth Form College, a mile from our Marlpit site. In the 2024-25 academic year we referred 27 young people and 18 enrolled. From January to April 2025 we ran a twelve-week progression course in Marlpit called Second Chances: 24 young people started, 19 finished, and 11 moved into a college place, an apprenticeship or paid work.
+
+## Q2. What is the problem, and how do you know?
+
+Young people in Marlpit leave school and stall. Our own numbers show the shape of it. Of 24 who started Second Chances, 13 did not reach a college place, an apprenticeship or paid work. Of 27 referred to Dunmore Sixth Form College, nine did not enrol. These are not people who refused help; they are people who came to us and still did not land.
+
+Marlpit is where our youth sessions run three evenings a week, and it is the poorest ward we work in: 38 per cent of households sat in the lowest income decile at the 2021 census. The river is the dividing line. Almost everything that decides a young person's next twelve months, including the college, sits off the estate, and a mile is a long way when nobody in the house has done that walk.
+
+We intend to act on three causes we can see in our own delivery records rather than on the symptom of low enrolment.
+
+First, the gap between finishing and starting. Second Chances ended in April 2025. College enrolment happens in late summer. Nobody held those young people through the months in between, and that is where the 13 went.
+
+Second, unaccompanied first contact. Our referral conversion is 18 in 27. The nine who did not enrol were sent rather than taken.
+
+Third, a thin practical floor. Our advice desk sees the same blockers in families: no identity documents, no bus fare, no interview clothes, nobody at home who has filled in an enrolment form.
+
+We are honest that this evidence is our own casework and two cohorts of delivery data, not a study. Part of what we will build with this grant is a tracked record good enough to argue from.
+
+## Q3. What will you do?
+
+We will run Second Chances three times over 15 months, from April 2027 to June 2028, for 16 young people each time. That is 48 participants aged 16 to 19, recruited from our own Marlpit youth sessions and from our advice desk.
+
+Each cohort follows the same twelve-week sequence at our Marlpit site, then a defined follow-through period.
+
+- Weeks 1 to 4: two sessions a week, delivered by our youth staff, on the practical floor. Identity documents, bank accounts, bus routes, enrolment forms. The advice desk handles document and benefit problems in the same building on the same day.
+- Weeks 5 to 8: accredited employability units delivered by a sessional tutor we will contract, plus one visit off the estate each week, staff-accompanied, to the college and to local employers.
+- Weeks 9 to 12: one named destination per young person, written down, with the application actually submitted before the course ends.
+- Follow-through, weeks 13 to 26: a progression worker, 0.6 full-time equivalent, keeps contact fortnightly and walks each young person into the door of their destination on the first day.
+
+The progression worker is the change from 2025. This post exists to cover the gap between finishing and starting, and it is the single biggest thing we are asking you to pay for.
+
+Cohorts start April 2027, September 2027 and February 2028, timed so that cohort one reaches college enrolment in the late summer window and the others reach apprenticeship and employer recruitment points. Our volunteers support sessions and accompany visits, with a short training block for around ten of them in the first two months.
+
+## Q4. What will change, and how will you know?
+
+Our outcome is a young person standing in a named place they were not going to reach.
+
+Of 48 starters, we expect:
+
+- 38 to complete twelve weeks. Second Chances completion was 19 of 24, so this holds our own rate.
+- 30 to have a named destination and a submitted application by week 12.
+- 24 to be enrolled at Dunmore Sixth Form College, started on an apprenticeship, or in paid work of 16 hours a week or more, and still there at week 26.
+
+The 24 is a deliberate step up from 11 of 24 in 2025, and we are basing it on two things: the follow-through post, and our referral record of 18 enrolments from 27 referrals, which shows what happens when contact is maintained to the door.
+
+Measurement is a single spreadsheet held by the progression worker, one row per young person, updated at week 12, week 20 and week 26. We record the destination by name, the provider, the start date, and whether the young person is still there. Verification is the enrolment or contract confirmation the young person shows us, or a call to the provider with their consent. We will report cohort by cohort rather than in one total at the end.
+
+We would count this as not having worked if fewer than 18 of the 48 are in a named destination at week 26, or if any cohort drops below five. Eighteen is roughly the rate we already achieve without a follow-through post; below that, the post has bought nothing and we would say so and stop.
+
+## Q5. What happens after the grant?
+
+Two things continue.
+
+The follow-through practice continues. Walking a young person to the door on day one, and fortnightly contact for three months after a course ends, becomes standard in our youth work rather than a funded add-on. Our youth staff own it. It costs staff time we already have, roughly four hours a week absorbed into the existing three-evening rota, plus about £600 a year in bus fares, which our trustees will hold in the annual budget.
+
+The tracking record continues. One row per young person, destination named and verified at three points, owned by our senior youth worker. It costs nothing to run and it is what we will use to argue for the next round of funding, whether from a local authority commissioner, a college partnership, or another trust.
+
+We are not claiming the twelve-week course itself continues at three cohorts a year without funding. It does not. What we will have at the end is 15 months of verified destination data on 48 young people in one ward, which is the case we need to make for it.
+
+## Budget table
+
+| Category | Amount (GBP) |
+|---|---|
+| Progression worker, 0.6 FTE, 15 months | 22,000 |
+| Sessional youth work support, three cohorts | 7,200 |
+| Participant costs (travel, documents, interview clothing, kit), 48 x £120 | 5,760 |
+| Accredited employability tutor fees, three cohorts | 4,500 |
+| Venue hire, Marlpit site, daytime use | 2,700 |
+| Transport and visits to college and employers | 1,800 |
+| Volunteer training and expenses | 1,500 |
+| Tracking and evaluation, including week 26 follow-up | 2,400 |
+| **Total direct costs** | **47,860** |
+| Overhead recovery at 12 per cent of direct costs | 5,743 |
+| **Total request** | **53,603** |
+| Match funding | None. No match funding is sought or held for this project. |
+
+## Declaration
+
+I confirm that Halewater Commons Trust is in good standing with its regulator.
+
+I confirm that the organisation holds a bank account in its own name.
+
+I confirm that neither the organisation nor any of its trustees is debarred or under investigation.
+
+I confirm that safeguarding and equal opportunities policies are in place and were reviewed within the last two years.
+
+Signed:
+
+Chair of Trustees, Halewater Commons Trust
+
+Countersigned:
+
+Director, Halewater Commons Trust
+
+===== DOC 3 — ENDS =====
+
+===== DOC 4 — BEGINS =====
 
 ## Q1. Who are you and what do you do? Your organisation, the people you already work with, and the geography you work in.
 
@@ -124,314 +514,34 @@ Signed,
 Chair of Trustees  
 Halewater Commons Trust
 
-===== DOC 2 =====
-
-## Q1. Who are you and what do you do?
-
-Halewater Commons Trust is a charitable incorporated organisation, constituted in 2016 and registered in the UK (charity number and website, halewatercommons.org.uk, on the cover form). We have two years of filed accounts and expenditure of GBP 214,000 in the last filed year, well below the GBP 1.5 million income ceiling. We hold no current Neighbourhood Futures award and are not a statutory body. The Trust applies alone, as lead and accountable body. This application is submitted ahead of the deadline of 17:00 GMT on Friday 27 November 2026.
-
-We employ six paid staff (4.2 FTE) and work with around 25 regular volunteers. We run open-access youth sessions for 11 to 19 year olds three evenings a week, a weekly supper club, and a small family advice desk.
-
-The place is Marlpit ward, east bank of the river in Kelverton, a post-industrial town of about 41,000 people in northern England. At the 2021 census, 38 per cent of Marlpit households sat in the lowest income decile. Dunmore Sixth Form College sits one mile from our Marlpit site, and since 2023 we have referred school-leavers there. We work in Marlpit because our building, sessions, volunteers and advice desk are already there.
-
-## Q2. What is the problem, and how do you know?
-
-In 2024-25 the Trust referred 27 young people from Marlpit to Dunmore Sixth Form College. Eighteen enrolled; nine did not. We do not currently track what happens to those who enrol after enrolment; building that record is part of this project.
-
-The problem in one line: school-leavers aged 16 to 19 in Marlpit are referred onward but drop out in the gap between a school leaving date and a college start date, and again in the first weeks after enrolment. Our own referral record is the evidence of a route that works to a point and then lets go.
-
-We act on four causes rather than the symptom of low enrolment.
-
-1. No named person owns a case between referral and enrolment, so the summer gap goes unmanaged.
-2. There is no written handover to the college, so knowledge of support needs does not travel with the young person.
-3. The first six weeks after enrolment are unsupported, so early wobbles about travel, money, attendance and confidence can become withdrawals.
-4. Referral is informal and event-based rather than a sequenced, recorded route with a defined next step.
-
-The group course model works here. In 2025 the Trust ran a twelve-week progression course, Second Chances, in Marlpit from January to April: of 24 starters, 19 finished and 11 moved into a college place, apprenticeship or paid work. The design we now propose adds accompaniment after handover, a feature the Trust has not previously run. This application buys that missing accompaniment, not a new service.
-
-## Q3. What will you do?
-
-**Held Through: Marlpit Progression Keyworking**, 18 months, delivered in Marlpit ward and at Dunmore Sixth Form College. Target group: school-leavers aged 16 to 19, plus Year 11 leavers approaching a leaving date, identified through our existing youth sessions and family advice desk. No eligibility test beyond age, ward, and being at or past a leaving date without a held next step. Caseload: 70 young people.
-
-The signature mechanic is a named progression keyworker who holds each young person from the youth session, through referral, and through the first six weeks after enrolment, using a written handover sheet agreed with the college.
-
-| Months | Activity | Delivered by | Where |
-|---|---|---|---|
-| 1-2 | Recruit and induct one progression keyworker, 0.8 FTE | Trust manager | Marlpit premises |
-| 2-18 | Rolling caseload: identification at weekly youth sessions, one-to-one plan naming the next step, contact through the summer gap | Keyworker | Marlpit and community |
-| 2-4 | Agree handover protocol, building on the referral route in place since 2023 | Manager and keyworker with college | Dunmore Sixth Form College |
-| 4-18 | Handover sheet completed and signed by the young person, passed to a named college contact, reviewed at enrolment | Keyworker | Both sites |
-| 5-8 and 11-14 | Two twelve-week group progression courses, up to 20 each | Trust youth staff, keyworker, volunteers | Marlpit premises |
-| 6-18 | Six-week accompaniment after enrolment: week 1 contact, recorded checks at weeks 2 and 6, problem-solving | Keyworker | College and Marlpit |
-| 9-17 | Write up curriculum and protocol as a retained document; quarterly trustee review | Manager and trustees | Trust |
-| 3-18 | Track the referral-to-enrolment-to-retention chain; independent read at month 17 | Keyworker, external reader | Trust |
-| 16-18 | Embed protocol in youth session routine; hand caseload function to existing staff | Trust manager | Marlpit premises |
-
-Each activity answers a cause: keyworker (one), handover sheet (two), six-week accompaniment (three), recorded plan and protocol (four). Dunmore is the named next-step provider. We will also approach local schools on early identification of Year 11 leavers, and employers and apprenticeship providers so an apprenticeship or paid work counts as a defined next step.
-
-Main risks: the college declines or delays formal handover, in which case the protocol is scoped light and consent-based and worked from the Trust's side; recruitment slips, so recruitment starts at month 1 and cohort 1 not until month 5; small numbers make percentages volatile, so we report absolute numbers too.
-
-## Q4. What will change, and how will you know?
-
-Three outcomes: more of those referred actually enrol; more of those who enrol are still in place at six weeks; and the Trust ends the grant holding a documented progression route it can run itself.
-
-| Point in the chain | Target over 18 months |
-|---|---|
-| Young people on the keyworker caseload | 70 |
-| Course participants | Two cohorts of up to 20 |
-| Referrals taken to a defined next step | 55 of 70 |
-| Enrolments or equivalent next steps | 40 of 55 |
-| Still in place at six weeks | 33 of 40 |
-
-We measure the chain per young person in a simple spreadsheet, not attendance. Baseline: our 2024-25 record of 27 referrals and 18 enrolments. We will ask the college to share retention information with consent and to name a contact for the accompaniment period. An independent read of the retention record takes place at month 17.
-
-Failure is defined in advance: enrolment gains that do not survive six weeks, and fewer than 33 young people in place at six weeks. If the chain breaks where it breaks now, the work has not worked, and we will report that.
-
-## Q5. What happens after the grant?
-
-Three things continue: the handover sheet and referral protocol as a standing agreement with Dunmore; the written-up twelve-week curriculum; and the retention tracking record. All are owned by the Trust and reviewed quarterly by trustees. From month 16 the caseload function is absorbed into the existing youth sessions and held by existing staff.
-
-Ongoing cost is low but not nil: staff time within the existing team plus modest materials and participant travel, in the low thousands a year, delivered from the Marlpit premises we already use for youth sessions. We will meet this from unrestricted income and small local grants. No future funder is secured and the design assumes none. The 0.8 FTE keyworker post does not continue unless separately funded, which is why the transferable asset is the protocol, curriculum and tracking record.
-
-## One-page budget table
-
-| Item | Basis | Amount (GBP) |
-| --- | --- | --- |
-| Progression keyworker | 0.8 FTE, 18 months, including employer costs | 45,000 |
-| Group progression courses | Two twelve-week courses: sessional staff time, materials | 7,500 |
-| Participant travel and barrier costs | Bus fares, interview and enrolment costs | 3,000 |
-| Manager supervision and governance | Supervision, reporting, trustee review | 5,000 |
-| Independent read | Retention record read at month 17 | 2,500 |
-| Monitoring | Caseload and retention tracking, consent and handover documentation | 1,400 |
-| Volunteer expenses | Course session support | 900 |
-| Recruitment and induction | Keyworker recruitment and induction | 600 |
-| Contingency | Recruitment slippage and cohort re-scheduling | 1,000 |
-| **Total direct costs** |  | **66,900** |
-| Overhead | 12 per cent of direct costs | 8,028 |
-| **Total requested** | 18 months | **74,928** |
-| Match funding | None claimed | 0 |
-
-## Declaration
-
-On behalf of Halewater Commons Trust, I confirm the following four self-certifications in support of this application.
-
-First, the organisation is in good standing with its regulator, with all required returns and filings submitted as due.
-
-Second, the organisation holds a bank account in its own name, and any grant awarded would be received into and administered through that account.
-
-Third, neither the organisation nor any of its trustees is debarred from receiving public or charitable funds, and neither the organisation nor any trustee is currently under investigation by any regulator, funder, or statutory authority.
-
-Fourth, the organisation has safeguarding and equal opportunities policies in place, and both policies have been formally reviewed within the last two years.
-
-I confirm that the information given in this application, including the budget above, is accurate and complete to the best of my knowledge, and I undertake to notify the funder promptly if any of these certifications ceases to be true.
-
-Signed on behalf of Halewater Commons Trust:
-
-Name:
-
-Position:
-
-Date:
-
-===== DOC 3 =====
-
-## Q1. Who are you and what do you do? Your organisation, the people you already work with, and the geography you work in.
-
-Halewater Commons Trust is a charitable incorporated organisation constituted in 2016 in Kelverton, a post-industrial town of approximately 41,000 residents in northern England. The Trust operates with six paid staff (4.2 full-time equivalent) and 25 regular volunteers, with total expenditure in the last filed financial year of £214,000 across two years of filed accounts.
-
-Our operational focus is Marlpit, an urban ward on the east bank of the river where 38 per cent of households sat in the lowest national income decile at the 2021 census. On the east side of town, we deliver:
-- Open-access youth sessions running three evenings a week for young people aged 11 to 19.
-- A weekly community supper club.
-- A walk-in advice desk for local families.
-
-These services provide continuous contact with local young people and families facing severe economic disadvantage.
-
-We have established direct progression links for local school-leavers. In the 2024–25 academic year, the Trust referred 27 young people to Dunmore Sixth Form College, located one mile from our Marlpit site, resulting in 18 enrolments. From January to April 2025, we ran "Second Chances", a 12-week progression pilot in Marlpit: 24 young people started, 19 completed, and 11 progressed into a college place, an apprenticeship, or paid employment. This proposal expands that model into an 18-month structured pathway directly addressing all three Round 3 priorities: place-based delivery in Marlpit, verified progression to named destinations, and sustainable practices that outlast the grant.
-
-## Q2. What is the problem, and how do you know? Be specific about place and population. Describe the causes you intend to act on, not only the symptoms, and say what your evidence for them is.
-
-In Marlpit, disengaged 16- to 19-year-olds face acute barriers moving from informal community settings into structured education, training, or sustained employment.
-
-While youth disengagement and low local progression rates are visible symptoms, our frontline delivery identifies three specific operational causes:
-
-1. **Progression vacuum in informal youth spaces:** Young people attend regular evening youth clubs and community sessions but lack structured, low-barrier navigation within those trusted spaces to turn informal contact into concrete career and educational pathways.
-2. **Institutional and procedural friction:** Mainstream application processes, travel logistics across town, and unfamiliar formal environments present major hurdles that cause young people to drop out during enrolment transitions.
-3. **Absence of early post-transition retention support:** Once enrolled or placed, young people lack structured check-ins during the first 90 days to resolve initial transport, financial, or workplace challenges before they result in disengagement.
-
-Our evidence rests on local intake and delivery data: 38% of Marlpit households sit in the lowest income decile; our 2024–25 referral baseline with Dunmore Sixth Form College showed that 18 of 27 referred young people successfully enrolled; and our January–April 2025 Second Chances pilot demonstrated that 19 of 24 starters completed the course and 11 secured an immediate college place, apprenticeship, or job.
-
-## Q3. What will you do? The activities, the sequence, who delivers each part, where each part happens, and how many people take part. Show how the activities follow from the causes in Q2.
-
-The Trust will deliver "Second Chances: Marlpit Youth Progression Pathway", supporting 66 disengaged young people aged 16 to 19 across three sequential 12-week cohorts over 18 months (22 participants per cohort).
-
-| Phase and Sequence | Core Activities | Lead Role & Venue | Target Participation |
-| :--- | :--- | :--- | :--- |
-| **Phase 1: Months 1–6** *(Mobilisation & Cohort 1)* | Activity 1: Intake and engagement through Marlpit evening sessions. Activity 2: 1-to-1 progression planning and barrier reduction. Activity 3: 12-week progression syllabus (skills and application clinics). | Progression Lead (0.6 FTE) and Sessional Worker (0.2 FTE) at Marlpit youth site. | 22 young people; 12 group workshops; 1-to-1 mentoring. |
-| **Phase 2: Months 7–11** *(Cohort 2 & Transition)* | Repeat Activities 1–3 for Cohort 2. Activity 4: Dunmore Sixth Form College taster visits and enrolment navigation. Activity 5: 30/60/90-day retention tracking for Cohort 1. | Progression Lead, Sessional Worker, and core staff at Marlpit site and Dunmore campus. | 22 young people; Dunmore campus visits; ongoing retention casework. |
-| **Phase 3: Months 12–18** *(Cohort 3 & Embedding)* | Repeat Activities 1–3 for Cohort 3. Activity 4: Transition clinics and Dunmore liaison. Activity 5: 90-day retention casework; embed permanent intake protocol. | Progression Lead and core youth team at Marlpit site and Dunmore campus. | 22 young people; full protocol codification into core work. |
-
-### How Activities Address Root Causes
-
-- **Overcoming the progression vacuum (Cause 1):** Delivery staff engage participants directly during open-access evening sessions and the weekly supper club, using established relationships to onboard them into structured 12-week cohorts.
-- **Removing procedural friction (Cause 2):** Tailored 1-to-1 action planning provides direct help with application forms, travel costs, and interview preparation, accompanied by supported visits to Dunmore Sixth Form College.
-- **Securing sustained retention (Cause 3):** Dedicated contact at 30, 60, and 90 days post-placement resolves initial operational or personal hurdles to sustain engagement.
-
-## Q4. What will change, and how will you know? Intended outcomes, the numbers you expect, how you will measure them, and what you would count as this work not having worked.
-
-The project will achieve four defined outcomes across 18 months:
-
-1. **Curriculum Completion:** 52 participants (79% of starters) complete the 12-week curriculum with a verified individual progression plan.
-2. **Positive Destination Progression:** 34 participants (52% of starters) progress into a verified destination (Dunmore Sixth Form College, an apprenticeship, or paid employment).
-3. **Sustained Placement:** 28 participants (82% of placed individuals) sustain their placement for at least 90 days.
-4. **Permanent Systemic Integration:** A permanent progression intake and referral toolkit is fully embedded into Halewater Commons Trust's ongoing youth sessions.
-
-### Measurement Framework
-
-| Metric | Target | Verification Method & Source | Frequency |
-| :--- | :--- | :--- | :--- |
-| Second Chances Enrolment | 66 young people | Intake logs and baseline registers | Start of each cohort |
-| Completed Progression Plan | 52 young people | Signed individual progression portfolios | Week 12 of each cohort |
-| Confirmed Positive Destination | 34 young people | Enrolment confirmation, apprenticeship agreements, employer letters | Monthly post-cohort |
-| Sustained 90-Day Placement | 28 young people | 90-day review records and provider check-ins | 30, 60, 90 days post-placement |
-
-### Project Non-Performance Criteria
-
-We would count this work as not having worked if fewer than 40 participants complete individual action plans, if fewer than 25 secure a verified positive progression destination, or if 90-day retention falls below 60 per cent of placed individuals.
-
-## Q5. What happens after the grant? Name what continues, who owns it, what it costs and who pays.
-
-### What Continues
-The 12-week Second Chances curriculum, the 1-to-1 intake toolkit, and the structured referral corridor to Dunmore Sixth Form College will continue as permanent operating practices embedded within our weekly Marlpit youth provision.
-
-### Who Owns It
-Halewater Commons Trust's core youth work team (4.2 FTE) owns the delivery model, intake tools, and referral relationships.
-
-### Ongoing Costs and Financing
-Ongoing direct running costs are approximately £1,200 per year for workshop resources, progression materials, and travel assistance.
-- **Material Costs (£1,200 annually):** Absorbed directly into Halewater Commons Trust's core operating budget, supported by our ongoing organisational turnover (£214,000 in the last filed accounts).
-- **Staffing and Mentoring:** Delivered by our permanent core youth work team as part of regular open-access sessions.
-
-## Project Budget
-
-| Budget Category | Description | Amount (GBP) |
-| :--- | :--- | :--- |
-| **Direct Staff Costs** | Progression Lead Youth Worker (0.6 FTE for 18 months) | £25,200 |
-| **Direct Staff Costs** | Sessional Youth Support Worker (0.2 FTE for 18 months) | £6,600 |
-| **Participant Barrier Reduction** | Travel passes, interview clothing, session refreshments | £5,400 |
-| **Curriculum Delivery** | Workshop resources, taster visits, accreditation materials | £3,200 |
-| **Monitoring & Evaluation** | Outcome tracking, verification, and data collation | £2,500 |
-| **Total Direct Costs** | Sum of direct delivery expenditure | **£42,900** |
-| **Overhead Recovery** | Single line overhead recovery capped at 12.0% of direct costs | £5,148 |
-| **Total Grant Requested** | Total funding requested from The Wren Hill Foundation | **£48,048** |
-| **Match Funding** | Internal core staff contribution: Supervision (0.05 FTE core youth management contribution) | Secured (Trust core reserves) |
-
-## Applicant Declaration and Submission Timetable
-
-Halewater Commons Trust hereby self-certifies that:
-1. The organisation is in good standing with its charity regulator and has filed two consecutive years of annual accounts.
-2. The organisation maintains a dedicated bank account in its own legal name.
-3. No trustees, directors, or senior managers are debarred, disqualified, or subject to active regulatory investigation.
-4. Safeguarding and equal opportunities policies have been formally reviewed and adopted within the last two years.
-5. This proposal will be formally submitted prior to the deadline of 17:00 GMT on Friday 27 November 2026.
-
-===== DOC 4 =====
-
-## Q1. Who are you and what do you do?
-
-Halewater Commons Trust is a charitable incorporated organisation, constituted in 2016, working on the east side of Kelverton, a post-industrial town of about 41,000 people in northern England. We have six paid staff (4.2 full-time equivalent) and around 25 regular volunteers. Total expenditure in our last filed financial year was £214,000, and two years of accounts are filed.
-
-Three things run week in, week out. Open-access youth sessions for 11 to 19 year olds run three evenings a week in Marlpit, the ward on the east bank of the river. A supper club runs weekly. A small advice desk supports families.
-
-Since 2023 we have referred school-leavers to Dunmore Sixth Form College, a mile from our Marlpit site. In the 2024-25 academic year we referred 27 young people and 18 enrolled. From January to April 2025 we ran a twelve-week progression course in Marlpit called Second Chances: 24 young people started, 19 finished, and 11 moved into a college place, an apprenticeship or paid work.
-
-## Q2. What is the problem, and how do you know?
-
-Young people in Marlpit leave school and stall. Our own numbers show the shape of it. Of 24 who started Second Chances, 13 did not reach a college place, an apprenticeship or paid work. Of 27 referred to Dunmore Sixth Form College, nine did not enrol. These are not people who refused help; they are people who came to us and still did not land.
-
-Marlpit is where our youth sessions run three evenings a week, and it is the poorest ward we work in: 38 per cent of households sat in the lowest income decile at the 2021 census. The river is the dividing line. Almost everything that decides a young person's next twelve months, including the college, sits off the estate, and a mile is a long way when nobody in the house has done that walk.
-
-We intend to act on three causes we can see in our own delivery records rather than on the symptom of low enrolment.
-
-First, the gap between finishing and starting. Second Chances ended in April 2025. College enrolment happens in late summer. Nobody held those young people through the months in between, and that is where the 13 went.
-
-Second, unaccompanied first contact. Our referral conversion is 18 in 27. The nine who did not enrol were sent rather than taken.
-
-Third, a thin practical floor. Our advice desk sees the same blockers in families: no identity documents, no bus fare, no interview clothes, nobody at home who has filled in an enrolment form.
-
-We are honest that this evidence is our own casework and two cohorts of delivery data, not a study. Part of what we will build with this grant is a tracked record good enough to argue from.
-
-## Q3. What will you do?
-
-We will run Second Chances three times over 15 months, from April 2027 to June 2028, for 16 young people each time. That is 48 participants aged 16 to 19, recruited from our own Marlpit youth sessions and from our advice desk.
-
-Each cohort follows the same twelve-week sequence at our Marlpit site, then a defined follow-through period.
-
-- Weeks 1 to 4: two sessions a week, delivered by our youth staff, on the practical floor. Identity documents, bank accounts, bus routes, enrolment forms. The advice desk handles document and benefit problems in the same building on the same day.
-- Weeks 5 to 8: accredited employability units delivered by a sessional tutor we will contract, plus one visit off the estate each week, staff-accompanied, to the college and to local employers.
-- Weeks 9 to 12: one named destination per young person, written down, with the application actually submitted before the course ends.
-- Follow-through, weeks 13 to 26: a progression worker, 0.6 full-time equivalent, keeps contact fortnightly and walks each young person into the door of their destination on the first day.
-
-The progression worker is the change from 2025. This post exists to cover the gap between finishing and starting, and it is the single biggest thing we are asking you to pay for.
-
-Cohorts start April 2027, September 2027 and February 2028, timed so that cohort one reaches college enrolment in the late summer window and the others reach apprenticeship and employer recruitment points. Our volunteers support sessions and accompany visits, with a short training block for around ten of them in the first two months.
-
-## Q4. What will change, and how will you know?
-
-Our outcome is a young person standing in a named place they were not going to reach.
-
-Of 48 starters, we expect:
-
-- 38 to complete twelve weeks. Second Chances completion was 19 of 24, so this holds our own rate.
-- 30 to have a named destination and a submitted application by week 12.
-- 24 to be enrolled at Dunmore Sixth Form College, started on an apprenticeship, or in paid work of 16 hours a week or more, and still there at week 26.
-
-The 24 is a deliberate step up from 11 of 24 in 2025, and we are basing it on two things: the follow-through post, and our referral record of 18 enrolments from 27 referrals, which shows what happens when contact is maintained to the door.
-
-Measurement is a single spreadsheet held by the progression worker, one row per young person, updated at week 12, week 20 and week 26. We record the destination by name, the provider, the start date, and whether the young person is still there. Verification is the enrolment or contract confirmation the young person shows us, or a call to the provider with their consent. We will report cohort by cohort rather than in one total at the end.
-
-We would count this as not having worked if fewer than 18 of the 48 are in a named destination at week 26, or if any cohort drops below five. Eighteen is roughly the rate we already achieve without a follow-through post; below that, the post has bought nothing and we would say so and stop.
-
-## Q5. What happens after the grant?
-
-Two things continue.
-
-The follow-through practice continues. Walking a young person to the door on day one, and fortnightly contact for three months after a course ends, becomes standard in our youth work rather than a funded add-on. Our youth staff own it. It costs staff time we already have, roughly four hours a week absorbed into the existing three-evening rota, plus about £600 a year in bus fares, which our trustees will hold in the annual budget.
-
-The tracking record continues. One row per young person, destination named and verified at three points, owned by our senior youth worker. It costs nothing to run and it is what we will use to argue for the next round of funding, whether from a local authority commissioner, a college partnership, or another trust.
-
-We are not claiming the twelve-week course itself continues at three cohorts a year without funding. It does not. What we will have at the end is 15 months of verified destination data on 48 young people in one ward, which is the case we need to make for it.
-
-## Budget table
-
-| Category | Amount (GBP) |
-|---|---|
-| Progression worker, 0.6 FTE, 15 months | 22,000 |
-| Sessional youth work support, three cohorts | 7,200 |
-| Participant costs (travel, documents, interview clothing, kit), 48 x £120 | 5,760 |
-| Accredited employability tutor fees, three cohorts | 4,500 |
-| Venue hire, Marlpit site, daytime use | 2,700 |
-| Transport and visits to college and employers | 1,800 |
-| Volunteer training and expenses | 1,500 |
-| Tracking and evaluation, including week 26 follow-up | 2,400 |
-| **Total direct costs** | **47,860** |
-| Overhead recovery at 12 per cent of direct costs | 5,743 |
-| **Total request** | **53,603** |
-| Match funding | None. No match funding is sought or held for this project. |
-
-## Declaration
-
-I confirm that Halewater Commons Trust is in good standing with its regulator.
-
-I confirm that the organisation holds a bank account in its own name.
-
-I confirm that neither the organisation nor any of its trustees is debarred or under investigation.
-
-I confirm that safeguarding and equal opportunities policies are in place and were reviewed within the last two years.
-
-Signed:
-
-Chair of Trustees, Halewater Commons Trust
-
-Countersigned:
-
-Director, Halewater Commons Trust
+===== DOC 4 — ENDS =====
+
+=========================================================
+PART 4 — WHAT I NEED FROM YOU
+=========================================================
+
+Answer all of the following. Be blunt and be specific; quote the text when you are making an accusation.
+
+A. RANKING. Rank the four best-first. Then name the ONE you would fund, or say NONE. Justify the pick in a few sentences against the weighted criteria.
+
+B. PER DOCUMENT (do this for each of Doc 1, Doc 2, Doc 3, Doc 4):
+   - fundable as submitted? (y/n)
+   - reads machine-generated? (y/n)
+   - swappable? Would ANY paragraph survive swapping the organisation's name for a different charity's without becoming false or nonsensical? (y/n — y means yes, paragraphs are swappable, i.e. generic)
+   - COUNT of distinct concrete named referents. Count: places below city level (wards, estates, streets, neighbourhoods), venues and buildings, vendors and suppliers, named people with a role, named partner organisations, named prior results attached to a date. Do NOT count the applicant's own name, and do NOT count the funder or the fund. Give an integer and then list what you counted.
+   - the single weakest thing about it, in one sentence.
+
+C. REJECT LIST. Go through this list and name EVERY hit, per document, with the offending text:
+   - absence of proper nouns
+   - uniform phase tables (phase 1 / phase 2 / phase 3 laid out identically)
+   - identical bullet cadence
+   - three-part parallel constructions
+   - template diction ("structural problem", "capacity transfer", "civic backing" and that family of abstraction)
+   - pseudo-precise figures with no derivation
+   - targets a reader cannot trace to a source
+   - arithmetic that does not close, including unit mismatches (per-head costs, FTE vs headcount, months vs sessions, percentages of the wrong base)
+   - reads machine-generated
+
+D. ARITHMETIC. Recompute every number in every document: budget lines against their stated total, the overhead line against the 12 per cent cap on direct costs, the request against the GBP 25,000-75,000 band, participant counts against per-head costs, cohort sizes against retention and progression figures, sessions against months. State per document whether the totals close, and show the sums you did.
+
+E. FINALLY. Do these four read as four different applicants, or as one system producing four outputs? Say which, and say what specifically made you decide.
