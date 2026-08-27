@@ -18,6 +18,7 @@ run "pre-delivery quality gate"            $DENO run --allow-read "$REPO/tests/d
 run "pre-payment sufficiency gate"         $DENO run --allow-read "$REPO/tests/sufficiency/sufficiency_test.ts"
 run "contact-detail fabrication"           $DENO run "$REPO/tests/contact-claims/contact_claims_test.ts"
 run "crawler outcome taxonomy"             $DENO run "$REPO/tests/crawl-outcome/crawl_outcome_test.ts"
+run "donor-scoped word limit"              $DENO run "$REPO/tests/word-limit/word_limit_test.ts"
 
 echo
 if [ $rc -eq 0 ]; then echo "ALL SUITES PASSED"; else echo "SUITE FAILURES (exit $rc)"; fi

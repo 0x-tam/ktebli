@@ -48,7 +48,60 @@ saturating at three or four. Whether that converts into a fundable document is e
 the refused critics were supposed to say, so this is half a finding, not a whole one — but it is
 the half that had been assumed rather than measured, and it holds.
 
-### 2. Every document broke the word limit. Twelve of twelve
+### 2. RETRACTED — the word-limit finding was my own measurement error
+
+> The section below originally reported **12 of 12 documents over the word limit** and, with
+> iteration 1's 7 of 8, concluded that **19 of 20 across two independent setups is not an
+> artefact** and that the artefact reading was withdrawn. **That was wrong, and the error was
+> mine.**
+>
+> I counted the whole markdown file. Both fixtures state the rule in terms: *"Answer the five
+> questions below in order… The five answers together must not exceed 1,400 words"*, with *"a
+> one-page budget table must be **attached**"* and the declaration separate. The budget table and
+> the declaration are not part of the five answers, and I counted them.
+>
+> Recounted against the donor's actual rule, all sixteen documents:
+>
+> | | over the limit | compliant |
+> | --- | --- | --- |
+> | **pipeline arms (A, B)** | **0 of 8** | **8 of 8** |
+> | single-prompt arms (C, D) | 4 of 8 | 4 of 8 |
+>
+> **Every pipeline document is compliant. Every overrun is a single-prompt baseline** — which is
+> precisely what the launch-readiness report said in the first place: the naive baseline blew a
+> hard limit by 42% on its first try and Ktebli has never shipped over one. Compliance is intact
+> and it is still a real differentiator. The claim that Ktebli's last advantage over a naive
+> baseline was gone is withdrawn in full.
+>
+> A separate finding, from the same recount, is in section 2b and is not withdrawn.
+
+### 2b. The pipeline writes at half length, because it counts the wrong text
+
+`wordCount()` counts the whole markdown document and `contentViolations()` compares that against
+the donor's limit. So the worker makes the same error I did — and then acts on it. A compliant
+document reads as over-length, and the correction loop instructs the generator to *"cut at least
+N words"* from prose that never needed cutting.
+
+Measured across all sixteen documents, as a share of the words the donor allowed:
+
+| arm | words used |
+| --- | --- |
+| A pipeline + flash | 43–67% |
+| B pipeline + opus | 59–70% |
+| C single + flash | 73–120% |
+| D single + opus | 94–113% |
+
+**The pipeline spends less than half its allowance on four of eight documents.** A proposal using
+43% of the room it had has thrown away more than half the space available to be specific in — and
+thin, generic prose is the headline quality complaint against this product. This is not the only
+cause of that, and it is not proven to be a large one, but it is mechanical, it is measurable, and
+it is cheap to remove.
+
+Fixed in `worker/word_limit.ts`: the counted span is read from the donor's own guidelines and
+defaults to the whole document, so it can only ever narrow when the donor says attachments sit
+outside the limit — never the other way round, because invariant 5 runs one way.
+
+### Original section 2, as written, now superseded
 
 Iteration 1 saw seven of eight and read it as a replay artefact. This is a different fixture, a
 different grant, a different generator mix, and it is **12 of 12**, from +227 to +1053.

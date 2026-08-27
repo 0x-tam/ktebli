@@ -36,6 +36,7 @@ import * as XLSX from "npm:xlsx@0.18.5";
 import { marked } from "npm:marked@18.0.10";
 import { properNounAudit } from "./proper_nouns.ts";
 import { contactAudit } from "./contact_claims.ts";
+import { limitScopeFrom, limitedText, type LimitScope } from "./word_limit.ts";
 import { unzipSync, strFromU8 } from "npm:fflate@0.8.2";
 import { safeFetchText, stripHtml } from "./ssrf.ts";
 
@@ -566,7 +567,7 @@ function wordCount(md: string): number {
 }
 
 const BOX_RE = /[┌┐└┘├┤┬┴┼│═-╬]|─{3,}/;
-interface ContentOpts { requiredSections?: string[]; maxWords?: number | null; minWords?: number | null; signoff?: boolean }
+interface ContentOpts { requiredSections?: string[]; maxWords?: number | null; minWords?: number | null; signoff?: boolean; limitScope?: LimitScope }
 function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}): string[] {
   const v: string[] = [];
   if (BOX_RE.test(md)) v.push("box_drawing_characters");
@@ -614,8 +615,16 @@ function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}):
   // A donor word limit is a hard limit: never ship over it. wordCount above is
   // calibrated to approximate a word processor's count, so exact enforcement is
   // fair in both directions.
-  if (opts.maxWords && wordCount(md) > opts.maxWords) v.push("over_word_limit");
-  if (opts.minWords && wordCount(md) < opts.minWords) v.push("suspiciously_short");
+  // Count what the DONOR counts. Both benchmark fixtures attach the budget table and
+  // the declaration outside the limit, and counting them made compliant documents read
+  // as over-length -- after which the correction loop cut prose that never needed
+  // cutting. Across the 16 benchmark documents the pipeline arms used 43-70% of the
+  // words they were allowed while the single-prompt arms used 94-120%, which is a
+  // mechanical cause of thin prose. limitScope defaults to "whole", so this is never
+  // more permissive than today unless the donor's own guidelines say so.
+  const counted = limitedText(md, opts.limitScope ?? "whole").text;
+  if (opts.maxWords && wordCount(counted) > opts.maxWords) v.push("over_word_limit");
+  if (opts.minWords && wordCount(counted) < opts.minWords) v.push("suspiciously_short");
   return [...new Set(v)];
 }
 
@@ -653,7 +662,7 @@ async function generateValidated(prompt: string, maxTokens: number, opts: Conten
       : "");
   const lengthDetail = (t: string, viol: string[], i: number) =>
     opts.maxWords && viol.includes("over_word_limit")
-      ? `\nThe draft is ${wordCount(t)} words against a hard limit of ${opts.maxWords}: cut at least ${Math.max(1, wordCount(t) - targetAt(i))} words by tightening prose and removing repetition, while keeping every required heading and covering every requirement.`
+      ? `\nThe draft is ${wordCount(limitedText(t, opts.limitScope ?? "whole").text)} words against a hard limit of ${opts.maxWords}: cut at least ${Math.max(1, wordCount(limitedText(t, opts.limitScope ?? "whole").text) - targetAt(i))} words by tightening prose and removing repetition, while keeping every required heading and covering every requirement.`
       : "";
   const repaired = sanitizeMd(await llm(
     `The following document draft violates these content rules: ${v.join(", ")}.` + lengthDetail(text, v, 1) + `\n` +
@@ -1193,7 +1202,14 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   const design = c.out["design"] as Record<string, unknown> | undefined;
   const voice = c.out["voice"] as { profile?: unknown; files?: number } | undefined;
   const fmt = normalizeFmt((analysis as { format_spec?: unknown } | undefined)?.format_spec);
-  const narrativeOpts: ContentOpts = { requiredSections: fmt.requiredSections, maxWords: fmt.maxWords, minWords: 450 };
+  // What the donor's limit COVERS, read from the donor's own words. Defaults to the
+  // whole document, so this can only ever narrow when the guidelines say attachments
+  // sit outside the limit -- never the other way round (invariant 5).
+  const limitScope = limitScopeFrom(String((analysis as { guidelines_text?: unknown } | undefined)?.guidelines_text ?? "") ||
+    String((analysis as { summary?: unknown } | undefined)?.summary ?? ""));
+  const narrativeOpts: ContentOpts = {
+    requiredSections: fmt.requiredSections, maxWords: fmt.maxWords, minWords: 450, limitScope,
+  };
   const applicantLine = `APPLICANT: ${c.order.org_name}` +
     (c.order.org_reg ? ` · registration no. ${c.order.org_reg}` : "") +
     (c.order.org_website ? ` · ${c.order.org_website}` : "");
