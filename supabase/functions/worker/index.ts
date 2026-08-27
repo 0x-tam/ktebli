@@ -351,10 +351,26 @@ interface Fmt {
   font: string | null; sizePt: number | null; lineSpacing: number | null;
   marginIn: number | null; pageSize: "A4" | "Letter" | null;
   maxPages: number | null; maxWords: number | null; requiredSections: string[];
+  limitUnparsed: string[];
 }
 function normalizeFmt(raw: unknown): Fmt {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-  const num = (x: unknown, lo: number, hi: number) => (typeof x === "number" && x >= lo && x <= hi ? x : null);
+  // A limit the donor stated and the extractor mangled must never read as "no limit".
+  // numLike accepts the shapes a model actually emits for a number ("1,800",
+  // "1800 words"); anything still unreadable is reported as unparsed, not dropped.
+  const numLike = (x: unknown): number | null => {
+    if (typeof x === "number" && Number.isFinite(x)) return x;
+    if (typeof x !== "string") return null;
+    const m = x.replace(/,/g, "").match(/\d+(?:\.\d+)?/);
+    return m ? Number(m[0]) : null;
+  };
+  const unparsed: string[] = [];
+  const num = (x: unknown, lo: number, hi: number, field?: string) => {
+    const n = numLike(x);
+    if (n !== null && n >= lo && n <= hi) return n;
+    if (field && x !== null && x !== undefined && x !== "") unparsed.push(`${field}=${JSON.stringify(x)}`);
+    return null;
+  };
   const fontRaw = typeof r.font === "string" ? r.font.trim() : "";
   const KNOWN_FONTS = ["Times New Roman", "Arial", "Calibri", "Garamond", "Georgia", "Helvetica", "Cambria", "Verdana", "Book Antiqua", "Tahoma"];
   const font = KNOWN_FONTS.find((f) => fontRaw.toLowerCase().includes(f.toLowerCase())) ?? null;
@@ -366,9 +382,10 @@ function normalizeFmt(raw: unknown): Fmt {
     lineSpacing: num(r.line_spacing, 1, 3),
     marginIn: num(r.margin_inches, 0.5, 2),
     pageSize,
-    maxPages: num(r.max_pages, 1, 200),
-    maxWords: num(r.max_words, 100, 100000),
+    maxPages: num(r.max_pages, 1, 200, "max_pages"),
+    maxWords: num(r.max_words, 100, 100000, "max_words"),
     requiredSections: Array.isArray(r.required_sections) ? (r.required_sections as unknown[]).map(String).filter((s) => s.trim().length > 2).slice(0, 20) : [],
+    limitUnparsed: unparsed,
   };
 }
 const EMPTY_FMT = normalizeFmt(null);
@@ -567,7 +584,7 @@ function wordCount(md: string): number {
 }
 
 const BOX_RE = /[┌┐└┘├┤┬┴┼│═-╬]|─{3,}/;
-interface ContentOpts { requiredSections?: string[]; maxWords?: number | null; minWords?: number | null; signoff?: boolean; limitScope?: LimitScope }
+interface ContentOpts { requiredSections?: string[]; maxWords?: number | null; minWords?: number | null; signoff?: boolean; limitScope?: LimitScope; donorHeadings?: string[]; attachments?: string[] }
 function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}): string[] {
   const v: string[] = [];
   if (BOX_RE.test(md)) v.push("box_drawing_characters");
@@ -607,10 +624,19 @@ function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}):
     // sentence is long, so real truncation is still caught.
     else if (t && !/[.!?:"')\]%”]$/.test(t) && !(opts.signoff && t.length <= 80)) v.push("ends_mid_sentence");
   }
-  const headingText = real.filter((b) => b.kind === "heading").map((b) => plainOf((b as { inline: InlineRun[] }).inline).toLowerCase());
+  // A donor-mandated heading is satisfied when the document REPRODUCES the donor's
+  // wording -- the heading may carry more, never less. The old check also matched in
+  // the reverse direction, accepting any fragment of the donor's own text, so five
+  // donor questions were satisfied by one heading reading "Question". That is
+  // compliance by truncation, which invariant 5 forbids outright.
+  const normHead = (x: string) =>
+    x.toLowerCase().replace(/[*_`]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  const headingText = real.filter((b) => b.kind === "heading")
+    .map((b) => normHead(plainOf((b as { inline: InlineRun[] }).inline)));
   for (const s of opts.requiredSections ?? []) {
-    const needle = s.toLowerCase().trim();
-    if (!headingText.some((h) => h.includes(needle) || needle.includes(h))) v.push("missing_required_section:" + s.slice(0, 40));
+    const needle = normHead(s);
+    if (!needle) continue;
+    if (!headingText.some((h) => h.includes(needle))) v.push("missing_required_section:" + s.slice(0, 40));
   }
   // A donor word limit is a hard limit: never ship over it. wordCount above is
   // calibrated to approximate a word processor's count, so exact enforcement is
@@ -622,7 +648,7 @@ function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}):
   // words they were allowed while the single-prompt arms used 94-120%, which is a
   // mechanical cause of thin prose. limitScope defaults to "whole", so this is never
   // more permissive than today unless the donor's own guidelines say so.
-  const counted = limitedText(md, opts.limitScope ?? "whole").text;
+  const counted = limitedText(md, opts.limitScope ?? "whole", opts.donorHeadings ?? [], opts.attachments ?? []).text;
   if (opts.maxWords && wordCount(counted) > opts.maxWords) v.push("over_word_limit");
   if (opts.minWords && wordCount(counted) < opts.minWords) v.push("suspiciously_short");
   return [...new Set(v)];
@@ -662,7 +688,7 @@ async function generateValidated(prompt: string, maxTokens: number, opts: Conten
       : "");
   const lengthDetail = (t: string, viol: string[], i: number) =>
     opts.maxWords && viol.includes("over_word_limit")
-      ? `\nThe draft is ${wordCount(limitedText(t, opts.limitScope ?? "whole").text)} words against a hard limit of ${opts.maxWords}: cut at least ${Math.max(1, wordCount(limitedText(t, opts.limitScope ?? "whole").text) - targetAt(i))} words by tightening prose and removing repetition, while keeping every required heading and covering every requirement.`
+      ? `\nThe draft is ${wordCount(limitedText(t, opts.limitScope ?? "whole", opts.donorHeadings ?? [], opts.attachments ?? []).text)} words against a hard limit of ${opts.maxWords}: cut at least ${Math.max(1, wordCount(limitedText(t, opts.limitScope ?? "whole", opts.donorHeadings ?? [], opts.attachments ?? []).text) - targetAt(i))} words by tightening prose and removing repetition, while keeping every required heading and covering every requirement.`
       : "";
   const repaired = sanitizeMd(await llm(
     `The following document draft violates these content rules: ${v.join(", ")}.` + lengthDetail(text, v, 1) + `\n` +
@@ -1207,8 +1233,16 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   // sit outside the limit -- never the other way round (invariant 5).
   const limitScope = limitScopeFrom(String((analysis as { guidelines_text?: unknown } | undefined)?.guidelines_text ?? "") ||
     String((analysis as { summary?: unknown } | undefined)?.summary ?? ""));
+  const donorHeadings = [
+    ...fmt.requiredSections,
+    ...(((analysis as { application_structure?: { sections_or_questions?: unknown[] } } | undefined)
+      ?.application_structure?.sections_or_questions ?? []) as unknown[]).map(String),
+  ];
+  const donorAttachments = (((analysis as { attachments_required?: unknown[] } | undefined)
+    ?.attachments_required ?? []) as unknown[]).map(String);
   const narrativeOpts: ContentOpts = {
     requiredSections: fmt.requiredSections, maxWords: fmt.maxWords, minWords: 450, limitScope,
+    donorHeadings, attachments: donorAttachments,
   };
   const applicantLine = `APPLICANT: ${c.order.org_name}` +
     (c.order.org_reg ? ` · registration no. ${c.order.org_reg}` : "") +
@@ -1922,9 +1956,22 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         // The signoff exemption has to hold at render time too: B9 generated a
         // valid cover email and then failed the identical check here, because
         // this call did not carry the option the generator was given.
+        // ONE counted span, computed once. Generation, validate and package must agree
+        // on what the donor's limit covers, or a document is compliant on one gate and
+        // terminally failed on the next -- which is how an over-length narrative became
+        // a dead paid order at package with the correction loop never told there was a
+        // length problem. minWords is dropped here on purpose: a short document is a
+        // generation problem, not a render problem.
         const opts: ContentOpts = isNarrative
-          ? { requiredSections: fmt.requiredSections, maxWords: fmt.maxWords }
+          ? { ...narrativeOpts, minWords: null }
           : (kind === "cover_email" ? { signoff: true } : {});
+        // A donor limit the extractor could not read is not an absent limit. Nothing
+        // downstream can enforce what was never carried, so the order stops here rather
+        // than shipping a document whose compliance is unknown (invariant 5), loudly
+        // rather than silently (invariant 8).
+        if (isNarrative && fmt.limitUnparsed.length) {
+          throw new Error(`donor limit not parsed, compliance cannot be established: ${fmt.limitUnparsed.join(", ")}`);
+        }
         const { bytes, blocks } = await buildDoc(md, meta, docFmt, opts);
         if (isNarrative) {
           qa = {

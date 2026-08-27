@@ -42,7 +42,14 @@ const a = limitedText(DOC, "answers");
 ok(!/Staff \| 1000/.test(a.text), "the attached budget table is not counted");
 ok(!/I confirm/.test(a.text), "the declaration is not counted");
 ok(/supper club in Marlpit/.test(a.text), "the answer prose IS counted");
-ok(!/Who are you/.test(a.text), "the donor's own question heading is not the applicant's words");
+// CHANGED 2026-08-27, and it moves STRICTER. This used to assert that every heading
+// left the count. A heading only leaves the count when it reproduces wording the
+// DONOR supplied; with no donorHeadings passed, nothing here is provably the donor's,
+// so the heading is counted. Under-counting the applicant's own words is the failure
+// mode invariant 5 forbids.
+ok(/Who are you/.test(a.text), "an unattributed heading is the applicant's words and is counted");
+ok(!/Who are you/.test(limitedText(DOC, "answers", ["Q1. Who are you?"]).text),
+  "the same heading leaves the count once the donor is shown to have written it");
 ok(a.excludedHeadings.length === 2, `both attached sections recorded (got ${a.excludedHeadings.length})`);
 
 console.log("\nan attachment named in prose cannot truncate the count");
@@ -70,8 +77,15 @@ Budget
 | --- | --- |
 | Staff | 1000 |`;
 const b = limitedText(BARE, "answers");
-ok(/Halewater Commons Trust/.test(b.text), "an unmarked Q1 line is still a heading");
-ok(!/Staff \| 1000/.test(b.text), "an unmarked Budget line still ends the counted span");
+ok(/Halewater Commons Trust/.test(b.text), "the answer prose under a bare marker is counted");
+// CHANGED 2026-08-27, and it moves STRICTER. This used to assert that a bare
+// unmarked "Budget" line ended the counted span. That is the document steering its
+// own count: one unmarked word deletes everything after it. Only a real heading --
+// ATX or a whole-line bold label -- can now end the span, so the table is counted.
+ok(/Staff \| 1000/.test(b.text), "an unmarked Budget line no longer deletes what follows it");
+ok(b.excludedHeadings.length === 0, "and nothing was dropped unrecorded");
+ok(!/Staff \| 1000/.test(limitedText(BARE.replace(/^Budget$/m, "## Budget"), "answers").text),
+  "the same table marked as a real heading is excluded");
 
 console.log("\nTHE MEASURED DEFECT — a compliant document read as over-length");
 // ukyouth-A: 669 words of answers, 1658 words of whole document, 1,400 limit.
@@ -91,6 +105,59 @@ const answers = words(limitedText(REAL, "answers").text);
 ok(whole > 1400, `whole document reads as over the 1,400 limit (${whole})`);
 ok(answers < 1400, `the answers the donor actually counts are inside it (${answers})`);
 ok(whole - answers > 400, "the gap is the attached material, not prose");
+
+console.log("\nTHE DOCUMENT MAY NOT CHOOSE ITS OWN COUNTED SPAN — invariant 5");
+// 1. An ordered list is answer prose. FORMAT_RULES instructs the generator to use
+//    exactly this shape for phased delivery, so this is the mainline document.
+const PHASED = `## Q2. What will you do?
+
+1. Months one to three: recruit two part-time outreach workers, agree referral routes with the two secondary schools, and open the Thursday drop-in at the community centre.
+2. Months four to nine: deliver forty weekly sessions, each attended by up to fifteen young people.
+3. Months ten to eighteen: move to a peer-led model and train twelve young volunteers as session leads.
+`;
+const ph = limitedText(PHASED, "answers", ["Q2. What will you do?"]);
+ok(/outreach workers/.test(ph.text) && /peer-led model/.test(ph.text),
+  "numbered answer items are inside the counted span");
+ok(words(ph.text) >= words(PHASED) - 6,
+  `a numbered answer loses at most the donor's heading (whole ${words(PHASED)}, counted ${words(ph.text)})`);
+
+// 2. Prefix matching is gone. "Budget and value for money" is a donor question.
+const VFM = `## Q5. How will the work continue?
+
+### Budget and value for money
+
+Seventy-one pence in every pound goes to frontline delivery. The two outreach posts are
+the only new salaries; everything else is met from existing overhead.
+`;
+const vfm = limitedText(VFM, "answers");
+ok(/frontline delivery/.test(vfm.text), "prose under 'Budget and value for money' is counted");
+ok(vfm.excludedHeadings.length === 0, "a donor question is not reclassified as an attachment");
+
+// 3. An attachment carrying prose is a section wearing an attachment's name. The
+//    whole section returns to the count, and the exclusion record is withdrawn.
+const FAKE = `## Q1. Who are you?
+
+We run a supper club.
+
+## Annex
+
+| Row | 1 |
+
+Marlpit Supper Club has served eleven thousand meals since two thousand and nineteen from the
+parish hall on Weaver Street, and the trustees have signed off every set of accounts on time.
+`;
+const fake = limitedText(FAKE, "answers");
+ok(/eleven thousand meals/.test(fake.text), "prose hidden under 'Annex' is counted");
+ok(/Row \| 1/.test(fake.text), "and so is the rest of that section, from its heading");
+ok(fake.excludedHeadings.length === 0, "the withdrawn exclusion is not left in the record");
+
+// 4. Every word that leaves the count is recorded (invariant 9).
+const acct = (md: string, hs: string[] = []) => {
+  const r = limitedText(md, "answers", hs);
+  return words(md) > words(r.text) ? r.excludedHeadings.length > 0 || hs.length > 0 : true;
+};
+ok(acct(DOC) && acct(TRAP) && acct(PHASED, ["Q2. What will you do?"]) && acct(VFM) && acct(FAKE),
+  "no document loses words with an empty exclusion record");
 
 console.log(bad ? `\n${bad} FAILURE(S)` : "\nALL WORD-LIMIT TESTS PASSED");
 if (bad) Deno.exit(1);

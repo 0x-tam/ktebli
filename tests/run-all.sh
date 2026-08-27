@@ -19,6 +19,12 @@ run "pre-payment sufficiency gate"         $DENO run --allow-read "$REPO/tests/s
 run "contact-detail fabrication"           $DENO run "$REPO/tests/contact-claims/contact_claims_test.ts"
 run "crawler outcome taxonomy"             $DENO run "$REPO/tests/crawl-outcome/crawl_outcome_test.ts"
 run "donor-scoped word limit"              $DENO run "$REPO/tests/word-limit/word_limit_test.ts"
+run "referent weight"                      $DENO run --allow-read "$REPO/tests/referent-weight/referent_weight_test.ts"
+# Written by agents trying to BREAK each invariant. All four broke it on first contact
+# and every one of these failed against the code as shipped. They stay in the suite.
+for t in "$REPO"/tests/adversarial/*_test.ts; do
+  run "adversarial: $(basename "$t" _test.ts)" $DENO run --allow-read "$t"
+done
 
 echo
 if [ $rc -eq 0 ]; then echo "ALL SUITES PASSED"; else echo "SUITE FAILURES (exit $rc)"; fi

@@ -126,8 +126,13 @@ ok(/numLike|limit_unparsed|unparsed_limit/.test(SRC),
 //     (narrativeOpts, index.ts:1210-1211) and at "whole" scope at package
 //     (index.ts:1926, which omits limitScope). One document, two spans, two
 //     verdicts. The span must be computed once.
-const packOpts = SRC.match(/const opts: ContentOpts = isNarrative[\s\S]{0,240}?;/);
-ok(!!packOpts && /limitScope/.test(packOpts[0]),
+const packOpts = SRC.match(/const opts: ContentOpts = isNarrative[\s\S]{0,320}?;/);
+// Accepts either naming limitScope explicitly or spreading narrativeOpts wholesale.
+// The spread is the STRONGER form: it carries limitScope, donorHeadings and
+// attachments together, so a future span input cannot be added to generation and
+// forgotten at package. Widened for that reason, not to let the old code through --
+// an opts object built from scratch still fails this.
+ok(!!packOpts && /limitScope|\.\.\.narrativeOpts/.test(packOpts[0]),
   "package counts the narrative over the same span generation did");
 
 console.log(`\n${bad === 0 ? "ALL HELD" : `${bad} ASSERTION(S) FAILED`}`);
