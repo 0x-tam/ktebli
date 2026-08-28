@@ -237,8 +237,6 @@ throws(() => solve(partialAgg(["L1", "L2", "L3"]), "GBP", NO_LEDGER, NONE), "rat
 throws(() => solve(partialAgg(["F1", "L3"]), "GBP", NO_LEDGER, NONE), "rate_denominator_not_whole",
   "control: when T1 is declared [F1, L3] the SAME division IS caught — isolating the gap to node-identity membership");
 
-// A16 codes: the word-list-FREE leaf-set rule now catches every label spelling — "the cost",
-// plural, synonym — with rate_denominator_not_whole, subsuming the label rule; every case still REFUSES.
 console.log("\nA16 — RE-ATTACK #4: the label-superset ambiguity rule compares EXACT token sets");
 // A15 is now GREEN via a new rule (rate_denominator_ambiguous): a denominator is refused when
 // another same-unit node's label token-SET is a proper superset with a different value, so
@@ -269,6 +267,53 @@ throws(() => solve(ambig("costs", "frontline delivery share of costs"), "GBP", N
 throws(() => solve(ambig("cost", "frontline delivery share of cost"), "GBP", NO_LEDGER, NONE),
   "rate_denominator_not_whole",
   "sentinel: bare 'cost' is still correctly refused — the only difference from the bypasses is a stop-word/plural");
+
+console.log("\nA17 — RE-ATTACK #5: a proper SUB-SUM denominator, labelled as the whole, with the total a declared SUM");
+// A15/A16 are now GREEN via a word-list-free LEAF-SET rule: if the numerator is a proper part of
+// a same-unit sum S and the denominator's leaves fall OUTSIDE S, refuse (rate_denominator_not_whole).
+// residual-boundary.md concedes ONLY the case where the true whole is a bare LEAF (no sum to compare),
+// and claims "a closed budget declares its total as a SUM (so the leaf-set rule fires)". This defeats
+// that claim: the total IS a declared sum, and the leaf-set rule still misses it.
+//   L1..L4 sum to T1 "total project cost" = 120000  (a declared SUM)
+//   F1 "frontline delivery" = L1 + L2 = 81000        (a proper part of T1)
+//   D1 "the whole budget"   = L1 + L2 + L3 = 108000  (a proper SUB-SUM of T1; leaves ⊆ T1)
+// The leaf-set rule's denWithinS escape (meant for legitimate part/part ratios like overhead/direct)
+// treats D1 as a sibling part and does NOT fire, because D1's leaves are inside T1. The scope walk
+// never inspects a totalizing word inside the DENOMINATOR's own label, and {the,whole,budget} is not
+// a token-subset of {total,project,cost}, so the label-superset backstop is silent too. R1 = F1/D1 =
+// 81000/108000 = 0.75 is certified, though F1's honest share of the register's own declared total is
+// 81000/120000 = 0.675 — and D1 "the whole budget" provably EXCLUDES a line (L4 capital, 12000) that
+// T1 includes. "the whole" is a proper part.
+const subSum = (denLabel: string, rateLabel: string) => [
+  { id: "L1", label: "delivery staff", unit: "GBP", unit_kind: "money", kind: "leaf", value: 40000, basis: B("estimate", "2 FTE") },
+  { id: "L2", label: "sessional workers", unit: "GBP", unit_kind: "money", kind: "leaf", value: 41000, basis: B("estimate", "hourly") },
+  { id: "L3", label: "management", unit: "GBP", unit_kind: "money", kind: "leaf", value: 27000, basis: B("estimate", "0.5 FTE") },
+  { id: "L4", label: "capital equipment", unit: "GBP", unit_kind: "money", kind: "leaf", value: 12000, basis: B("estimate", "one-off kit") },
+  { id: "F1", label: "frontline delivery", unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2"], asserted: 81000, basis: B("arithmetic", "delivery + sessional") },
+  { id: "T1", label: "total project cost", unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2", "L3", "L4"], asserted: 120000, basis: B("arithmetic", "all four lines") },
+  { id: "D1", label: denLabel, unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2", "L3"], asserted: 108000, basis: B("arithmetic", "recurring lines") },
+  { id: "R1", label: rateLabel, unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["F1", "D1"], asserted: 0.75, basis: B("arithmetic", "frontline over denominator") },
+];
+// PRIMARY (fails today): the denominator claims to be the WHOLE but is a proper part.
+throws(() => solve(subSum("the whole budget", "frontline share of the whole budget"), "GBP", NO_LEDGER, NONE),
+  "rate_denominator_not_whole",
+  "'the whole budget' (=108000) is a proper sub-sum that EXCLUDES capital (L4); F1 / it = 0.75 must be refused when T1 (a sum) = 120000");
+// CORROBORATION (fails today): the literal word 'total' on a proper sub-sum passes too.
+throws(() => solve(subSum("the total budget", "frontline share of the total budget"), "GBP", NO_LEDGER, NONE),
+  "rate_denominator_not_whole",
+  "'the total budget' (=108000, a partial sum) is not distinguished from the real total (120000)");
+// SENTINEL (passes today): a denominator OUTSIDE the total is still correctly refused — the escape
+// is specifically that a sub-sum's leaves fall WITHIN the total, so denWithinS suppresses the throw.
+throws(() => solve([
+  { id: "L1", label: "delivery staff", unit: "GBP", unit_kind: "money", kind: "leaf", value: 40000, basis: B("estimate", "2 FTE") },
+  { id: "L2", label: "sessional workers", unit: "GBP", unit_kind: "money", kind: "leaf", value: 41000, basis: B("estimate", "hourly") },
+  { id: "L3", label: "management", unit: "GBP", unit_kind: "money", kind: "leaf", value: 39000, basis: B("estimate", "0.5 FTE") },
+  { id: "F1", label: "frontline delivery", unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2"], asserted: 81000, basis: B("arithmetic", "delivery + sessional") },
+  { id: "T1", label: "total project cost", unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2", "L3"], asserted: 120000, basis: B("arithmetic", "all lines") },
+  { id: "G1", label: "the whole budget", unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the ask") },
+  { id: "R1", label: "frontline share of the whole budget", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["F1", "G1"], asserted: 0.75, basis: B("arithmetic", "frontline over budget") },
+], "GBP", NO_LEDGER, NONE), "rate_denominator_not_whole",
+  "sentinel: the SAME misleading label on a denominator OUTSIDE the total IS caught — isolating the gap to the denWithinS sub-sum escape");
 
 // ---------------------------------------------------------------------------
 console.log(failures ? `\n${failures} FAILURE(S) — invariant 4 is not upheld` : "\nALL ADV2 NUMERIC TESTS PASSED");

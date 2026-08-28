@@ -331,9 +331,17 @@ function resolveRegister(
         const numProperPart = numLeaves.size > 0 && sLeaves.size > numLeaves.size &&
           [...numLeaves].every((l) => sLeaves.has(l));
         if (!numProperPart) continue;
-        const denWithinS = denLeaves.size > 0 && [...denLeaves].every((l) => sLeaves.has(l));
         const denEqualsS = done.get(s.id)?.value === den.value;
-        if (denWithinS || denEqualsS) continue; // den is S or a sibling part of it — legitimate
+        // The sibling-ratio escape (overhead over direct costs) is legitimate ONLY when the
+        // denominator is a DISJOINT part of S from the numerator — two separate slices of
+        // the total. A denominator whose leaves OVERLAP the numerator's is a larger part
+        // that CONTAINS it: "frontline share of the whole budget" where "the whole budget"
+        // (108k) is a sub-sum that drops a line the true total (120k) includes — a
+        // part-of-a-larger-part dressed as the whole, the over-75%-to-frontline defect via
+        // an ordinary subtotal. Require disjointness, not mere within-ness.
+        const denWithinS = denLeaves.size > 0 && [...denLeaves].every((l) => sLeaves.has(l));
+        const disjointFromNum = ![...denLeaves].some((l) => numLeaves.has(l));
+        if (denEqualsS || (denWithinS && disjointFromNum)) continue;
         throw new RegisterError("rate_denominator_not_whole", n.id,
           `${num.id} is a part of ${s.id} ("${s.label}"), but ${den.id} ("${den.label}") is outside ` +
           `it — a share of a part must be taken over the whole it belongs to, not a quantity that ` +

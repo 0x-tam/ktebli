@@ -554,3 +554,92 @@ with a crafted register and no model).
 (honest share of the register's own total is `0.675`) because `{the, cost}` is not an exact
 token-subset of `{total, project, cost}`. The bare-`"cost"` sentinel throws, so the boundary
 between caught and missed is a single stop-word.
+
+---
+
+# RE-ATTACK #5 2026-08-28 — BROKEN (a proper sub-sum denominator, total declared as a sum)
+
+RE-5 was fixed and merged (trunk `5a04a60`) with my own durable spec: a word-list-free **leaf-set**
+rule (`numeric_register.ts:302-341`). If the numerator is a proper part of a same-unit `sum` `S`
+and the denominator's leaves fall **outside** `S`, refuse (`rate_denominator_not_whole`); labels are
+not compared, so `"the cost"`, `"costs"`, and synonyms are all caught by leaves. I re-ran
+`adv2_numeric_test.ts`: **A15 and A16 are now GREEN** (I updated their expected code to
+`rate_denominator_not_whole`, the code the leaf-set rule throws), and A9–A14 remain green.
+
+`reports/adversarial/residual-boundary.md` concedes only the case where the true whole is a bare
+**leaf**, and argues: *"a closed budget declares its total as a SUM (so the leaf-set rule fires)."*
+I attacked exactly that sentence. **A total declared as a sum is not sufficient** — the leaf-set
+rule still misses a wrong denominator, so this is a new class under the orchestrator's own
+criterion (b), not the documented boundary.
+
+## (a) The MECHANISM — BROKEN
+
+### RE-6 — the `denWithinS` escape admits a proper SUB-SUM labelled as the whole
+
+**Where:** `numeric_register.ts:326-341` — the leaf-set loop and its `denWithinS` escape.
+
+```ts
+const denWithinS = denLeaves.size > 0 && [...denLeaves].every((l) => sLeaves.has(l));
+const denEqualsS  = done.get(s.id)?.value === den.value;
+if (denWithinS || denEqualsS) continue; // den is S or a sibling part of it — legitimate
+```
+
+The escape is correct for a genuine part/part ratio (the donor's "overhead over **direct costs**":
+direct costs is a sibling part of the total). But it fires on **any** denominator whose leaves are
+inside `S` — including a proper sub-sum that is **labelled as the whole**. And nothing else covers
+that: the symmetric scope walk only inspects scope words in the **rate** label adjacent to the
+denominator run, never a totalizing word inside the **denominator's own** label; and the
+label-superset backstop only fires on a token-subset, which a sub-sum's total-ish label is not.
+
+**The exact defeating input (test A17), total is a declared SUM:**
+
+```
+L1 delivery staff = 40000   L2 sessional = 41000   L3 management = 27000   L4 capital = 12000
+F1 frontline delivery = sum[L1,L2]        = 81000    (a proper part of the total)
+T1 total project cost = sum[L1,L2,L3,L4]  = 120000   (a DECLARED SUM)
+D1 "the whole budget" = sum[L1,L2,L3]     = 108000   (a proper SUB-SUM; leaves ⊆ T1)
+R1 "frontline share of the whole budget" = rate F1 / D1, asserted 0.75
+```
+
+For `S = T1`: `F1`'s leaves `{L1,L2} ⊂ {L1,L2,L3,L4}` so `numProperPart` is true; but `D1`'s leaves
+`{L1,L2,L3} ⊆ {L1,L2,L3,L4}` so `denWithinS` is true → the rule treats `D1` as a legitimate sibling
+part and does not fire. `resolveRegister` returns `R1 = 81000/108000 = 0.75`, where `F1`'s honest
+share of the register's own declared total is `81000/120000 = 0.675`. `D1` is labelled **"the whole
+budget"** yet provably **excludes** a line the register's own total includes (`L4` capital, 12000) —
+"the whole" is a proper part. The literal word **`"total"`** works identically (`"the total
+budget"`, A17 corroboration). The **sentinel** (A17, green) puts the same misleading label on a
+denominator *outside* the total and it IS caught — isolating the defect precisely to the
+`denWithinS` sub-sum escape.
+
+This is the exact §5 "over 75% to frontline" defect: a budget with a natural subtotal
+(`"the whole/overall/total delivery budget"`, `108k`) used as the `%`-to-frontline denominator while
+the real project total (`120k`) sits in the register as a sum. Subtotals bearing "total"/"overall"
+are ordinary model output, so this is reachable, not a self-inflicted shape.
+
+**Fix spec:** `denWithinS` should not blanket-allow. A denominator that is a **proper** sub-sum of
+`S` (its leaves a strict subset of `S`'s, `den.value ≠ S.value`) is a legitimate ratio base **only
+if its label does not claim the whole**. Two options: (1) when `denLeaves ⊊ sLeaves` and
+`den.value ≠ S.value`, require the denominator's label to be free of totalizing tokens
+(`total/whole/overall/entire/…`) — refuse `"the whole budget"` on a sub-sum; or, cleaner and
+word-list-free, (2) restrict the escape to the genuine part/part case by also requiring the
+**numerator and denominator leaf-sets to be disjoint** (overhead ∩ direct-costs = ∅), since a real
+"part A as a share of sibling part B" has no shared leaves — here `F1`'s leaves `{L1,L2} ⊂ D1`'s
+`{L1,L2,L3}`, i.e. the numerator is *inside* the denominator, which is not a sibling ratio at all
+but a part-of-a-larger-part masquerading as a share of the whole. Option (2) closes RE-6 without a
+word list and still admits overhead/direct-costs.
+
+## (b) The GENERATION-QUALITY half — still UNPROVEN, not broken
+
+Unchanged: whether every prose figure routes through the register end-to-end is
+**unproven-without-e2e**. Distinct from RE-6, a deterministic hole reachable with a crafted
+register and no model.
+
+## Verdict
+
+**BROKEN**, and specifically outside the documented boundary: the true whole `T1` is a **declared
+sum** (120000), not a bare leaf. Exact input (test A17): `F1 = sum[L1,L2] = 81000`,
+`T1 = sum[L1,L2,L3,L4] = 120000`, `D1 = sum[L1,L2,L3] = 108000` labelled `"the whole budget"`,
+`R1 = rate F1 / D1` asserted `0.75`. `resolveRegister` accepts `0.75` (honest `0.675`) because the
+`denWithinS` escape treats the proper sub-sum `D1` as a legitimate sibling part, and no check
+questions a totalizing word in `D1`'s own label. The residual-boundary claim that a sum-declared
+total makes the leaf-set rule fire does not hold when the wrong denominator is itself a sub-sum.
