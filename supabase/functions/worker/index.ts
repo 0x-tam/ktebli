@@ -1957,6 +1957,14 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     // per (proposal, doc_hash) unrepeatable — retrying into a pass requires the
     // document to materially change. All decisions are loopAction's; this block
     // only supplies effects (judge call, regeneration, persistence).
+    //
+    // LOW-AGREEMENT: no candidate judge reached 80% agreement with the blind
+    // critic ground truth (best: google/gemini-3.7-flash at 77.8%, wired as
+    // primary; z-ai/glm-5.3-flash scored exactly the always-hold baseline).
+    // The gate therefore runs HOLD-BIASED — the computed bar and the judge's
+    // asserted verdict must both say clears_bar, ties and uncertainty hold —
+    // per the phase-3 cascade. Details: delivery_gate.ts judge config comment
+    // and reports/phase3-gate.md §2.
     {
       const gateNarrative0 =
         String((c.stages.find((s: { id: number; output?: { gate_text?: string } }) => s.id === stage.stage_id)?.output as { gate_text?: string } | undefined)?.gate_text ?? "") ||

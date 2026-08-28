@@ -530,9 +530,13 @@ function la(over: Partial<LoopAttempt> = {}): LoopAttempt {
 }
 
 // ---------------------------------------------------------------- the judge, as specified
-await test("v2: the judge is the specified model and the fallback is a different provider", () => {
-  eq(JUDGE_PRIMARY, "z-ai/glm-5.3-flash", "primary judge");
-  eq(JUDGE_FALLBACK, "google/gemini-3.7-flash", "fallback judge");
+await test("v2: the judge is the validated model and the fallback is a different provider", () => {
+  // The order is the OUTCOME of the phase-3 validation cascade (both candidates
+  // missed 80%; gemini at 77.8% beat glm at exactly the always-hold baseline,
+  // so the better one is primary and the gate runs hold-biased). See the judge
+  // config comment in delivery_gate.ts and reports/phase3-gate.md §2.
+  eq(JUDGE_PRIMARY, "google/gemini-3.7-flash", "primary judge, per the measured cascade");
+  eq(JUDGE_FALLBACK, "z-ai/glm-5.3-flash", "fallback judge");
   ok(modelFamily(JUDGE_PRIMARY) !== modelFamily(JUDGE_FALLBACK), "different providers on purpose");
   eq(JUDGE_SLOTS.length, 2, "two credential slots");
   ok(JUDGE_SLOTS[0].secret !== JUDGE_SLOTS[1].secret, "and two credentials, or a cap takes out both rungs");
@@ -604,8 +608,10 @@ await test("v2: the gate reads a field, and a field it cannot read is no judgeme
   for (const [label, raw] of bad) eq(parseJudgeReply(raw).ok, false, `${label} must be refused`);
 });
 
-await test("v2: the asserted verdict is recorded and is never decisive, in both directions", async () => {
-  // Asserts it clears; the numbers say a dimension is below its floor. The bar wins.
+await test("v2: hold-biased — a pass needs the bar AND the asserted verdict; either alone cannot pass", async () => {
+  // Asserts it clears; the numbers say a dimension is below its floor. Hold:
+  // a model cannot assert its way past the bar. (Unchanged from the original
+  // never-decisive contract.)
   const recA = jrecorder(() => judgeJson({ scores: scoresAt({ feasibility: 3 }), verdict: "clears_bar" }));
   const a = await runDeliveryGate(baseInput(), jdeps(recA));
   eq(a.decision, "hold", "a model cannot assert its way past the bar");
@@ -613,12 +619,25 @@ await test("v2: the asserted verdict is recorded and is never decisive, in both 
   eq(a.judge[0].asserted_verdict, "clears_bar", "what it asserted is recorded");
   ok(a.alerts.some((x) => x.code === "gate.verdict_disagreement"), "and the disagreement is an event");
 
-  // Asserts it fails; every number clears. The bar wins there too.
+  // Asserts it fails; every number clears. Under the LOW-AGREEMENT hold-biased
+  // posture (phase 3: no candidate judge reached 80% against blind ground
+  // truth) this now HOLDS: ties and uncertainty hold, never pass. This
+  // deliberately replaces the earlier expectation that the computed bar alone
+  // could pass a document its own judge refused to call fundable.
   const recB = jrecorder(() => judgeJson({ verdict: "fails_bar" }));
   const b = await runDeliveryGate(baseInput(), jdeps(recB));
-  eq(b.decision, "pass", "the bar is applied to observations, not to the model's opinion");
+  eq(b.decision, "hold", "the judge's refusal vetoes the pass — hold-biased");
+  eq(b.cause, "bar_not_cleared", "on the merits, sticky");
+  eq(b.sticky, true, "sticky: the document must change before it is judged again");
+  ok(b.findings.length > 0, "the hold carries findings a regeneration can act on");
   eq(b.judge[0].asserted_verdict, "fails_bar", "recorded either way");
   ok(b.alerts.some((x) => x.code === "gate.verdict_disagreement"), "and flagged");
+
+  // Both agree it clears: that, and only that, is a pass.
+  const recC = jrecorder(() => judgeJson());
+  const c = await runDeliveryGate(baseInput(), jdeps(recC));
+  eq(c.decision, "pass", "agreement on clears_bar passes");
+  ok(!c.alerts.some((x) => x.code === "gate.verdict_disagreement"), "no disagreement event on agreement");
 });
 
 // ---------------------------------------------------------------- blindness

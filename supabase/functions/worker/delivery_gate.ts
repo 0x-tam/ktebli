@@ -717,9 +717,32 @@ function refundLetter(opts: { orgName: string; orderNo: string; amountUsd: numbe
 // never refunds on an INFRA_HOLD.
 
 // ---------------------------------------------------------------- judge config
+//
+// LOW-AGREEMENT — the primary/fallback order below is the OUTCOME of the
+// phase-3 validation cascade (tests/delivery-gate/validate_judge_ladder.ts,
+// 2026-08-28, reports/phase3-gate.md §2), not the order the phase started
+// with. Against 56 blind critic judgements over the 22 ladder documents:
+//
+//   z-ai/glm-5.3-flash       65.0% agreement (40 data) — EXACTLY the 65.0%
+//                            always-hold baseline. NO SIGNAL. 14 false passes.
+//   google/gemini-3.7-flash  77.8% agreement (18 data; its own-family A/C
+//                            documents excluded per the family rule) against a
+//                            22.2% always-hold baseline. Real signal, and zero
+//                            false holds — but under the 80% wiring bar: it
+//                            false-passed both not-fundable opus documents.
+//
+// Both missed 80%, so per the pre-committed rule the better one is wired as
+// primary AND the gate is HOLD-BIASED: a pass now requires the computed bar
+// and the judge's own asserted verdict to AGREE on clears_bar (see step 8 in
+// runDeliveryGate). Ties and uncertainty hold; nothing in this posture can
+// convert a hold into a pass. On the production-relevant subset (opus-generated
+// documents — production's generator is anthropic/claude-opus-5) the two
+// candidates tie at 77.8% and BOTH passed every opus document, so this judge
+// discriminates weakly at best; the LOW-AGREEMENT flag stays until a judge
+// beats 80% against blind ground truth.
 const JUDGE_GATE_VERSION = "delivery-gate-v2";
-const JUDGE_PRIMARY = "z-ai/glm-5.3-flash";
-const JUDGE_FALLBACK = "google/gemini-3.7-flash";
+const JUDGE_PRIMARY = "google/gemini-3.7-flash";
+const JUDGE_FALLBACK = "z-ai/glm-5.3-flash";
 // Fixed, and part of the gate version's meaning: change it and every stored
 // verdict was reached under a different instrument.
 const JUDGE_SEED = 20260827;
@@ -1453,22 +1476,28 @@ async function runDeliveryGate(input: GateInput, deps: GateDeps): Promise<JudgeO
       common);
   }
 
-  // 8. The verdict the judge ASSERTED is recorded and is never decisive; the bar
-  //    is what applyBar() computed from the numbers. Where they disagree, that
-  //    is an observation about the judge, and it belongs in events.
+  // 8. HOLD-BIASED (LOW-AGREEMENT — see the judge config above). A pass
+  //    requires the computed bar (applyBar over the numbers) AND the judge's
+  //    own asserted verdict to agree on clears_bar. Either signal failing
+  //    holds. This is strictly tightening: the asserted verdict can veto a
+  //    pass, and nothing it asserts can ever rescue a failing bar — a model
+  //    still cannot talk its way past the numbers. Disagreement stays an event.
   const computed: AssertedVerdict = verdictAttempt.clears ? "clears_bar" : "fails_bar";
   if (verdictAttempt.asserted_verdict !== computed) {
     alerts.push({
       code: "gate.verdict_disagreement", severity: "warn",
-      message: `${verdictAttempt.model} asserted "${verdictAttempt.asserted_verdict}" while the bar computes "${computed}"; the computed bar stands`,
+      message: `${verdictAttempt.model} asserted "${verdictAttempt.asserted_verdict}" while the bar computes "${computed}"; under the hold-biased posture any disagreement holds`,
       detail: { model: verdictAttempt.model, asserted: verdictAttempt.asserted_verdict, computed, failures: verdictAttempt.failures },
     });
   }
 
   const score = verdictAttempt.judgement ? gateScore(verdictAttempt.judgement) : null;
 
-  if (!verdictAttempt.clears) {
+  if (!verdictAttempt.clears || verdictAttempt.asserted_verdict !== "clears_bar") {
     const findings: string[] = [
+      ...(verdictAttempt.clears && verdictAttempt.asserted_verdict !== "clears_bar"
+        ? [`[${verdictAttempt.model}] every scored dimension cleared its floor, and the judge still would not call it fundable as submitted`]
+        : []),
       ...verdictAttempt.failures.map((f) => `[${verdictAttempt!.model}] ${f}`),
       ...(verdictAttempt.judgement?.weakest_thing ? [`[${verdictAttempt.model}] weakest: ${verdictAttempt.judgement.weakest_thing}`] : []),
       ...verdictAttempt.reasons.map((r) => `[${verdictAttempt!.model}] reason: ${r}`),

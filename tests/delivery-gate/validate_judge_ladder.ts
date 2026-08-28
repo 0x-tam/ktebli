@@ -231,6 +231,7 @@ interface Row {
   model: string; doc: string; truth: Verdict | "disputed";
   ownFamily: boolean;                       // candidate family generated this doc
   gate: Verdict | "MISSING"; score: number | null;
+  asserted: string | null;                  // the judge's own verdict field — recorded, never decisive
   usd: number | null; generation_id: string | null; error: string | null;
 }
 
@@ -240,7 +241,7 @@ async function judgeOne(d: DocTruth, model: string): Promise<Row> {
   const row: Row = {
     model, doc: `${d.rung}-${d.arm}`, truth: d.consensus,
     ownFamily: modelFamily(model) === modelFamily(d.generator),
-    gate: "MISSING", score: null, usd: null, generation_id: null, error: null,
+    gate: "MISSING", score: null, asserted: null, usd: null, generation_id: null, error: null,
   };
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -252,6 +253,7 @@ async function judgeOne(d: DocTruth, model: string): Promise<Row> {
       const bar = applyBar(parsed.judgement);
       row.gate = bar.clears ? "fundable" : "not_fundable";
       row.score = gateScore(parsed.judgement);
+      row.asserted = parsed.verdict;
       row.error = null;
       return row;
     } catch (e) {
@@ -265,23 +267,30 @@ async function judgeOne(d: DocTruth, model: string): Promise<Row> {
 // ---------------------------------------------------------------- reporting
 interface Rate { n: number; agree: number; rate: number; baseline: number; falsePass: number; falseHold: number; missing: number; excluded: number }
 
-function rateFor(rows: Row[], model: string): Rate {
+function rateFor(rows: Row[], model: string, biased = false): Rate {
   const fam = modelFamily(model);
   const excluded = rows.filter((r) => r.model === model && r.ownFamily).length;
   // Datum-level: each per-critic judgement on an undisputed, family-legal
   // document is one datum, compared against the judge's per-document verdict.
+  // `biased` applies the production hold-biased posture: a pass requires the
+  // computed bar AND the judge's asserted clears_bar; anything else holds.
   let n = 0, agree = 0, hold = 0, falsePass = 0, falseHold = 0, missing = 0;
   for (const d of docs) {
     if (d.consensus === "disputed") continue;
     if (modelFamily(d.generator) === fam) continue;
     const r = rows.find((x) => x.model === model && x.doc === `${d.rung}-${d.arm}`);
     if (!r) continue;
+    const gate: Verdict | "MISSING" = r.gate === "MISSING"
+      ? "MISSING"
+      : biased
+        ? (r.gate === "fundable" && r.asserted === "clears_bar" ? "fundable" : "not_fundable")
+        : r.gate;
     for (const j of d.judgements) {
-      if (r.gate === "MISSING") { missing++; continue; }
+      if (gate === "MISSING") { missing++; continue; }
       n++;
       if (j.verdict === "not_fundable") hold++;
-      if (r.gate === j.verdict) agree++;
-      else if (r.gate === "fundable") falsePass++;
+      if (gate === j.verdict) agree++;
+      else if (gate === "fundable") falsePass++;
       else falseHold++;
     }
   }
@@ -334,7 +343,7 @@ for (const model of MODELS) {
       try {
         const r = await judgeOne(d, model);
         rows.push(r);
-        console.error(`  ${model} ${d.rung}-${d.arm}: ${r.gate}${r.score !== null ? ` (score ${r.score})` : ""}${r.error ? ` [${r.error.slice(0, 80)}]` : ""} $${(r.usd ?? 0).toFixed(4)} (total $${spentUsd.toFixed(4)})`);
+        console.error(`  ${model} ${d.rung}-${d.arm}: ${r.gate}${r.score !== null ? ` (score ${r.score})` : ""}${r.asserted ? ` asserted=${r.asserted}` : ""}${r.error ? ` [${r.error.slice(0, 80)}]` : ""} $${(r.usd ?? 0).toFixed(4)} (total $${spentUsd.toFixed(4)})`);
       } catch (e) {
         if (e instanceof BudgetStop) { stopped = String((e as Error).message); return; }
         throw e;
@@ -348,13 +357,16 @@ for (const model of MODELS) {
 console.log(`\nmodel                              n(data)  agree  rate    always-hold  false-pass  false-hold  missing  own-family-excluded`);
 for (const model of MODELS) {
   if (!rows.some((r) => r.model === model)) continue;
-  const s = rateFor(rows, model);
-  console.log(
-    `${model.padEnd(34)} ${String(s.n).padEnd(8)} ${String(s.agree).padEnd(6)} ${(s.rate * 100).toFixed(1).padStart(5)}%  ` +
-    `${(s.baseline * 100).toFixed(1).padStart(10)}%  ${String(s.falsePass).padStart(10)}  ${String(s.falseHold).padStart(10)}  ` +
-    `${String(s.missing).padStart(7)}  ${String(s.excluded).padStart(3)} doc(s)`,
-  );
-  if (s.n && s.rate <= s.baseline) console.log(`   ^ NO SIGNAL: does not beat refusing everything.`);
+  for (const biased of [false, true]) {
+    const s = rateFor(rows, model, biased);
+    const label = biased ? `${model} (hold-biased)` : model;
+    console.log(
+      `${label.padEnd(34)} ${String(s.n).padEnd(8)} ${String(s.agree).padEnd(6)} ${(s.rate * 100).toFixed(1).padStart(5)}%  ` +
+      `${(s.baseline * 100).toFixed(1).padStart(10)}%  ${String(s.falsePass).padStart(10)}  ${String(s.falseHold).padStart(10)}  ` +
+      `${String(s.missing).padStart(7)}  ${String(s.excluded).padStart(3)} doc(s)`,
+    );
+    if (s.n && s.rate <= s.baseline) console.log(`   ^ NO SIGNAL: does not beat refusing everything.`);
+  }
 }
 console.log(`\nDISPUTED documents excluded from every rate: ${disputed.length} (${disputed.map((d) => `${d.rung}-${d.arm}`).join(", ")})`);
 console.log(`total measured spend: $${spentUsd.toFixed(4)} over ${rows.length} judged documents` +
