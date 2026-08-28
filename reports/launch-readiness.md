@@ -20,10 +20,34 @@ Launch is the operator pressing go after clearing the OPERATOR list below. Not t
 | 5 — six crawls | Six real buyer-shaped sites, every outcome explicit: 1 truthful FETCH_FAILED (cross-domain redirect, target named), 5×OK with furniture-free referents. 9 silent-failure classes fixed with canned regressions. Seven ledgers kept as the phase-6 applicants. | $0 |
 | 6 — engineering | THREE P0s fixed: (a) escalations kind-check regression that made every refund unrecordable; (b) the strategy stage was still on the pre-composer schema — every order died at strategy with a PostgREST 400 before any claim (found by the e2e, proven by the critic); (c) invariant-2 clearance now enforced both sides (DB-atomic single-use). Plus F1/F3/F5 fail-closed, hold-class notifications with DRAFT wordings, strand release, crawl-starvation hold, per-stage cost accounting, resumable generation (unproven on deployed runtime). | $0 |
 | 6 — benchmark | One real Draft order (Sufra) driven full-chain on the live stack → a **correct grounding HOLD at validate** (identity-only intake + own-domain crawl cannot supply mandatory admin facts — launch P0 #1 data-starvation demonstrated live, gate working, not fabricating). Real render verified (200, 6 pages). Mini-benchmark: 4 real applicants on one grant → **4 distinct composed fingerprints, no collision**; live crawl reproduced phase-5 counts (178/152/90/117). | $5.56 measured (≈$7.96 true incl. debugging iterations; the $8 line overran on the meter — see RUNLOG) |
-| 6.5 — adversarial | 9 invariants attacked, one focused adversary each. **4 held** (1 delivery-gate, 2 sufficiency — both conceded with live proof; 7 no-human, 9 observability — orchestrator-audited). **5 broken** (3 grounding, 4 numeric, 5 compliance, 6 exclusivity, 8 loop/notify), every break a failing test + fix spec, all closed by a single consolidation fix and re-attacked. The shared root cause is recorded below — it is the most important thing on this page. | $0 |
+| 6.5 — adversarial | 9 invariants, one focused adversary each, every break re-attacked until the attacker **conceded in writing**. **4 held** (1 delivery-gate, 2 sufficiency — conceded with live proof; 7 no-human, 9 observability — orchestrator-audited). **5 broken then closed** (3, 4, 5, 6, 8). The two hardest (3 identity-matching, 4 numeric-denominators) took six re-attack rounds each — the attacker found a genuinely distinct reachable class each round, all now closed and re-attack-proven, with the final residuals documented as deterministic-irreducibility boundaries. Root cause below. | $0 |
 
 Every phase committed; `git log` is the audit trail. `BLOCKED.md` records the one genuine
 ceiling (phase 2). Balance never approached the $3 floor.
+
+### The single most important finding — read this before touching the code
+
+Every one of the five broken invariants failed for the **same reason**: round 1 built a sound
+isolated mechanism and never wired its verdict into the decision or generation path. The loop's
+`materialChange()` computed an insertion-robust verdict that `loopAction` threw away; the numeric
+register `resolveRegister()` was fully implemented and called by nothing; the exclusivity composer
+hashed 11 style axes into the fingerprint while only 2 reached the writer; the word counter's
+Unicode-aware siblings were fixed while the counter itself was left Latin-only; `notifyTerminal`
+set its idempotency marker before attempting the notification. **A passing unit test on a mechanism
+is not proof the mechanism is in the path.** When reviewing any future change, trace the verdict
+from where it is computed to where a decision consumes it — that seam is where this system fails.
+
+### Two documented residuals (not launch blockers)
+
+`reports/adversarial/residual-boundary.md` records the two classes that are not fully closable by a
+deterministic gate: (3) two organisations sharing a topical stem where one name subsets the other
+and the word is also a real charity's distinctive name (needs a distinctiveness/frequency model);
+(4) a "share of X" whose true whole is not declared in structure and is named with a token-disjoint
+synonym (needs a semantic lexicon). Both are in the asymmetric-safe direction (discard, never
+fabricate), both are backstopped by the **LLM Claim Ledger** — the real fact-grounding gate, which
+held the phase-6 Sufra order at `validate` — and neither is reachable from inputs honest use
+produces. The durable closures (a name-distinctiveness model; requiring every budget total to be a
+declared sum) are noted for a future iteration.
 
 ---
 
