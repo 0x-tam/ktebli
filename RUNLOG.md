@@ -166,3 +166,9 @@ Next: install postgres + supabase CLI → phase 0.
   names. No wild BLOCKED/JS_ONLY (Felix redirects now, Watsi server-renders) —
   fixture-proven, disclosed. 7 ledgers committed for phase 6. Critic spawned (re-crawl
   one site, referent-quality audit, taxonomy honesty on FETCH_FAILED, coverage-gap call).
+- WS5 critic: PASS in writing (regressions reproduced against pre-fix modules, Magpie
+  re-crawl 53/53 exact, BLOCKED path wild-confirmed by the critic itself on
+  glassdoor.com→blocked_bot, identity gate untouched). Three residuals sent back
+  bounded before merge: (A) sitemap/wp-json machine files crawled as prose pollute 3
+  of 7 ledgers with junk referents — fix + re-crawl affected sites; (B) entity residue
+  in siteNameCandidates; (C) 203→205 count. Merge follows the fix.
