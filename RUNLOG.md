@@ -445,3 +445,20 @@ wired + deterministically tested; generation-quality impact marked unproven-with
 - Identity gate: 7 passes, each a distinct real class (substring, prefix, domain-overrides-
   stated-identity, topical-overlap). Numeric register: 5 passes. Both now on principled
   structural rules (exact-concat + containment; label-superset + symmetric-scope).
+
+## 2026-08-28 — adversarial round converging to the deterministic boundary
+
+- inv4 RE-5 (stop-word 'the cost' defeated the label-token comparison): fixed with the
+  attacker's own durable word-list-FREE LEAF-SET rule (numerator a proper part of sum S,
+  denominator outside S → refuse). Closes all label-spelling variants; overhead/direct
+  stays legit. Label-superset kept as leaf-declared-total backstop. Committed 13537a8→5a04a60.
+- inv3 8th class (topical CONTAINMENT — "Mental Health Leeds" vs "Mental Health Foundation"):
+  extended ORG_GENERIC_WORDS with a NARROW purely-topical set (Mental Health / Youth Music /
+  Family Action reject; Shelter/Green House/Grace Kitchen preserved). The broad list first
+  tried broke legit fixtures (shelter/green/kitchen double as distinctive names) — which IS
+  the irreducibility: a word topical for one org is distinctive for another.
+- Wrote reports/adversarial/residual-boundary.md: both remaining residuals precisely stated
+  as deterministic-irreducibility boundaries, each with backstops (asymmetric discard, LLM
+  Claim Ledger, budget-total-as-sum). Both attackers acknowledged the boundary in writing.
+- Final concession requested: concede the boundary, or report a genuinely NEW reachable
+  class outside it. Balance $10.15 (adversarial round ~$0, all deterministic).
