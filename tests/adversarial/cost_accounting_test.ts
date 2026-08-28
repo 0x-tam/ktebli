@@ -76,6 +76,9 @@ ok((SRC.match(/usage: \{ \.\.\.stageUsage \}/g) ?? []).length >= 11,
 ok(/limit_outcomes: lr\.limitOutcomes, usage: \{ \.\.\.stageUsage \}/.test(SRC),
   "ANALYZE snapshots its sink too — it was the one stage without one, found by the " +
   "phase-6 e2e cost reconciliation (its model call was invisible in job_stages)");
+ok(/unresolved: true, usage: \{ \.\.\.stageUsage \}/.test(SRC),
+  "VALIDATE snapshots its sink on the grounding-FAILURE path too — a held order's " +
+  "3 retry-attempts' spend was invisible to the per-order cap (phase-6 e2e live find)");
 ok((SRC.match(/u: stageUsage/g) ?? []).length + (SRC.match(/, stageUsage\)/g) ?? []).length >= 15,
   "the sink is threaded into every model-calling site inside runStage");
 ok(/generateValidated\(prompt: string, maxTokens: number, opts: ContentOpts = \{\}, u\?: Usage\)/.test(SRC),

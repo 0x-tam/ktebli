@@ -2359,8 +2359,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       if (blocking === 0 && (round > 0 || reviewFindings.length === 0 || !mid)) break;
       if (round === maxRounds) {
         if (blocking > 0) {
+          // usage snapshot on the FAILURE path too: validate spends several model
+          // calls per round and retries up to 3 times, and without this the cost
+          // of a grounding-blocked order is invisible to per-stage accounting and
+          // to the per-order cap. Found live by the phase-6 e2e: a validate hold
+          // burned three attempts whose spend never reached job_stages.output.usage.
           await patch(`job_stages?id=eq.${stage.stage_id}`, {
-            output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true },
+            output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true, usage: { ...stageUsage } },
           }).catch(() => {});
           throw new Error(`validation unresolved after ${maxRounds + 1} rounds: ` +
             [...groundingProblems.map((g) => "unsupported:" + String(g.claim).slice(0, 60)),
