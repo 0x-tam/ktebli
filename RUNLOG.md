@@ -386,3 +386,22 @@ wired + deterministically tested; generation-quality impact marked unproven-with
 - Final step: batch-resume the 5 broken-invariant attackers to re-attack trunk and concede in
   writing (the doctrine: "re-attacked until the attacker concedes in writing"), then finalize
   the handoff.
+
+## 2026-08-28 — adversarial re-attack round (attackers re-attacking merged trunk)
+
+- Re-attacked the merged consolidation fix with the 5 original attackers:
+  * inv5 CONCEDED (every vector held; noted non-reachable Default_Ignorable hardening).
+  * inv6 CONCEDED (all 11 axes reach the writer, 1000/1000 distinct; noted a latent
+    "9th-axis" hardening — hardcoded 8-name categorical list vs extensible schema —
+    not a live break under today's schema).
+  * inv8 CONCEDED (material===false refuses padding regen; >2 impossible; notify last).
+  * inv3 found a FRESH hole: the single-token fix left the MULTI-token domain branch on
+    any-substring (Art Care->smartcare.com). FIXED by me (anchor first token to
+    registrable main label + in-order), +7 assertions; Grace Kitchen->grace.com rejects,
+    real Sufra->sufra-nwlondon.org.uk admits. Verified via adv2_grounding + probes.
+  * inv4 found TWO fresh holes: donor-branch Math.round(ratio) collision (fabricated
+    donor % verified by a stray 1) and a scope-reframe denominator ("cost of the whole
+    project"). Both FIXED by me; A12/A13 green, round-1 register green.
+- Full suite ALL SUITES PASSED. Committed eae6b18. Final inv3+inv4 attacker concession on
+  the fixed code requested (the doctrine: re-attacked until the attacker concedes in
+  writing). inv1/inv2 conceded on the first pass. inv7/9 orchestrator-audited.
