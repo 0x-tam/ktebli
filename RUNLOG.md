@@ -254,3 +254,22 @@ Next: install postgres + supabase CLI → phase 0.
   inv6 exclusivity, inv8+loop. Each files BROKEN (failing test + fix spec) or CONCEDED
   in writing. Invariants 7 (no human in loop) and 9 (observability) verified directly by
   the orchestrator (below) rather than a separate agent.
+
+## 2026-08-28 — phase-boundary balance reconciliation (honest)
+
+- GET /credits: total_usage 34.844 → balance $10.16 (floor $3.00). Session delta since
+  start (19.956): $14.89. This EXCEEDS the running per-call tally (~$9). The gap is
+  understood and honest:
+  * WS6-bench's e2e drove KT-10001 through the full pipeline MULTIPLE times while fixing
+    4 defects (strategy 400, two usage-snapshot gaps, footer false-positive); each run to
+    validate is ~$1.5-2. Those debugging iterations are real meter spend not captured in
+    the final $5.56 benchmark figure.
+  * Two of the four defects WERE the un-snapshotted analyze/validate calls — so the very
+    calls that escaped per-call attribution are why captured < meter. Fixed going forward.
+  * Net: the e2e+benchmark LINE ($8, +50% degrade threshold = $12) was overrun on the
+    true meter (~$13 for that portion). WS6-bench degraded scope (dropped watsi+felix)
+    believing it was at $5.56 — correct action, wrong instrument reading. The pure
+    measurement stands at $5.56; the development cost is the overrun.
+- Posture for the remainder: adversarial round is deterministic ($0 for 5 of 7 attackers,
+  $0.30 cap on 2); handoff is $0. No further full-pipeline runs. Headroom above floor
+  ($7.16) is ample for that. No NEEDS-CREDIT.md required.
