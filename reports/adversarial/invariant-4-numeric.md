@@ -203,3 +203,105 @@ still gated only by the one-directional, understatement-blind `consistencyFindin
 `numbersNear` (BREAK 3).
 
 **BROKEN.**
+
+---
+
+# RE-ATTACK 2026-08-28 (post-fix)
+
+The three breaks above were fixed and merged to trunk. I re-ran `adv2_numeric_test.ts`
+(A9/A10/A11) against the merged `numeric_register.ts` + `index.ts` and all are **GREEN**:
+
+- **BREAK 1 CLOSED.** Rate denominator is now matched by node identity — the denominator's
+  label must appear as a whole token-run in the rate label, bounded on both sides by a
+  start/end or a connective (`numeric_register.ts:249-259`). `"share of total project cost"`
+  ÷ the `"cost"` node throws `rate_denominator_label` (left neighbour `"project"` is a content
+  word). The right-extension variant (`"cost overrun"`, `"cost recovery"`) is closed too.
+- **BREAK 2 CLOSED.** `numbersIn()` now records a fraction only for a number that wore a `%`
+  (`asFraction`, `numeric_register.ts:120`), and the evidence check is `item.has(r.value)` with
+  the `Math.round` term removed (`:364`). `"11 staff"` no longer verifies a `0.11` ratio.
+- **BREAK 3 CLOSED (mechanism).** `resolveRegister` is imported (`index.ts:40`) and called in the
+  design stage (`index.ts:2316`), failing the stage on any `RegisterError` before generation;
+  the resolved values are threaded to generation as `register_derivations` (`index.ts:2331`,
+  `:2422`). `consistencyFindings` is now bidirectional (`index.ts:277-280`) and the dead
+  `numbersNear` is gone. A critic confirmed the wiring is real, not merely imported. Verified.
+
+Then I made one more genuine attempt, per the mandate. **The mechanism does not fully hold.**
+Two residual holes, both in `admissible()`/`walk()` themselves (deterministic, `$0`), now encoded
+as failing cases **A12** and **A13** in `tests/adversarial/adv2_numeric_test.ts` (the file's first
+eight assertions stay green; A12+A13 add 2 failures). **Verdict: BROKEN.**
+
+## (a) The MECHANISM — BROKEN
+
+### RE-1 (primary) — the %-provenance fix landed in the evidence branch, not the donor branch
+
+**Where:** `supabase/functions/worker/numeric_register.ts:375` (the `donor` branch of `admissible`).
+
+```ts
+if (b.kind === "donor" && !donorNums.has(Math.round(r.value)) && !donorNums.has(r.value)) { throw … }
+```
+
+BREAK 2 removed `Math.round(r.value)` from the **evidence** branch (i) because a rounded ratio
+collides with a stray integer. The **donor** branch (ii) still has it. For a ratio,
+`Math.round(0.75) = 1`, and `donorNums = numbersIn(JSON.stringify(analysis))` (`index.ts:2313`) is
+pooled over the entire analysis blob, where a bare `1` is near-universal. So a fabricated
+`"the fund covers 75% of costs"`, attributed to the donor and **stated nowhere in the grant**, is
+"verified" by that `1`.
+
+**The non-closing number: 0.75** (test A12). Confirmed accepted. **Control (0.29, no `1` in the
+grant):** rounds to `0`, correctly throws `donor_basis_unverified` — isolating the admission of
+`0.75` to the `Math.round → 1` collision and nothing else. Any donor-attributed share in
+`[0.5, 1.49]` is affected; the class BREAK 2 closed for evidence is still live for the donor.
+
+The fix's own comment (`:374-376`) claims the donor branch is %-provenance-safe and cites `0.20` —
+which rounds to `0` and sits *below* the collision threshold, hiding the bug for every share ≥ 0.5.
+A validator that looks checked and is not is exactly this project's stated failure mode.
+
+**Fix spec:** drop the `Math.round(r.value)` disjunct from `:375`, mirroring the evidence branch —
+a donor figure is verified by `donorNums.has(r.value)` only. A ratio then matches only a real donor
+percentage (`"75%"` → `asFraction` → `0.75`), never a headcount or a stray `1`. Keep the rounding
+path only for counts if a genuine `1250.4`-vs-`1250` case needs it, gated on `r.unit_kind === "count"`.
+
+### RE-2 (secondary) — wrong denominator via a connective-SEPARATED content qualifier
+
+**Where:** `numeric_register.ts:249-259` (the identity match) + `RATE_LABEL_CONNECTIVES` (`:93-98`).
+
+The identity match bounds the denominator token-run by connectives on both sides, so an **adjacent**
+content word is refused. But a content qualifier **separated from the denominator token by a
+connective** is not. Denominator `"cost"` stays bounded by `"of"`/`"of"` inside
+`"share of cost of the whole project reaching frontline delivery"`, while `"of the whole project"`
+reframes the quantity as the total. It divides by the grant (`108000`); the register's own total
+(`B4 = 120000`) makes the honest share `0.675`, and `0.75` closes (test A13, confirmed accepted).
+This is the same right/left-extension class BREAK 1 targeted, one connective away — narrower and more
+awkward to phrase than RE-1, but the mechanism admits it.
+
+**Fix spec:** the qualifier is the problem, not just adjacency. Two options: (1) after matching the
+denominator run, reject if any **content** token elsewhere in the rate label is a totalising word
+(`total|whole|overall|entire|combined|gross`) that is not itself part of a denominator node's label;
+or, more robustly, (2) when the numerator is a strict component of a `sum` node of the same unit
+(here `B1` is a sibling of the parts of `B4`), require the denominator to **be** that maximal `sum`
+node, not a smaller leaf — a share of a whole must be divided by the whole the register actually holds.
+
+## (b) The GENERATION-QUALITY half — UNPROVEN, not broken
+
+Distinct from the mechanism, and I am **not** claiming a break here — only naming it as an open
+measurement, as the design-stage comment already does (`index.ts:2300-2304`):
+
+- Whether **every** figure a real narrative prints was first routed through the register (so that
+  understatement is caught end-to-end because each section writes from `register_derivations`) needs
+  a full pipeline order to prove. It costs model spend and was not run. Marked
+  **unproven-without-e2e**.
+- The backstop for prose numbers that bypass the register is still `consistencyFindings`. Its
+  understatement guard now fires, but only for a total-claim `≥ 0.5 × design total`
+  (`totalClaimFloor`, `index.ts:270`). A headline total understated by more than 2× (design 500,
+  prose "200") falls below the floor and is read as a per-cohort figure — invisible. This is a
+  property of the *backstop heuristic*, not of the register (the register catches understatement
+  exactly, by closure). It matters only for numbers that never entered the register — i.e. exactly
+  the coverage question above. It is a bounded backstop, not a mechanism break.
+
+## Verdict
+
+**BROKEN** — RE-1 is a deterministic, register-internal admission of a fabricated donor share
+(`numeric_register.ts:375`, the `Math.round` term the evidence branch removed and the donor branch
+kept; fix comment's `0.20` example masks it). RE-2 is a narrower residual of the wrong-denominator
+class. Both are encoded as failing cases A12/A13. The generation-QUALITY coverage remains an honest
+open measurement (unproven-without-e2e), separate from these two mechanism holes.

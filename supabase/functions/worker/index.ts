@@ -515,10 +515,47 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
     const main = registrableMainLabel(domain);
     if (t.length > 3 && main !== null && main === t) return true;
   } else {
-    // Two or more distinctive tokens: a concatenated domain (brightfutures.org) rarely
-    // spells them all by coincidence, so EVERY token must appear in the host and at
-    // least one be of real length. amel.org still does NOT match "Beit Al-Shabab …".
-    if (host && wantArr.every((t) => host.includes(t)) && wantArr.some((t) => t.length > 3)) return true;
+    // Two or more distinctive tokens matched ONLY through the domain. The old rule here
+    // asked every token to appear ANYWHERE in the concatenated host — the same
+    // coincidental-substring flaw the single-token branch was fixed for, one level up:
+    // "Art Care" (artcare) admitted smartcare.com because "art" and "care" both sit
+    // inside "smartcare"; "Arts Reach" admitted reach.smartsdata.io because "arts" is
+    // buried in "smartsdata" and "reach" is only the subdomain. So the token
+    // concatenation must relate to the registrable MAIN LABEL by a START-ANCHORED
+    // relation, never an arbitrary substring, exactly as the single-token branch does.
+    //   - main === org               brightfutures.org for "Bright Futures"
+    //   - org startsWith main        an abbreviating domain (sufra.org.uk for "Sufra NW
+    //                                London") — the domain is a prefix of the name
+    //   - main startsWith org        the domain is the name plus a trailing word
+    // smartcare / smartsdata / smart-carecentre share no START-anchored relation with
+    // artcare / artsreach and are rejected. A main label of <=3 chars is too generic to
+    // anchor on and never admits. amel.org still does NOT match "Beit Al-Shabab …".
+    const main = registrableMainLabel(domain);
+    if (main !== null) {
+      const mainStripped = main.replace(/[^a-z0-9]/g, "");
+      const orgConcat = wantArr.join("");
+      // Exact: the main label IS the token concatenation (brightfutures.org).
+      if (orgConcat.length > 3 && mainStripped === orgConcat) return true;
+      // Otherwise the FIRST distinctive token must ANCHOR the main label (be its
+      // prefix) and every token must then appear IN ORDER through the label. This
+      // admits a main label that carries a token the org-name tokenizer dropped
+      // (sufra-nwlondon for "Sufra NW London": "sufra" anchors, "london" follows,
+      // "nw" is the two-letter gap orgTokens discards) and rejects the coincidental
+      // substring: "smartcare" does not START with "art", and "grace.com" (main
+      // "grace") anchors "grace" but has no "kitchen" after it, so "Grace Kitchen"
+      // cannot import W. R. Grace's site. A first token of <=3 chars is too generic
+      // to anchor on and never admits.
+      const first = wantArr[0];
+      if (first.length > 3 && mainStripped.startsWith(first)) {
+        let pos = 0, allInOrder = true;
+        for (const t of wantArr) {
+          const at = mainStripped.indexOf(t, pos);
+          if (at < 0) { allInOrder = false; break; }
+          pos = at + t.length;
+        }
+        if (allInOrder) return true;
+      }
+    }
   }
   // Stays asymmetric: on any doubt the site is discarded, never imported.
   return false;

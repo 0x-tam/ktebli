@@ -179,6 +179,26 @@ ok(admits("Shelter", "Shelter", "shelter.org.uk"),
 ok(admits("Mind", "", "mind.org.uk"),
   "the real 'Mind' at mind.org.uk still admits (main label 'mind' under org.uk)");
 
+// RE-ATTACK 2026-08-28: the MULTI-token domain branch had the same coincidental-
+// substring flaw the single-token branch was fixed for — "Art Care" (art+care) matched
+// "smartcare.com". The fix anchors the FIRST distinctive token at the main label's start
+// and requires the rest in order, so a stranger substring rejects while a real org
+// (incl. a domain carrying a token orgTokens dropped, like "nw") still admits.
+ok(!admits("Art Care", "SmartCare Inc", "smartcare.com"),
+  "multi-token: 'art'+'care' as substrings of 'smartcare' (a different word) do not admit");
+ok(!admits("Arts Reach Collective", "Smarts Outreach Limited", "smartsoutreach.com"),
+  "multi-token: coincidental substrings inside 'smartsoutreach' do not admit a stranger");
+ok(!admits("Arts Reach", "", "reach.smartsdata.io"),
+  "multi-token: 'reach' only in the subdomain, 'arts' buried in the main label — reject");
+ok(!admits("Art Care", "", "smart-carecentre.org"),
+  "multi-token: hyphen-merged 'smart-carecentre' does not start with 'art' — reject");
+ok(!admits("Grace Kitchen", "W. R. Grace and Company", "grace.com"),
+  "multi-token: 'grace.com' anchors 'grace' but has no 'kitchen' after it — W.R. Grace not imported");
+ok(admits("Bright Futures", "", "brightfutures.org"),
+  "multi-token legit: the main label IS the token concatenation");
+ok(admits("Sufra NW London", "", "sufra-nwlondon.org.uk"),
+  "multi-token legit: 'sufra' anchors, 'london' follows, 'nw' is the dropped-token gap (the real phase-5 applicant)");
+
 console.log(
   bad
     ? `\n${bad} FAILURE(S) — each is a live route for an unsupported fact reaching a customer`

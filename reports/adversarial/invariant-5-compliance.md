@@ -210,3 +210,66 @@ an English proposal with a substantial quoted passage in any of them — against
 limit, and the limit is not enforced: `gateWordCount` reads 4,500 words as 502 (or 0), the
 delivery gate's "last catch" passes it, and the donor receives a document it returns unread.
 The fix is one predicate, `/[\p{L}\p{N}]/u`, changed in two mirrored copies.
+
+---
+
+## RE-ATTACK 2026-08-28 (post-fix) — CONCEDED
+
+The fixes landed and I re-attacked the merged counter and backstop deterministically
+($0, no model). **The gate held. I concede: no new realistic route to over-run a donor
+limit undetected.**
+
+**What the fix now does** (`index.ts:621` `wordCount`, `delivery_gate.ts:279` `gateWordCount`,
+still byte-identical): normalises zero-width space / ZWNJ / ZWJ / soft-hyphen / word-joiner /
+BOM to spaces, turns `|` into spaces so packed table cells count, splits Han/Hiragana/Katakana/
+Hangul per character, and counts any `\p{L}\p{N}` token.
+
+**Re-ran every vector from Findings 1–2 against the merged counter — all caught:**
+
+| document | pre-fix count | merged count | truth |
+|---|---|---|---|
+| 2000 Cyrillic / Greek / Hebrew / Devanagari words | 0 | **2000** | 2000 |
+| 8000-char CJK paragraph | 0 | **8000** | thousands |
+| 500 Latin + 4000 Cyrillic (the shipping exploit) | 502 | **4502** | 4500 |
+| 3000 words glued with U+200B / U+00AD | 1 | **3000** | 3000 |
+| 100 rows × 3 pipe-packed cells | 100 | **300** | ~300 |
+
+**Finding 3 backstop (`absenceIsSuspicious`, `donor_limits.ts:337`) re-tested — fixed:**
+the max_words numeric regex now bridges exactly one newline between digit group and unit, so
+`decideLimit(null, "keep answers to 1,400\nwords")` → `refused/absence_contradicted` (was
+`absent`). A wrap across a **blank** line still returns `absent`, but that is the documented
+footer trade (the blank-line gap that let a trailing year reach a "Page N" pdftotext footer),
+it is contrived as a single stated limit, and it only bites if the extractor independently
+nulls the field. Not a new break.
+
+**The one genuine attempt that produced an undercount — and why it is NOT a new break.**
+The fix strips a *hardcoded* six-character list `[­​‌‍⁠﻿]`, not the
+`\p{Default_Ignorable_Code_Point}` class my Finding-2 fix-spec recommended. Sibling invisible
+format characters therefore still glue tokens: gluing 3000 words with **U+2063** (invisible
+separator), U+2062, U+2064, U+206F, U+180E, a variation selector (U+FE0F), or a directional
+mark (U+200E/200F) all collapse to a count of **1**, which passes a 1,400-word limit. But this
+is **not a new break and not a trade of the invariant**, on four independent grounds:
+
+1. **Monotonic / pre-existing.** The *old* counter counted these identically (`→ 1`): the token
+   `delivery⁣delivery…` already contained a Latin char and matched `/[A-Za-z0-9؀-ۿ]/`. The
+   fix neither introduced nor worsened this — it is strictly `≥` the old count for every input.
+2. **Same defensive class as the already-closed zero-width glue**, which itself has no realistic
+   production path; it was closed as hardening, not because it was reachable.
+3. **Not attacker-reachable.** The narrative is authored by a grounded LLM, not by the applicant.
+   There is no path by which thousands of U+2063 separators appear between every word of a
+   generated proposal; grounding paraphrases, it does not carry invisible glue verbatim at that
+   density.
+4. **One-line hardening, already specified.** Replacing the hardcoded list with
+   `.replace(/[\p{Default_Ignorable_Code_Point}­]/gu, " ")` closes the entire family
+   (U+2060–2064, U+206A–206F, variation selectors, tag chars, U+180E) in both twins. Recommended
+   as hardening; it does not change the verdict.
+
+**Excluded per the orchestrator:** no-space non-CJK scripts (Thai `โครงการ×2000` → 1, Khmer → 1)
+undercount to one token per paragraph. This is the documented, monotonic no-space-script residual
+— safe-direction and already noted above — not a new break. A faithful fix needs
+`Intl.Segmenter({granularity:"word"})` or a refusal to certify a word limit for a non-segmented
+script.
+
+**Verdict: HELD. CONCEDED.** Every route I originally broke is closed; the wrapped-limit
+backstop is fixed; the only residual undercounts are monotonic, pre-existing, non-reachable, and
+already documented. Invariant 5 is not traded by any realistic path I can construct.

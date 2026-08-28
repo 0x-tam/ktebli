@@ -81,17 +81,6 @@ throws(() => solve([
 ], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
   "a denominator labelled 'project cost' is a substring of 'total project cost' and defeats the guard");
 
-// A9c — RIGHT-extension. The denominator label "cost" appears left-bounded by a
-// connective ("of cost …"), but a content word FOLLOWS it: "cost overrun" is a
-// different quantity than the "cost" node (£108k). Left-anchoring alone let this
-// through; the run must be whole on BOTH sides.
-throws(() => solve([
-  { id: "B1", label: "frontline delivery", unit: "GBP", unit_kind: "money", kind: "leaf", value: 81000, basis: B("estimate", "delivery staff") },
-  { id: "B2", label: "cost", unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the grant") },
-  { id: "R1", label: "share of cost overrun reaching delivery", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["B1", "B2"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
-], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
-  "'cost overrun' extends 'cost' on the RIGHT into a different quantity — must not resolve against a 'cost' node");
-
 // CONTROL — a rate that HONESTLY names its denominator must still resolve after the fix.
 let honest: number | null = null;
 try {
@@ -142,6 +131,50 @@ ok(!oneDirectional || hasUnderstatementGuard,
 // can never change the outcome, so the design's declared 'nearness' tolerance is dead.
 ok(!/function\s+numbersNear\s*\([^)]*\)\s*(?::\s*boolean\s*)?\{\s*return\s+a\s*===\s*b\s*;?\s*\}/.test(indexSrc),
   "numbersNear() is a real nearness test, not `return a === b` (dead inside the strict-inequality guard)");
+
+// ===========================================================================
+// RE-ATTACK 2026-08-28 (post-fix). A9/A10/A11 above are now GREEN against the
+// merged register + wiring. These two cases are the round-2.5 re-attack: genuine
+// residual holes in the MECHANISM (resolveRegister/admissible), still open.
+// ===========================================================================
+
+console.log("\nA12 — DONOR-branch %-provenance collision (the fix landed in (i) evidence, not (ii) donor)");
+// numeric_register.ts:375 still reads `!donorNums.has(Math.round(r.value))`. The
+// evidence branch (i) dropped the Math.round term (adv2 A10); the donor branch (ii)
+// kept it. For a ratio, Math.round(0.75)=1, and donorNums is numbersIn() over the
+// whole analysis JSON (index.ts:2313), where a stray 1 is near-universal — so a
+// fabricated "the fund covers 75% of costs", attributed to the donor and stated
+// nowhere in the grant, is "verified" by that 1. The fix's own comment cites 0.20,
+// which rounds to 0 and hides the bug; every share >= 0.5 rounds to 1.
+const donorWith1 = numbersIn("Round 1 applications for projects of up to 12 months, 40 pages");
+throws(() => solve([
+  { id: "R1", label: "share of project costs the fund will cover", unit: "ratio", unit_kind: "ratio", kind: "leaf", value: 0.75, basis: B("donor", "the fund covers up to three quarters") },
+], "GBP", NO_LEDGER, donorWith1), "donor_basis_unverified",
+  "a 0.75 donor share stated nowhere in the grant must not be verified by a stray 1 (Math.round(0.75)=1)");
+// CONTROL: with no 1 in the grant, 0.29 rounds to 0 and is correctly refused — proof
+// the ONLY thing admitting 0.75 above is the Math.round collision, not real provenance.
+throws(() => solve([
+  { id: "R1", label: "share the fund covers", unit: "ratio", unit_kind: "ratio", kind: "leaf", value: 0.29, basis: B("donor", "just under a third") },
+], "GBP", NO_LEDGER, numbersIn("Grants of up to 12 months, 40 pages, 250 words per section")),
+  "donor_basis_unverified",
+  "control: 0.29 (rounds to 0) is refused, isolating the collision to Math.round -> 1");
+
+console.log("\nA13 — wrong denominator via a connective-SEPARATED content qualifier");
+// The revised identity match (numeric_register.ts:249-259) bounds the denominator
+// token-run by connectives on both sides, so an ADJACENT content word ("total"/
+// "project" before "cost") is refused. But a content qualifier separated from the
+// denominator token by a connective is not: "cost" stays bounded by "of"/"of" in
+// "share of cost of the whole project", while "of the whole project" reframes it as
+// the total. Divides by the grant (108000); the register's own total (B4) is 120000,
+// so the honest share is 0.675, and 0.75 closes anyway.
+throws(() => solve([
+  { id: "B1", label: "frontline delivery costs", unit: "GBP", unit_kind: "money", kind: "leaf", value: 81000, basis: B("estimate", "delivery staff") },
+  { id: "B2", label: "cost", unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the grant") },
+  { id: "B3", label: "match funding", unit: "GBP", unit_kind: "money", kind: "leaf", value: 12000, basis: B("estimate", "reserves") },
+  { id: "B4", label: "total project cost", unit: "GBP", unit_kind: "money", kind: "sum", of: ["B2", "B3"], asserted: 120000, basis: B("arithmetic", "grant + match") },
+  { id: "R1", label: "share of cost of the whole project reaching frontline delivery", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["B1", "B2"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
+], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
+  "'share of cost of the whole project' divides by the grant while the register's own total is 120000 (true 0.675)");
 
 // ---------------------------------------------------------------------------
 console.log(failures ? `\n${failures} FAILURE(S) — invariant 4 is not upheld` : "\nALL ADV2 NUMERIC TESTS PASSED");

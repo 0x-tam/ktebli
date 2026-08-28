@@ -250,13 +250,27 @@ function resolveRegister(
       // else). Left-anchoring alone let the right-extension through.
       const rateToks = norm(n.label).split(" ").filter(Boolean);
       const denToks = norm(den.label).split(" ").filter(Boolean);
+      // A SCOPE qualifier immediately after the denominator run reframes it into a
+      // LARGER quantity than the node it names: "share of cost OF THE WHOLE PROJECT"
+      // matches the "cost" node (the grant, 108k) by token-run, but means the total
+      // project cost (the register's own 120k node), certifying 75% of the grant as 75%
+      // of the total (adv2 A13). "of" is a legal connective, so rightOk alone accepts it;
+      // this refuses the match when the connective run after the denominator introduces a
+      // scope word. Discard-on-doubt: a rate must name the EXACT node it divides by.
+      const SCOPE_REFRAME = new Set(["whole", "total", "entire", "overall", "combined",
+        "full", "gross", "aggregate", "all"]);
       const namesDenominator = denToks.length > 0 && rateToks.some((_, i) => {
         if (i + denToks.length > rateToks.length) return false;
         for (let j = 0; j < denToks.length; j++) if (rateToks[i + j] !== denToks[j]) return false;
         const leftOk = i === 0 || RATE_LABEL_CONNECTIVES.has(rateToks[i - 1]);
         const end = i + denToks.length;
         const rightOk = end === rateToks.length || RATE_LABEL_CONNECTIVES.has(rateToks[end]);
-        return leftOk && rightOk;
+        // Walk the connective run after the denominator; if a scope word appears in it,
+        // the denominator has been reframed into a different quantity — refuse.
+        let k = end;
+        while (k < rateToks.length && RATE_LABEL_CONNECTIVES.has(rateToks[k])) k++;
+        const reframed = k < rateToks.length && k > end && SCOPE_REFRAME.has(rateToks[k]);
+        return leftOk && rightOk && !reframed;
       });
       if (!namesDenominator) {
         throw new RegisterError("rate_denominator_label", n.id,
@@ -374,7 +388,15 @@ function admissible(
   // Same %-provenance as (i): a donor percentage ("20%") registers its fraction (0.20)
   // through numbersIn, so a ratio matches r.value directly; a bare "20 sites" in the
   // grant no longer verifies a 0.20 ratio via asPercent.
-  if (b.kind === "donor" && !donorNums.has(Math.round(r.value)) && !donorNums.has(r.value)) {
+  // Exactness, mirroring the evidence branch (i): a ratio's fraction (0.75) matches the
+  // grant only if the grant states that percentage, which numbersIn records as 0.75.
+  // The old code also accepted Math.round(r.value): for a ratio that rounds a share
+  // (0.75->1, any share >=0.5->1) onto a bare "1", and a stray "1" is near-universal in
+  // the analysis blob, so a FABRICATED "the fund covers 75% of costs" verified against
+  // that "1" — an ungrounded figure certified as the donor's own (adv2 A12). Rounding is
+  // only ever meaningful for a COUNT, which is already integral, so donorNums.has(r.value)
+  // covers it; the round disjunct only ever admitted the ratio collision. Dropped.
+  if (b.kind === "donor" && !donorNums.has(r.value)) {
     throw new RegisterError("donor_basis_unverified", r.id,
       `${r.value} is attributed to the grant guidelines ("${b.detail}") but no such figure appears in them`);
   }

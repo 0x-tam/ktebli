@@ -199,3 +199,72 @@ green only once the reader-visible style space is as wide as the fingerprint the
 so a drift shows as **CANNOT VERIFY (exit 2)** rather than a silent pass. Reproduction of Proof B
 (the `claim_approach` replay) followed the `tests/exclusivity/run.sh` pattern with
 `sudo`, `PGBIN=/usr/lib/postgresql/17/bin`.
+
+---
+
+# RE-ATTACK 2026-08-28 (post-fix) — **CONCEDED**
+
+The fix was merged to trunk (`41b25d7` / `86ef9b1`). It adds `composedStyleNote(axes,
+composition)` inside the COMPOSER block (`worker/index.ts:1684`) and routes its output through the
+sole `styleNote` at `worker/index.ts:2354-2358`, reaching **both** generation paths — the
+section-by-section path (`:2445`) and the single-shot / whole-doc path (`:2471`).
+`composedStyleNote` emits a line for **all eight** categorical axes (each as `Label [code]:
+directive`) **and** the three integer grids as concrete instructions (`cadence_mu` → target mean
+sentence length; `move_order` → a keyed ordering; `weight_profile` → a keyed emphasis weighting).
+The fingerprint hash was deliberately **not** narrowed — narrowing would re-impose a ceiling — so
+the visible space was widened to match the hash rather than the reverse. The committed test was
+updated in the same change to import `composedStyleNote` as its model of the writer's input, so it
+now measures the real thing.
+
+**Re-run of the committed test against the merged code** (`npx --yes deno@2.9.5 run --allow-read
+tests/adversarial/adv2_exclusivity_test.ts`): **exit 0** — `1000/1000` served applicants now
+produce `1000` distinct reader-visible styles (was capped at the 182-pool). The finite ceiling is
+gone.
+
+**One more genuine attempt** — merged `composeDraw` + `composedStyleNote` imported and executed on
+the REAL directive text (dumped from a PG17 replay of `composition_axes`), $0:
+
+1. **Injectivity across 2000 applicants on one grant.** 2000 distinct fingerprints **and** 2000
+   distinct `composedStyleNote` strings — zero style collisions. Every axis value survives into the
+   brief verbatim (`[code]` for categoricals, the interpolated number for the grids), so the string
+   is injective in the axes tuple, hence in the fingerprint. **Held.**
+2. **Same eight categorical codes, different integer grids.** Forced a pair identical on all eight
+   categorical axes but differing on the integers (mo/cad/wp `65/25/659` vs `557/27/445`): distinct
+   fingerprints **and** distinct style briefs — the integer grids do reach the writer as bytes.
+   **Held.** (This is the pre-fix mute case; it is now wired.)
+3. **Canonicalization / integer-line collapse.** A one-unit change in `move_order`, `weight_profile`
+   or `cadence_mu` changes the style string every time (no two integer values collapse to one
+   line); `canonicalAxes` remains key-order independent, codes/integers only. No logically-equal
+   set hashes two ways, no two different sets collide. **Held.**
+4. **Refuse / wait / degrade.** N = 5000 → 5000 distinct fingerprints, zero collisions; the
+   50-reroll cap is never approached. The composer still serves everyone; nobody waits. **Held.**
+
+**Verdict: CONCEDED.** For the shipped vocabulary the visible-style space now equals the
+fingerprint space (visible == fingerprint), the finite 182-pool is closed, unboundedness and
+"nobody waits" are preserved, and I could not produce a collision, a canonicalization flaw, or a
+refusal/wait count. The §1–§8 break is fixed.
+
+Two honest caveats, neither a break:
+
+- **Prose-distinctness of the integer grids is UNPROVEN-WITHOUT-E2E.** `move_order` and
+  `weight_profile` reach the model only as opaque keyed instructions ("ordering keyed 557",
+  "weighting profile 445") with no defined mapping to an actual arrangement; `cadence_mu` is a real
+  sentence-length target and is the perceivable one. Whether two applicants who differ *only* in
+  `move_order`/`weight_profile` produce prose a human reads as different — rather than two identical
+  documents generated from two differently-numbered but semantically-equivalent instructions —
+  cannot be settled deterministically at $0. The fix's own comment marks this
+  UNPROVEN-WITHOUT-E2E; I confirm it. The mechanism (distinct bytes to the writer) holds; the
+  *effect* (distinct reading) is the untested half, and it is the one most likely to hide a
+  residual near-duplicate at scale. Not claimed as a break — flagged as the open risk.
+- **Latent residue (hardening, not a live break).** `composedStyleNote` enumerates a **hardcoded**
+  eight-name categorical list, while `composeDraw` hashes **every** axis present in
+  `composition_axes` — a table the migration designed as an extensible vocabulary ("adding a row
+  widens the space", migration lines 21-23). Demonstrated directly: two axis sets identical on the
+  eight listed axes + three integers but differing on a hypothetical ninth categorical axis
+  (`register_energy`) hash **differently** (`canonicalAxes` differs) yet yield a **byte-identical**
+  `composedStyleNote` — the exact 182-class defect, one axis smaller. It cannot fire under today's
+  schema (the eight listed axes are exactly the eight seeded), so it is not a break now; but a
+  future `insert into composition_axes` of a new categorical axis silently re-opens it.
+  Recommendation: derive the categorical loop from the axis keys actually present (all keys minus
+  the known integer grids `move_order`/`cadence_mu`/`weight_profile`) so writer coverage can never
+  fall behind the hash the lock enforces.

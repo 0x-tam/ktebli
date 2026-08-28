@@ -216,3 +216,114 @@ npx --yes deno@2.9.5 run --allow-read tests/adversarial/adv2_grounding_test.ts
 The test imports `contactAudit` and `properNounAudit` from the deployed modules and
 extracts `orgNameMatchesSite` from `index.ts` at runtime (via a `data:` URL), so it
 exercises the shipped source and will go green automatically when the three fixes land.
+
+---
+
+# RE-ATTACK 2026-08-28 (post-fix) — two of three held; one **NEW BREAK**
+
+The three fixes were merged to trunk (`claude/supabase-audit-verify-77v56v`) and I
+re-attacked the fixed code in the main checkout. `adv2_grounding_test.ts` is now
+**28/28 green** against the deployed modules
+(`deno run --allow-read tests/adversarial/adv2_grounding_test.ts`).
+
+**Held (could not re-break):**
+
+- **Route 1 — `contact_claims.ts`, by shape.** Detection no longer depends on the
+  label list or a closed TLD set. `PHONE_SHAPE` (`contact_claims.ts:117`) catches
+  `Reception: 06 431 227`, `| Enquiries | 06 431 227 |`, `WhatsApp is 06 431 227`,
+  and bare `06 431 227` in prose; `BARE_HOST` (`:96`) now accepts any `\.[a-z]{2,24}`
+  TLD, catching `mashghal-project.io` / `mashghal.ly`. Re-probed; all block. The
+  accepted residual (a space-grouped or separator-less "exotic" number that only the
+  LLM ledger would judge) is out of scope per the coordinator and I did not pursue it.
+- **Route 2 — `proper_nouns.ts`, self-naming one-way.** Line 250 now exempts a run
+  only when `pnContains(key, ownKey)` (the run's tokens are a **subset** of the org
+  name). The superset swallow is gone: `Mashghal Community Association Excellence
+  Prize`, `… Endowment`, and `Golden Cedar … Fellowship` are all reported again.
+  Re-probed; all reported. I found no subset-shaped fabrication (a subset of the org
+  name introduces no new referent), and the bounded grammar-reading credit (`:257`)
+  still requires the tail to be a real ledger noun.
+- **Route 3, single-token identity gate.** `registrableMainLabel()` +
+  main-label **equality** kills the single-token substring/subdomain/hyphen/eTLD
+  class: `shelter.evil.com`, `shelter-supplies.com`, `mind-games.co.uk`,
+  `scope.attacker.io`, `shelterlogic.com`, `mindbodygreen.com`, `scopely.com` all
+  reject, while `shelter.org.uk` / `mind.org.uk` still admit. Re-probed; all correct.
+
+## NEW BREAK — `orgNameMatchesSite`, the **multi-token domain branch** (`index.ts:521`)
+
+The single-token fix made the domain branch demand main-label *equality*
+(`:507–516`). The **≥2-token** branch was left as it was:
+
+```ts
+} else {
+  if (host && wantArr.every((t) => host.includes(t)) && wantArr.some((t) => t.length > 3)) return true;
+}
+```
+
+`host` is the domain with every delimiter stripped
+(`domain.replace(/[^a-z0-9]/g, "")`), and each org token is tested with
+`host.includes(t)` — a bare **substring** test. This is the exact coincidental-substring
+class the single-token branch was fixed to reject, still live whenever the applicant
+has two or more distinctive tokens and each is *any substring* of the concatenated
+host — across subdomain, hyphen and label boundaries alike. The `mainLabel` is even
+computed correctly and then ignored on this path.
+
+A stranger site whose stated legal name shares **zero** distinctive tokens with the
+applicant is admitted, and its `E-WEB-*` evidence enters the ledger as the applicant's
+own history — precisely the B1 outcome invariant 3 exists to prevent.
+
+Confirmed against the deployed `index.ts` (secure expectation for every row is
+**reject**; all four return `true` = admit):
+
+| Applicant | Stranger site (0 shared legal-name tokens) | Domain | `mainLabel` | Admitted? |
+|---|---|---|---|---|
+| Art Care | SmartCare Inc (health SaaS) | `smartcare.com` | `smartcare` | **yes** — `smartcarecom` ⊇ `art`,`care` |
+| Arts Reach Collective | Smarts Outreach Limited (agency) | `smartsoutreach.com` | `smartsoutreach` | **yes** — `sm`**arts**`out`**reach** |
+| Arts Reach | Smarts Data Ltd | `reach.smartsdata.io` | `smartsdata` | **yes** — subdomain merged into host |
+| Art Care | Smart Care Centre | `smart-carecentre.org` | `smart-carecentre` | **yes** — hyphen merged into host |
+
+Neither `art` nor `care` is a label of `smartcare.com`; both are substrings of the
+single label `smartcare`. The applicant is an art-therapy charity; the site is an
+unrelated health-tech vendor. The gate imports the vendor's site wholesale.
+
+### Failing case (drop-in for `adv2_grounding_test.ts`, section 3)
+
+```ts
+ok(!admits("Art Care", "SmartCare Inc", "smartcare.com"),
+  "a two-token org does not admit a stranger site by coincidental substring ('art'+'care' inside 'smartcare')");
+ok(!admits("Arts Reach Collective", "Smarts Outreach Limited", "smartsoutreach.com"),
+  "two tokens both substrings of an unrelated host ('smartsoutreach') do not admit");
+ok(!admits("Arts Reach", "Smarts Data Ltd", "reach.smartsdata.io"),
+  "the multi-token branch must not merge a subdomain into the host (reach.smartsdata.io)");
+ok(!admits("Art Care", "Smart Care Centre", "smart-carecentre.org"),
+  "the multi-token branch must not merge a hyphen component into the host (smart-carecentre.org)");
+```
+
+Each fails against trunk today (all four `admits(...)` return `true`).
+
+### Fix spec
+
+Apply the single-token branch's own principle to the multi-token branch: match tokens
+against the **registrable main label**, split on label boundaries, never against the
+concatenated host by substring. Concretely, replace the `host.includes(t)` test with
+one of:
+
+1. Require the main label to be exactly the org tokens joined (any order/permitted
+   separator) — `registrableMainLabel(domain)` split on `-` equals `want` as a set —
+   so `brightfutures.org`/`bright-futures.org` (main `brightfutures` / `bright-futures`)
+   admit the real *Bright Futures*, while `smartcare.com` (main `smartcare`) does not
+   admit *Art Care*; **or**
+2. At minimum, test `host.includes(t)` only on the **main label** (not the whole
+   concatenated host), and require each org token to align to a label/word boundary
+   there rather than sit as an arbitrary infix.
+
+Discard-on-doubt, consistent with the rest of the function: a coincidental multi-substring
+is ambiguous and must reject.
+
+## Verdict
+
+**BROKEN** — the coordinator's three named fixes each held under re-attack, but the
+same function carries an untested sibling path (the ≥2-token domain branch,
+`index.ts:521`) that re-admits a stranger's website by coincidental substring. This is
+not one of the accepted residuals (it is neither an exotic phone format nor a
+single-common-word same-name coincidence): it admits a site whose legal name shares
+zero tokens with the applicant. No model spend; deterministic. **$0.00.**

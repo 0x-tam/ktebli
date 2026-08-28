@@ -267,3 +267,63 @@ Strongest attack: **BROKEN 1** — the loop's material-change floor consumes the
 insertion-fragile `changed_fraction` and discards the insertion-robust
 `retention`/`material` verdict that `materialChange()` computes for exactly this
 attack, so a content-identical padded regeneration passes as a material rewrite.
+
+---
+
+## RE-ATTACK 2026-08-28 (post-fix) — CONCEDED
+
+Both breaks were fixed and merged to trunk; I re-verified against the merged
+`delivery_gate.ts` + `index.ts` and mounted one fresh round of attacks with
+injected deps (`$0.00` real spend). **Nothing broke. CONCEDED.**
+
+### The fixes, confirmed present
+- **Loop material-change floor.** `runGateLoop` now keeps the whole verdict —
+  `const report = materialChange(previous, narrative); changed =
+  report.changed_fraction; material = report.material;` — and stores `material`
+  on the `LoopAttempt` (delivery_gate.ts:1587, :1910, :1938-1940). `loopAction`
+  now refuses on the insertion-robust verdict FIRST: `if (last.material ===
+  false) return … gate.no_material_change` (delivery_gate.ts:1670), with the old
+  `changed_fraction < floor` branch kept below it for the cosmetic-edit case.
+- **`notifyTerminal` silent-swallow.** `notified_at` is now set **last**
+  (index.ts, end of `notifyTerminal`), after the escalation row and BOTH email
+  channels have been attempted, each `.catch`-guarded. A throw or `!prop`/`!order`
+  early return before the notifications now leaves `notified_at` null, so
+  `notifyUnnotifiedTerminals` (sweeps `notified_at IS NULL`) retries next tick.
+  The marking now happens at the point notification is done, not before it begins.
+
+### My own committed test now passes
+`tests/adversarial/adv2_loop_notify_test.ts` against merged code: **ALL PASSED,
+exit 0.** A2 → `refund` / `gate.no_material_change`; A3 end-to-end → the first
+padded regeneration stops the loop at `regenerations=1` under
+`gate.no_material_change` (was: `regenerations=2`, `gate.regeneration_budget_exhausted`).
+A4 control (low-edit refusal) preserved.
+
+### Fresh attacks, all HELD (injected deps, `$0.00`)
+Driven against the merged functions (scratch harness, not committed):
+
+| # | attack | result | why it held |
+|---|---|---|---|
+| R1 | force > 2 regenerations: every regen genuinely material, fails bar, score strictly improves | **held** — `regenerations=2` then `refund`/`gate.regeneration_budget_exhausted` | dual hard cap: `runGateLoop` stops at `regenerations >= maxRegenerations`, `loopAction` refunds at `qualityFails > maxRegenerations` |
+| R2 | dodge `material===false` with a 20%-word-deletion copy | **held** — `material=true` (retention 0.804 ≤ 0.85) so the dodge "works" at the function level, but it buys nothing: still bounded by R1's 2-regen cap, and a 1-in-5-word deletion is a real content change by the retention metric, not the near-identical case the guard targets | the guard is a necessary floor, not the whole bound; the count cap is the real backstop |
+| R3 | `material===false` via pure sentence reorder (retention 1.0) | **held** — `material=false` → `loopAction` returns `refund`/`gate.no_material_change` | reorder keeps every word → retention 1.0 → non-material, exactly as intended |
+| R4 | budget reset via seeded DB history (2 prior QUALITY holds + a fresh material regen) | **held** — `refund`/`gate.regeneration_budget_exhausted` | `qualityFails` counts QUALITY holds across the whole record incl. `priorAttempts`; re-entry cannot reset it |
+| R5 | crash-window replay: a padded doc carried across a worker restart has `material=null` / `changed_fraction=null` and skips the EARLY no-material refund | **held (bounded residual)** — that one carried doc is not refused early, but `qualityFails` still counts it, the 2-regen cap still bounds the order, and the outcome is still a refund with the customer told | worst case is one extra judge call under a precise crash window; **not silence, not > 2 regens, not a bad delivery** |
+
+### Notification / hold-class re-probe
+- **INFRA → customer:** still disjoint. `loopAction` emits `refund` only with
+  `QUALITY_HOLD` and `hold_alert` only with `INFRA_HOLD`; the gate wiring routes
+  `hold_alert` to the operator alone and self-sets `notified_at` so the terminal
+  sweep cannot re-notify the customer; the only customer email on the gate path
+  is under the QUALITY `refund` branch. No INFRA path reaches the customer.
+- **Terminal swallow:** the `notified_at`-last ordering means a transient lookup
+  error now retries rather than swallows. The remaining direction is
+  at-least-once (a persistent final-`patch` failure would let the sweep re-send),
+  which is over-notification, not silence — the correct trade for invariant 8.
+
+### Verdict
+The material-change floor now consults the insertion-robust `material` verdict;
+`> 2` regenerations is impossible; re-entry does not reset the budget; a reordered
+or padded content-identical regeneration refunds; and `notifyTerminal` no longer
+marks-and-swallows. I could not produce a delivery of an unfundable document, an
+unbounded/`> 2` regeneration loop, an INFRA→customer leak, or a terminal failure
+that notifies nobody. **CONCEDED — both fixes hold.**
