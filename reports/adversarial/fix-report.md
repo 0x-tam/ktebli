@@ -124,26 +124,41 @@ that adds any token is a different invented entity and must match the ledger/des
 reported. Dead `pnOverlap` removed.
 
 **inv3.3 identity gate admitted a stranger** (`orgNameMatchesSite`, index.ts:445). The
-dangerous-direction fix, in two passes (the first was re-attacked and reopened for
-single-token org names). The gate admitted on any single shared distinctive token, or a
-token appearing as a bare SUBSTRING of the domain, so "Grace Kitchen"→W.R. Grace,
-"Bright Futures Youth Club"→Bright Horizons, "Community Arts Reach"→smartsdata.io ("arts"
-inside "smartsdata"); and, critically, one-word charity names (Shelter, Mind, Scope,
-Sense, Refuge) where the "EVERY token appears in the host" domain rule collapsed to a
-bare substring — "Shelter"→shelterlogic.com, "Mind"→mindbodygreen.com — and an
-identical single-token legal-name set admitted "The Bright Foundation" on an unrelated
-"Bright Ltd". **Fix (conservative, discard-on-doubt):**
+dangerous-direction fix, in THREE passes (each earlier pass was re-attacked and
+reopened for single-token org names). The gate admitted on any single shared distinctive
+token, or a token appearing as a bare SUBSTRING of the domain, so "Grace Kitchen"→W.R.
+Grace, "Bright Futures Youth Club"→Bright Horizons, "Community Arts Reach"→smartsdata.io.
+The second pass removed the single-token name-only admit and required the token to be a
+whole component of the domain — but splitting on `.` AND `-` made that a whole-COMPONENT
+match, so a subdomain prefix (shelter.evil.com) or a hyphen component
+(shelter-supplies.com, mind-games.co.uk) still admitted a stranger. **Final fix
+(conservative, discard-on-doubt):**
 - a legal-name match needs TWO distinctive tokens to agree — there is NO single-token
   name-only admit (one shared common word is a coincidence, not a match);
-- the domain branch is split by token count: a SINGLE-token org admits only on a WHOLE
-  DNS-LABEL match (`labels.includes(t)`), never a substring — shelter.org.uk admits
-  "Shelter", shelterlogic.com does not; a multi-token org keeps the concatenated-host
-  substring rule, where a coincidence of ≥2 distinctive tokens is negligible.
+- a SINGLE-token org admits only when the token EQUALS the REGISTRABLE DOMAIN'S MAIN
+  LABEL — the one dot-label immediately left of the public suffix, computed by
+  `registrableMainLabel` which splits on `.` only (a hyphen stays inside its label) and
+  matches the suffix against a small embedded set (two-label suffixes like `co.uk`/
+  `org.uk` first, then single-label). This is an exact equality against the registrable
+  main label, NOT a substring, NOT a whole-DNS-component, NOT "every token in the host":
+  shelter.org.uk (main `shelter`) admits; shelter.evil.com (main `evil`),
+  shelter-supplies.com (main `shelter-supplies`), mind-games.co.uk (main `mind-games`),
+  scope.attacker.io (main `attacker`) and shelterlogic.com (main `shelterlogic`) do not.
+  On any parse ambiguity (empty labels, single label, IP literal) it returns null →
+  reject; an UNRECOGNISED suffix falls back to the second-to-last label (discard-on-doubt,
+  so a stranger subdomain still resolves to the wrong main label and rejects). A
+  multi-token org keeps the concatenated-host substring rule, where a coincidence of ≥2
+  distinctive tokens is negligible (its abbreviated-domain rejection — brightfutures.org
+  for "Bright Futures Youth Club" — is the accepted asymmetric cost).
+
+**Limitation, noted:** the public-suffix set is a small embedded list, not the full
+Public Suffix List; an unrecognised multi-part eTLD falls back to the second-to-last dot
+label, which errs toward rejecting (discard-on-doubt), never toward admitting a stranger.
 
 Stays asymmetric — errs toward rejecting a real site, never toward importing a
-stranger's; the B1 wholesale mismatch and every single-token stranger reject, while a
-real "Shelter"/"Mind" at its own `.org.uk` still admits. adv2_grounding pins all of
-these.
+stranger's; the B1 wholesale mismatch, every single-token stranger, and the subdomain /
+hyphen variants all reject, while a real "Shelter"/"Mind" at its own `.org.uk` still
+admits. adv2_grounding pins all of these.
 
 ## inv4 — numeric register (BROKEN → fixed). adv2_numeric_test.ts green (A9/A9b/A9c/A10/A11).
 

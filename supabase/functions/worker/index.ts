@@ -442,6 +442,39 @@ function orgTokens(raw: string): Set<string> {
       .filter((t) => t.length > 2 && !ORG_GENERIC_WORDS.has(t)),
   );
 }
+// The registrable domain's MAIN LABEL — the one dot-label immediately left of the
+// public suffix — determined conservatively, discard-on-doubt. This is what a
+// single-token org name must EQUAL to admit a site: not a subdomain prefix
+// (shelter.evil.com -> evil), not a hyphen component (shelter-supplies.com ->
+// shelter-supplies), not a substring (shelterlogic.com -> shelterlogic). Splitting on
+// "." ONLY (never "-") is deliberate: a hyphen stays inside its label. The suffix set
+// is a small embedded list; an UNRECOGNISED suffix falls back to the second-to-last
+// label (so a stranger subdomain still resolves to the wrong main label and rejects).
+const PUBLIC_SUFFIX_2 = new Set([
+  "co.uk", "org.uk", "ac.uk", "gov.uk", "me.uk", "net.uk", "sch.uk",
+  "com.au", "org.au", "net.au", "edu.au", "gov.au",
+  "co.nz", "org.nz", "net.nz", "govt.nz",
+  "co.za", "org.za", "com.br", "org.br", "co.in", "org.in", "net.in",
+  "com.lb", "org.lb", "com.eg", "org.eg", "or.ke", "co.ke",
+]);
+const PUBLIC_SUFFIX_1 = new Set([
+  "com", "org", "net", "edu", "gov", "int", "mil", "info", "biz",
+  "io", "co", "ngo", "charity", "foundation", "app", "dev", "me", "us", "uk",
+  "ca", "au", "nz", "za", "de", "fr", "nl", "es", "it", "se", "no", "ch", "ie",
+  "eu", "in", "br", "lb", "eg", "ke", "ng", "ph", "sg", "hk",
+]);
+function registrableMainLabel(domain: string): string | null {
+  const host = String(domain ?? "").toLowerCase().trim().replace(/^https?:\/\//, "").replace(/[\/?#].*$/, "").replace(/\.$/, "");
+  // Reject anything that is not a plain hostname (empty, IP literal, illegal chars).
+  if (!host || /[^a-z0-9.-]/.test(host) || /^\d+(?:\.\d+)+$/.test(host)) return null;
+  const labels = host.split(".");
+  if (labels.length < 2 || labels.some((l) => l === "")) return null; // ambiguous
+  const last2 = labels.slice(-2).join(".");
+  if (labels.length >= 3 && PUBLIC_SUFFIX_2.has(last2)) return labels[labels.length - 3];
+  if (PUBLIC_SUFFIX_1.has(labels[labels.length - 1])) return labels[labels.length - 2];
+  // Unrecognised suffix: discard-on-doubt — take the second-to-last label as the main.
+  return labels[labels.length - 2];
+}
 function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: string): boolean {
   const want = orgTokens(orgName);
   if (!want.size) return false; // nothing distinctive to match on: do not admit
@@ -466,16 +499,21 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
   if (shared >= 2) return true;
 
   // The domain, when it is the only usable signal. A distinctive token appearing as a
-  // bare SUBSTRING of the host is coincidental — "arts" inside "smartsdata", "shelter"
-  // inside "shelterlogic", "mind" inside "mindbodygreen", "scope" inside "scopely".
+  // bare SUBSTRING of the host, a SUBDOMAIN prefix, or a HYPHEN component is
+  // coincidental — "arts" inside "smartsdata", "shelter" as the subdomain of evil.com,
+  // "shelter" in "shelter-supplies", "mind" in "mind-games".
   const wantArr = [...want];
-  const labels = domain.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean); // DNS labels
   const host = domain.toLowerCase().replace(/[^a-z0-9]/g, "");             // concatenated
   if (wantArr.length === 1) {
-    // A single-token org admits only on a WHOLE-LABEL match (a DNS label IS the token),
-    // never a substring: shelter.org.uk admits "Shelter"; shelterlogic.com does not.
+    // A single-token org admits ONLY when the token EQUALS the registrable domain's
+    // MAIN LABEL (the label immediately left of the public suffix) — never a subdomain,
+    // a hyphen component, or a substring. shelter.org.uk (main "shelter") admits;
+    // shelter.evil.com (main "evil"), shelter-supplies.com (main "shelter-supplies"),
+    // mind-games.co.uk (main "mind-games") and shelterlogic.com (main "shelterlogic")
+    // do not. On any parse ambiguity registrableMainLabel returns null → reject.
     const t = wantArr[0];
-    if (t.length > 3 && labels.includes(t)) return true;
+    const main = registrableMainLabel(domain);
+    if (t.length > 3 && main !== null && main === t) return true;
   } else {
     // Two or more distinctive tokens: a concatenated domain (brightfutures.org) rarely
     // spells them all by coincidence, so EVERY token must appear in the host and at

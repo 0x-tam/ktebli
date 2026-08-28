@@ -161,11 +161,23 @@ ok(!admits("Scope", "Scopely Inc", "scopely.com"),
   "single-token 'Scope' does not admit scopely.com (games) — 'scope' inside 'scopely'");
 ok(!admits("The Bright Foundation", "Bright Ltd", "brightltd.com"),
   "one shared common word ('bright') with an unrelated single-token legal name does not admit");
-// … and the REAL single-token applicant, whose token is a whole DNS label, still admits.
+// SUBDOMAIN and HYPHEN variants: the token must equal the registrable domain's MAIN
+// label, not appear as a subdomain prefix or a hyphen component. A whole-component test
+// (split on both '.' and '-') admitted all of these; a registrable-main-label test
+// rejects them.
+ok(!admits("Shelter", "", "shelter.evil.com"),
+  "single-token 'Shelter' does not admit shelter.evil.com — subdomain prefix, registrable domain is evil.com");
+ok(!admits("Shelter", "", "shelter-supplies.com"),
+  "single-token 'Shelter' does not admit shelter-supplies.com — hyphen component, main label is 'shelter-supplies'");
+ok(!admits("Mind", "", "mind-games.co.uk"),
+  "single-token 'Mind' does not admit mind-games.co.uk — main label 'mind-games' under a two-label suffix");
+ok(!admits("Scope", "", "scope.attacker.io"),
+  "single-token 'Scope' does not admit scope.attacker.io — subdomain, main label is 'attacker'");
+// … and the REAL single-token applicant, whose token IS the registrable main label, admits.
 ok(admits("Shelter", "Shelter", "shelter.org.uk"),
-  "the real 'Shelter' at shelter.org.uk still admits (whole-label match) — the gate is asymmetric, not blind");
+  "the real 'Shelter' at shelter.org.uk still admits (main label 'shelter') — the gate is asymmetric, not blind");
 ok(admits("Mind", "", "mind.org.uk"),
-  "the real 'Mind' at mind.org.uk still admits (whole DNS label)");
+  "the real 'Mind' at mind.org.uk still admits (main label 'mind' under org.uk)");
 
 console.log(
   bad
