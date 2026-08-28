@@ -22,3 +22,19 @@ Prompt: /home/jarvis/Downloads/KTEBLI-AUTORUN.md (the gauntlet). Branch: claude/
   verdict must be copied in before the run or the cell re-bills.
 
 Next: install postgres + supabase CLI → phase 0.
+
+## 2026-08-28 — phase 0 CLOSED, phase 1 running
+
+- Phase 0: all green. 15 migrations (gauntlet's "11" was stale), 8/8 fingerprints, zero exclusions,
+  on PG17 after proving the lone `constraints` mismatch was PG18's NOT-NULL catalog rows (174
+  contype='n' rows; excluding them reproduces the expected hash bit-for-bit). Worker tick
+  `{"ok":true,"processed":0,"ms":12}`. Report: reports/phase0-stack.md. Committed 0837a3d.
+- Phase 1 pre-flight: bytematch structural pass was globbing dotted scratch-names → checked ZERO
+  packets silently. Fixed (fails loudly on empty glob). n03/critic_b packet had a 5th delimiter
+  style → rebuilt with verified builder at BADC. n09/critic_b packet lost with scratch dir →
+  rebuilt at DACB. Landed n06thin/critic_a staged into tests/ladder/verdicts/. Committed.
+- Phase 1 runner launched (pid 1893093, detached, log buffered — poll verdict files not the log).
+- Landed so far this run: n03/critic_a ($0.1079, gen-1787902200…) rank B>D>C>A fund B;
+  n03/critic_b ($0.0377, gen-1787902295…) rank B>D>C>A fund B, fundable B+D.
+  Fingerprints added and green: 55/B, 12,500/C (critic_a); 72/C (critic_b).
+- Spend so far this run ≈ $0.146 of the $15 ladder line.

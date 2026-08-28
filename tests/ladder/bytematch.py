@@ -74,6 +74,11 @@ FINGERPRINTS = [
     ("n06thin",  "critic_b", 2, "C", r"37,?356"),
     ("n06thin",  "critic_b", 3, "A", r"59,?360"),
     ("n06thin",  "critic_b", 4, "B", r"57,?400"),
+    # 2026-08-28 run, added per the standing rule: each new verdict contributes
+    # figures unique to one arm. Ledger facts shared across arms are unusable.
+    ("n03",      "critic_a", 2, "B", r"\b55\b"),      # "55 referrals ... 33 retained"
+    ("n03",      "critic_a", 1, "C", r"12,?500"),      # continuation costed at 12,500
+    ("n03",      "critic_b", 4, "C", r"\b72\b"),      # "72 starters ... not derived"
 ]
 
 def main():
