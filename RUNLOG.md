@@ -115,3 +115,9 @@ Next: install postgres + supabase CLI → phase 0.
   validation presumably running.
 - P0 escalations-kind fix (new migration + re-recorded expected fingerprint, argued in
   the commit, never fudged) → assigned to wave-2 ws6-core alongside WS4a's 14 specs.
+- WS4a critic: SEND BACK on one named failure — the archived SQL proof file typo
+  ('clear' vs 'cleared') aborts at P4 under ON_ERROR_STOP, so the report's 10-PROOF-OK
+  tally is unreproducible as archived (7 reproduce). Everything else PASSED in writing,
+  including independent re-execution of the P0 refund regression, scope, secrets,
+  fixture-weakening rule, and a byte-matched render reproduction. WS4a resumed with
+  exactly that fix; no other changes permitted.
