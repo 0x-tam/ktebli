@@ -26,9 +26,11 @@ import {
   crawlSiteObserved,
   hasRecordedOutcome,
   identityVerdict,
+  isFurniture,
   keepParagraphs,
   looksLikeBotChallenge,
   looksLikeJsShell,
+  PAGE_MIN_CHARS,
   parseRobots,
   proseSignals,
   reclassifyCached,
@@ -39,6 +41,9 @@ import {
 import type {
   ClassifyInput, CrawlOutcome, CrawlReport, FetchOpts, FetchResult,
 } from "../../supabase/functions/worker/crawl_outcome.ts";
+import {
+  ctRefusalReason, decodeBody, stripHtml,
+} from "../../supabase/functions/worker/ssrf.ts";
 
 let failures = 0;
 function ok(c: boolean, msg: string) {
@@ -69,17 +74,23 @@ type FixtureEntry =
 
 function fixtureFetcher(table: Record<string, FixtureEntry>) {
   const seen: string[] = [];
-  const fn = async (url: string, _opts: FetchOpts): Promise<FetchResult> => {
+  const fn = async (url: string, opts: FetchOpts): Promise<FetchResult> => {
     seen.push(url);
     const key = url.replace(/\/$/, "");
     const e = table[url] ?? table[key] ?? table[key + "/"];
     if (!e) throw new Error("dns_unresolved");   // nothing else exists on this fixture host
     if ("throws" in e) throw new Error(e.throws);
+    const contentType = e.contentType ?? "text/html; charset=utf-8";
+    // Enforce the caller's content-type allowlist exactly as safeFetchText does,
+    // so fixtures exercise the real refusal path (machine files, untyped blocks).
+    if (opts?.allowContentTypes && !opts.allowContentTypes.test(contentType)) {
+      throw new Error(ctRefusalReason(e.status));
+    }
     await Promise.resolve();
     return {
       finalUrl: e.finalUrl ?? url,
       status: e.status,
-      contentType: e.contentType ?? "text/html; charset=utf-8",
+      contentType,
       body: e.body ?? "",
     };
   };
@@ -630,6 +641,387 @@ section("12. cached crawls — the identity gate is re-applied, never inherited"
   const notRun = reclassifyCached(cached, "hit",
     { identity_gate: "not_run", referents_extracted: 7, referents_surviving: 7, site_derived_output: true });
   eq(notRun.outcome, "identity_mismatch", "a cached crawl may never skip the gate");
+}
+
+// ===========================================================================
+section("13. silent-failure audit (phase 5) — the status survives every layer");
+// ===========================================================================
+//
+// The reference defect (thefelixproject.org, CLAUDE.md P1.6) was a DISCARDED
+// STATUS: a refusal indistinguishable from an empty site. This section pins the
+// places the same class could recur one layer down, each from a canned response.
+
+// 13a. A refusal whose content-type is unreadable. safeFetchText refuses to read
+// the body and throws — but the refusal status rides out in the error reason,
+// and the observation must recover it. Before this fix, a WAF 403 served with a
+// missing or non-text content-type was classified fetch_failed ("did not
+// answer"), which is false: the server answered, with a refusal.
+{
+  const { report } = await run("https://untypedblock.org", {
+    "https://untypedblock.org/robots.txt": ROBOTS_OPEN,
+    "https://untypedblock.org/": { throws: "bad_content_type_http_403" },
+  }, { org: "Untyped Block Trust" });
+  eq(report.outcome, "blocked_bot", "a 403 with an unreadable content-type is blocked_bot, not fetch_failed");
+  ok(report.reason.includes("403"), "and the reason carries the status");
+  eq(report.pages_fetched, 0, "no page was read");
+  ok(report.detail.statuses.some((s) => s.status === 403), "the recovered status is recorded");
+}
+{
+  const { report } = await run("https://untypedlimit.org", {
+    "https://untypedlimit.org/robots.txt": ROBOTS_OPEN,
+    "https://untypedlimit.org/": { throws: "bad_content_type_http_429" },
+  }, { org: "Untyped Limit Trust" });
+  eq(report.outcome, "blocked_bot", "a 429 with an unreadable content-type is blocked_bot");
+}
+{
+  const { report } = await run("https://untypederror.org", {
+    "https://untypederror.org/robots.txt": ROBOTS_OPEN,
+    "https://untypederror.org/": { throws: "bad_content_type_http_500" },
+  }, { org: "Untyped Error Trust" });
+  eq(report.outcome, "fetch_failed", "a 500 with an unreadable content-type stays fetch_failed");
+  ok(report.reason.includes("500"), "and names the status rather than a generic transport failure");
+}
+{
+  eq(ctRefusalReason(200), "bad_content_type", "a 2xx with a bad content-type keeps the plain reason");
+  eq(ctRefusalReason(403), "bad_content_type_http_403", "a refusal status is carried in the reason");
+}
+
+// 13b. Weak markers are prose. A page the server actually served (2xx) can no
+// longer be reclassified as a block by ordinary English — the words "forbidden",
+// "rate limit" or "you have been blocked" appearing in a thin page's text.
+{
+  eq(looksLikeBotChallenge(200, "Dogs are forbidden inside the hall itself.", 300).blocked, false,
+    "'forbidden' in prose does not block a served 200");
+  eq(looksLikeBotChallenge(200, "It takes just a moment to donate online.", 300).blocked, false,
+    "'just a moment' without the ellipsis is a sentence, not a Cloudflare title");
+  eq(looksLikeBotChallenge(200, "<title>Just a moment...</title>", 40).blocked, true,
+    "the Cloudflare title with its ellipsis still blocks a 200");
+  eq(looksLikeBotChallenge(403, "Access denied", 0).marker, "access denied page",
+    "a weak marker still NAMES a refusal whose status already proves it");
+  // A 503 whose body merely says "rate limit" is now reported by its status
+  // (fetch_failed, HTTP 503) — less specific, never false. The old behaviour
+  // let two words of prose reclassify any thin 503 maintenance page.
+  eq(looksLikeBotChallenge(503, "rate limit exceeded", 30).blocked, false,
+    "'rate limit' alone no longer flags a 503");
+}
+// End to end: a real page whose prose contains "forbidden" — with named
+// referents and a matching identity — is succeeded. It used to be blocked_bot.
+{
+  const body = "<p>The food hall on Maldon Road opens every Tuesday and Friday morning. " +
+    "Dogs are forbidden inside the hall itself, though guide dogs are always welcome, " +
+    "and volunteers meet visitors at the Maldon Road entrance from nine.</p>";
+  const { report } = await run("https://fenwickpantry.org", {
+    "https://fenwickpantry.org/robots.txt": ROBOTS_OPEN,
+    "https://fenwickpantry.org/": { status: 200, body: plain("fenwick pantry", body) },
+  }, { org: "Fenwick Pantry", legalName: "Fenwick Pantry" });
+  eq(report.outcome, "succeeded", "a served page whose prose says 'forbidden' classifies on its content");
+  ok(report.referents_surviving >= 1, "and its referents survive");
+}
+
+// 13c. A mount-point div with no script is markup, not an application shell.
+// "Draws its text with JavaScript" must never be said of a page that loads none.
+{
+  const staticApp = `<html><head><title>hall</title></head><body><div id="app"><h1>Hall</h1></div></body></html>`;
+  eq(looksLikeJsShell(staticApp, 12).shell, false,
+    "a scriptless page using id=\"app\" as markup is not a JS shell");
+  eq(looksLikeJsShell(`<div id="root"></div>`, 0).shell, false,
+    "an empty mount point with zero script characters is markup too");
+  const { report } = await run("https://scriptless.org", {
+    "https://scriptless.org/robots.txt": ROBOTS_OPEN,
+    "https://scriptless.org/": { status: 200, body: staticApp },
+  }, { org: "Scriptless Hall Trust" });
+  eq(report.outcome, "extraction_failed", "and the crawl classifies it extraction_failed, never js_only");
+}
+
+// 13d. Entities and charsets: mis-decoded prose used to strip into junk that
+// the prose detector then (correctly) refused — a false extraction_failed with
+// a true-looking reason.
+{
+  const t = stripHtml("<p>St Aidan&#8217;s Hall on Bramley&nbsp;Road &amp; the caf&eacute; &#x2014; open daily</p>");
+  ok(t.includes("St Aidan’s Hall"), "numeric entities decode instead of surviving as residue");
+  ok(t.includes("Road & the café"), "named entities decode to their characters");
+  ok(t.includes("—"), "hex entities decode");
+  ok(!/&#\d+;|&#x[0-9a-f]+;/i.test(t), "no numeric residue remains in the text");
+}
+{
+  const cafe1252 = new Uint8Array([0x63, 0x61, 0x66, 0xE9]); // "café" in windows-1252
+  eq(decodeBody(cafe1252, "text/html; charset=iso-8859-1"), "café", "the declared charset is honoured");
+  const meta = `<meta charset="windows-1252">café`;
+  const metaBytes = new Uint8Array([...meta].map((c) => c.charCodeAt(0)));
+  eq(decodeBody(metaBytes, "text/html").endsWith("café"), true,
+    "a meta charset is sniffed when the header names none");
+  eq(decodeBody(new Uint8Array([0x68, 0x69]), "text/html; charset=x-klingon"), "hi",
+    "an unknown charset label falls back to UTF-8 rather than failing the fetch");
+}
+
+// 13e. The parsed-page boundary matches the traversal's own threshold. The
+// extraction keeps a page only when text.length > 120; a classifier counting
+// >= 120 could describe a page as parsed that the crawl would never have kept.
+{
+  const page = (kept: number) => ({
+    url: "https://edge.org/", role: "home" as const, status: 200, error: null,
+    content_type: "text/html", html_chars: 900, text_chars: 400, kept_chars: kept,
+    script_chars: 0, prose: true, body_sample: "",
+  });
+  const base = (kept: number): ClassifyInput => ({
+    website: "https://edge.org", domain: "edge.org", bad_url: false,
+    robots: { fetched: true, status: 200, allowed: true, rule: null, error: null },
+    pages: [page(kept)], fetch_budget_exhausted: false, discovered: 1, elapsed_ms: 5,
+    referents_extracted: 0, referents_surviving: 0, identity_gate: "not_run",
+    site_derived_output: false,
+  });
+  eq(classifyCrawl(base(PAGE_MIN_CHARS)).pages_parsed, 0,
+    "exactly 120 kept characters is NOT a parsed page — the traversal would not have kept it");
+  eq(classifyCrawl(base(PAGE_MIN_CHARS)).outcome, "extraction_failed", "and the outcome says so");
+  eq(classifyCrawl(base(PAGE_MIN_CHARS + 1)).pages_parsed, 1, "one character over the floor is parsed");
+}
+
+// 13f. Malformed robots.txt cannot fabricate a block, and the most specific
+// group wins. Every crawler's UA contains the empty string, so an empty
+// User-agent line used to create a group that matched EVERYONE.
+{
+  eq(robotsAllows(parseRobots("User-agent:\nDisallow: /\n"), "/").allowed, true,
+    "a User-agent line with no token cannot fabricate a robots block");
+  const r = parseRobots("User-agent: bot\nDisallow: /\n\nUser-agent: kteblibot\nDisallow: /private/\n");
+  eq(robotsAllows(r, "/").allowed, true,
+    "the most specific matching group wins, not the first stated");
+  eq(robotsAllows(r, "/private/x").allowed, false, "and its own rules still apply");
+}
+
+// 13g. nothing_relevant no longer hides refused subpages. A rate limiter that
+// serves the homepage and 429s everything after it is not "a thin site".
+{
+  const vague = "<p>we support people gently and patiently across the town, every week of the year, " +
+    "whatever the weather brings to the door, and we are glad of every pair of hands offered.</p>";
+  const { report } = await run("https://ratelimited.org", {
+    "https://ratelimited.org/robots.txt": ROBOTS_OPEN,
+    "https://ratelimited.org/": {
+      status: 200,
+      body: `<!doctype html><html><head><title>quiet trust</title></head><body>` +
+        `<nav><a href="/about">about</a><a href="/our-work">our work</a></nav>${vague}</body></html>`,
+    },
+    "https://ratelimited.org/about": { status: 429, contentType: "text/plain", body: "too many requests" },
+    "https://ratelimited.org/our-work": { status: 429, contentType: "text/plain", body: "too many requests" },
+  }, { org: "Quiet Trust", legalName: "Quiet Trust", siteDerived: true });
+  eq(report.outcome, "nothing_relevant", "the served homepage still classifies on its own content");
+  ok(report.reason.includes("2 further page(s) were refused"),
+    "but the refused subpages are named in the reason");
+}
+
+// ===========================================================================
+section("14. site furniture is not evidence (phase 5 live-run finding)");
+// ===========================================================================
+//
+// On every real charity site the live run crawled, two-thirds of the extracted
+// "referents" were navigation glued into giant capitalised runs: "Sufra NW
+// London Volunteer Donate Get Help Menu Home About About", a 30-language
+// selector, card-grid labels ("Donate Learn More"). A succeeded(308) whose 308
+// are mostly menu labels misdescribes the crawl, and those counts feed the
+// sufficiency gate and the phase-6 benchmark. This section pins the fix at all
+// three layers from one canned page.
+
+// A realistic small-charity page: nav menu, language selector, all-caps banner,
+// card grid, footer link list — and two real paragraphs of prose.
+const FURNISHED_PAGE = `<!doctype html>
+<html><head><title>riverbank pantry</title></head><body>
+<header>
+  <nav><ul>
+    <li><a href="/">Home</a></li><li><a href="/about">About Us</a></li>
+    <li><a href="/our-work">Our Work</a></li><li><a href="/donate">Donate</a></li>
+    <li><a href="/volunteer">Volunteer</a></li><li><a href="/news">News And Events</a></li>
+    <li><a href="/contact">Contact Us</a></li>
+  </ul></nav>
+  <select><option>English</option><option>Arabic</option><option>Polish</option>
+  <option>Romanian</option><option>Urdu</option></select>
+  <div>WE ARE CLOSED OVER THE BANK HOLIDAY</div>
+</header>
+<main>
+  <div class="cards">
+    <div class="card"><h3>Food Aid</h3><a href="/food">Learn More</a></div>
+    <div class="card"><h3>Advice Service</h3><a href="/advice">Learn More</a></div>
+    <div class="card"><h3>Community Garden</h3><a href="/garden">Learn More</a></div>
+  </div>
+  <p>Riverbank Pantry has run a weekly food club from St Cuthbert's Church Hall on
+  Weaver Street since 2017, serving about sixty households across the Deeside ward.</p>
+  <p>We work with Chester Foodshare and with Cheshire West Council on referrals, and
+  our growing plot behind Hoole Community Centre supplies the club each summer.</p>
+</main>
+<footer>
+  <ul><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms</a></li>
+  <li><a href="/safeguarding">Safeguarding Policy</a></li></ul>
+  <p>Registered charity number 1180000. Riverbank Pantry, Weaver Street, Chester.</p>
+</footer>
+</body></html>`;
+
+// Layer 1: stripHtml removes furniture elements and emits real block boundaries.
+{
+  const t = stripHtml(FURNISHED_PAGE);
+  ok(!t.includes("Volunteer"), "nav menu content is removed entirely");
+  ok(!t.includes("Romanian"), "the language selector is removed entirely");
+  ok(t.includes("\n"), "block elements produce real line boundaries");
+  ok(!/Learn More[ \t]+(Advice|Community)/.test(t),
+    "card labels no longer share a line with the next card's title");
+  ok(t.includes("Registered charity number 1180000"),
+    "the footer's charity number and address SURVIVE — footers carry real facts");
+  const pretty = stripHtml("<p>The pantry opened\n  in 2017 and serves\n  sixty households.</p>");
+  eq(pretty, "The pantry opened in 2017 and serves sixty households.",
+    "pretty-printed source newlines do NOT become line boundaries");
+}
+
+// Layer 2: keepParagraphs refuses unpunctuated capitalised-majority link runs.
+{
+  eq(isFurniture("Home About Us Our Work Donate Volunteer News And Events Contact Us"), true,
+    "a menu run with no punctuation and capitalised words is furniture");
+  eq(isFurniture("we support families across the Deeside ward whatever the season"), false,
+    "an unpunctuated lowercase-majority mission line is NOT furniture");
+  eq(isFurniture("The pantry opened in 2017 and serves sixty households."), false,
+    "punctuated prose is never furniture, whatever its capitalisation");
+  const seen = new Set<string>();
+  const kept = keepParagraphs(
+    "Food Aid Advice Service Community Garden Winter Appeal Business Partners Programme\n" +
+    "St Cuthbert's flooded in January 2021 and the club moved to Hoole Community Centre for a year.",
+    seen);
+  eq(kept.length, 1, "the link run is dropped, the prose paragraph is kept");
+  ok(/flooded in January/.test(kept[0] ?? ""), "and it is the right one");
+}
+
+// Layer 3: siteReferents refuses seven-word runs outright, and a single word
+// that also occurs in lowercase in the corpus is position, not a name.
+{
+  const refs = siteReferents(
+    "Sufra NW London Volunteer Donate Get Help Menu Home About Mission Principles Annual Reports. " +
+    "The club runs from St Cuthbert's Church Hall on Weaver Street.", "Riverbank Pantry");
+  ok(!refs.some((r) => r.split(/\s+/).length > 6), "no referent is longer than six words");
+  ok(refs.some((r) => /Weaver Street/.test(r)), "real referents still come through");
+
+  const refs2 = siteReferents(
+    "However the club kept going. Volunteers said, however, that Brent needed more. " +
+    "Deliveries reach Kilburn each week.", "Riverbank Pantry");
+  ok(!refs2.includes("However"), "a sentence-opener that occurs lowercase elsewhere is not a referent");
+  ok(refs2.includes("Brent") && refs2.includes("Kilburn"),
+    "single-word names with no lowercase occurrence are kept");
+
+  // The counter trims its stop words at phrase edges, which can leave a
+  // dangling connective ("Board of Trustees" -> "of Trustees"). Edge glue is
+  // debris; internal glue ("London Borough of Brent") is structure.
+  const refs3 = siteReferents(
+    "Board of Trustees meets quarterly. Deliveries reach the London Borough of Brent weekly.",
+    "Riverbank Pantry");
+  ok(!refs3.some((r) => /^(of|the|and|for)\s/.test(r)), "no referent starts with dangling glue");
+  ok(refs3.some((r) => r === "London Borough of Brent"), "internal connectives are untouched");
+}
+
+// End to end: the furnished page yields the real referents and only those.
+{
+  const { report, referents } = await run("https://riverbankpantry.org", {
+    "https://riverbankpantry.org/robots.txt": ROBOTS_OPEN,
+    "https://riverbankpantry.org/": { status: 200, body: FURNISHED_PAGE },
+  }, { org: "Riverbank Pantry", legalName: "Riverbank Pantry" });
+  eq(report.outcome, "succeeded", "the page still succeeds on its actual prose");
+  ok(referents.some((r) => /St Cuthbert/.test(r)), "the church hall is a referent");
+  ok(referents.some((r) => /Chester Foodshare/.test(r)), "the named partner is a referent");
+  ok(referents.some((r) => /Cheshire West Council/.test(r)), "the council is a referent");
+  ok(!referents.some((r) => /Donate|Learn More|Privacy|Menu/i.test(r)),
+    `no menu label survives as a referent (got: ${referents.join(" | ").slice(0, 120)})`);
+  ok(!referents.some((r) => r.split(/\s+/).length > 6), "and nothing longer than six words");
+  ok(report.referents_extracted <= 12,
+    `the count is a count of NAMES, not of furniture (${report.referents_extracted})`);
+}
+
+// ===========================================================================
+section("15. machine files are not pages (critic finding)");
+// ===========================================================================
+//
+// Child sitemaps (sitemap-1.xml, image-sitemap-1.xml) and /wp-json passed the
+// extension filter, were fetched as role "page" through the default
+// content-type allowlist (which must admit XML for robots and sitemaps), and
+// their machine tokens were stripped as HTML and counted as referents in three
+// of the seven live crawls. Two independent fixes are pinned here: page
+// discovery skips machine-file URLs, and content fetches accept only HTML-ish
+// content types.
+{
+  const prose = "<p>Riverbank Pantry runs a weekly food club from St Cuthbert's Church Hall on " +
+    "Weaver Street since 2017, serving about sixty households across the Deeside ward.</p>";
+  const table = {
+    "https://wp-site.org/robots.txt": ROBOTS_OPEN,
+    "https://wp-site.org/": {
+      status: 200,
+      body: `<html><head><title>riverbank pantry</title></head><body>` +
+        `<a href="/about">about</a><a href="/wp-json/">api</a><a href="/feed">feed</a>` +
+        `<a href="/sitemap-1.xml">sitemap</a>${prose}</body></html>`,
+    },
+    "https://wp-site.org/sitemap.xml": {
+      status: 200, contentType: "application/xml",
+      body: "<sitemapindex><sitemap><loc>https://wp-site.org/sitemap-1.xml</loc></sitemap>" +
+        "<sitemap><loc>https://wp-site.org/image-sitemap-1.xml</loc></sitemap></sitemapindex>",
+    },
+    // If these WERE fetched as pages, their tokens would poison the corpus.
+    "https://wp-site.org/sitemap-1.xml": {
+      status: 200, contentType: "application/xml",
+      body: "<urlset><url><loc>https://wp-site.org/QWtpY0P</loc></url>" +
+        "<url><loc>https://wp-site.org/MviZ3SLG</loc></url></urlset>",
+    },
+    "https://wp-site.org/image-sitemap-1.xml": {
+      status: 200, contentType: "application/xml",
+      body: "<urlset><url><loc>https://wp-site.org/Backup-Helper-Script.png</loc></url></urlset>",
+    },
+    "https://wp-site.org/wp-json": {
+      status: 200, contentType: "application/json",
+      body: `{"name":"Backup Helper Script","description":"Arbitrary Machine Tokens QWtpY0P"}`,
+    },
+    "https://wp-site.org/feed": {
+      status: 200, contentType: "application/xml",
+      body: "<rss><channel><title>Arbitrary Feed Tokens</title></channel></rss>",
+    },
+    "https://wp-site.org/about": { status: 200, body: plain("about riverbank",
+      "<p>Our trustees meet at Hoole Community Centre, and Chester Foodshare collects surplus every Friday morning before the club opens its doors to the first families of the day.</p>") },
+  };
+  const fetcher = fixtureFetcher(table);
+  const crawl = await crawlSiteObserved("https://wp-site.org", fetcher);
+  const pageUrls = crawl.pages.map((p) => p.url);
+  ok(!pageUrls.some((u) => /\.xml|wp-json|\/feed/.test(u)),
+    `no machine file is a content page (pages: ${pageUrls.join(", ")})`);
+  ok(!fetcher.seen.some((u) => /sitemap-1\.xml|image-sitemap/.test(u)),
+    "child sitemaps are not even fetched — the page budget is not spent on them");
+  const referents = siteReferents(crawlCorpus(crawl.pages), "Riverbank Pantry");
+  ok(!referents.some((r) => /QWtpY0P|MviZ3SLG|Backup|Arbitrary/i.test(r)),
+    "no machine token reaches the referent list");
+  ok(referents.some((r) => /Chester Foodshare/.test(r)), "real referents still come through");
+
+  // The content-type backstop stands on its own: a machine URL that dodges the
+  // URL filter (no extension) is still refused by content type, with the
+  // refusal recorded, and the crawl is not poisoned.
+  const table2 = {
+    "https://api-link.org/robots.txt": ROBOTS_OPEN,
+    "https://api-link.org/": {
+      status: 200,
+      body: `<html><head><title>api link</title></head><body><a href="/about">about</a>${prose}</body></html>`,
+    },
+    "https://api-link.org/about": {
+      status: 200, contentType: "application/json",
+      body: `{"machine":"Arbitrary Backup Helper Script Tokens"}`,
+    },
+  };
+  const crawl2 = await crawlSiteObserved("https://api-link.org", fixtureFetcher(table2));
+  ok(!crawl2.pages.some((p) => p.url.endsWith("/about")),
+    "a JSON body never becomes a content page, whatever its URL looks like");
+  const aboutObs = crawl2.observations.pages.find((p) => p.url.endsWith("/about"));
+  eq(aboutObs?.error, "bad_content_type", "and the refusal is recorded, not swallowed");
+  const refs2 = siteReferents(crawlCorpus(crawl2.pages), "Riverbank Pantry");
+  ok(!refs2.some((r) => /Backup|Arbitrary/i.test(r)), "its tokens never reach the referents");
+}
+
+// B (critic finding): the identity gate's name candidates must not carry entity
+// residue — and the en dash hiding inside &#8211; must still split the <title>.
+{
+  const cands = siteNameCandidates(
+    `<html><head><title>Cart &#8211; The Magpie Project</title></head><body></body></html>`);
+  ok(cands.includes("The Magpie Project"),
+    `the real site name is a candidate despite the encoded separator (got: ${cands.join(" / ")})`);
+  ok(!cands.some((c) => /&#|&\w+;/.test(c)), "no candidate carries entity residue");
+  const og = siteNameCandidates(
+    `<meta property="og:site_name" content="S&#252;fra NW London">`);
+  ok(og.includes("S\u00fcfra NW London"), "og:site_name is decoded too");
 }
 
 // ===========================================================================

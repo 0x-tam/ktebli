@@ -1,0 +1,441 @@
+{
+  "site": "https://watsi.org",
+  "org": "Watsi",
+  "stated_name": "Watsi",
+  "report": {
+    "outcome": "succeeded",
+    "reason": "watsi.org: 10 page(s) fetched, 10 parsed, 130 referent(s) extracted, 130 surviving the identity gate",
+    "pages_fetched": 10,
+    "pages_parsed": 10,
+    "referents_extracted": 130,
+    "referents_surviving": 130,
+    "domain": "watsi.org",
+    "detail": {
+      "contract": "1.2.0",
+      "robots": {
+        "fetched": true,
+        "status": 200,
+        "allowed": true,
+        "rule": null,
+        "error": null
+      },
+      "statuses": [
+        {
+          "url": "https://watsi.org/robots.txt",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/sitemap.xml",
+          "status": 404,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/about",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/impact",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/blog",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/how-it-works",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/faq",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/universal-fund",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/campaigns",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/gift-cards",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://watsi.org/crypto",
+          "status": 200,
+          "error": null
+        }
+      ],
+      "discovered": 42,
+      "kept_chars": 32576,
+      "text_chars": 82416,
+      "fetch_budget_exhausted": false,
+      "prose_pages": 10,
+      "identity_gate": "cleared",
+      "elapsed_ms": 3773
+    }
+  },
+  "referents": [
+    "Sebit",
+    "South Sudan",
+    "However",
+    "Sebit’s",
+    "AIC Kijabe Hospital",
+    "Kenya",
+    "Fortunately",
+    "African Mission Healthcare",
+    "Whenever I",
+    "Masitala",
+    "Dedza District",
+    "Malawi",
+    "Eight",
+    "Nkhoma Hospital",
+    "Determined",
+    "Benign Prostatic Hyperplasia",
+    "Kingsley",
+    "Among",
+    "Instead",
+    "Kingsley's",
+    "X-ray",
+    "Open Reduction",
+    "Internal Fixation",
+    "Sign",
+    "Universal",
+    "Editor",
+    "Subscribe",
+    "Let's",
+    "Nekanisa’s",
+    "Privacy Policy Terms of Use We'd",
+    "We're",
+    "Watsi's",
+    "San Francisco",
+    "Singapore",
+    "Nar Ni He",
+    "Emergency Surgery",
+    "Ronny",
+    "Ronny’s",
+    "How I",
+    "Hope Health Action",
+    "Northern Uganda’s West Nile",
+    "Muso",
+    "Mali",
+    "Cambodia",
+    "Philippines",
+    "Role Call",
+    "YouTube",
+    "Watsi Ambassador",
+    "Reena",
+    "Connecting",
+    "Skoll World Forum",
+    "Davos",
+    "WHA Geneva",
+    "Social Innovation Summit",
+    "Today",
+    "How Watsi",
+    "Ella",
+    "Uganda",
+    "Louis",
+    "Million",
+    "Nepal",
+    "Watsi’s Emergency Surgery",
+    "Ryans",
+    "Ryan",
+    "ABC News",
+    "Watch",
+    "Meet Elias",
+    "Yonase",
+    "Ethiopia",
+    "Margaret",
+    "Janet’s",
+    "Children’s Surgical Centre",
+    "I’m Raj Malik",
+    "I’ve",
+    "Jane",
+    "Olira’s",
+    "Karen State",
+    "Burma",
+    "Thailand",
+    "Bue Wah",
+    "Patient Services Manager",
+    "Burma Children Medical",
+    "Resilient Roads",
+    "Follow",
+    "Tracy",
+    "Nimona's",
+    "Nimona",
+    "Tennyson",
+    "Tennyson's",
+    "Eventually",
+    "AIC CURE Hospital",
+    "Does Watsi",
+    "United States",
+    "Could Watsi Crowdfunding",
+    "Can I",
+    "Am I",
+    "Donor-Advised",
+    "Central America",
+    "Transparency Document",
+    "General",
+    "Medical Partner",
+    "Charity Navigator",
+    "GuideStar",
+    "Confidence Badge",
+    "Encompass Rating",
+    "Platinum Seal of Transparency",
+    "US-based",
+    "Medical Partner Manual",
+    "Vanniza's",
+    "Thank",
+    "Rally",
+    "Raise",
+    "Gather",
+    "Then",
+    "Kat's",
+    "Aloke's",
+    "Chris'",
+    "Watsi Gift Card Three Watsi",
+    "Estefany's",
+    "Micah",
+    "Medallion",
+    "Select",
+    "Martha",
+    "Participated",
+    "Stellar’s",
+    "Coinbase",
+    "Pineapple",
+    "Lumenthropy",
+    "Stellar",
+    "Stellar Development"
+  ],
+  "pages": [
+    {
+      "url": "https://watsi.org",
+      "chars": 8343
+    },
+    {
+      "url": "https://watsi.org/about",
+      "chars": 732
+    },
+    {
+      "url": "https://watsi.org/impact",
+      "chars": 3938
+    },
+    {
+      "url": "https://watsi.org/blog",
+      "chars": 4302
+    },
+    {
+      "url": "https://watsi.org/how-it-works",
+      "chars": 2525
+    },
+    {
+      "url": "https://watsi.org/faq",
+      "chars": 9000
+    },
+    {
+      "url": "https://watsi.org/universal-fund",
+      "chars": 774
+    },
+    {
+      "url": "https://watsi.org/campaigns",
+      "chars": 1599
+    },
+    {
+      "url": "https://watsi.org/gift-cards",
+      "chars": 493
+    },
+    {
+      "url": "https://watsi.org/crypto",
+      "chars": 870
+    }
+  ],
+  "observations": {
+    "website": "https://watsi.org",
+    "domain": "watsi.org",
+    "bad_url": false,
+    "robots": {
+      "fetched": true,
+      "status": 200,
+      "allowed": true,
+      "rule": null,
+      "error": null
+    },
+    "pages": [
+      {
+        "url": "https://watsi.org/robots.txt",
+        "role": "robots",
+        "status": 200,
+        "error": null,
+        "content_type": "text/plain",
+        "html_chars": 0,
+        "text_chars": 0,
+        "kept_chars": 0,
+        "script_chars": 0,
+        "prose": false,
+        "body_sample": ""
+      },
+      {
+        "url": "https://watsi.org/",
+        "role": "home",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 71211,
+        "text_chars": 9309,
+        "kept_chars": 8343,
+        "script_chars": 9019,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>Watsi | Fund healthcare for people around the world</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Watsi is a nonprofit that brings people together through technology to fund life-changing healthcare.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"fb:admins\" content=\"1053480134\" /><link rel=\"preload\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/home/kuang-b1d0758b4e2f79adf763cf8c6fc52d8c0b9d34e29a394fa13a48ccd01e604c6d.webp\" as=\"image\" type=\"image/webp\" /><link rel=\"preload\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/home/kuang-3900920e09009418ffcaece6277484db1cb2992848d279baa94b3d4f291a0e7f.jpg\" as=\"image\" type=\"image/jpeg\" /><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Watsi, Inc.\",\"legalName\":\"Watsi, Inc.\",\"url\":\"https://watsi.org\",\"logo\":\"https://watsi.org/assets/v3/logos/watsi-logo-blue.svg\",\"description\":\"Watsi is a nonprofit organization that connects donors with patients in need of critical medical care through transparent, patient‑driven crowdfunding.\",\"foundingDate\":\"2011‑05‑23\",\"founder\":[{\"@type\":\"Person\",\"name\":\"Chase Adam\"},{\"@type\":\"Person\",\"name\":\"Grace Garey\"},{\"@type\":\"Person\",\"name\":\"Jesse Cooke\"}],\"contactPoint\":{\"@type\":\"ContactPoint\",\"contactType\":\"Customer Support\",\"email\":\"connect@watsi.org\",\"telephone\":\"(256) 792‑8747\"},\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"548 Market Street, #75903\",\"addressLocality\":\"San Francisco\",\"addressRegion\":\"CA\",\"postalCode\":\"94104\",\"addressCountry\":\"US\"},\"sameAs\":[\"https://www.facebook.com/watsi\",\"https://twitter.com/watsi\",\"https://www.instagram.com/watsi\",\"https://www.linkedin.com/company/watsi\"]}</script><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"Watsi | Fund healthcare for people around the world\">\n<meta property=\"og:description\" content=\"Watsi is a nonprofit that br"
+      },
+      {
+        "url": "https://watsi.org/sitemap.xml",
+        "role": "sitemap",
+        "status": 404,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 0,
+        "text_chars": 0,
+        "kept_chars": 0,
+        "script_chars": 0,
+        "prose": false,
+        "body_sample": ""
+      },
+      {
+        "url": "https://watsi.org/about",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 114610,
+        "text_chars": 2597,
+        "kept_chars": 732,
+        "script_chars": 14999,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>About | Watsi</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Learn more about Watsi, our mission, and our team.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"fb:admins\" content=\"1053480134\" /><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Watsi, Inc.\",\"legalName\":\"Watsi, Inc.\",\"url\":\"https://watsi.org\",\"logo\":\"https://watsi.org/assets/v3/logos/watsi-logo-blue.svg\",\"description\":\"Watsi is a nonprofit organization that connects donors with patients in need of critical medical care through transparent, patient‑driven crowdfunding.\",\"foundingDate\":\"2011‑05‑23\",\"founder\":[{\"@type\":\"Person\",\"name\":\"Chase Adam\"},{\"@type\":\"Person\",\"name\":\"Grace Garey\"},{\"@type\":\"Person\",\"name\":\"Jesse Cooke\"}],\"contactPoint\":{\"@type\":\"ContactPoint\",\"contactType\":\"Customer Support\",\"email\":\"connect@watsi.org\",\"telephone\":\"(256) 792‑8747\"},\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"548 Market Street, #75903\",\"addressLocality\":\"San Francisco\",\"addressRegion\":\"CA\",\"postalCode\":\"94104\",\"addressCountry\":\"US\"},\"sameAs\":[\"https://www.facebook.com/watsi\",\"https://twitter.com/watsi\",\"https://www.instagram.com/watsi\",\"https://www.linkedin.com/company/watsi\"],\"member\":[{\"@type\":\"Person\",\"name\":\"Mackinnon Engen\",\"jobTitle\":\"Executive Director\",\"affiliation\":\"Watsi\",\"sameAs\":\"https://watsi.org/blog/meet-mackinnon/\"},{\"@type\":\"Person\",\"name\":\"Keenyn McFarlane\",\"jobTitle\":\"Chief Financial Officer\",\"affiliation\":\"Watsi\",\"sameAs\":\"https://watsi.org/blog/meet-keenyn/\"},{\"@type\":\"Person\",\"name\":\"Sonam Singh\",\"jobTitle\":\"Director of Marketing \\u0026 Insights\",\"affiliation\":\"Watsi\",\"sameAs\":\"https://watsi.org/blog/meet-sonam/\"},{\"@type\":\"Person\",\"name\":\"Kalvin Wang\",\"jobTitle\":\"Senior Software Engineer\",\"affiliation\":\"Watsi\",\"sameAs\":\"https://watsi.org/blog/meet-kalvin/\"},{\"@type\":\"Person\",\"name\":\"g e link\",\"jobTitle\":\"Senior Software Engineer\",\"affiliation\":\"Watsi\",\"sameAs\":\"https://watsi.org/blog/meet-g/\"},{\"@type\":\"Person\",\"name\":\"Kimmy Coseteng\",\"jobTitle\":\"Program Advisor\",\"affiliation\":\"Watsi\",\"sameAs\":\"https://watsi.org/blog/meet-kimmy/\"},{"
+      },
+      {
+        "url": "https://watsi.org/impact",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 105755,
+        "text_chars": 7144,
+        "kept_chars": 3938,
+        "script_chars": 3757,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>100% Impact. Explore Watsi’s 2025 Year in Review.</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"From San Francisco to Singapore, our 2025 Year in Review celebrates the power of human connection.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"100% Impact. Explore Watsi’s 2025 Year in Review.\">\n<meta property=\"og:description\" content=\"From San Francisco to Singapore, our 2025 Year in Review celebrates the power of human connection.\">\n<meta property=\"og:url\" content=\"watsi.org/2025\">\n<meta property=\"og:image\" content=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/eoy-report/2025/hero-poster-a18afc0648769840386d5cc661cd78d9c7acc5182bb54ef130c42a29e950e879.jpg\"><link rel=\"preconnect\" href=\"https://api.mapbox.com\" /><link rel=\"preconnect\" href=\"https://events.mapbox.com\" /><link rel=\"dns-prefetch\" href=\"https://a.tiles.mapbox.com\" /><link rel=\"dns-prefetch\" href=\"https://b.tiles.mapbox.com\" /><meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"YRG2gCvOejNUL9JyACBPTRdpXxbTXEJstSm1dmndNa1Dx1bOYn95IadPUPtYzkZH5FEFDut3YFQ0HZPcO2MrvQ\" /></head><body class=\"page eoy_report_25 light_theme\"><div id=\"universe\"><link rel=\"stylesheet\" href=\"https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.css\" /><script src=\"https://api.mapbox.com/mapbox-gl-js/v3.18.1/mapbox-gl.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script><nav class=\"eoy_report\" id=\"eoy25\"><div class=\"container\"><div class=\"row\"><div class=\"column-3 flex flexJustify-center\"><div class=\"logo\"><a href=\"/\"><div class=\"watsi_logo blue\"></div></a></div></div><div class=\"column-6 flex flexJustify-center flexAlign-center\"><div class=\"header\"><a href=\"https://watsi.org/2025\"><span class=\"display-none display-inline-m handwriting-caps text-4 color-white\" id=\"scrolling-title\">The power of human connection</span><span class=\"display-inline display-none-m handwriting-caps text-2 color-white\" id=\"scrolling-title-mobile\">The power of human connection<"
+      },
+      {
+        "url": "https://watsi.org/blog",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 43158,
+        "text_chars": 5407,
+        "kept_chars": 4302,
+        "script_chars": 3454,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\" />\n  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n  <meta name=\"HandheldFriendly\" content=\"True\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n  <title>Watsi</title>\n\n  <link rel=\"icon\" href=\"https://watsi.org/blog/assets/favicon/favicon.svg?v=0eb2a5034a\" rel=\"icon\" type=\"image/svg+xml\">\n\n  <link rel=\"icon\" href=\"https://watsi.org/blog/assets/favicon/apple-touch-icon.png?v=0eb2a5034a\" rel=\"apple-touch-icon\"  sizes=\"180x180\">\n\n  <link rel=\"icon\" href=\"https://watsi.org/blog/assets/favicon/favicon-32x32.png?v=0eb2a5034a\" type=\"image/png\" sizes=\"32x32\">\n  <link rel=\"icon\" href=\"https://watsi.org/blog/assets/favicon/favicon-16x16.png?v=0eb2a5034a\" type=\"image/png\" sizes=\"16x16\">\n\n  <link rel=\"stylesheet\" type=\"text/css\" href=\"https://watsi.org/blog/assets/css/blog.css?v=0eb2a5034a\">\n\n  <script type=\"text/javascript\">\n    !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error(\"Segment snippet included twice.\");else{analytics.invoked=!0;analytics.methods=[\"trackSubmit\",\"trackClick\",\"trackLink\",\"trackForm\",\"pageview\",\"identify\",\"reset\",\"group\",\"track\",\"ready\",\"alias\",\"page\",\"once\",\"off\",\"on\"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement(\"script\");e.type=\"text/javascript\";e.async=!0;e.src=(\"https:\"===document.location.protocol?\"https://\":\"http://\")+\"cdn.segment.com/analytics.js/v1/\"+t+\"/analytics.min.js\";var n=document.getElementsByTagName(\"script\")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION=\"3.1.0\";\n    analytics.load(\"0kvxhwu13x\");\n    analytics.page()\n    }}();\n  </script>\n\n  <meta name=\"description\" content=\"We&#x27;re sharing stories, news, and opinions from our journey to bring healthcare to every person on the planet.\">\n    <link rel=\"icon\" href=\"https://storage.ghost.io/c/63/3e/633ec8f3-8830-404f-afd7-49cd4c8d2819/content/images/size/w256h256/2026/01/apple-touch-icon.png\" type=\"image/png\">\n    <link rel=\"canonical\" href=\"https://watsi.org/blog/\">\n    <meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n    <link rel=\"next\" href=\"https://watsi.org/page/2/\">\n    \n    <meta property=\"og:site_name\" content=\"Watsi\">\n    <meta property=\"og:type\" content=\"website\">\n    <meta property=\"og:title\" content=\"Watsi\">\n    <meta property=\"og:description\" content=\"We&#x27;re sharing stories, news, and opinions from our journey to bring healthcare to every person on the planet.\">\n    <meta property=\"og:url\" content=\"https://watsi.org/blog/\">\n    <meta property=\"og:image\" content=\"https://storage.ghost.io/c/63/3e/633ec8f3-8830-404f-afd7-49cd4c8d2819/content/images/size/w1200/2026/04/Watsi---Rwibaale-2026-110-1.jpg\">\n    <meta property=\"article:publisher\" content=\"https://www.facebook.com/Watsi.org\">\n    <meta name=\"twitter:card\" content=\"summary_large_image\">\n    <meta name=\"twitter:title\" content=\"Watsi\">\n    <meta name=\"twitter:description\" content=\"We&#x27;re sharing stories, news, and opinions from our journey to bring healthcare to every person on the planet.\">\n    <meta name=\"twitter:url\" content=\"https://watsi.org/\">\n    <meta name=\"twitter:image\" content=\"https://storage.ghost.io/c/63/3e/633ec8f3-8830-404f-afd7-49cd4c8d2819/content/images/size/w1200/2026/04/Watsi---Rwibaale-2026-110.jpg\">\n    <meta name=\"twitter:site\" content=\"@watsi\">\n    <meta property=\"og:image:width\" content=\"1200\">\n    <meta property=\"og:image:height\" content=\"800\">\n    \n    <script type=\"application/ld+json\">\n{\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"WebSite\",\n    \"publisher\": {\n        \"@type\": \"Organization\",\n        \"name\": \"Watsi\",\n        \"url\": \"https://watsi.org/\",\n        "
+      },
+      {
+        "url": "https://watsi.org/how-it-works",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 60338,
+        "text_chars": 8628,
+        "kept_chars": 2525,
+        "script_chars": 4193,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>How it Works | Watsi</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Crowdfunding enables you to directly fund life-changing surgeries for people around the world. Meet a patient you can support.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"fb:admins\" content=\"1053480134\" /><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"How it Works | Watsi\">\n<meta property=\"og:description\" content=\"Crowdfunding enables you to directly fund life-changing surgeries for people around the world. Meet a patient you can support.\">\n<meta property=\"og:image\" content=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/how-it-works/hero-910526190784625e015b45a136a48308f3f8195718c2b4675dad744ebc87b3ef.jpg\"><meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"2HnXSwCfPpHOtyNfa2vNk7NvwEZHj7QyP6ZP8Q2Ccl0AnG7b20NTfrd3dczrppUDvDywrsWEfrqY3_aaxrISqQ\" /></head><body class=\"page how_it_works \"><div class=\"Banner text-2 paddingTop-8 paddingBottom-8\"><div class=\"Banner-container container flex flexAlign-center flexJustify-center flexDirection-column flexDirection-row-m\"> <style>\n.mobile-info {\n  display: none;\n}\n.extra-info { display: inline-block;}\n\n.banner-link {\ncolor: #1d6396;\n}\n.banner-link:hover {\ncolor: #57b9ff;\ntext-decoration: underline;\n}\n\n.spacer {\npadding-right: 3px;\nfont-weight: bold;\n}\n\n.wrapper {\nwidth: 100%; height: 100%; display: flex;\njustify-content:center;\nalign-items:center;\nfont-size: 14px;\nfont-weight: 600;\ntext-align: center;\npadding: 8px 0px;\n}\n\n.fade {\n    position: absolute;\n    opacity: 0;\n    -webkit-animation: fade 8s linear infinite; /* Safari, Chrome and Opera > 12.1 */\n        -moz-animation: fade 8s linear infinite; /* Firefox < 16 */\n          -ms-animation: fade 8s linear infinite; /* Internet Explorer */\n             -o-animation: fade 8s linear infinite; /* Opera < 12.1 */\n          "
+      },
+      {
+        "url": "https://watsi.org/faq",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 138819,
+        "text_chars": 40000,
+        "kept_chars": 9000,
+        "script_chars": 36416,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>FAQ | Watsi</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Do you have questions about Watsi? Here are answers to commonly asked questions.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"FAQ\">\n<meta property=\"og:description\" content=\"Do you have questions about Watsi? Here are answers to commonly asked questions.\">\n<meta property=\"og:image\" content=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/faq/share-e4a1c15f92980723e734c2b98818ae17e3964ec1422ac88de29c35ec665357e5.jpg\"><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"What is Watsi?\",\"url\":\"https://watsi.org/faq#what-is-watsi\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Watsi is a non-profit that lets anyone donate as little as $5 to directly fund surgical care for patients around the world. We believe everyone deserves access to healthcare, and are committed to using technology to make healthcare a reality for those who might not otherwise be able to afford it. Watsi is a registered U.S. 501(c)(3) non-profit organization (EIN: 45-3236734).\"}},{\"@type\":\"Question\",\"name\":\"What does Watsi mean?\",\"url\":\"https://watsi.org/faq#what-does-watsi-mean\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"On December 3, 2010, our cofounder was traveling on a bus in Central America when a woman boarded the bus and asked the passengers for donations to pay for her son’s healthcare. This experience led to the birth of Watsi, named after the town he was traveling through at the time.\"}},{\"@type\":\"Question\",\"name\":\"How does Watsi fund its operating expenses?\",\"url\":\"https://watsi.org/faq#how-does-watsi-fund-its-operating-expenses\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"100% of every donation made on Watsi directly funds healthcare for the patient you choose. We even pay the cr"
+      },
+      {
+        "url": "https://watsi.org/universal-fund",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 46200,
+        "text_chars": 2352,
+        "kept_chars": 774,
+        "script_chars": 5243,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>Universal Fund | Watsi</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Join our Universal Fund and automatically support a new Watsi patient with every donation.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"fb:admins\" content=\"1053480134\" /><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"Universal Fund | Watsi\">\n<meta property=\"og:description\" content=\"Join our Universal Fund and automatically support a new Watsi patient with every donation.\">\n<meta property=\"og:image\" content=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/universal-fund/hero-7e44058f75deacf5606348b6a8ddb60427ed6958f7e6ca0d944e45274f014f14.jpg\"><meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"F1tfBwaU18j95jTweLqMvLeORinU4-WDd9skmjOvOBSSIDi0c3qnPlwzlwa_Gm38FiVUhQ07744snhRsjHaGHw\" /></head><body class=\"recurring_contributions index \"><div class=\"Banner text-2 paddingTop-8 paddingBottom-8\"><div class=\"Banner-container container flex flexAlign-center flexJustify-center flexDirection-column flexDirection-row-m\"> <style>\n.mobile-info {\n  display: none;\n}\n.extra-info { display: inline-block;}\n\n.banner-link {\ncolor: #1d6396;\n}\n.banner-link:hover {\ncolor: #57b9ff;\ntext-decoration: underline;\n}\n\n.spacer {\npadding-right: 3px;\nfont-weight: bold;\n}\n\n.wrapper {\nwidth: 100%; height: 100%; display: flex;\njustify-content:center;\nalign-items:center;\nfont-size: 14px;\nfont-weight: 600;\ntext-align: center;\npadding: 8px 0px;\n}\n\n.fade {\n    position: absolute;\n    opacity: 0;\n    -webkit-animation: fade 8s linear infinite; /* Safari, Chrome and Opera > 12.1 */\n        -moz-animation: fade 8s linear infinite; /* Firefox < 16 */\n          -ms-animation: fade 8s linear infinite; /* Internet Explorer */\n             -o-animation: fade 8s linear infinite; /* Opera < 12.1 */\n                  animation: fade 8s linear infinite;\n}\n.fade:nt"
+      },
+      {
+        "url": "https://watsi.org/campaigns",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 53121,
+        "text_chars": 3389,
+        "kept_chars": 1599,
+        "script_chars": 6808,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>Donor Campaigns | Watsi</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Learn how you can start your own fundraising campaign to help patients on Watsi. Rally your crew and we can make healthcare a reality for all. 100% of donations fund healthcare.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"fb:admins\" content=\"1053480134\" /><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"Donor Campaigns | Watsi\">\n<meta property=\"og:description\" content=\"Learn how you can start your own fundraising campaign to help patients on Watsi. Rally your crew and we can make healthcare a reality for all. 100% of donations fund healthcare.\">\n<meta property=\"og:image\" content=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/campaign/default-hero-birthday-14a5a54c1adc5d97f282077b237f974c4f81884e28cbc7455b8275ed83f838b5.jpg\"><meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"Sz1fN9MgboIgnW9_K7JwiIfJM9srJwT2IftM4iGDcePhcZG9WriIxskOJjP3Ycm6qYA5VGWUltsFjqyG4GmqEQ\" /></head><body class=\"page donor_campaign \"><div class=\"Banner text-2 paddingTop-8 paddingBottom-8\"><div class=\"Banner-container container flex flexAlign-center flexJustify-center flexDirection-column flexDirection-row-m\"> <style>\n.mobile-info {\n  display: none;\n}\n.extra-info { display: inline-block;}\n\n.banner-link {\ncolor: #1d6396;\n}\n.banner-link:hover {\ncolor: #57b9ff;\ntext-decoration: underline;\n}\n\n.spacer {\npadding-right: 3px;\nfont-weight: bold;\n}\n\n.wrapper {\nwidth: 100%; height: 100%; display: flex;\njustify-content:center;\nalign-items:center;\nfont-size: 14px;\nfont-weight: 600;\ntext-align: center;\npadding: 8px 0px;\n}\n\n.fade {\n    position: absolute;\n    opacity: 0;\n    -webkit-animation: fade 8s linear infinite; /* Safari, Chrome and Opera > 12.1 */\n        -moz-animation: fade 8s linear infinite; /* Firefox < 16 */\n          -ms-animation: fade 8s"
+      },
+      {
+        "url": "https://watsi.org/gift-cards",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 43951,
+        "text_chars": 1544,
+        "kept_chars": 493,
+        "script_chars": 4451,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>Give the gift of health with a Watsi Gift Card</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Give a Watsi gift card and start spreading the health.\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"fb:admins\" content=\"1053480134\" /><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"Give the gift of health with a Watsi Gift Card\">\n<meta property=\"og:description\" content=\"Give a Watsi gift card and start spreading the health.\">\n<meta property=\"og:url\" content=\"https://watsi.org/gift-cards\">\n<meta property=\"og:image\" content=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/gift-card/hero-437969fb7be311c6689071481b35f29b7eaaab96b3d090346cf3e94dbc074c07.jpg\"><meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"6fpbqgKim9m97mqXBEWy0b0q90fUxBiHm9tDz_kBPj93wE4pfD1RKsUVCHCohbvf_vhnwrXNGae8HndHwCQ2Bw\" /></head><body class=\"gift_cards new \"><div class=\"Banner text-2 paddingTop-8 paddingBottom-8\"><div class=\"Banner-container container flex flexAlign-center flexJustify-center flexDirection-column flexDirection-row-m\"> <style>\n.mobile-info {\n  display: none;\n}\n.extra-info { display: inline-block;}\n\n.banner-link {\ncolor: #1d6396;\n}\n.banner-link:hover {\ncolor: #57b9ff;\ntext-decoration: underline;\n}\n\n.spacer {\npadding-right: 3px;\nfont-weight: bold;\n}\n\n.wrapper {\nwidth: 100%; height: 100%; display: flex;\njustify-content:center;\nalign-items:center;\nfont-size: 14px;\nfont-weight: 600;\ntext-align: center;\npadding: 8px 0px;\n}\n\n.fade {\n    position: absolute;\n    opacity: 0;\n    -webkit-animation: fade 8s linear infinite; /* Safari, Chrome and Opera > 12.1 */\n        -moz-animation: fade 8s linear infinite; /* Firefox < 16 */\n          -ms-animation: fade 8s linear infinite; /* Internet Explorer */\n             -o-animation: fade 8s linear infinite; /* Opera < 12.1 */\n                  animation: fade 8s linear "
+      },
+      {
+        "url": "https://watsi.org/crypto",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=utf-8",
+        "html_chars": 38504,
+        "text_chars": 2046,
+        "kept_chars": 870,
+        "script_chars": 3659,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html><html lang=\"en\"><head><link href=\"https://d3w52z135jkm97.cloudfront.net\" rel=\"dns-prefetch\" /><meta charset=\"utf-8\" /><meta content=\"IE=edge,chrome=1\" http-equiv=\"X-UA-Compatible\" /><script>window.EXPRESS_PAYMENT_ENABLED = true;</script><script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\" id=\"plaid\" defer=\"defer\"></script><link rel=\"stylesheet\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/v3-1adc62a65cf4040decad9b22d1d6b9c129f6c7ed3edc36f94b2dba7f1b3005a7.css\" media=\"all\" /><title>Crypto | Watsi</title><meta content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0\" name=\"viewport\" /><meta content=\"Learn more about crypto donations to Watsi\" name=\"description\" /><meta content=\"1576438922613688\" property=\"fb:app_id\" /><link rel=\"icon\" type=\"image/svg+xml\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-2b493d6c70df9d2851804c2dae7e58797febc11a48b61dce359c3eed020bc757.svg\" /><link rel=\"apple-touch-icon\" type=\"image/x-icon\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/apple-touch-icon-ee36da209d48ce4a3be5bdbafee5a2dd3ca0c8e463c21bff25111cf0fcc374ef.png\" sizes=\"180x180\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-16x16-2ec01a752fc5e32acf1b2384f7f42d5d7dacccfb0d2819d1908012f1c75dfd53.png\" sizes=\"16x16\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/favicon-32x32-be596cf965cfb043197070ca2164b59606b7a094dcdf4414e615c14d30da34de.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-192x192-befa17ee31ab4d4836fc5bacdd2cb1b4da90e54bdf886539ab394e4355e56ff8.png\" sizes=\"192x192\" /><link rel=\"icon\" type=\"image/png\" href=\"https://d3w52z135jkm97.cloudfront.net/assets/favicon/production/android-chrome-512x512-a9e264284f11f70848fc25b4643a5f0de6f10c2bab9e79804e75deb0eb46d385.png\" sizes=\"512x512\" /><meta property=\"fb:admins\" content=\"1053480134\" /><meta property=\"og:site_name\" content=\"Watsi\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"twitter:card\" content=\"summary_large_image\">\n<meta property=\"twitter:site\" content=\"@watsi\">\n<meta property=\"twitter:site:id\" content=\"392560474\">\n<meta property=\"og:title\" content=\"Crypto | Watsi\">\n<meta property=\"og:description\" content=\"Learn more about crypto donations to Watsi\">\n<meta property=\"og:image\" content=\"https://d3w52z135jkm97.cloudfront.net/assets/v3/pages/crypto/hero-cd856f97e59af77f6e00dd50d41a450e8b69cd6418a2838644b7923971154822.jpg\"><meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"-R4lxzmfwlSWpP-hktjhdx0gAogjYG0Xouh7FsXbjichRB3pvHKTGuXQPn9xJHf3UT5EE-mv-fUvSIC9r9rxZQ\" /></head><body class=\"page crypto \"><div class=\"Banner text-2 paddingTop-8 paddingBottom-8\"><div class=\"Banner-container container flex flexAlign-center flexJustify-center flexDirection-column flexDirection-row-m\"> <style>\n.mobile-info {\n  display: none;\n}\n.extra-info { display: inline-block;}\n\n.banner-link {\ncolor: #1d6396;\n}\n.banner-link:hover {\ncolor: #57b9ff;\ntext-decoration: underline;\n}\n\n.spacer {\npadding-right: 3px;\nfont-weight: bold;\n}\n\n.wrapper {\nwidth: 100%; height: 100%; display: flex;\njustify-content:center;\nalign-items:center;\nfont-size: 14px;\nfont-weight: 600;\ntext-align: center;\npadding: 8px 0px;\n}\n\n.fade {\n    position: absolute;\n    opacity: 0;\n    -webkit-animation: fade 8s linear infinite; /* Safari, Chrome and Opera > 12.1 */\n        -moz-animation: fade 8s linear infinite; /* Firefox < 16 */\n          -ms-animation: fade 8s linear infinite; /* Internet Explorer */\n             -o-animation: fade 8s linear infinite; /* Opera < 12.1 */\n                  animation: fade 8s linear infinite;\n}\n.fade:nth-child(2) {\n    -webkit-animation-delay: 4s; /* Safari, Chrome and Opera > 12.1 */\n        -moz-animation-delay: 4s; /* Firefox < 16 */\n "
+      }
+    ],
+    "fetch_budget_exhausted": false,
+    "discovered": 42,
+    "elapsed_ms": 3773
+  },
+  "wall_ms": 3802
+}

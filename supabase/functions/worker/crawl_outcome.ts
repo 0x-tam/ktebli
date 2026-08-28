@@ -80,9 +80,27 @@
 // Nothing here asks a model to count anything.
 
 import { normPN, properNouns } from "./proper_nouns.ts";
-import { safeFetchText, stripHtml } from "./ssrf.ts";
+import { decodeEntities, safeFetchText, stripHtml } from "./ssrf.ts";
 
-export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.0.0";
+// 1.1.0: the phase-5 silent-failure audit. A refusal status survives the
+// content-type gate (blocked_bot, not fetch_failed, for a 403 with a non-text
+// body); weak challenge markers can no longer reclassify a served 2xx page;
+// a mount-point div without any script is not a JS shell; a malformed empty
+// User-agent line no longer fabricates a robots block; the most specific robots
+// group wins; parsed-page counting matches the traversal's own threshold; and
+// nothing_relevant names the subpages the server refused.
+// 1.2.0: extraction truthfulness, from the live run's evidence. Site furniture
+// (nav menus, language selectors, card-grid link labels) glued into giant
+// capitalised runs that counted as "referents" — two-thirds of the extracted
+// count on real charity sites. stripHtml removes furniture elements and emits
+// real block boundaries; keepParagraphs drops unpunctuated capitalised-majority
+// link runs; siteReferents refuses any "name" longer than six words.
+// 1.3.0: machine files are not pages (critic finding). Child sitemaps, /wp-json
+// and /feed were fetched as role "page" through the default content-type
+// allowlist and their tokens counted as referents; content fetches now accept
+// only HTML-ish content types and page discovery skips machine-file URLs.
+// siteNameCandidates decodes entities, so the identity gate never sees residue.
+export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.3.0";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -239,8 +257,13 @@ export function parseRobots(txt: string): RobotsRules {
     if (field === "user-agent") {
       // A new user-agent line after directives starts a new group.
       if (sawDirective) { active = []; sawDirective = false; }
-      active.push(value.toLowerCase());
-      if (!groups.has(value.toLowerCase())) groups.set(value.toLowerCase(), []);
+      const ua = value.toLowerCase();
+      // A user-agent line with NO token names no crawler. Adopting it would make
+      // the empty string a group key, and every crawler's UA contains the empty
+      // string — a malformed file would fabricate a blocked_robots for everyone.
+      if (!ua) continue;
+      active.push(ua);
+      if (!groups.has(ua)) groups.set(ua, []);
       continue;
     }
     if (field !== "allow" && field !== "disallow") continue;
@@ -264,7 +287,9 @@ function robotsPathMatches(pattern: string, path: string): boolean {
 
 /**
  * Longest-match wins; an Allow beats a Disallow of equal length (the rule every
- * major crawler implements). A group naming our token wins over `*` outright.
+ * major crawler implements). A group naming our token wins over `*` outright,
+ * and where several groups match ("bot" and "kteblibot"), the most specific —
+ * longest — token wins, not whichever the file happened to state first.
  */
 export function robotsAllows(
   rules: RobotsRules,
@@ -273,8 +298,12 @@ export function robotsAllows(
 ): { allowed: boolean; rule: string | null } {
   const uaLower = ua.toLowerCase();
   let group: Array<{ allow: boolean; path: string; line: string }> | undefined;
+  let bestName = -1;
   for (const [name, directives] of rules.groups) {
-    if (name !== "*" && uaLower.includes(name)) { group = directives; break; }
+    if (name !== "*" && uaLower.includes(name) && name.length > bestName) {
+      group = directives;
+      bestName = name.length;
+    }
   }
   if (!group) group = rules.groups.get("*");
   if (!group || !group.length) return { allowed: true, rule: null };
@@ -293,25 +322,39 @@ export function robotsAllows(
 // Pure helper: bot blocks and challenge interstitials
 // ---------------------------------------------------------------------------
 
-const CHALLENGE_MARKERS: ReadonlyArray<readonly [RegExp, string]> = [
-  [/just a moment\s*\.{0,3}/i, "Cloudflare 'Just a moment' interstitial"],
+// STRONG markers are challenge-page signatures a legitimate page essentially
+// never carries: branded challenge platforms, their exact interlock phrases, and
+// CAPTCHA walls. They may flag a 200/503/202 on their own (with almost no prose).
+const STRONG_CHALLENGE_MARKERS: ReadonlyArray<readonly [RegExp, string]> = [
+  // The ellipsis is required: "Just a moment..." is the Cloudflare title, while
+  // "it takes just a moment to donate" is a sentence a thin charity page really
+  // does write, and used to be flagged as a block.
+  [/just a moment\s*(\.{3}|…)/i, "Cloudflare 'Just a moment' interstitial"],
   [/attention required.{0,20}cloudflare/i, "Cloudflare 'Attention Required'"],
   [/checking your browser before accessing/i, "Cloudflare browser check"],
   [/cf-browser-verification|__cf_chl_|cf_chl_opt|cdn-cgi\/challenge-platform/i, "Cloudflare challenge platform"],
   [/enable javascript and cookies to continue/i, "JavaScript-and-cookies challenge"],
-  [/(sorry, )?you have been blocked/i, "explicit block page"],
-  [/access denied|403 forbidden|forbidden/i, "access denied page"],
+  [/sorry, you have been blocked/i, "explicit block page"],
   [/request unsuccessful.{0,40}incapsula/i, "Imperva/Incapsula block"],
   [/pardon our interruption/i, "Distil/Imperva interruption page"],
   [/(h|re)?captcha|are you a robot|verify you are human/i, "CAPTCHA challenge"],
+];
+
+// WEAK markers are ordinary English that block pages also happen to use. They
+// only ever NAME a refusal whose status already proves it (401/403/429) — they
+// can never flag a 2xx by themselves, because "dogs are forbidden inside the
+// hall" is prose, not a WAF.
+const WEAK_CHALLENGE_MARKERS: ReadonlyArray<readonly [RegExp, string]> = [
+  [/you have been blocked/i, "explicit block page"],
+  [/access denied|403 forbidden|forbidden/i, "access denied page"],
   [/rate limit|too many requests/i, "rate limiting"],
 ];
 
 /**
  * A refusal aimed at non-browser readers. Statuses 401/403/429 are conclusive on
- * their own. A 200 or 503 is only a block when a marker is present AND there is
- * almost no prose — otherwise a page that happens to discuss captchas would be
- * misread as a block.
+ * their own. A 200, 503 or 202 is only a block when a STRONG marker is present
+ * AND there is almost no prose — a weak, fragment-satisfiable marker ("forbidden",
+ * "rate limit") must never reclassify a page the server actually served.
  */
 export function looksLikeBotChallenge(
   status: number | null,
@@ -319,13 +362,15 @@ export function looksLikeBotChallenge(
   textChars: number,
 ): { blocked: boolean; marker: string | null } {
   const sample = String(body ?? "").slice(0, 20_000);
-  let marker: string | null = null;
-  for (const [re, name] of CHALLENGE_MARKERS) if (re.test(sample)) { marker = name; break; }
+  let strong: string | null = null;
+  for (const [re, name] of STRONG_CHALLENGE_MARKERS) if (re.test(sample)) { strong = name; break; }
   if (status === 401 || status === 403 || status === 429) {
-    return { blocked: true, marker: marker ?? `HTTP ${status}` };
+    let weak: string | null = null;
+    for (const [re, name] of WEAK_CHALLENGE_MARKERS) if (re.test(sample)) { weak = name; break; }
+    return { blocked: true, marker: strong ?? weak ?? `HTTP ${status}` };
   }
-  if (marker && textChars < 3000 && (status === 200 || status === 503 || status === 202)) {
-    return { blocked: true, marker };
+  if (strong && textChars < 3000 && (status === 200 || status === 503 || status === 202)) {
+    return { blocked: true, marker: strong };
   }
   return { blocked: false, marker: null };
 }
@@ -352,7 +397,10 @@ export function scriptChars(html: string): number {
  * Is this a shell whose text is drawn by JavaScript? Two independent signals:
  * a framework marker, or a body that is mostly script and carries no prose. Both
  * additionally require that there is essentially no readable text — a rendered
- * React page is a normal page and must not be classified as js_only.
+ * React page is a normal page and must not be classified as js_only. A
+ * mount-point div additionally requires that the page loads ANY script at all:
+ * a static page that happens to use id="app" as markup ships no script, and
+ * "draws its text with JavaScript" would be a false statement about it.
  */
 export function looksLikeJsShell(
   html: string,
@@ -365,7 +413,9 @@ export function looksLikeJsShell(
   const ratio = len ? sc / len : 0;
   if (textChars >= 600) return { shell: false, marker: null, script_ratio: ratio };
   for (const [re, name] of SHELL_MARKERS) {
-    if (re.test(h)) return { shell: true, marker: name, script_ratio: ratio };
+    if (!re.test(h)) continue;
+    if (/mount point/.test(name) && sc === 0) continue;
+    return { shell: true, marker: name, script_ratio: ratio };
   }
   if (ratio > 0.4 && len > 500) {
     return { shell: true, marker: "body is mostly script with no prose", script_ratio: ratio };
@@ -415,17 +465,40 @@ export const PARA_MIN_CHARS = 40;
 export const PAGE_MIN_CHARS = 120;
 export const PER_PAGE_CHARS = 9_000;
 
+/**
+ * Site furniture that survived the length floor: a run of words with no sentence
+ * punctuation anywhere, most of them capitalised, is a menu, a card-grid of link
+ * labels, or a heading — not a paragraph the organisation wrote. The phase-5
+ * live run showed these gluing into giant pseudo-referents ("Volunteer Donate
+ * Get Help Menu Home About…") that inflated succeeded counts on every site.
+ * Real prose is lowercase-majority and punctuated; both checks must fail for a
+ * paragraph to be dropped, so an unpunctuated mission line in ordinary case
+ * ("we support families across Brent…") is never touched.
+ */
+export function isFurniture(p: string): boolean {
+  if (/[.!?]/.test(p)) return false;
+  const words = p.split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  const capitalish = words.filter((w) => /^[A-Z0-9]/.test(w)).length;
+  return capitalish / words.length >= 0.6;
+}
+
 export function keepParagraphs(rawText: string, seen: Set<string>): string[] {
-  const paras = String(rawText ?? "")
-    .split(/(?<=[.!?])\s+(?=[A-Z؀-ۿ])/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > PARA_MIN_CHARS);
   const kept: string[] = [];
-  for (const p of paras) {
-    const k = p.toLowerCase().slice(0, 120);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    kept.push(p);
+  // stripHtml now emits one line per block element, so menu labels and card
+  // titles arrive as their own short lines and fall to the length floor instead
+  // of gluing onto the prose that follows them.
+  for (const line of String(rawText ?? "").split(/\n+/)) {
+    const paras = line
+      .split(/(?<=[.!?])\s+(?=[A-Z؀-ۿ])/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > PARA_MIN_CHARS && !isFurniture(p));
+    for (const p of paras) {
+      const k = p.toLowerCase().slice(0, 120);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      kept.push(p);
+    }
   }
   return kept;
 }
@@ -482,12 +555,36 @@ export function crawlCorpus(pages: ReadonlyArray<{ url: string; text: string }>)
 export function siteReferents(corpus: string, applicantName: string): string[] {
   const own = new Set<string>();
   for (const p of properNouns(String(applicantName ?? ""))) own.add(normPN(p));
+  // A true proper noun is capitalised wherever it appears; a grammar word is
+  // capitalised only where a sentence begins. So a SINGLE word that also occurs
+  // in lowercase in the same corpus ("However", "Once", "Please") is position,
+  // not a name — corpus-driven, no dictionary, and it errs toward counting
+  // fewer referents, never more.
+  const lower = new Set(
+    String(corpus ?? "").split(/[^\p{L}\p{N}'’-]+/u)
+      .filter((w) => w && /^\p{Ll}/u.test(w)).map((w) => w.toLowerCase()),
+  );
+  // Connectives the proper-noun counter can leave dangling at a phrase edge
+  // when it trims a stop word ("Board of Trustees" -> "of Trustees"). Inside a
+  // phrase they are structure ("London Borough of Brent"); at an edge they are
+  // debris.
+  const GLUE = new Set(["of", "the", "and", "for", "de", "la", "le", "du", "el", "al", "van", "von", "bin"]);
   const seen = new Map<string, string>();
   for (const p of properNouns(String(corpus ?? ""))) {
     if (p === p.toUpperCase()) continue;   // UNKNOWN / NOT RECORDED scaffolding
-    const k = normPN(p);
+    const words = p.split(/\s+/);
+    while (words.length && /^\p{Ll}/u.test(words[0]) && GLUE.has(words[0].toLowerCase())) words.shift();
+    while (words.length && /^\p{Ll}/u.test(words[words.length - 1]) && GLUE.has(words[words.length - 1].toLowerCase())) words.pop();
+    if (!words.length) continue;
+    // No place, partner, venue or programme needs seven capitalised words. A run
+    // that long is site furniture glued together, and counting it would inflate
+    // exactly the number the sufficiency gate and the phase-6 benchmark read.
+    if (words.length > 6) continue;
+    if (words.length === 1 && lower.has(words[0].toLowerCase())) continue;
+    const phrase = words.join(" ");
+    const k = normPN(phrase);
     if (!k || own.has(k)) continue;
-    if (!seen.has(k)) seen.set(k, p);
+    if (!seen.has(k)) seen.set(k, phrase);
   }
   return [...seen.values()];
 }
@@ -550,14 +647,17 @@ export function siteNameCandidates(html: string): string[] {
   const h = String(html ?? "");
   const out: string[] = [];
   const push = (s: string | undefined) => {
-    const t = String(s ?? "").replace(/\s+/g, " ").trim();
+    // Entity decoding: a raw candidate like "Cart &#8211; The Magpie Project"
+    // otherwise reaches the identity gate with residue in it, and the en dash
+    // separator inside the entity is invisible to the <title> splitter below.
+    const t = decodeEntities(String(s ?? "")).replace(/\s+/g, " ").trim();
     if (t && t.length < 160) out.push(t);
   };
   push(h.match(/<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i)?.[1]);
   push(h.match(/<meta[^>]+name=["']application-name["'][^>]+content=["']([^"']+)["']/i)?.[1]);
   for (const m of h.matchAll(/"(?:legalName|name)"\s*:\s*"([^"]{2,120})"/g)) push(m[1]);
   const title = h.match(/<title[^>]*>([\s\S]{0,200}?)<\/title>/i)?.[1];
-  if (title) for (const part of title.split(/\s[|–—-]\s/)) push(part);
+  if (title) for (const part of decodeEntities(title).split(/\s[|–—-]\s/)) push(part);
   return [...new Set(out)];
 }
 
@@ -581,7 +681,10 @@ function httpReason(p: PageObservation): string {
 export function classifyCrawl(input: ClassifyInput): CrawlReport {
   const content = contentPages(input.pages);
   const fetched = content.filter((p) => p.status !== null && p.status >= 200 && p.status < 300);
-  const parsed = content.filter((p) => p.kept_chars >= PAGE_MIN_CHARS);
+  // Strictly greater: the traversal (and worker/index.ts:1272 before it) admits a
+  // page only when text.length > PAGE_MIN_CHARS, and the classifier must not
+  // count as "parsed" a page the extraction would never have kept.
+  const parsed = content.filter((p) => p.kept_chars > PAGE_MIN_CHARS);
   const proseParsed = parsed.filter((p) => p.prose);
   const keptChars = content.reduce((a, p) => a + p.kept_chars, 0);
   const textChars = content.reduce((a, p) => a + p.text_chars, 0);
@@ -686,8 +789,8 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
     return report(
       "extraction_failed",
       `${input.domain} answered HTTP ${home.status} and returned ${keptChars} characters, ` +
-        `but none of it reads as text (mis-declared encoding or a non-text body` +
-        (home.content_type ? `, content-type ${home.content_type}` : "") + `)`,
+        `but none of it reads as text (mis-declared encoding, a non-text body, or too little running text` +
+        (home.content_type ? `; content-type ${home.content_type}` : "") + `)`,
     );
   }
 
@@ -711,12 +814,18 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
     }
   }
 
-  // 8. Prose, but it names nothing.
+  // 8. Prose, but it names nothing. If the server refused further pages after
+  //    serving the homepage (a rate limiter that lets the first request through),
+  //    that is said too: "the site is thin" and "we were only shown one page of
+  //    it" are different findings, and only the counts distinguish them.
   if (input.referents_extracted === 0 || input.referents_surviving === 0) {
+    const refused = content.filter((p) =>
+      p.status === 401 || p.status === 403 || p.status === 429).length;
     return report(
       "nothing_relevant",
       `${input.domain}: ${parsed.length} page(s) parsed and ${keptChars} characters of prose, ` +
-        `but no named referent (place, partner, venue, programme or dated result) was found`,
+        `but no named referent (place, partner, venue, programme or dated result) was found` +
+        (refused ? `; ${refused} further page(s) were refused by the server` : ""),
     );
   }
 
@@ -1058,7 +1167,17 @@ export async function crawlSiteObserved(
     if (fetchedHtml.has(u)) return fetchedHtml.get(u)!;
     if (fetchedHtml.size >= MAX_FETCHES) { budgetExhausted = true; return null; }
     try {
-      const res = await fetcher(u, { maxRedirects: 3, timeoutMs: 9_000, maxBytes: 900_000 });
+      // Content pages must BE content. The default safeFetchText allowlist admits
+      // application/xml and application/json (robots and sitemaps need text/xml),
+      // and through it child sitemaps and /wp-json were fetched as role "page",
+      // stripped as if they were HTML, and their machine tokens counted as
+      // referents in three of seven live crawls. text/plain stays admitted:
+      // small-charity servers really do mis-serve HTML as text/plain, and a
+      // plain-text refusal page still carries its body into the classifier.
+      const res = await fetcher(u, {
+        maxRedirects: 3, timeoutMs: 9_000, maxBytes: 900_000,
+        allowContentTypes: /^(text\/(html|plain)|application\/xhtml\+xml)/i,
+      });
       if (normDomain(new URL(res.finalUrl).hostname) !== domain) {
         observations.push(observePage({ url: u, role, status: res.status, error: `offsite:${res.finalUrl}`.slice(0, 120), contentType: res.contentType }));
         return null;
@@ -1075,7 +1194,14 @@ export async function crawlSiteObserved(
       fetchedHtml.set(u, res.body);
       return res.body;
     } catch (e) {
-      observations.push(observePage({ url: u, role, error: String((e as Error).message ?? e) }));
+      const msg = String((e as Error).message ?? e);
+      // safeFetchText refuses to READ a body whose content-type is not text, but
+      // it carries the refusal status out in the error reason. Recovering it here
+      // is what lets a 403 served with a non-text (or missing) content-type
+      // classify as blocked_bot rather than as a transport failure — the
+      // reference defect was exactly a discarded status.
+      const ct = /^bad_content_type_http_(\d{3})$/.exec(msg);
+      observations.push(observePage({ url: u, role, status: ct ? Number(ct[1]) : null, error: msg }));
       return null;
     }
   };
@@ -1113,6 +1239,14 @@ export async function crawlSiteObserved(
       const url = new URL(u);
       if (normDomain(url.hostname) !== domain) return false;
       if (/\.(pdf|jpg|jpeg|png|gif|svg|webp|mp4|zip|docx?|xlsx?|pptx?)$/i.test(u)) return false;
+      // Machine files are not pages. A sitemap INDEX lists child sitemaps, and
+      // WordPress links /wp-json and /feed from every page; all of these passed
+      // the extension filter, were fetched as role "page", stripped as if they
+      // were HTML, and their tokens counted as referents (three of seven live
+      // crawls). The content-type gate in get() is the backstop; this keeps the
+      // page budget from being spent discovering the refusal.
+      if (/\.(xml|json|rss|atom|txt|ico|css|js)(\.gz)?$/i.test(url.pathname)) return false;
+      if (/^\/wp-json(\/|$)/i.test(url.pathname) || /\/feed\/?$/i.test(url.pathname)) return false;
       return robotsAllows(rules, url.pathname || "/").allowed;
     } catch { return false; }
   });
