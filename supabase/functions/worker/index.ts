@@ -1370,8 +1370,14 @@ async function notifyTerminal(stageId: number, proposalId: string, status: strin
   try {
     const st = (await sel(`job_stages?id=eq.${stageId}&select=notified_at,key,label`))[0];
     if (!st || st.notified_at) return;
-    await patch(`job_stages?id=eq.${stageId}`, { notified_at: new Date().toISOString() });
-
+    // notified_at is set LAST, after every channel has been ATTEMPTED (see the end
+    // of this function). Marking it here — before the two lookups below — was a
+    // silent-swallow hole: sel() throws on any non-2xx (a transient 5xx or replica
+    // lag) and the row may not be visible yet, so a throw or the `!prop`/`!order`
+    // early return left the stage marked "notified" with nobody told, and
+    // notifyUnnotifiedTerminals (which sweeps only notified_at IS NULL) never
+    // retried it. A paid terminal failure swallowed permanently. Now any failure
+    // before the notifications leaves notified_at null for the next tick to retry.
     const prop = (await sel(`order_proposals?id=eq.${proposalId}&select=id,order_id`))[0];
     if (!prop) return;
     const order = (await sel(`orders?id=eq.${prop.order_id}&select=id,email,org_name,tier,order_no`))[0];
@@ -1392,11 +1398,18 @@ async function notifyTerminal(stageId: number, proposalId: string, status: strin
     const support = (await rpc("get_secret", { p_name: "support_email" }).catch(() => null)) ?? "hello@ktebli.com";
     const cw = DRAFT_WORDINGS.customerTerminal(String(order.order_no ?? ""), String(st.label ?? st.key), String(support));
     const sentCustomer = await sendEmail(order.email, cw.subject, cw.html).catch(() => false);
-    await recordNotifyAttempt("notify_customer", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentCustomer });
+    await recordNotifyAttempt("notify_customer", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentCustomer }).catch(() => {});
 
     const ow = DRAFT_WORDINGS.operatorTerminal(String(order.order_no ?? ""), String(st.key), error.slice(0, 200));
-    const sentOperator = await notifyOperator(ow.subject, ow.html);
-    await recordNotifyAttempt("notify_operator", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentOperator });
+    const sentOperator = await notifyOperator(ow.subject, ow.html).catch(() => false);
+    await recordNotifyAttempt("notify_operator", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentOperator }).catch(() => {});
+
+    // Only NOW, after the escalation row and BOTH email channels have been
+    // attempted (each guarded above so a throw here cannot leave a channel
+    // half-attempted then retried), mark the stage notified so the terminal sweep
+    // does not re-notify it. Idempotency, applied at the point the notification is
+    // actually done rather than before it begins.
+    await patch(`job_stages?id=eq.${stageId}`, { notified_at: new Date().toISOString() });
   } catch { /* never let notification failure mask the original failure */ }
 }
 
