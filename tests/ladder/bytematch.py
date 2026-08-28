@@ -85,6 +85,11 @@ FINGERPRINTS = [
     ("n09",      "critic_b", 2, "A", r"\b76\b"),      # "76 starters are not derived"
     ("n12",      "critic_a", 1, "B", r"44 of 50"),      # "44 of 50 completers accompanied"
     ("n12",      "critic_a", 3, "C", r"5,?120"),        # "total 5,124, not the claimed 5,120"
+    # phase 2 (verdicts2/): the hybrid cells
+    ("n12",      "critic_a", 2, "H", r"4,?576"),        # "£88 × 52 = £4,576" recomputed, closes
+    ("n12",      "critic_b", 3, "H", r"\b78\b"),       # "78 supper-club evenings as if new activity"
+    ("n06thin",  "critic_a", 1, "H", r"\b108\b"),      # "claimed 108 sessions contradict the schedule"
+    ("n06thin",  "critic_b", 3, "D", r"hundred yards"), # "last hundred yards" (B says metres)
 ]
 
 def main():
@@ -130,9 +135,10 @@ def main():
 
     print("\n== 2. content fingerprints: which document each critic actually read ==")
     for rung, critic, doc_n, arm, pattern in FINGERPRINTS:
-        hits = [a for a in "ABCD"
-                if re.search(pattern, open(os.path.join(DOCS_DIR, f"out-{rung}-{a}.md"),
-                                           encoding="utf-8").read())]
+        hits = [a for a in "ABCDH"
+                if os.path.exists(os.path.join(DOCS_DIR, f"out-{rung}-{a}.md"))
+                and re.search(pattern, open(os.path.join(DOCS_DIR, f"out-{rung}-{a}.md"),
+                                            encoding="utf-8").read())]
         label = f"{rung}/{critic} Doc {doc_n} = {arm}"
         if hits == [arm]:
             print(f"  ok   {label:34s} /{pattern}/ appears only in out-{rung}-{arm}.md")

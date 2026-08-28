@@ -66,3 +66,45 @@ invariant-style rules; a repair must materially change the document):
   loss and writes BLOCKED.md with both tables.
 
 Result: recorded below after the run. Nothing above this line changes after it.
+
+---
+
+## RESULT (recorded after the run, 2026-08-28): THE HYBRID LOSES, 0 of 4.
+
+4 cells, same critics, same settings, blinding derived from bytes, every decode confirmed
+by a critic-quoted figure unique to one arm (bytematch: 26 fingerprints green). Judging
+spend $0.2233; hybrid generation $0.2084.
+
+| cell | packet order | ranking (decoded) | funds | H fundable? |
+|---|---|---|---|---|
+| n12 / critic_a | AHDB | **B > D > A > H** | B | no |
+| n12 / critic_b | DBHA | **D > B > H > A** | D | no |
+| n06thin / critic_a | HDAB | **B > D > H > A** | B | no |
+| n06thin / critic_b | BADH | **B > D > H > A** | B | yes |
+
+Against the pre-committed win condition: H above both B and D in **0 of 4** (needed ≥3);
+funded in **0 of 4** (needed ≥2); below A in one cell. A loss on every clause.
+
+**Why it lost — both critics, independently, the same diagnosis.** Not prose, and not
+arithmetic: critic_a *verified H's budget closes* (recomputing £88 × 52 = £4,576 — the
+first document in this project's history whose totals a hostile critic confirmed), and
+critic_b counted H's referents among the densest. It lost on **strategy**: "bundles
+existing youth sessions, a supper club, adult volunteering and progression work into an
+over-broad proposal rather than presenting a disciplined project" (critic_a);
+"design is a pile of existing work, not a progression plan" (critic_b). Fed the full
+ledger with no strategy layer, the strong generator used everything and chose nothing.
+
+**What this establishes.** The strategy-plus-generation core is load-bearing: the
+pipeline's strategy stage is what turns an evidence pile into a project, and no wrapper
+of deterministic gates substitutes for it. The pipeline (arm B) remains the core. The
+deterministic gates built for this test are kept — they caught real, critic-confirmed
+defects in every arm (word limits, 24-vs-12 trips, 90 hall evenings, unledgered names)
+and they are exactly the wrapper the pipeline's own weaknesses need.
+
+A variance note, honestly: in these packets B beat D in 3 of 4 cells, including both
+n06thin cells, where phase 1 had split. One critic judging one packet is not a stable
+instrument at the margin — which is an argument for the hold-biased deterministic gate
+posture in phase 3, not against the comparison above.
+
+Per the fork rule: BLOCKED.md carries both tables; phases 3–6 continue, none of which
+depends on the fork.
