@@ -432,13 +432,28 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
   const want = orgTokens(orgName);
   if (!want.size) return false; // nothing distinctive to match on: do not admit
   const site = orgTokens(String(siteLegalName ?? ""));
-  for (const t of want) if (site.has(t)) return true;
-  for (const t of site) if (want.has(t)) return true;
-  // A site may never state a legal name. The domain is then the only signal, and
-  // a distinctive token appearing in it is a real one (amel.org would NOT match
-  // "Beit Al-Shabab Community Association", which is the case that matters).
+  // A SINGLE shared distinctive token is not a confident match: "Grace Kitchen" and
+  // "W. R. Grace and Company" share only "grace", "Bright Futures Youth Club" and
+  // "Bright Horizons Family Solutions" share only "bright" — one common word is a
+  // coincidence, and admitting on it imports a stranger's history as the applicant's,
+  // the worst outcome invariant 3 has. Confidence requires ONE of:
+  //   (1) TWO or more distinctive tokens agree (an independent second signal), or
+  //   (2) the two distinctive-token sets are IDENTICAL and non-empty (the site's
+  //       stated name IS the applicant, e.g. a single-distinctive-token org whose
+  //       site carries that same one token).
+  let shared = 0;
+  for (const t of want) if (site.has(t)) shared++;
+  if (shared >= 2) return true;
+  if (shared >= 1 && shared === want.size && shared === site.size) return true;
+  // A site may state no usable legal name; the domain is then the only signal. But a
+  // distinctive token appearing as a bare SUBSTRING of the host is coincidental —
+  // "arts" sits inside "smartsdata" with no relation to "Community Arts Reach". So the
+  // domain admits only when EVERY distinctive applicant token appears in the host (and
+  // at least one of real length), never on a single token buried in an unrelated word.
+  // amel.org still does NOT match "Beit Al-Shabab Community Association", the case B1
+  // was about. Stays asymmetric: on any doubt the site is discarded, never imported.
   const host = domain.toLowerCase().replace(/[^a-z0-9]/g, "");
-  for (const t of want) if (t.length > 3 && host.includes(t)) return true;
+  if (host && [...want].every((t) => host.includes(t)) && [...want].some((t) => t.length > 3)) return true;
   return false;
 }
 
