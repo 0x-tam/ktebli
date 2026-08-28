@@ -41,9 +41,14 @@ project", "the total of cost"); a partial sub-aggregate numerator (F1=L1+L2 ÷ g
 total exists) via a word-list-FREE leaf-set rule; and every label spelling of that class ("the
 cost", "costs", a synonym) — the leaf-set rule compares leaves, not labels.
 
-**Residual:** a "share of X" where the true larger whole is declared as a LEAF (not a sum, so the
-leaf-set rule has no aggregate to compare against) AND named with a token-disjoint synonym the
-label-superset backstop and the scope-word set both miss ("overall budget" for a "cost" node).
+**Residual (corrected per the inv4 attacker's RE-6 concession):** the residual is SYMMETRIC — it
+is "the part-whole relationship is not declared in structure," in EITHER direction: the true larger
+whole is a bare LEAF, or the numerator is a disconnected leaf that is not a declared member of any
+sum. In that regime the leaf-set rule has no aggregate to fire on, and the only backstop is the
+label-superset rule. That backstop now article-strips and de-pluralises before comparing, so a
+stop-word or plural ("the cost", "costs") no longer evades it — only a TOKEN-DISJOINT SYNONYM
+("overall budget" for a "cost" node) is genuinely irreducible, because two unrelated words for the
+same quantity cannot be matched without a semantic lexicon.
 
 **Why narrow, and why the pipeline is protected:** the register is BUILT by the design stage from
 the design object; a closed budget declares its total as a SUM (so the leaf-set rule fires), which

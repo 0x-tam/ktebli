@@ -643,3 +643,81 @@ sum** (120000), not a bare leaf. Exact input (test A17): `F1 = sum[L1,L2] = 8100
 `denWithinS` escape treats the proper sub-sum `D1` as a legitimate sibling part, and no check
 questions a totalizing word in `D1`'s own label. The residual-boundary claim that a sum-declared
 total makes the leaf-set rule fire does not hold when the wrong denominator is itself a sub-sum.
+
+---
+
+# RE-ATTACK #6 2026-08-28 — CONCEDED (mechanism holds; residual is the declared-part-whole boundary, refined)
+
+RE-6 was fixed and merged (trunk `9ee6bc7`) with my exact spec: the sibling-ratio escape now
+requires the denominator's leaf-set to be **disjoint** from the numerator's, not merely within the
+total (`numeric_register.ts:340`). `adv2_numeric_test.ts` A9–A17 are all **GREEN**, and I
+stress-tested the closure directly:
+
+- `"frontline share of the whole budget"` where the whole budget is a sub-sum **containing**
+  frontline → refused (`rate_denominator_not_whole`): the numerator's leaves overlap the
+  denominator's, so `disjointFromNum` is false. (RE-6 closed.)
+- a denominator **partially overlapping** the numerator (shares one leaf) → refused, same reason.
+- a denominator **outside** the total (grant income) → refused, however the label is spelt.
+- overhead over **direct costs** (two genuinely disjoint slices) still resolves.
+
+**I concede the wrong-denominator mechanism.** The threat it exists to stop — a model dividing a
+declared budget part by the grant or any smaller figure to inflate a "% to frontline" — is now
+closed whenever the part-whole relationship is expressed in the register's structure, which for a
+real budget it is (the total is a sum of lines; frontline is a sum or a member of it). Every
+reachable attack across RE-1…RE-6 is closed and re-attack-proven.
+
+## The residual is the documented boundary — with two honest refinements
+
+`residual-boundary.md` states the invariant-4 residual as: the true larger whole declared as a
+**bare LEAF** (no sum for the leaf-set rule to fire on) AND named with a **token-disjoint synonym**
+the label-superset backstop misses. That is correct but understated in two ways I verified against
+the merged code; both should be recorded so the boundary is not thought narrower than it is.
+
+**Refinement 1 — the residual is SYMMETRIC (numerator side as well as total side).** The leaf-set
+rule fires only when the numerator is a proper leaf-part of a declared sum. It therefore also
+misses the case where the *total* is a proper sum but the *numerator* is a **disconnected leaf** not
+declared as a member of it — the mirror of the bare-leaf total. Exact register (passes today):
+
+```
+T1 "total project cost" = sum[L1,L2,L3,L4] = 120000   (a declared SUM)
+F1 "frontline spend"    = leaf 81000                   (basis estimate — NOT a member of T1)
+G1 "the cost"           = leaf 108000                  (the grant)
+R1 "frontline share of the cost" = rate F1 / G1, asserted 0.75   → resolves (honest is 0.675)
+```
+
+Root cause is identical to the documented case: the part-whole link is not in leaf-set-visible
+structure, so no deterministic gate can know `F1` is a part of `T1` (`81000 < 120000` does not imply
+"part of"). It is the same irreducibility, and I concede it — but the boundary should say
+"part-whole not declared," not specifically "the total is a leaf."
+
+**Refinement 2 — in that regime the backstop falls to a STOP-WORD, not only a synonym.** Whenever
+the leaf-set rule does not fire (bare-leaf total *or* disconnected numerator), the sole remaining
+structural defence is the label-superset rule, and it still compares token sets verbatim (RE-5 was
+never fixed *in the backstop* — it was bypassed by the leaf-set rule, which does not engage here).
+So the evasion is not limited to a token-disjoint synonym: a bare article defeats it —
+`"the cost"` (`{the,cost} ⊄ {total,project,cost}`) and a plural `"costs"` both pass, as in the
+register above. Unlike the synonym case, **this sliver is deterministically fixable**: normalise the
+label-superset comparison (strip articles/stop-words, stem singular/plural) so `"the cost"`,
+`"costs"`, `"cost"` collapse. Only the token-disjoint *synonym* (`"overall budget"` for a cost node)
+is genuinely irreducible for a string matcher, exactly as the doc argues.
+
+Net: the mechanism is conceded; the durable closure (declared part-whole via the leaf-set +
+disjointness rule) is real and holds. The residual is (a) symmetric — undeclared part-whole on
+either side, not just a leaf total — and (b) within it, a stop-word suffices and is fixable, so only
+the synonym-named undeclared-whole is truly irreducible. Backstops for the residual are unchanged
+and adequate: the bidirectional consistency close-check, `resolveRegister` fail-closing before
+generation, and the LLM Claim Ledger on the finished narrative.
+
+## Generation-quality half — still UNPROVEN, not broken
+
+Whether every figure a delivered narrative prints is routed through the register end-to-end remains
+**unproven-without-e2e** (a full paid pipeline run). It is an open *measurement*, not a mechanism
+break, and is orthogonal to everything above.
+
+## Verdict
+
+**CONCEDED.** The wrong-denominator mechanism is closed for every case where the part-whole
+relationship is declared (the reachable, honest-model-output shape). The remaining residual is the
+documented deterministic-irreducibility boundary, refined here as symmetric (undeclared part-whole
+on either side) and, within it, stop-word-fragile-but-fixable at the backstop with only the
+token-disjoint synonym truly irreducible. adv2_numeric_test.ts A9–A17 green.

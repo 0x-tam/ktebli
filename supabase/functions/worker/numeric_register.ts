@@ -352,13 +352,20 @@ function resolveRegister(
       // not a sum, so there is no aggregate to compare leaf sets against. If another
       // same-unit node's label token-set is a strict superset of the denominator's with a
       // different value ("cost" vs "total project cost"), the name is ambiguous — refuse.
-      const denTok = new Set(norm(denNode?.label ?? "").split(" ").filter(Boolean));
+      // Labels are article-stripped and de-pluralised before comparison so a stop-word or
+      // a plural cannot slip a denominator past this backstop: "the cost"/"costs" and
+      // "cost" reduce to the same token set (the token-disjoint SYNONYM — "overall budget"
+      // for a "cost" node — is the part that stays irreducible when no aggregate is declared).
+      const LABEL_STOP = new Set(["the", "a", "an", "of", "our", "its", "their", "this", "that"]);
+      const labelToks = (s: string) => new Set(
+        norm(s).split(" ").filter((t) => t && !LABEL_STOP.has(t)).map((t) => t.replace(/s$/, "")));
+      const denTok = labelToks(denNode?.label ?? "");
       if (denTok.size > 0) {
         for (const other of list) {
           if (other.id === den.id || other.unit_kind !== den.unit_kind) continue;
           const otherVal = done.get(other.id)?.value;
           if (otherVal !== undefined && otherVal === den.value) continue; // same quantity
-          const otherTok = new Set(norm(other.label).split(" ").filter(Boolean));
+          const otherTok = labelToks(other.label);
           if (otherTok.size > denTok.size && [...denTok].every((t) => otherTok.has(t))) {
             throw new RegisterError("rate_denominator_ambiguous", n.id,
               `"${den.label}" (${den.id}) names a denominator that ${other.id} ("${other.label}") ` +
