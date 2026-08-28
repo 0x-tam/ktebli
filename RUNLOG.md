@@ -136,3 +136,10 @@ Next: install postgres + supabase CLI → phase 0.
   +0.161 / weight −0.452 → FLAT wired. NEW invariant-2 blocker (read-only finding):
   save-intake and stripe-webhook do not enforce sufficiency clearance → wave-2 core.
 - WS3 critic spawned (recompute rates from persisted artifacts; ≤4 spot calls, $0.20).
+- WS3 critic: SEND BACK on four record corrections only (code merge-ready, all numbers
+  reproduced from artifacts + 2 exact-match spot re-calls): (1) exclusivity-probe claim
+  false — it is GREEN in the WS3 worktree, the baseline log died on a /tmp permission
+  error; (2) glm per-document judgements flip between identical seeded runs (4 docs) —
+  rates stable, instrument not reproducible per-document, must be disclosed; (3) 17→18
+  arithmetic; (4) JUDGE_MAX_TOKENS reframe (the claimed deterministic failure did not
+  reproduce; change stands as reliability headroom). WS3 resumed with exactly those.
