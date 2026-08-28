@@ -471,3 +471,86 @@ a crafted register and no model.
 the honest share of the register's own declared total is `0.675`, because the structural rule tests
 node-identity membership and `F1` is a sub-aggregate not directly listed in `T1.of`. The control
 (total declared `sum[F1, L3]`) throws, isolating the defect to the membership test.
+
+---
+
+# RE-ATTACK #4 2026-08-28 — BROKEN (label-superset rule compares exact token sets)
+
+RE-4 was fixed and merged (trunk `13537a8`). The `numInSum` structural rule was **removed** and
+replaced by a label-superset ambiguity rule (`numeric_register.ts:291-318`): a denominator is
+refused (`rate_denominator_ambiguous`) when another same-unit node's label **token-set** is a
+proper superset of the denominator's with a different value — so `"cost"` is refused whenever
+`"total project cost"` (a different value) is in the register, structuring-independent and with no
+scope word. I re-ran `adv2_numeric_test.ts`: **A15 now passes** (both structurings refuse; I
+updated A15's expected code to `rate_denominator_ambiguous`), and A9–A14 remain green.
+
+Then my best final attempt on the mechanism. **Still BROKEN**, encoded as failing case **A16**.
+
+## (a) The MECHANISM — BROKEN
+
+### RE-5 — the token-set comparison is verbatim: a stop-word or a plural defeats it
+
+**Where:** `numeric_register.ts:303-315`.
+
+```ts
+const denTok = new Set(norm(denNode?.label ?? "").split(" ").filter(Boolean));
+…
+const otherTok = new Set(norm(other.label).split(" ").filter(Boolean));
+if (otherTok.size > denTok.size && [...denTok].every((t) => otherTok.has(t))) { throw … }
+```
+
+`norm()` only lowercases and collapses whitespace — it does **not** remove articles/stop-words or
+stem. So the token sets contain every word verbatim, and the subset test is trivially defeated by
+adding one meaningless token to the denominator's label. Since `numInSum` is gone, this label rule
+is the **only** structural check, so evading it has no backstop.
+
+**The exact defeating input (test A16), one stop-word from the caught case:**
+
+```
+L1 delivery staff = 50000   L2 sessional workers = 31000   L3 administration = 39000
+F1 frontline delivery = sum[L1,L2]     = 81000
+T1 total project cost = sum[L1,L2,L3]  = 120000
+G1 "the cost"         = 108000          (the grant)
+R1 "frontline delivery share of the cost" = rate F1 / G1, asserted 0.75
+```
+
+`denTok = {the, cost}`. The real total's `otherTok = {total, project, cost}`. `"the"` is not in
+`otherTok`, so `denTok ⊄ otherTok`, the rule does not fire, and `resolveRegister` returns
+`R1 = 81000/108000 = 0.75` — where the honest frontline share of the register's own total is
+`81000/120000 = 0.675`. `"the cost"` is semantically identical to the bare `"cost"` the rule
+**does** catch (the A16 sentinel, green): the only difference is the article. A **plural**
+(`"costs"`) and a **possessive** (`"our cost"`) evade it identically, as does a token-disjoint
+synonym (`"overall budget"`, `{overall, budget}` shares no token with `{total, project, cost}`).
+
+This is not the acknowledged residual (undeclared-leaf total + unlisted scope synonym): the total
+**is** declared as a sum, no scope word is used, and `"the cost"` is not a synonym — it is the same
+word plus a stop-word. It is a normalisation gap in the ambiguity rule.
+
+**Fix spec:** the ambiguity test needs semantic normalisation, and even then a lexical rule is the
+wrong shape. Minimally: strip stop-words/articles and stem (singular/plural) before the set
+comparison, so `{the, cost}`, `{costs}` and `{cost}` collapse to the same token. Durably: this is
+exactly why a **value/structure** rule beats a label rule — reinstate the removed `numInSum` idea
+but as **transitive leaf-set subsumption** (the earlier RE-4 fix spec): a share whose numerator's
+leaf-set is a proper subset of a same-unit `sum` `S` must divide by `S`, whatever either label
+says. The orchestrator rejected leaf-set subsumption because the donor's own "overhead over DIRECT
+costs" rule has overhead's leaves ⊂ total — but that case is distinguished by the **numerator**:
+there the numerator is `overhead` and the denominator `direct costs` is a *sibling partition*, not
+a superset of overhead's leaves; the refusal should fire only when the numerator's leaf-set ⊂
+`S`'s leaf-set **and** the denominator's leaf-set ⊉ the numerator's whole — i.e. divide-by-the-whole
+is required only when a strictly-larger same-unit aggregate over the numerator exists. That closes
+RE-5 without over-refusing the overhead ratio, and with no word list or stop-word table to maintain.
+
+## (b) The GENERATION-QUALITY half — still UNPROVEN, not broken
+
+Unchanged: whether every figure a real narrative prints is routed through the register end-to-end
+is **unproven-without-e2e**. Open measurement, distinct from RE-5 (a deterministic hole reachable
+with a crafted register and no model).
+
+## Verdict
+
+**BROKEN.** Exact defeating input (test A16): a register with `F1 = sum[L1,L2] = 81000`,
+`T1 = sum[L1,L2,L3] = 120000`, `G1 = "the cost" = 108000`, and `R1 = rate F1 / G1` labelled
+`"frontline delivery share of the cost"`, `asserted 0.75`. `resolveRegister` accepts `0.75`
+(honest share of the register's own total is `0.675`) because `{the, cost}` is not an exact
+token-subset of `{total, project, cost}`. The bare-`"cost"` sentinel throws, so the boundary
+between caught and missed is a single stop-word.

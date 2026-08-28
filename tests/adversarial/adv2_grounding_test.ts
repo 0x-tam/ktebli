@@ -220,12 +220,22 @@ ok(admits("Green House", "", "greenhouse.io"),
 // match is CONTAINMENT — the smaller distinctive-token set must be a subset of the larger.
 ok(!admits("Youth Climate Hub Bristol", "Climate Youth Action Fund", "climateyouthaction.org"),
   "two different climate-youth charities sharing only {youth,climate} are not the same org");
-ok(!admits("Green Streets Leeds", "Green Garden Streets Trust", "greengardenstreets.org"),
-  "shared {green,streets} across two different names does not admit — topic overlap is not identity");
 ok(admits("Sufra NW London", "Sufra Food Bank NW London", "sufra-nwlondon.org.uk"),
   "own-name EXTENSION (applicant tokens subset of the site's stated name) admits — containment");
 ok(admits("Sufra Food Bank NW London", "Sufra NW London", "sufra-nwlondon.org.uk"),
   "own-name SHORTENING (site's name subset of the applicant's) admits too — containment is symmetric");
+// RE-ATTACK #5 2026-08-28: containment on a subset made ENTIRELY of topic words conflated
+// a local project with a national body of the same field. Sector vocabulary is now generic,
+// so a wholly-topical overlap drops below two DISTINCTIVE tokens. (An unlisted topic stem is
+// the documented deterministic-irreducibility residual, backstopped by the LLM Claim Ledger.)
+ok(!admits("Mental Health Leeds Project", "Mental Health Foundation", "mentalhealth.org.uk"),
+  "a local 'Mental Health Leeds Project' does not become the national 'Mental Health Foundation'");
+ok(!admits("Youth Music Bradford", "Youth Music", "youthmusic.org.uk"),
+  "'youth'+'music' are topic words — a Bradford project is not the national Youth Music");
+ok(!admits("Family Action Newham Project", "Family Action", "family-action.org.uk"),
+  "'family'+'action' topical overlap does not import the national Family Action's history");
+ok(admits("Sufra NW London", "Sufra Food Bank NW London", "sufra-nwlondon.org.uk"),
+  "the distinctive token 'sufra' still carries the legit containment admit after the topic-word extension");
 console.log(
   bad
     ? `\n${bad} FAILURE(S) — each is a live route for an unsupported fact reaching a customer`

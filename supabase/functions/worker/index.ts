@@ -435,6 +435,30 @@ const ORG_GENERIC_WORDS = new Set([
   "council", "alliance", "collective", "partners", "partnership", "initiative", "services",
   "service", "ltd", "limited", "inc", "incorporated", "nonprofit", "non", "profit", "ngo",
   "national", "global", "development", "welfare", "aid", "relief", "council", "union",
+  // Sector/topic vocabulary. Two names that overlap ONLY on a shared topic ("mental
+  // health", "youth music") are not the same organisation — a national body and a local
+  // project of the same field co-occur on these words, so a two-topic-word containment
+  // ("Mental Health Leeds Project" ⊆ "Mental Health Foundation") would import the wrong
+  // charity's history (invariant 3's B1 harm). Treating them as generic drops such a
+  // match below two DISTINCTIVE tokens.
+  //
+  // This list is DELIBERATELY NARROW: only words that are essentially never a charity's
+  // OWN distinctive name on their own. It excludes sector words that double as real
+  // single-word charity names — "Shelter", "Mind", "Scope", "Sense", "Refuge", "Green
+  // House", a food "Bank" or "Kitchen" — because generic-ising those would reject a real
+  // applicant's own site (the wrong-direction error). That exclusion is exactly why the
+  // class is not fully closable: a word that is topical for one org ("green" in Green
+  // Streets) is distinctive for another (Green House), and no static list resolves both.
+  // A shared topic stem outside this list, with one name a subset of the other, is the
+  // documented DETERMINISTIC-IRREDUCIBILITY residual — the gate cannot know an unlisted
+  // word is topical without a frequency model. It is backstopped by the asymmetric
+  // discard posture and, for facts, by the LLM Claim Ledger (which held the Sufra e2e).
+  // See reports/adversarial/invariant-3-grounding.md.
+  "mental", "wellbeing", "youth", "refugee", "refugees", "migrant", "migrants", "asylum",
+  "homelessness", "poverty", "disability", "dementia", "autism", "cancer", "hospice",
+  "addiction", "advocacy", "environmental", "climate", "conservation", "wildlife",
+  "veterans", "violence", "mentoring", "employment", "education", "music", "family",
+  "families", "action", "wellness", "inclusion", "equality", "rehabilitation",
 ]);
 function orgTokens(raw: string): Set<string> {
   return new Set(

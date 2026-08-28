@@ -576,3 +576,97 @@ attributing a stranger's crawled achievements to the applicant. It is not
 single-exact-same-name (neither name subsumes the other). Exact case:
 **`Youth Climate Hub Bristol` / `Climate Youth Action Fund` / `climateyouthaction.org`**.
 Fix: require containment, not mere two-token intersection. Deterministic; **$0.00**.
+
+---
+
+# RE-ATTACK #5 2026-08-28 — **BROKEN** (containment on a purely-topical subset)
+
+The name branch now requires **containment** (`index.ts:509–511`): the smaller
+distinctive-token set must be a subset of the larger, ≥2 tokens. Re-attacked at
+`20e2049`: suite green; my round-4 non-subset topical overlaps reject; the legit
+own-name extension (`Sufra NW London` ⊆ `Sufra Food Bank NW London`) admits both ways.
+
+The claim was that this "reduces the residual to the irreducible exact-same-name case."
+It does not. Containment's premise — *if one name's distinctive tokens are entirely
+inside the other's, it is the same org, shortened or extended* — holds only when the
+subset carries a **distinctive** token. It fails when the subset is **entirely common
+topical vocabulary**, because `ORG_GENERIC_WORDS` (`:431`) filters structural words
+(foundation, community…) but not sector words (mental, health, youth, music, refugee,
+women, family…). A local project that accidentally supplies a **national umbrella
+org's** URL is then conflated with it — the exact B1 wrong-URL harm.
+
+Confirmed against the deployed `index.ts` (secure = reject; all admit). None is
+exact-same-name — in each the applicant carries a distinctive place/word the site lacks:
+
+| Applicant (local) | Crawled site legal name (a different, national org) | Subset | Admitted? |
+|---|---|---|---|
+| **Mental Health Leeds Project** `mental+health+leeds` | **Mental Health Foundation** `mental+health` | `{mental,health}` ⊆ applicant | **yes** |
+| **Youth Music Bradford** `youth+music+bradford` | **Youth Music** (national charity) `youth+music` | `{youth,music}` ⊆ applicant | **yes** |
+| **Family Action Newham Project** `family+action+newham` | **Family Action** (national) `family+action` | `{family,action}` ⊆ applicant | **yes** |
+
+The gate reads `{mental,health} ⊆ {mental,health,leeds}` as "the Leeds project *is* the
+Mental Health Foundation, with Leeds added," and imports the national Foundation's
+funding history, headcount and results into the local project's proposal. They are
+different organisations that merely share a topic — and, unlike the accepted
+exact-same-name residual, their inputs **differ** (the applicant has `leeds`; the names
+and domains differ), so a deterministic gate is not facing identical inputs.
+
+Contrast the legitimate `Sufra` case: its shared subset `{sufra,london}` contains the
+**distinctive** `sufra`, and the domain `sufra-nwlondon` corroborates it. The break
+cases share only sector words and the domain (`mentalhealth`) corroborates the *topic*,
+not the applicant's distinctive `leeds`.
+
+**Exact org + legal name + domain:** applicant `Mental Health Leeds Project`, crawled
+legal name `Mental Health Foundation`, domain `mentalhealth.org.uk` → **admitted**
+(also `Youth Music Bradford` / `Youth Music` / `youthmusic.org.uk`).
+
+### Failing cases (drop-in for `adv2_grounding_test.ts`, section 3)
+
+```ts
+ok(!admits("Mental Health Leeds Project", "Mental Health Foundation", "mentalhealth.org.uk"),
+  "containment on a purely-topical subset {mental,health} must not conflate a local project with the national Foundation");
+ok(!admits("Youth Music Bradford", "Youth Music", "youthmusic.org.uk"),
+  "a local project is not the national 'Youth Music' just because {youth,music} is a subset of its name");
+ok(!admits("Family Action Newham Project", "Family Action", "family-action.org.uk"),
+  "topical subset {family,action} does not admit the national 'Family Action'");
+```
+
+### Fix spec (and an honest caveat)
+
+The root cause is that sector vocabulary is treated as identifying. Two deterministic
+mitigations, neither a clean proof-closure:
+
+1. **Extend `ORG_GENERIC_WORDS` to cover common sector/topic words** (health, mental,
+   youth, music, women, refugee, family, action, climate, food, housing, disability,
+   arts, sport …). A two-token match made **only** of sector words then yields <2
+   distinctive tokens and does not admit — exactly as a match on "community
+   foundation" already doesn't. This is doctrine-consistent: an org whose whole name is
+   sector vocabulary is not deterministically distinguishable from a stranger, so it
+   takes the asymmetric cost (a thinner, honest proposal) the gate already accepts for
+   evidence it cannot safely attribute. Caveat: the list is inherently incomplete and a
+   maintenance burden, and a real org named *entirely* in sector words (e.g. the actual
+   "Youth Music") would then never match its own site — acceptable under the asymmetry,
+   but a real cost.
+2. **Domain corroboration for a containment admit:** require the registrable main label
+   to carry the *larger* name's distinctive tokens, not just the shared stem —
+   `sufra-nwlondon` carries `sufra`, `mentalhealth` does not carry `leeds`. Caveat:
+   couples name and domain and can reject a legitimate org whose domain omits its
+   place word.
+
+**Honest characterisation:** this is a genuinely new class *beyond exact-same-name*
+(the inputs differ, so it is reducible in principle), but it sits at the deterministic
+irreducibility boundary: separating "local project vs national namesake" from "own-name
+shortening" cannot be done cleanly from `(name, name, domain)` without a
+distinctiveness signal (a curated word list or a corpus). The correct takeaway is that
+the accepted residual must be described as **"same topical stem, one name a subset of
+the other,"** not the narrower "exact-same-name."
+
+## Verdict #5
+
+**BROKEN** — containment did not reduce the residual to exact-same-name. A purely-topical
+subset (`{mental,health} ⊆ {mental,health,leeds}`) conflates a local project with the
+national body that owns the topic, importing a stranger's achievements. Exact case:
+**`Mental Health Leeds Project` / `Mental Health Foundation` / `mentalhealth.org.uk`**.
+Best mitigation: treat sector vocabulary as generic (extend `ORG_GENERIC_WORDS`);
+honestly, the residual is broader and closer to irreducible than "exact-same-name."
+Deterministic; **$0.00**.

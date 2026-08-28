@@ -229,17 +229,46 @@ const partialAgg = (totalOf: string[]) => [
   { id: "R1", label: "frontline delivery share of cost", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["F1", "G1"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
 ];
 // PRIMARY (fails today): total sums the leaves flat, F1 not a listed member -> rule misses it.
-// Fix landed as label-superset ambiguity (rate_denominator_ambiguous) rather than
-// node-id membership: it refuses BOTH structurings by the "cost" vs "total project cost"
-// label overlap, subsuming the node-id case. The refusal (the security property) is what
-// A15 asserts; only the code name reflects the stronger, structuring-independent form.
-throws(() => solve(partialAgg(["L1", "L2", "L3"]), "GBP", NO_LEDGER, NONE), "rate_denominator_ambiguous",
+throws(() => solve(partialAgg(["L1", "L2", "L3"]), "GBP", NO_LEDGER, NONE), "rate_denominator_not_whole",
   "F1 (=L1+L2) is a part of T1 (=L1+L2+L3), so F1 / grant must be refused even though 'F1' is not a DIRECT member of T1.of");
 // CONTROL (passes today): identical values, but T1 is declared [F1, L3] so F1 IS a listed
 // member — the rule fires. The only difference is an incidental structuring choice, which
 // must not decide whether a part-over-wrong-whole is caught.
-throws(() => solve(partialAgg(["F1", "L3"]), "GBP", NO_LEDGER, NONE), "rate_denominator_ambiguous",
+throws(() => solve(partialAgg(["F1", "L3"]), "GBP", NO_LEDGER, NONE), "rate_denominator_not_whole",
   "control: when T1 is declared [F1, L3] the SAME division IS caught — isolating the gap to node-identity membership");
+
+// A16 codes: the word-list-FREE leaf-set rule now catches every label spelling — "the cost",
+// plural, synonym — with rate_denominator_not_whole, subsuming the label rule; every case still REFUSES.
+console.log("\nA16 — RE-ATTACK #4: the label-superset ambiguity rule compares EXACT token sets");
+// A15 is now GREEN via a new rule (rate_denominator_ambiguous): a denominator is refused when
+// another same-unit node's label token-SET is a proper superset with a different value, so
+// "cost" is caught while "total project cost" (120000) is in the register. numInSum is gone;
+// this label rule is the ONLY structural check. But the token sets are compared verbatim — no
+// stop-word removal, no stemming — so {the,cost} is NOT a subset of {total,project,cost}, and
+// the article defeats it. "the cost" is semantically identical to "cost" (which is caught), yet
+// F1 / "the cost"(108000) = 0.75 passes while the register's own total is 120000 (true 0.675).
+// A plural ("costs") and a token-disjoint synonym ("overall budget") evade it the same way.
+const ambig = (denLabel: string, rateLabel: string) => [
+  { id: "L1", label: "delivery staff", unit: "GBP", unit_kind: "money", kind: "leaf", value: 50000, basis: B("estimate", "2 FTE") },
+  { id: "L2", label: "sessional workers", unit: "GBP", unit_kind: "money", kind: "leaf", value: 31000, basis: B("estimate", "hourly") },
+  { id: "L3", label: "administration", unit: "GBP", unit_kind: "money", kind: "leaf", value: 39000, basis: B("estimate", "overheads") },
+  { id: "F1", label: "frontline delivery", unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2"], asserted: 81000, basis: B("arithmetic", "delivery + sessional") },
+  { id: "T1", label: "total project cost", unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2", "L3"], asserted: 120000, basis: B("arithmetic", "all lines") },
+  { id: "G1", label: denLabel, unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the grant") },
+  { id: "R1", label: rateLabel, unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["F1", "G1"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
+];
+// PRIMARY (fails today): one stop-word article defeats the exact token-subset test.
+throws(() => solve(ambig("the cost", "frontline delivery share of the cost"), "GBP", NO_LEDGER, NONE),
+  "rate_denominator_not_whole",
+  "'the cost' (=108000) is semantically identical to the caught 'cost', but {the,cost} is not a subset of {total,project,cost}");
+// CORROBORATION (fails today): a plural evades it too — no stemming.
+throws(() => solve(ambig("costs", "frontline delivery share of costs"), "GBP", NO_LEDGER, NONE),
+  "rate_denominator_not_whole",
+  "'costs' evades the exact-token superset test that catches 'cost'");
+// SENTINEL (passes today): the bare 'cost' the rule DOES catch, to prove the boundary is one token.
+throws(() => solve(ambig("cost", "frontline delivery share of cost"), "GBP", NO_LEDGER, NONE),
+  "rate_denominator_not_whole",
+  "sentinel: bare 'cost' is still correctly refused — the only difference from the bypasses is a stop-word/plural");
 
 // ---------------------------------------------------------------------------
 console.log(failures ? `\n${failures} FAILURE(S) — invariant 4 is not upheld` : "\nALL ADV2 NUMERIC TESTS PASSED");

@@ -300,6 +300,50 @@ function resolveRegister(
       // superset of "direct costs", and "share of the grant" is safe when "grant" is a
       // token no larger label carries. Discard-on-doubt: an ambiguous denominator refuses.
       const denNode = byId.get(den.id);
+      // LEAF-SET closure, word-list-free and normalization-proof (adv2 A16). A share
+      // divides a part by its WHOLE. Compute the transitive leaf set of numerator and
+      // denominator, and of every declared `sum`. If the numerator is a proper part of a
+      // same-unit aggregate S (its leaves are a strict subset of S's), then the
+      // denominator must be WITHIN S too — either S itself, or a sibling component of it
+      // (the donor's own "overhead over DIRECT costs" is a legitimate ratio between two
+      // parts of the total). A denominator whose leaves fall OUTSIDE S — the grant income
+      // (108k) against a spend component that belongs to the 120k total — divides a part
+      // by a quantity that is not its whole, and is refused however the labels are spelt
+      // ("the cost", "costs", a synonym: no label comparison happens here at all).
+      const leafSet = (id: string, seen: Set<string>): Set<string> => {
+        const nd = byId.get(id);
+        if (!nd) return new Set();
+        if (nd.kind === "leaf") return new Set([id]);
+        const acc = new Set<string>();
+        for (const m of nd.of ?? []) {
+          if (seen.has(m)) continue;
+          seen.add(m);
+          for (const l of leafSet(m, seen)) acc.add(l);
+        }
+        return acc;
+      };
+      const numLeaves = leafSet(num.id, new Set());
+      const denLeaves = leafSet(den.id, new Set());
+      for (const s of list) {
+        if (s.kind !== "sum" || s.id === den.id || s.id === n.id) continue;
+        if (s.unit_kind !== den.unit_kind || s.unit !== (denNode?.unit ?? den.unit)) continue;
+        const sLeaves = leafSet(s.id, new Set());
+        const numProperPart = numLeaves.size > 0 && sLeaves.size > numLeaves.size &&
+          [...numLeaves].every((l) => sLeaves.has(l));
+        if (!numProperPart) continue;
+        const denWithinS = denLeaves.size > 0 && [...denLeaves].every((l) => sLeaves.has(l));
+        const denEqualsS = done.get(s.id)?.value === den.value;
+        if (denWithinS || denEqualsS) continue; // den is S or a sibling part of it — legitimate
+        throw new RegisterError("rate_denominator_not_whole", n.id,
+          `${num.id} is a part of ${s.id} ("${s.label}"), but ${den.id} ("${den.label}") is outside ` +
+          `it — a share of a part must be taken over the whole it belongs to, not a quantity that ` +
+          `does not contain it. Divide by ${s.id}, or name the denominator that contains ${num.id}.`);
+      }
+      // LABEL-SUPERSET closure (adv2 A13/A15) — the backstop for the case the leaf-set
+      // rule cannot see: a larger version of the denominator that is declared as a LEAF,
+      // not a sum, so there is no aggregate to compare leaf sets against. If another
+      // same-unit node's label token-set is a strict superset of the denominator's with a
+      // different value ("cost" vs "total project cost"), the name is ambiguous — refuse.
       const denTok = new Set(norm(denNode?.label ?? "").split(" ").filter(Boolean));
       if (denTok.size > 0) {
         for (const other of list) {
