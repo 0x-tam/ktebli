@@ -80,3 +80,66 @@ Next: install postgres + supabase CLI → phase 0.
     stack/sites*, reports/phase5-crawl.md. $0 model budget.
 - Wave 2 (after ws3 merge): phase 6 index.ts workstreams + e2e order + mini-benchmark.
   Wave 3: adversarial round. Then handoff.
+
+## 2026-08-28 — orchestrator checks while wave 1 runs
+
+- stack/tick.sh written (up.sh referenced it; never existed). Verified: {"ok":true,...}.
+- Invariant 9 substrate proven on the live local stack: events_immutable trigger blocks
+  UPDATE and DELETE (both raise), probe row survives.
+- tests/exclusivity/run.sh is GREEN: 40 concurrent applicants on one grant, 40 served,
+  0 refused, 16 sessions racing one fingerprint arbitrated by the partial unique index,
+  no pool FK in claims. Invariant 6's unbounded composer holds in the replayed schema.
+
+## 2026-08-28 — wave 1 coordination
+
+- WS5 correctly refused to patch index.ts: live-run.sh's guard found the crawl_outcome
+  wiring missing from index.ts (patch spec lost with scratch dir). Resolution: wiring
+  assigned to WS3 (owns index.ts) as bounded task 1b; WS5 proceeds offline (silent-failure
+  audit of crawl_outcome/ssrf + canned-response regression tests) and re-runs live after
+  WS3 merges. Git push to origin was denied by the session's permission layer — commits
+  stay local; operator pushes.
+
+## 2026-08-28 — wave 1 landing sequence
+
+- WS4a COMPLETE: fixtures 8/8 ("two pages" → loud refusal, argued); 21 proven parser
+  findings (7 fixed in its paths, 14 specced for index.ts/migrations owners); NEW P0:
+  migration 20260826180000 re-creates escalations_kind_check WITHOUT the gate_* kinds
+  that 20260826170000's gate_refund_order() inserts → a confirmed refund can never be
+  recorded (proven by executing the function on a replayed head). Render service verified
+  with a real render (port 8790, n12-B → 4 pages). Critic spawned (verifying the P0 by
+  execution among other checks) before merge.
+- WS5 offline half COMPLETE: 8 silent-failure fixes + canned regressions (contract
+  1.1.0), six sites committed; live run parked until WS3's index.ts crawl wiring merges.
+- WS3 in flight: commit 9859e9f wires the v2 gate between package and deliver AND
+  delegates the crawl to crawl_outcome.ts; validate_judge_ladder.ts created; model-call
+  validation presumably running.
+- P0 escalations-kind fix (new migration + re-recorded expected fingerprint, argued in
+  the commit, never fudged) → assigned to wave-2 ws6-core alongside WS4a's 14 specs.
+- WS4a critic: SEND BACK on one named failure — the archived SQL proof file typo
+  ('clear' vs 'cleared') aborts at P4 under ON_ERROR_STOP, so the report's 10-PROOF-OK
+  tally is unreproducible as archived (7 reproduce). Everything else PASSED in writing,
+  including independent re-execution of the P0 refund regression, scope, secrets,
+  fixture-weakening rule, and a byte-matched render reproduction. WS4a resumed with
+  exactly that fix; no other changes permitted.
+- WS4a MERGED (5fa9663) after critic PASS in writing: sole send-back fixed (artifact now
+  reproduces 9/0/0), critic re-ran everything. P0 refund-regression fix + the 14 open
+  specs go to wave-2 ws6-core.
+
+## 2026-08-28 — WS3 complete, critic running
+
+- WS3 done ($0.275 of $3): gate wired package-side + independent deliver-side hash
+  refusal; QUALITY/INFRA disjoint; crawl delegated to crawl_outcome (unblocks WS5).
+  Judge validation on 56 blind judgements: glm 65.0% = always-hold baseline exactly
+  (NO SIGNAL); gemini 77.8% vs 22.2% baseline, <80% → wired gemini primary + glm
+  fallback, HOLD-BIASED, LOW-AGREEMENT flagged. JUDGE_MAX_TOKENS 3000 was unusable
+  (reasoning ate it; empty content) → 12000 with measurement. Sufficiency: tau count
+  +0.161 / weight −0.452 → FLAT wired. NEW invariant-2 blocker (read-only finding):
+  save-intake and stripe-webhook do not enforce sufficiency clearance → wave-2 core.
+- WS3 critic spawned (recompute rates from persisted artifacts; ≤4 spot calls, $0.20).
+- WS3 critic: SEND BACK on four record corrections only (code merge-ready, all numbers
+  reproduced from artifacts + 2 exact-match spot re-calls): (1) exclusivity-probe claim
+  false — it is GREEN in the WS3 worktree, the baseline log died on a /tmp permission
+  error; (2) glm per-document judgements flip between identical seeded runs (4 docs) —
+  rates stable, instrument not reproducible per-document, must be disclosed; (3) 17→18
+  arithmetic; (4) JUDGE_MAX_TOKENS reframe (the claimed deterministic failure did not
+  reproduce; change stands as reliability headroom). WS3 resumed with exactly those.
