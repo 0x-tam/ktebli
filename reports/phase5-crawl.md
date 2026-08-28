@@ -9,8 +9,11 @@ held on every run (production blackholed, `--deny-net`, live probe refused).
 
 One large truthfulness defect was found **by** the live run and fixed
 (§3, finding 9), on top of eight found by the offline audit that preceded it
-(§3, findings 1–8). Every fix is in WS5-owned files and pinned by a
-canned-response regression test. Contract version 1.0.0 → 1.2.0.
+(§3, findings 1–8). The critic round then found a tenth (§3, finding 10 —
+machine files crawled as pages) plus entity residue in the identity gate's name
+candidates; both are fixed and the three affected crawls were re-run and their
+ledgers re-committed. Every fix is in WS5-owned files and pinned by a
+canned-response regression test. Contract version 1.0.0 → 1.3.0.
 
 ## 1. The six sites
 
@@ -37,9 +40,9 @@ Offline sanity before the run: all six org/domain pairings clear
 |------|---------|---------|--------|---------------------|----------------------|
 | thefelixproject.org | **FETCH_FAILED** | 1 | 0 | 0 | Homepage 301s **offsite** to `https://felix.org/`. The traversal refuses to read a cross-domain redirect as the applicant's site (identity asymmetry); the offsite target is named in the reason. See §5. |
 | sufra-nwlondon.org.uk | **OK(178)** | 10 | 8 | 178 | — |
-| themagpieproject.org | **OK(53)** | 8 | 8 | 53 | — (4 of 8 parsed pages read as prose; the rest are short) |
+| themagpieproject.org | **OK(90)** | 10 | 8 | 90 | — (all 8 parsed pages read as prose; under 1.2.0 three of its "parsed pages" were 9,000-char child sitemaps — see finding 10) |
 | glassdoor.org.uk | **OK(152)** | 9 | 8 | 152 | — |
-| nourishcommunityfoodbank.org.uk | **OK(117)** | 9 | 9 | 117 | — |
+| nourishcommunityfoodbank.org.uk | **OK(117)** | 9 | 9 | 117 | — (same count as 1.2.0 by coincidence: the machine page it carried contributed nothing that survived, and its slot went to a real page) |
 | watsi.org | **OK(130)** | 10 | 10 | 130 | — (not JS_ONLY: the site now server-renders; see §5) |
 
 Identity gate: `cleared` on all five OK sites, `not_run` on Felix (nothing was
@@ -126,10 +129,32 @@ finding 9 came from the live run itself. All fixes are in
      lowercase form also occurs in the corpus ("However", "Please") — a true
      proper noun is capitalised wherever it appears; corpus-driven, no
      dictionary, errs toward counting fewer.
-   Effect on the live sites: Sufra 308→178, Magpie 157→53, Glass Door 348→152,
+   Effect on the live sites: Sufra 308→178, Magpie 157→53 (later corrected to
+   90 when finding 10 returned its stolen page budget), Glass Door 348→152,
    Nourish 276→117, Watsi 299→130 — and the survivors are the real names in §2.
    Tests §14 (three layer tests + end-to-end: the furnished fixture page yields
    exactly its six real referents and no menu label).
+10. **Machine files crawled as pages** — found by the critic round, present in
+    three of seven committed 1.2.0 ledgers. Child sitemaps (`sitemap-1.xml`,
+    `image-sitemap-1.xml`, `video-sitemap-1.xml`) and `/wp-json` passed the
+    extension filter, were fetched as role "page" through safeFetchText's
+    default content-type allowlist (which must admit XML for robots and
+    sitemaps), and their bodies were stripped as if they were HTML — machine
+    tokens ("QWtpY0P", "Backup Helper Script") became referents, and on Magpie
+    the three 9,000-char sitemaps consumed the page and character budgets that
+    real pages should have had. Fixed in two independent layers: page discovery
+    skips machine-file URLs (`.xml`/`.json`/feeds/`/wp-json`), and content
+    fetches now accept only HTML-ish content types (`text/html`, `text/plain`,
+    `application/xhtml+xml`) — a refusal is recorded with its status, exactly
+    like any other. text/plain stays admitted because small-charity servers
+    really do mis-serve HTML as it. Also from the same round: the identity
+    gate's name candidates now decode entities ("Cart &#8211; The Magpie
+    Project" previously reached the gate with residue, and the en dash hiding
+    inside the entity was invisible to the title splitter). Re-crawl effect:
+    Magpie 53 → **90** (machine files had been eating the budget — the count
+    ROSE because real pages replaced them), Nourish 117 → 117 (same count,
+    cleaner content), felix.org probe 271 → 250. Tests §15 (fixture fetcher now
+    enforces content-type allowlists exactly as safeFetchText does).
 
 ## 4. Residual noise, stated plainly
 
@@ -140,7 +165,9 @@ prove them grammar. Phrase-level referents are unaffected. Chasing these with a
 hardcoded adverb list would be a dictionary arms race inside the wrong module
 (the counter belongs to proper_nouns.ts, which is outside WS5 ownership); the
 proposal-time audit resolves them by ledger containment anyway. Counts in §2
-should be read as "at most this many names", accurate to within a handful.
+are upper bounds on distinct names: phrase-level referents are clean, but the
+single-word residue described above means the totals overstate the true count
+of usable names by roughly 5–15% on these sites.
 
 ## 5. What the run proved about the taxonomy, and what it could not
 
@@ -157,7 +184,7 @@ should be read as "at most this many names", accurate to within a handful.
   domain is exactly the parked-domain shape the rule exists for, and the reason
   names the target so a human can act. A follow-up probe
   (`stack/sites-phase5-followup.txt`, ledger `felix.org.json`) crawled the
-  redirect target as its own site: **OK(271)** — trustee bios, Waitrose,
+  redirect target as its own site: **OK(250)** — trustee bios, Waitrose,
   national locations — with the gate cleared on the stated name "Felix" and the
   domain token. If a real order supplied the old domain, the customer-facing gap
   line would say the site did not answer and nothing was used; the operator
@@ -205,19 +232,28 @@ CrawlReport (outcome, counts, per-URL statuses, robots verdict, elapsed), the
 surviving referents, and per-page URL + kept-char counts:
 
 - `sufra-nwlondon.org.uk.json` — OK(178)
-- `themagpieproject.org.json` — OK(53)
+- `themagpieproject.org.json` — OK(90), re-crawled under 1.3.0
 - `glassdoor.org.uk.json` — OK(152)
-- `nourishcommunityfoodbank.org.uk.json` — OK(117)
+- `nourishcommunityfoodbank.org.uk.json` — OK(117), re-crawled under 1.3.0
 - `watsi.org.json` — OK(130)
 - `thefelixproject.org.json` — FETCH_FAILED (offsite → felix.org), kept as the
   negative fixture it is
-- `felix.org.json` — OK(271), the follow-up probe of the redirect target
+- `felix.org.json` — OK(250), the follow-up probe of the redirect target,
+  re-crawled under 1.3.0
+
+The three re-crawled ledgers replace 1.2.0 versions that carried machine-file
+pages (finding 10); Sufra, Glass Door, Watsi and the thefelixproject.org
+refusal were unaffected and stand as crawled. Re-crawl sites file:
+`stack/sites-phase5-rerun.txt`.
 
 ## 9. Test status
 
-- `tests/crawl-outcome/crawl_outcome_test.ts`: **203 checks, all pass** — the
-  original 12 taxonomy sections plus §13 (offline audit regressions) and §14
-  (furniture regressions).
+- `tests/crawl-outcome/crawl_outcome_test.ts`: **215 checks, all pass** — the
+  original 12 taxonomy sections plus §13 (offline audit regressions), §14
+  (furniture regressions) and §15 (machine-file and name-candidate
+  regressions; the fixture fetcher now enforces content-type allowlists
+  exactly as safeFetchText does, so canned crawls exercise the real refusal
+  path).
 - `bash tests/run-all.sh` (with `PGBIN=/usr/lib/postgresql/17/bin`, as root):
   every suite green — REPLAY OK, BYTEMATCH OK, 555 delivery-gate checks, all
   adversarial suites. In the combined run the exclusivity suite failed to START

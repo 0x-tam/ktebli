@@ -1,0 +1,5 @@
+# Re-crawl of the three sites whose 1.2.0 ledgers carried machine-file pages
+# (child sitemaps / wp-json fetched as role "page" — critic finding, fixed in 1.3.0).
+https://www.themagpieproject.org               | The Magpie Project
+https://www.nourishcommunityfoodbank.org.uk    | Nourish Community Foodbank
+https://felix.org                              | The Felix Project

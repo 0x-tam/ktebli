@@ -74,17 +74,23 @@ type FixtureEntry =
 
 function fixtureFetcher(table: Record<string, FixtureEntry>) {
   const seen: string[] = [];
-  const fn = async (url: string, _opts: FetchOpts): Promise<FetchResult> => {
+  const fn = async (url: string, opts: FetchOpts): Promise<FetchResult> => {
     seen.push(url);
     const key = url.replace(/\/$/, "");
     const e = table[url] ?? table[key] ?? table[key + "/"];
     if (!e) throw new Error("dns_unresolved");   // nothing else exists on this fixture host
     if ("throws" in e) throw new Error(e.throws);
+    const contentType = e.contentType ?? "text/html; charset=utf-8";
+    // Enforce the caller's content-type allowlist exactly as safeFetchText does,
+    // so fixtures exercise the real refusal path (machine files, untyped blocks).
+    if (opts?.allowContentTypes && !opts.allowContentTypes.test(contentType)) {
+      throw new Error(ctRefusalReason(e.status));
+    }
     await Promise.resolve();
     return {
       finalUrl: e.finalUrl ?? url,
       status: e.status,
-      contentType: e.contentType ?? "text/html; charset=utf-8",
+      contentType,
       body: e.body ?? "",
     };
   };
@@ -920,6 +926,102 @@ const FURNISHED_PAGE = `<!doctype html>
   ok(!referents.some((r) => r.split(/\s+/).length > 6), "and nothing longer than six words");
   ok(report.referents_extracted <= 12,
     `the count is a count of NAMES, not of furniture (${report.referents_extracted})`);
+}
+
+// ===========================================================================
+section("15. machine files are not pages (critic finding)");
+// ===========================================================================
+//
+// Child sitemaps (sitemap-1.xml, image-sitemap-1.xml) and /wp-json passed the
+// extension filter, were fetched as role "page" through the default
+// content-type allowlist (which must admit XML for robots and sitemaps), and
+// their machine tokens were stripped as HTML and counted as referents in three
+// of the seven live crawls. Two independent fixes are pinned here: page
+// discovery skips machine-file URLs, and content fetches accept only HTML-ish
+// content types.
+{
+  const prose = "<p>Riverbank Pantry runs a weekly food club from St Cuthbert's Church Hall on " +
+    "Weaver Street since 2017, serving about sixty households across the Deeside ward.</p>";
+  const table = {
+    "https://wp-site.org/robots.txt": ROBOTS_OPEN,
+    "https://wp-site.org/": {
+      status: 200,
+      body: `<html><head><title>riverbank pantry</title></head><body>` +
+        `<a href="/about">about</a><a href="/wp-json/">api</a><a href="/feed">feed</a>` +
+        `<a href="/sitemap-1.xml">sitemap</a>${prose}</body></html>`,
+    },
+    "https://wp-site.org/sitemap.xml": {
+      status: 200, contentType: "application/xml",
+      body: "<sitemapindex><sitemap><loc>https://wp-site.org/sitemap-1.xml</loc></sitemap>" +
+        "<sitemap><loc>https://wp-site.org/image-sitemap-1.xml</loc></sitemap></sitemapindex>",
+    },
+    // If these WERE fetched as pages, their tokens would poison the corpus.
+    "https://wp-site.org/sitemap-1.xml": {
+      status: 200, contentType: "application/xml",
+      body: "<urlset><url><loc>https://wp-site.org/QWtpY0P</loc></url>" +
+        "<url><loc>https://wp-site.org/MviZ3SLG</loc></url></urlset>",
+    },
+    "https://wp-site.org/image-sitemap-1.xml": {
+      status: 200, contentType: "application/xml",
+      body: "<urlset><url><loc>https://wp-site.org/Backup-Helper-Script.png</loc></url></urlset>",
+    },
+    "https://wp-site.org/wp-json": {
+      status: 200, contentType: "application/json",
+      body: `{"name":"Backup Helper Script","description":"Arbitrary Machine Tokens QWtpY0P"}`,
+    },
+    "https://wp-site.org/feed": {
+      status: 200, contentType: "application/xml",
+      body: "<rss><channel><title>Arbitrary Feed Tokens</title></channel></rss>",
+    },
+    "https://wp-site.org/about": { status: 200, body: plain("about riverbank",
+      "<p>Our trustees meet at Hoole Community Centre, and Chester Foodshare collects surplus every Friday morning before the club opens its doors to the first families of the day.</p>") },
+  };
+  const fetcher = fixtureFetcher(table);
+  const crawl = await crawlSiteObserved("https://wp-site.org", fetcher);
+  const pageUrls = crawl.pages.map((p) => p.url);
+  ok(!pageUrls.some((u) => /\.xml|wp-json|\/feed/.test(u)),
+    `no machine file is a content page (pages: ${pageUrls.join(", ")})`);
+  ok(!fetcher.seen.some((u) => /sitemap-1\.xml|image-sitemap/.test(u)),
+    "child sitemaps are not even fetched — the page budget is not spent on them");
+  const referents = siteReferents(crawlCorpus(crawl.pages), "Riverbank Pantry");
+  ok(!referents.some((r) => /QWtpY0P|MviZ3SLG|Backup|Arbitrary/i.test(r)),
+    "no machine token reaches the referent list");
+  ok(referents.some((r) => /Chester Foodshare/.test(r)), "real referents still come through");
+
+  // The content-type backstop stands on its own: a machine URL that dodges the
+  // URL filter (no extension) is still refused by content type, with the
+  // refusal recorded, and the crawl is not poisoned.
+  const table2 = {
+    "https://api-link.org/robots.txt": ROBOTS_OPEN,
+    "https://api-link.org/": {
+      status: 200,
+      body: `<html><head><title>api link</title></head><body><a href="/about">about</a>${prose}</body></html>`,
+    },
+    "https://api-link.org/about": {
+      status: 200, contentType: "application/json",
+      body: `{"machine":"Arbitrary Backup Helper Script Tokens"}`,
+    },
+  };
+  const crawl2 = await crawlSiteObserved("https://api-link.org", fixtureFetcher(table2));
+  ok(!crawl2.pages.some((p) => p.url.endsWith("/about")),
+    "a JSON body never becomes a content page, whatever its URL looks like");
+  const aboutObs = crawl2.observations.pages.find((p) => p.url.endsWith("/about"));
+  eq(aboutObs?.error, "bad_content_type", "and the refusal is recorded, not swallowed");
+  const refs2 = siteReferents(crawlCorpus(crawl2.pages), "Riverbank Pantry");
+  ok(!refs2.some((r) => /Backup|Arbitrary/i.test(r)), "its tokens never reach the referents");
+}
+
+// B (critic finding): the identity gate's name candidates must not carry entity
+// residue — and the en dash hiding inside &#8211; must still split the <title>.
+{
+  const cands = siteNameCandidates(
+    `<html><head><title>Cart &#8211; The Magpie Project</title></head><body></body></html>`);
+  ok(cands.includes("The Magpie Project"),
+    `the real site name is a candidate despite the encoded separator (got: ${cands.join(" / ")})`);
+  ok(!cands.some((c) => /&#|&\w+;/.test(c)), "no candidate carries entity residue");
+  const og = siteNameCandidates(
+    `<meta property="og:site_name" content="S&#252;fra NW London">`);
+  ok(og.includes("S\u00fcfra NW London"), "og:site_name is decoded too");
 }
 
 // ===========================================================================

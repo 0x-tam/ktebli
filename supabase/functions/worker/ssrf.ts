@@ -191,7 +191,7 @@ function entityChar(cp: number): string {
   try { return String.fromCodePoint(cp); } catch { return " "; }
 }
 
-function decodeEntities(s: string): string {
+export function decodeEntities(s: string): string {
   return s
     .replace(/&#(\d{1,7});/g, (_, d) => entityChar(Number(d)))
     .replace(/&#x([0-9a-f]{1,6});/gi, (_, h) => entityChar(parseInt(h, 16)))

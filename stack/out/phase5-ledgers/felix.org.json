@@ -4,14 +4,14 @@
   "stated_name": "Felix",
   "report": {
     "outcome": "succeeded",
-    "reason": "felix.org: 10 page(s) fetched, 10 parsed, 271 referent(s) extracted, 271 surviving the identity gate",
+    "reason": "felix.org: 10 page(s) fetched, 10 parsed, 250 referent(s) extracted, 250 surviving the identity gate",
     "pages_fetched": 10,
     "pages_parsed": 10,
-    "referents_extracted": 271,
-    "referents_surviving": 271,
+    "referents_extracted": 250,
+    "referents_surviving": 250,
     "domain": "felix.org",
     "detail": {
-      "contract": "1.2.0",
+      "contract": "1.3.0",
       "robots": {
         "fetched": true,
         "status": 200,
@@ -66,11 +66,6 @@
           "error": null
         },
         {
-          "url": "https://felix.org/sitemaps-1-section-news-1-sitemap.xml",
-          "status": 200,
-          "error": null
-        },
-        {
           "url": "https://felix.org/news",
           "status": 200,
           "error": null
@@ -79,15 +74,20 @@
           "url": "https://felix.org/news/campaigning",
           "status": 200,
           "error": null
+        },
+        {
+          "url": "https://felix.org/news/media-centre",
+          "status": 200,
+          "error": null
         }
       ],
       "discovered": 44,
-      "kept_chars": 21629,
-      "text_chars": 32755,
+      "kept_chars": 19305,
+      "text_chars": 32154,
       "fetch_budget_exhausted": false,
-      "prose_pages": 9,
+      "prose_pages": 10,
       "identity_gate": "cleared",
-      "elapsed_ms": 10170
+      "elapsed_ms": 13759
     }
   },
   "referents": [
@@ -321,31 +321,6 @@
     "London’s",
     "Grampian",
     "Cornwall",
-    "Generic",
-    "Image-1-FINAL",
-    "Branston",
-    "RS5989_LIVERPOOL6_046_hpr",
-    "Children",
-    "Freshlinc",
-    "Magnavale",
-    "Warehouse",
-    "Vitabiotics-blog-post-image",
-    "Woman",
-    "RS3947_069_Felix_010524_BigTimages",
-    "COs",
-    "Stock-1147895484",
-    "RS11276_045_FELIX_FRESH_121225_BigTImages",
-    "Albert-Bartlett_Coronation-Hub_Web-Res_13052026_-09319",
-    "Andy",
-    "Murray",
-    "Howden-Photo_02",
-    "Howden",
-    "Photo",
-    "RS11657_IMG_5214_scr",
-    "Ramadan",
-    "Charlotte-Hill",
-    "Charlotte",
-    "Hill",
     "UK New",
     "Celebrating",
     "Vitabiotics Wellkid",
@@ -361,7 +336,11 @@
     "West Country",
     "Westminster",
     "Head of Communications",
-    "European Parliament"
+    "European Parliament",
+    "Charlie Neal",
+    "Alex Reynolds",
+    "On-site",
+    "UK Opportunities"
   ],
   "pages": [
     {
@@ -393,16 +372,16 @@
       "chars": 266
     },
     {
-      "url": "https://felix.org/sitemaps-1-section-news-1-sitemap.xml",
-      "chars": 3357
-    },
-    {
       "url": "https://felix.org/news",
       "chars": 1592
     },
     {
       "url": "https://felix.org/news/campaigning",
       "chars": 1369
+    },
+    {
+      "url": "https://felix.org/news/media-centre",
+      "chars": 1033
     }
   ],
   "observations": {
@@ -462,10 +441,10 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 649974,
+        "html_chars": 649979,
         "text_chars": 2088,
         "kept_chars": 1002,
-        "script_chars": 4180,
+        "script_chars": 4185,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | Our impact</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"Discover how Felix creates £498m in social value, supporting charities, reducing food waste, and strengthening communities across the UK.\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/about-us/impact\" property=\"og:url\">\n<meta content=\"Our impact\" property=\"og:title\">\n<meta content=\"Discover how Felix creates £498m in social value, supporting charities, reducing food waste, and strengthening communities across the UK.\" proper"
       },
@@ -475,10 +454,10 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 557958,
+        "html_chars": 557963,
         "text_chars": 1310,
         "kept_chars": 446,
-        "script_chars": 4198,
+        "script_chars": 4203,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | Governance and annual reports</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"Learn more about the charity, our team, and our annual reports\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/about-us/governance-and-reports\" property=\"og:url\">\n<meta content=\"Governance and annual reports\" property=\"og:title\">\n<meta content=\"Learn more about the charity, our team, and our annual reports\" property=\"og:description\">\n<meta content=\"https://felix.org/assets/images/_1200x630_crop_center-center"
       },
@@ -488,10 +467,10 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 477585,
+        "html_chars": 477630,
         "text_chars": 11242,
         "kept_chars": 9000,
-        "script_chars": 4194,
+        "script_chars": 4219,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | Our Board of Trustees</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"Our Trustees have decades of experience across multiple sectors. Find out more about their experience\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/about-us/team-and-board\" property=\"og:url\">\n<meta content=\"Our Board of Trustees\" property=\"og:title\">\n<meta content=\"Our Trustees have decades of experience across multiple sectors. Find out more about their experience\" property=\"og:description\">\n<meta content=\"https:"
       },
@@ -501,10 +480,10 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 488595,
+        "html_chars": 488590,
         "text_chars": 1407,
         "kept_chars": 878,
-        "script_chars": 4121,
+        "script_chars": 4116,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | Impact stories</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"We rescue great food and get it to people who need it – supporting 1.5 million people across the UK, alongside 16 other independent charities, 18,000…\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/news/impact-stories\" property=\"og:url\">\n<meta content=\"Impact stories\" property=\"og:title\">\n<meta content=\"We rescue great food and get it to people who need it – supporting 1.5 million people across the UK, alongside 16 other "
       },
@@ -514,10 +493,10 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 651740,
+        "html_chars": 651755,
         "text_chars": 3620,
         "kept_chars": 2208,
-        "script_chars": 4022,
+        "script_chars": 4037,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | About us</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"At Felix we rescue great good and get it to people who need it, supporting 1.5 million people across the UK\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/about-us\" property=\"og:url\">\n<meta content=\"About us\" property=\"og:title\">\n<meta content=\"At Felix we rescue great good and get it to people who need it, supporting 1.5 million people across the UK\" property=\"og:description\">\n<meta content=\"https://felix.org/assets/images/_12"
       },
@@ -527,25 +506,12 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 568833,
+        "html_chars": 568853,
         "text_chars": 1676,
         "kept_chars": 266,
-        "script_chars": 46771,
+        "script_chars": 46791,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | Our locations</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"Our food reaches people across the UK. You can find Felix at work in 1,500 towns and cities from Grampian to Cornwall.\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/about-us/locations\" property=\"og:url\">\n<meta content=\"Our locations\" property=\"og:title\">\n<meta content=\"Our food reaches people across the UK. You can find Felix at work in 1,500 towns and cities from Grampian to Cornwall.\" property=\"og:description\">\n<meta co"
-      },
-      {
-        "url": "https://felix.org/sitemaps-1-section-news-1-sitemap.xml",
-        "role": "page",
-        "status": 200,
-        "error": null,
-        "content_type": "text/xml; charset=utf-8",
-        "html_chars": 6087,
-        "text_chars": 3359,
-        "kept_chars": 3357,
-        "script_chars": 0,
-        "prose": false,
-        "body_sample": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><?xml-stylesheet type=\"text/xsl\" href=\"sitemap.xsl\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:image=\"http://www.google.com/schemas/sitemap-image/1.1\" xmlns:video=\"http://www.google.com/schemas/sitemap-video/1.1\"><url><loc>https://felix.org/news/how-we-believe-we-can-join-together-to-create-a-feast-of-1-1-billion-meals</loc><lastmod>2026-07-27T09:01:59+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/RS9323_GHP_4554.jpg?v=1779267199</image:loc><image:title>Generic+food+3</image:title></image:image></url><url><loc>https://felix.org/news/distribution-sector-comes-together-to-rescue-more-edible-food</loc><lastmod>2026-07-28T17:33:17+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/RS11248_DSC_4489.jpg?v=1779267088</image:loc><image:title>Generic+food+21</image:title></image:image></url><url><loc>https://felix.org/news/one-million-tins-of-baked-beans-delivered-to-felix</loc><lastmod>2026-07-27T09:07:21+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/Image-1-FINAL.jpg?v=1784880428</image:loc><image:title>Branston+press+release</image:title></image:image></url><url><loc>https://felix.org/news/felix-finds-over-half-of-parents-feel-financial-strain-during-holidays</loc><lastmod>2026-07-27T09:07:05+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/RS5989_LIVERPOOL6_046_hpr.jpg?v=1784881741</image:loc><image:title>Children+chopping+vegetables</image:title></image:image></url><url><loc>https://felix.org/news/new-tri-partner-alliance-to-tackle-food-waste</loc><lastmod>2026-07-27T09:06:47+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/IMG_5649.jpeg?v=1783344514</image:loc><image:title>Felix,+Freshlinc+and+Magnavale</image:title></image:image></url><url><loc>https://felix.org/news/bp-and-felix-deepen-long-term-partnership-to-help-millions-across-the-uk</loc><lastmod>2026-07-27T09:06:25+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/RS1128_DSC_0313.jpg?v=1782804338</image:loc><image:title>Warehouse+volunteer</image:title></image:image></url><url><loc>https://felix.org/news/celebrating-our-partnership-with-vitabiotics-wellkid</loc><lastmod>2026-07-27T09:06:18+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/Vitabiotics-blog-post-image.jpeg?v=1781094566</image:loc><image:title>Woman+and+child+eating+soup</image:title></image:image></url><url><loc>https://felix.org/news/why-food-support-today-is-so-much-more-than-just-tins-of-beans</loc><lastmod>2026-07-01T16:54:43+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/RS9295_DSC_3142.jpg?v=1779267171</image:loc><image:title>Generic+food+8</image:title></image:image><image:image><image:loc>https://felix.org/assets/images/RS3947_069_Felix_010524_BigTimages.JPG?v=1779266701</image:loc><image:title>COs+10</image:title></image:image></url><url><loc>https://felix.org/news/uk-charities-struggling-to-stay-afloat</loc><lastmod>2026-06-03T09:32:07+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/iStock-1147895484.jpg?v=1779377771</image:loc><image:title>child-meal-family-dinner-2026</image:title></image:image></url><url><loc>https://felix.org/news/pm-announces-national-programme-to-redistribute-surplus-food</loc><lastmod>2026-06-02T09:13:25+01:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority><image:image><image:loc>https://felix.org/assets/images/"
       },
       {
         "url": "https://felix.org/news",
@@ -553,10 +519,10 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 650201,
+        "html_chars": 650206,
         "text_chars": 3185,
         "kept_chars": 1592,
-        "script_chars": 4039,
+        "script_chars": 4044,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | News and campaigns</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"Hot off the press. Take a look at the latest news and views from Felix.\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/news\" property=\"og:url\">\n<meta content=\"News and campaigns\" property=\"og:title\">\n<meta content=\"Hot off the press. Take a look at the latest news and views from Felix.\" property=\"og:description\">\n<meta content=\"https://felix.org/assets/images/_1200x630_crop_center-center_82_none/aaa113dcf86427251413ae"
       },
@@ -566,17 +532,30 @@
         "status": 200,
         "error": null,
         "content_type": "text/html; charset=UTF-8",
-        "html_chars": 820672,
+        "html_chars": 591251,
         "text_chars": 2689,
         "kept_chars": 1369,
-        "script_chars": 350190,
+        "script_chars": 120769,
         "prose": true,
         "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | Campaigns Centre</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"We rescue great food and get it to people who need it – supporting 1.5 million people across the UK, alongside 16 other independent charities, 18,000…\">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/news/campaigning\" property=\"og:url\">\n<meta content=\"Campaigns Centre\" property=\"og:title\">\n<meta content=\"We rescue great food and get it to people who need it – supporting 1.5 million people across the UK, alongside 16 other"
+      },
+      {
+        "url": "https://felix.org/news/media-centre",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 484262,
+        "text_chars": 2758,
+        "kept_chars": 1033,
+        "script_chars": 4224,
+        "prose": true,
+        "body_sample": "\n<!DOCTYPE html>\n<html lang=\"en-GB\" dir=\"ltr\" class=\"box-border min-h-screen text-reset scroll-smooth\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n\n\t\t\t\t<!-- The website is up (this is for the uptime monitor) -->\n\n    \t\t<link rel=\"icon\" type=\"image/png\" href=\"/dist/assets/images/icons/favicon/favicon-96x96.png\" sizes=\"96x96\" />\n\t\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"/dist/assets/images/icons/favicon/favicon.svg\" />\n\t\t<link rel=\"icon\" href=\"/dist/assets/images/icons/favicon/favicon.ico\" sizes=\"48x48\" />\n\t\t<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/dist/assets/images/icons/favicon/apple-touch-icon.png\" />\n\t\t<link rel=\"manifest\" href=\"/dist/assets/images/icons/favicon/site.webmanifest\" />\n\n        \t\t\t<!-- Google Tag Manager -->\n\t\t\t<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n\t\t\tnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n\t\t\tj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n\t\t\t'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n\t\t\t})(window,document,'script','dataLayer','GTM-WWL3KNJT');</script>\n\t\t\t<!-- End Google Tag Manager -->\n    \n    \t\t\t<script type=\"module\">!function(){const e=document.createElement(\"link\").relList;if(!(e&&e.supports&&e.supports(\"modulepreload\"))){for(const e of document.querySelectorAll('link[rel=\"modulepreload\"]'))r(e);new MutationObserver((e=>{for(const o of e)if(\"childList\"===o.type)for(const e of o.addedNodes)if(\"LINK\"===e.tagName&&\"modulepreload\"===e.rel)r(e);else if(e.querySelectorAll)for(const o of e.querySelectorAll(\"link[rel=modulepreload]\"))r(o)})).observe(document,{childList:!0,subtree:!0})}function r(e){if(e.ep)return;e.ep=!0;const r=function(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),\"use-credentials\"===e.crossorigin?r.credentials=\"include\":\"anonymous\"===e.crossorigin?r.credentials=\"omit\":r.credentials=\"same-origin\",r}(e);fetch(e.href,r)}}();</script>\r\n<script>!function(){var e=document.createElement(\"script\");if(!(\"noModule\"in e)&&\"onbeforeload\"in e){var t=!1;document.addEventListener(\"beforeload\",(function(n){if(n.target===e)t=!0;else if(!n.target.hasAttribute(\"nomodule\")||!t)return;n.preventDefault()}),!0),e.type=\"module\",e.src=\".\",document.head.appendChild(e),e.remove()}}();</script>\r\n<script src=\"https://felix.org/dist/assets/js/polyfills-legacy-CMU5u_m7.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;vite/legacy-polyfills-legacy&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<script type=\"module\" src=\"https://felix.org/dist/assets/js/index-BrLMShk_.js\" crossorigin onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index.js&#039;}});document.dispatchEvent(e);\" defer></script>\r\n<link href=\"https://felix.org/dist/assets/css/index-Dfiyy-Da.css\" rel=\"stylesheet\">\r\n<script src=\"https://felix.org/dist/assets/js/index-legacy-jkRrGxg0.js\" nomodule onload=\"e=new CustomEvent(&#039;vite-script-loaded&#039;, {detail:{path: &#039;src/index-legacy.js&#039;}});document.dispatchEvent(e);\" defer></script>\n\t\t    \t\t    \n          <title>Felix | Media centre</title><meta name=\"generator\" content=\"SEOmatic\">\n<meta name=\"description\" content=\"We are Felix. We rescue great food and get it to people who need it. We were founded in 2026 following the merger of FareShare and The Felix Project.  \">\n<meta name=\"referrer\" content=\"no-referrer-when-downgrade\">\n<meta name=\"robots\" content=\"all\">\n<meta content=\"en_GB\" property=\"og:locale\">\n<meta content=\"Felix\" property=\"og:site_name\">\n<meta content=\"website\" property=\"og:type\">\n<meta content=\"https://felix.org/news/media-centre\" property=\"og:url\">\n<meta content=\"Media centre\" property=\"og:title\">\n<meta content=\"We are Felix. We rescue great food and get it to people who need it. We were founded in 2026 following the merger of FareShar"
       }
     ],
     "fetch_budget_exhausted": false,
     "discovered": 44,
-    "elapsed_ms": 10170
+    "elapsed_ms": 13759
   },
-  "wall_ms": 10221
+  "wall_ms": 13776
 }

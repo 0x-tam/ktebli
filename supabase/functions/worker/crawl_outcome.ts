@@ -80,7 +80,7 @@
 // Nothing here asks a model to count anything.
 
 import { normPN, properNouns } from "./proper_nouns.ts";
-import { safeFetchText, stripHtml } from "./ssrf.ts";
+import { decodeEntities, safeFetchText, stripHtml } from "./ssrf.ts";
 
 // 1.1.0: the phase-5 silent-failure audit. A refusal status survives the
 // content-type gate (blocked_bot, not fetch_failed, for a 403 with a non-text
@@ -95,7 +95,12 @@ import { safeFetchText, stripHtml } from "./ssrf.ts";
 // count on real charity sites. stripHtml removes furniture elements and emits
 // real block boundaries; keepParagraphs drops unpunctuated capitalised-majority
 // link runs; siteReferents refuses any "name" longer than six words.
-export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.2.0";
+// 1.3.0: machine files are not pages (critic finding). Child sitemaps, /wp-json
+// and /feed were fetched as role "page" through the default content-type
+// allowlist and their tokens counted as referents; content fetches now accept
+// only HTML-ish content types and page discovery skips machine-file URLs.
+// siteNameCandidates decodes entities, so the identity gate never sees residue.
+export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.3.0";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -642,14 +647,17 @@ export function siteNameCandidates(html: string): string[] {
   const h = String(html ?? "");
   const out: string[] = [];
   const push = (s: string | undefined) => {
-    const t = String(s ?? "").replace(/\s+/g, " ").trim();
+    // Entity decoding: a raw candidate like "Cart &#8211; The Magpie Project"
+    // otherwise reaches the identity gate with residue in it, and the en dash
+    // separator inside the entity is invisible to the <title> splitter below.
+    const t = decodeEntities(String(s ?? "")).replace(/\s+/g, " ").trim();
     if (t && t.length < 160) out.push(t);
   };
   push(h.match(/<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i)?.[1]);
   push(h.match(/<meta[^>]+name=["']application-name["'][^>]+content=["']([^"']+)["']/i)?.[1]);
   for (const m of h.matchAll(/"(?:legalName|name)"\s*:\s*"([^"]{2,120})"/g)) push(m[1]);
   const title = h.match(/<title[^>]*>([\s\S]{0,200}?)<\/title>/i)?.[1];
-  if (title) for (const part of title.split(/\s[|–—-]\s/)) push(part);
+  if (title) for (const part of decodeEntities(title).split(/\s[|–—-]\s/)) push(part);
   return [...new Set(out)];
 }
 
@@ -1159,7 +1167,17 @@ export async function crawlSiteObserved(
     if (fetchedHtml.has(u)) return fetchedHtml.get(u)!;
     if (fetchedHtml.size >= MAX_FETCHES) { budgetExhausted = true; return null; }
     try {
-      const res = await fetcher(u, { maxRedirects: 3, timeoutMs: 9_000, maxBytes: 900_000 });
+      // Content pages must BE content. The default safeFetchText allowlist admits
+      // application/xml and application/json (robots and sitemaps need text/xml),
+      // and through it child sitemaps and /wp-json were fetched as role "page",
+      // stripped as if they were HTML, and their machine tokens counted as
+      // referents in three of seven live crawls. text/plain stays admitted:
+      // small-charity servers really do mis-serve HTML as text/plain, and a
+      // plain-text refusal page still carries its body into the classifier.
+      const res = await fetcher(u, {
+        maxRedirects: 3, timeoutMs: 9_000, maxBytes: 900_000,
+        allowContentTypes: /^(text\/(html|plain)|application\/xhtml\+xml)/i,
+      });
       if (normDomain(new URL(res.finalUrl).hostname) !== domain) {
         observations.push(observePage({ url: u, role, status: res.status, error: `offsite:${res.finalUrl}`.slice(0, 120), contentType: res.contentType }));
         return null;
@@ -1221,6 +1239,14 @@ export async function crawlSiteObserved(
       const url = new URL(u);
       if (normDomain(url.hostname) !== domain) return false;
       if (/\.(pdf|jpg|jpeg|png|gif|svg|webp|mp4|zip|docx?|xlsx?|pptx?)$/i.test(u)) return false;
+      // Machine files are not pages. A sitemap INDEX lists child sitemaps, and
+      // WordPress links /wp-json and /feed from every page; all of these passed
+      // the extension filter, were fetched as role "page", stripped as if they
+      // were HTML, and their tokens counted as referents (three of seven live
+      // crawls). The content-type gate in get() is the backstop; this keeps the
+      // page budget from being spent discovering the refusal.
+      if (/\.(xml|json|rss|atom|txt|ico|css|js)(\.gz)?$/i.test(url.pathname)) return false;
+      if (/^\/wp-json(\/|$)/i.test(url.pathname) || /\/feed\/?$/i.test(url.pathname)) return false;
       return robotsAllows(rules, url.pathname || "/").allowed;
     } catch { return false; }
   });
