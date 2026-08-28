@@ -421,3 +421,9 @@ wired + deterministically tested; generation-quality impact marked unproven-with
     specced: a share whose numerator is transitively a member of a same-unit sum node
     must divide by that aggregate, not a sibling leaf (rate_denominator_not_whole).
 - Full suite ALL SUITES PASSED. Committed 6fbabdb. Final concession requested on 6fbabdb.
+- inv3 re-attack #3: attacker found a distinct class — "Green House"->greenhouse.io
+  ("Greenhouse Software Inc", HR SaaS, 0 shared) admitted on domain spelling while
+  IGNORING a contradicting crawled legal name. Fixed (2c273dc): bare-domain exact-concat
+  admit now requires site.size===0 (no stated identity to contradict); a named site admits
+  only via shared>=2. +4 assertions, full suite green. Final concession requested.
+- inv4 final concession still pending from the structural-fix round (6fbabdb).
