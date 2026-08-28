@@ -233,3 +233,19 @@ Next: install postgres + supabase CLI → phase 0.
   local single-invocation window (launch P0.3, now reaching Draft tier).
 - Critic spawned (deepest skepticism on the composer rewire + the grounding-hold honesty;
   verifies benchmark numbers from the DB, not the report). $0.50 model cap.
+
+## 2026-08-28 — WS6-bench PASS (proven live); adversarial round launching
+
+- WS6-bench critic PASS, by execution: pre-fix strategy select proven to 400 on the
+  dropped column claims.structural_template_id (the P0 substantiated, not overstated);
+  composer rewire preserves invariant 6 (40/40, 50 distinct fingerprints, no pool);
+  benchmark numbers reproduced from the DB (4 fingerprints, 0 collision; referents
+  178/152/90/117; $5.558 captured); grounding hold genuine (passed strategy/design/
+  gen:narrative, held at validate on explicit unsupported Claim-Ledger classifications).
+  Already on trunk → left as-is. One honest nuance: validate lands DB status `failed`
+  (semantic hold), report transparent; pre-existing behavior. Adversarial round should
+  probe invariant-8 notification-on-that-path.
+- Phase 6 CLOSED. Launching phase 6.5 adversarial round: 7 attackers (inv 1,2,3,4,5,6 +
+  loop), worktrees, each owns only its own reports/adversarial/*.md + tests/adversarial/
+  adv2_*_test.ts; breaks filed as failing test + fix spec (no shared-code edits); the
+  orchestrator routes any fix through a single owner.
