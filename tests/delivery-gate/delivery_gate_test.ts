@@ -24,6 +24,7 @@ import {
   MIN_MATERIAL_CHANGE, shingleCounts, materialChange,
   judgeSchema, judgeView, buildJudgePrompt, buildJudgeRequest, parseJudgeReply,
   runDeliveryGate, LOOP_LIMITS, loopAction, gateEvents, operatorAlert,
+  runGateLoop, dbCauseFor, verdictFromRecord, loopAttemptFromRecord,
 } from "../../supabase/functions/worker/delivery_gate.ts";
 import type {
   CriticRequest, GateDeps, GateInput, GateOutcome, Judgement,
@@ -529,9 +530,13 @@ function la(over: Partial<LoopAttempt> = {}): LoopAttempt {
 }
 
 // ---------------------------------------------------------------- the judge, as specified
-await test("v2: the judge is the specified model and the fallback is a different provider", () => {
-  eq(JUDGE_PRIMARY, "z-ai/glm-5.3-flash", "primary judge");
-  eq(JUDGE_FALLBACK, "google/gemini-3.7-flash", "fallback judge");
+await test("v2: the judge is the validated model and the fallback is a different provider", () => {
+  // The order is the OUTCOME of the phase-3 validation cascade (both candidates
+  // missed 80%; gemini at 77.8% beat glm at exactly the always-hold baseline,
+  // so the better one is primary and the gate runs hold-biased). See the judge
+  // config comment in delivery_gate.ts and reports/phase3-gate.md §2.
+  eq(JUDGE_PRIMARY, "google/gemini-3.7-flash", "primary judge, per the measured cascade");
+  eq(JUDGE_FALLBACK, "z-ai/glm-5.3-flash", "fallback judge");
   ok(modelFamily(JUDGE_PRIMARY) !== modelFamily(JUDGE_FALLBACK), "different providers on purpose");
   eq(JUDGE_SLOTS.length, 2, "two credential slots");
   ok(JUDGE_SLOTS[0].secret !== JUDGE_SLOTS[1].secret, "and two credentials, or a cap takes out both rungs");
@@ -603,8 +608,10 @@ await test("v2: the gate reads a field, and a field it cannot read is no judgeme
   for (const [label, raw] of bad) eq(parseJudgeReply(raw).ok, false, `${label} must be refused`);
 });
 
-await test("v2: the asserted verdict is recorded and is never decisive, in both directions", async () => {
-  // Asserts it clears; the numbers say a dimension is below its floor. The bar wins.
+await test("v2: hold-biased — a pass needs the bar AND the asserted verdict; either alone cannot pass", async () => {
+  // Asserts it clears; the numbers say a dimension is below its floor. Hold:
+  // a model cannot assert its way past the bar. (Unchanged from the original
+  // never-decisive contract.)
   const recA = jrecorder(() => judgeJson({ scores: scoresAt({ feasibility: 3 }), verdict: "clears_bar" }));
   const a = await runDeliveryGate(baseInput(), jdeps(recA));
   eq(a.decision, "hold", "a model cannot assert its way past the bar");
@@ -612,12 +619,25 @@ await test("v2: the asserted verdict is recorded and is never decisive, in both 
   eq(a.judge[0].asserted_verdict, "clears_bar", "what it asserted is recorded");
   ok(a.alerts.some((x) => x.code === "gate.verdict_disagreement"), "and the disagreement is an event");
 
-  // Asserts it fails; every number clears. The bar wins there too.
+  // Asserts it fails; every number clears. Under the LOW-AGREEMENT hold-biased
+  // posture (phase 3: no candidate judge reached 80% against blind ground
+  // truth) this now HOLDS: ties and uncertainty hold, never pass. This
+  // deliberately replaces the earlier expectation that the computed bar alone
+  // could pass a document its own judge refused to call fundable.
   const recB = jrecorder(() => judgeJson({ verdict: "fails_bar" }));
   const b = await runDeliveryGate(baseInput(), jdeps(recB));
-  eq(b.decision, "pass", "the bar is applied to observations, not to the model's opinion");
+  eq(b.decision, "hold", "the judge's refusal vetoes the pass — hold-biased");
+  eq(b.cause, "bar_not_cleared", "on the merits, sticky");
+  eq(b.sticky, true, "sticky: the document must change before it is judged again");
+  ok(b.findings.length > 0, "the hold carries findings a regeneration can act on");
   eq(b.judge[0].asserted_verdict, "fails_bar", "recorded either way");
   ok(b.alerts.some((x) => x.code === "gate.verdict_disagreement"), "and flagged");
+
+  // Both agree it clears: that, and only that, is a pass.
+  const recC = jrecorder(() => judgeJson());
+  const c = await runDeliveryGate(baseInput(), jdeps(recC));
+  eq(c.decision, "pass", "agreement on clears_bar passes");
+  ok(!c.alerts.some((x) => x.code === "gate.verdict_disagreement"), "no disagreement event on agreement");
 });
 
 // ---------------------------------------------------------------- blindness
@@ -1124,6 +1144,225 @@ await test("v2: the operator alert goes to the operator and says the customer wa
   ok(a.subject.includes("KT-10007"), "and the order");
   ok(/has NOT been contacted and has NOT been refunded/.test(a.html), "and it states plainly that the customer is untouched");
   ok(!a.html.includes("## The problem as it stands"), "it does not carry the document");
+});
+
+// ================================================================
+// ================= THE WIRING (runGateLoop + DB bridge) =========
+// ================================================================
+// index.ts cannot be imported here (Deno.serve at module scope), which is WHY
+// the loop driver and the verdict-record bridge live in delivery_gate.ts.
+// These tests drive exactly what the package stage drives, offline.
+
+// A long, preflight-clean narrative that shares almost nothing with any other
+// seed: the four ledger referents appear (so D4 clears) and everything else is
+// seed-specific vocabulary, so materialChange() sees a genuine rewrite.
+function distinctNarrative(seed: number): string {
+  const words: string[] = [];
+  for (let i = 0; i < 300; i++) words.push(`word${seed}n${i}`);
+  return `## Plan ${seed}\n\nBab al-Tabbaneh and Qobbe are served with the Municipality of Tripoli ` +
+    `and Safadi Foundation as standing partners. ${words.join(" ")}`;
+}
+
+await test("wiring: a document that cannot pass stops after exactly 2 regenerations and refunds on the quality path", async () => {
+  // Scores improve every round and still fail the bar, so neither the material-
+  // change floor nor the score-divergence rule stops the loop early: only the
+  // regeneration budget can, which is what this proves.
+  let verdicts = 0;
+  const rec = jrecorder(() => {
+    verdicts++;
+    return failingJudgeJson({ scores: scoresAt({ specificity: verdicts === 1 ? 1 : 2, clarity: verdicts === 3 ? 4 : 3 }) });
+  });
+  const recorded: JudgeOutcome[] = [];
+  let regens = 0;
+  const out = await runGateLoop(baseInput(), jdeps(rec), {
+    regenerate: (brief, previous) => {
+      regens++;
+      ok(brief.includes("not yet fundable"), "the brief is the refusal, in words the generator can act on");
+      ok(!brief.includes(JUDGE_PRIMARY), "the brief never names the judge");
+      ok(previous.length > 0, "the previous draft is handed over");
+      return Promise.resolve(distinctNarrative(regens));
+    },
+    record: (o) => { recorded.push(o); return Promise.resolve(); },
+  });
+  eq(out.decision.action, "refund", "the ladder ends in a refund, never a delivery");
+  eq(out.decision.event, "gate.regeneration_budget_exhausted", "under the budget's own event code");
+  eq(out.decision.hold_class, "QUALITY_HOLD", "on the quality path");
+  eq(out.decision.refund, true, "and it refunds");
+  eq(out.decision.tell_customer, true, "and the customer is told");
+  eq(out.regenerations, 2, "exactly two regenerations were made");
+  eq(regens, 2, "the regenerate hook agrees");
+  eq(verdicts, 3, "three judgements: the original and both regenerations");
+  eq(recorded.length, 3, "every fresh verdict was recorded");
+  ok(recorded.every((o) => o.decision === "hold" && o.hold_class === "QUALITY_HOLD"), "all three are quality holds");
+  // Blindness holds THROUGH the loop: no judge call ever sees the brief, a
+  // previous verdict, or an attempt number.
+  for (const c of rec.calls) {
+    ok(!c.prompt.includes("not yet fundable"), "the judge never sees the regeneration brief");
+    ok(!c.prompt.includes("attempt"), "the judge is never told an attempt number");
+  }
+  // The judge's verdict ends its turn: every judgement was one call to one
+  // model, and no builder-critic dialogue ever formed.
+  eq(rec.calls.length, 3, "one judge call per judgement");
+  ok(rec.calls.every((c) => c.model === JUDGE_PRIMARY), "and the fallback was never consulted for a document that was judged");
+});
+
+await test("wiring: a primary cap consults the fallback, and its verdict — either way — ends the ladder", async () => {
+  const rec = jrecorder((r) => {
+    if (r.model === JUDGE_PRIMARY) throw new Error("HTTP 403 Key limit exceeded (total limit)");
+    return judgeJson();
+  });
+  const recorded: JudgeOutcome[] = [];
+  const out = await runGateLoop(baseInput(), jdeps(rec), {
+    regenerate: () => { throw new Error("a passing document must never be regenerated"); },
+    record: (o) => { recorded.push(o); return Promise.resolve(); },
+  });
+  eq(out.decision.action, "deliver", "the fallback's pass delivers");
+  eq(out.outcome.used_fallback, true, "and the outcome records the failover");
+  eq(rec.calls.length, 2, "primary tried, fallback answered, ladder over");
+  eq(rec.calls[0].model, JUDGE_PRIMARY, "primary first");
+  eq(rec.calls[1].model, JUDGE_FALLBACK, "fallback second");
+  eq(recorded.length, 1, "one verdict recorded");
+  eq(out.regenerations, 0, "nothing was regenerated");
+
+  // and a fallback verdict that FAILS is equally final: it holds, it does not
+  // go looking for a friendlier model.
+  const rec2 = jrecorder((r) => {
+    if (r.model === JUDGE_PRIMARY) throw new Error("HTTP 403 Key limit exceeded (total limit)");
+    return failingJudgeJson();
+  });
+  let regens2 = 0;
+  const out2 = await runGateLoop(baseInput(), jdeps(rec2), {
+    regenerate: () => { regens2++; return Promise.resolve(distinctNarrative(regens2 + 10)); },
+  });
+  ok(out2.decision.action === "refund" || out2.decision.action === "regenerate" || out2.regenerations > 0,
+    "a fallback hold is a quality hold and drives the quality ladder");
+  eq(rec2.calls.filter((c) => c.model === JUDGE_FALLBACK).length, out2.attempts.filter((a) => a.hold_class === "QUALITY_HOLD").length,
+    "each judged document was judged exactly once, by the one rung that answered");
+});
+
+await test("wiring: INFRA holds never regenerate, never refund — they retry and then park", async () => {
+  const rec = jrecorder(() => { throw new Error("upstream 502 bad gateway"); });
+  const out = await runGateLoop(baseInput(), jdeps(rec), {
+    regenerate: () => { throw new Error("an unjudged document must never be regenerated"); },
+  });
+  eq(out.decision.action, "retry_gate", "first infra hold retries on the next tick");
+  eq(out.decision.hold_class, "INFRA_HOLD", "as INFRA");
+  eq(out.decision.refund, false, "no refund");
+  eq(out.decision.tell_customer, false, "customer never told");
+  eq(out.regenerations, 0, "and nothing was regenerated");
+
+  // Two INFRA holds already on the record (seeded the way the package stage
+  // seeds them, from delivery_gate_verdicts rows): the third parks.
+  const infraRow = {
+    doc_hash: "a".repeat(64), gate_version: JUDGE_GATE_VERSION, decision: "hold",
+    cause: "judgement_unavailable", sticky: false, critics: [], preflight: [], findings: ["no judgement"], model_calls: 2,
+  };
+  const prior = [infraRow, infraRow].map(loopAttemptFromRecord).filter((a): a is LoopAttempt => a !== null);
+  eq(prior.length, 2, "both seeded rows map to loop attempts");
+  const out2 = await runGateLoop(baseInput(), jdeps(jrecorder(() => { throw new Error("upstream 502 bad gateway"); })), {
+    regenerate: () => { throw new Error("an unjudged document must never be regenerated"); },
+  }, prior);
+  eq(out2.decision.action, "hold_alert", "the third consecutive infra hold parks with an operator alert");
+  eq(out2.decision.hold_class, "INFRA_HOLD", "still INFRA");
+  eq(out2.decision.refund, false, "still no refund");
+});
+
+await test("wiring: a regeneration that did not materially change refunds through the loop", async () => {
+  const rec = jrecorder(() => failingJudgeJson());
+  const out = await runGateLoop(baseInput(), jdeps(rec), {
+    // One word changed out of six hundred: not a rewrite.
+    regenerate: (_brief, previous) => Promise.resolve(previous.replace("neighbourhoods", "districts")),
+  });
+  eq(out.decision.action, "refund", "asking again with the same document is refused");
+  eq(out.decision.event, "gate.no_material_change", "under its own event code");
+  eq(out.regenerations, 1, "the loop stopped at the first non-rewrite");
+});
+
+await test("wiring: dbCauseFor maps every cause into the verdict table's CHECK without crossing the hold partition", () => {
+  const DB_CAUSES = new Set(["bar_not_cleared", "preflight_failed", "judgement_unavailable", "judge_misconfigured"]);
+  for (const c of ALL_JUDGE_CAUSES) {
+    const stored = dbCauseFor(c);
+    ok(stored !== null && DB_CAUSES.has(stored), `${c} stores as a cause the table admits (${stored})`);
+    eq(classifyHold(stored as JudgeCause), classifyHold(c), `${c}: stored and true cause land on the same side of QUALITY/INFRA`);
+  }
+  eq(dbCauseFor(null), null, "a pass has no cause, stored or otherwise");
+});
+
+await test("wiring: verdictFromRecord round-trips a stored verdict and stickiness replays without a model call", async () => {
+  const held = await runDeliveryGate(baseInput(), jdeps(jrecorder(() => failingJudgeJson())));
+  eq(held.decision, "hold", "fixture: a quality hold");
+  const row = {
+    doc_hash: held.doc_hash, gate_version: held.gate_version, decision: held.decision,
+    cause: dbCauseFor(held.cause), sticky: held.sticky, critics: held.judge,
+    preflight: held.preflight, findings: held.findings, model_calls: held.model_calls,
+  };
+  const back = verdictFromRecord(row);
+  ok(back !== null, "a stored row parses");
+  eq(back!.decision, "hold", "decision survives");
+  eq(back!.hold_class, "QUALITY_HOLD", "the hold class is re-derived, not guessed");
+  eq(back!.score, held.score, "the score is recomputed from the stored judgement, not stored on trust");
+  eq(back!.doc_hash, held.doc_hash, "hash survives");
+
+  const rec = jrecorder(() => { throw new Error("no model call may happen on a replay"); });
+  const replay = await runDeliveryGate(baseInput(), jdeps(rec, { storedVerdict: () => Promise.resolve(back) }));
+  eq(replay.from_record, true, "the stored verdict IS the verdict");
+  eq(replay.decision, "hold", "and it is the same verdict");
+  eq(rec.calls.length, 0, "zero model calls");
+
+  // A record reached under a DIFFERENT bar is not a verdict against this one.
+  const stale = verdictFromRecord({ ...row, gate_version: "delivery-gate-v1" });
+  const rej = await runDeliveryGate(baseInput(), jdeps(jrecorder(() => { throw new Error("nope"); }), { storedVerdict: () => Promise.resolve(stale) }));
+  eq(rej.cause, "judgement_unavailable", "a stale-version record is refused as INFRA, never honoured and never a pass");
+  ok(rej.alerts.some((a) => a.code === "gate.stored_verdict_stale"), "and the refusal is alerted");
+
+  // A record whose cause cannot be classified is a hold with no class, and
+  // runDeliveryGate discards it rather than guessing.
+  const weird = verdictFromRecord({ ...row, cause: "something_else" });
+  eq(weird!.hold_class, null, "an unclassifiable cause yields no class");
+  const rej2 = await runDeliveryGate(baseInput(), jdeps(jrecorder(() => { throw new Error("nope"); }), { storedVerdict: () => Promise.resolve(weird) }));
+  eq(rej2.cause, "judgement_unavailable", "a classless hold is discarded as INFRA");
+  ok(rej2.alerts.some((a) => a.code === "gate.stored_verdict_malformed"), "and alerted");
+
+  // Not-records return null ("nothing stored"), and the malformed shapes that
+  // ARE records go through the guards above instead of being repaired here.
+  eq(verdictFromRecord(null), null, "null is nothing");
+  eq(verdictFromRecord("x"), null, "a string is nothing");
+  eq(verdictFromRecord({ decision: "maybe" }), null, "an unknown decision is not a record");
+
+  // loopAttemptFromRecord refuses rows judged under another bar, so a v1 hold
+  // can never bill the v2 regeneration budget.
+  eq(loopAttemptFromRecord({ ...row, gate_version: "delivery-gate-v1" }), null, "v1 rows do not seed the loop");
+  const seeded = loopAttemptFromRecord(row);
+  ok(seeded !== null && seeded.hold_class === "QUALITY_HOLD", "v2 rows seed with their class");
+});
+
+await test("wiring: a replayed sticky hold does not double-bill the regeneration budget", async () => {
+  // The stage died after recording one quality hold; on the retry the stored
+  // verdict replays AND is seeded as a prior attempt. The loop must count it
+  // once: two full regenerations remain... minus the one already implied by the
+  // recorded hold — i.e. the budget continues, it does not restart.
+  const held = await runDeliveryGate(baseInput(), jdeps(jrecorder(() => failingJudgeJson({ scores: scoresAt({ specificity: 1 }) }))));
+  const row = {
+    doc_hash: held.doc_hash, gate_version: held.gate_version, decision: held.decision,
+    cause: dbCauseFor(held.cause), sticky: held.sticky, critics: held.judge,
+    preflight: held.preflight, findings: held.findings, model_calls: held.model_calls,
+  };
+  const prior = [loopAttemptFromRecord(row)].filter((a): a is LoopAttempt => a !== null);
+  let verdicts = 0;
+  const rec = jrecorder(() => {
+    verdicts++;
+    return failingJudgeJson({ scores: scoresAt({ specificity: 2, clarity: verdicts >= 2 ? 4 : 3 }) });
+  });
+  let regens = 0;
+  const stored = verdictFromRecord(row);
+  const out = await runGateLoop(baseInput(), jdeps(rec, {
+    storedVerdict: (h) => Promise.resolve(h === held.doc_hash ? stored : null),
+  }), {
+    regenerate: () => { regens++; return Promise.resolve(distinctNarrative(regens + 20)); },
+  }, prior);
+  eq(out.decision.action, "refund", "the third quality judgement refunds");
+  eq(regens, 2, "two regenerations after the replayed hold — the recorded hold was counted once, not twice");
+  eq(verdicts, 2, "and the replayed document itself was never re-judged");
 });
 
 // ---------------------------------------------------------------- report

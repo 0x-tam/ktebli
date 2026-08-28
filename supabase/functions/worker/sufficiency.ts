@@ -108,10 +108,32 @@ export interface Threshold {
   readonly ladderStatus: LadderStatus;
 }
 
+// THE LADDER HAS REPORTED, AND IT IS FLAT (2026-08-28). Fourteen blind
+// verdict cells (reports/phase1-verdicts.md, reports/phase2-decision.md), each
+// ranking four documents, against both deterministic measures computed by
+// tests/sufficiency/ladder_tau.ts over tests/ladder/documents/:
+//
+//   referent COUNT  (referentWeight().present)  mean Kendall tau-b  0.161,
+//                   tau >= 0.5 in 4 of 14 cells, 2 cells degenerate (all four
+//                   documents used every offered referent — the count axis
+//                   cannot even ORDER those cells);
+//   referent WEIGHT (referentWeight().weight)   mean tau-b -0.452,
+//                   tau >= 0.5 in 0 of 14 cells. Weight ANTI-correlates:
+//                   the flash arms repeat referents decoratively and outscore
+//                   the documents both critic families fund.
+//
+// Against the pre-committed wiring rule (tau >= 0.5 across rungs and critics),
+// neither measure qualifies. The fundability axis the critics actually move on
+// is generator strength and generation mode (phase1-verdicts.md "ladder
+// shape"), which no pre-payment evidence count can see. So: `flat`, per this
+// module's own contract above — the hard floor and required-slot arms keep
+// refusing empty ledgers and unanswered slots (those follow from invariants 2
+// and 3, not from the ladder), and no number above the hard floor is claimed
+// to mean anything. Re-run ladder_tau.ts before ever changing this.
 export const SUFFICIENCY_THRESHOLD: Threshold = {
   hardFloor: 1,
   ladder: null,
-  ladderStatus: "pending",
+  ladderStatus: "flat",
 };
 
 /** The bar actually applied. Monotone upward: the provisional arm cannot lower it. */
