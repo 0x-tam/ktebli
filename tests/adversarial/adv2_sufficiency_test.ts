@@ -243,7 +243,15 @@ ok(orderInsertSites === 1 && insertingFns.length === 1 && insertingFns[0] === "s
 //    its own adv2-live-* row; the report ran the fuller 25x stress + RLS matrix.
 // ---------------------------------------------------------------------------
 console.log("\nF. LIVE FOR-UPDATE SERIALISATION (optional; needs KTEBLI_DB_URL)");
-const dbUrl = Deno.env.get("KTEBLI_DB_URL");
+// Reading the env var itself needs --allow-env; the suite runs with --allow-read only,
+// so treat a denied lookup exactly like an unset var — F is optional and must SKIP,
+// never throw and fail the suite (see the contract note above).
+let dbUrl: string | undefined;
+try {
+  dbUrl = Deno.env.get("KTEBLI_DB_URL");
+} catch {
+  dbUrl = undefined;
+}
 if (!dbUrl) {
   console.log("  skip  KTEBLI_DB_URL unset — see reports/adversarial/invariant-2-sufficiency.md §Reproduction");
 } else {
