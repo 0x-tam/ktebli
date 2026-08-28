@@ -249,3 +249,8 @@ Next: install postgres + supabase CLI → phase 0.
   loop), worktrees, each owns only its own reports/adversarial/*.md + tests/adversarial/
   adv2_*_test.ts; breaks filed as failing test + fix spec (no shared-code edits); the
   orchestrator routes any fix through a single owner.
+- 7 adversarial attackers launched (worktrees, disjoint report+test ownership):
+  inv1 delivery-gate, inv2 sufficiency, inv3 grounding, inv4 numeric, inv5 compliance,
+  inv6 exclusivity, inv8+loop. Each files BROKEN (failing test + fix spec) or CONCEDED
+  in writing. Invariants 7 (no human in loop) and 9 (observability) verified directly by
+  the orchestrator (below) rather than a separate agent.
