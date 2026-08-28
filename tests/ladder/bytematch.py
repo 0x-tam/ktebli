@@ -81,6 +81,8 @@ FINGERPRINTS = [
     ("n03",      "critic_b", 4, "C", r"\b72\b"),      # "72 starters ... not derived"
     ("n06",      "critic_a", 1, "B", r"55,?385"),      # "sums to 53,885, not the stated 55,385"
     ("n06",      "critic_a", 4, "C", r"90 young people"), # "90 young people ... four times the pilot"
+    ("n09",      "critic_a", 1, "B", r"\b66\b"),      # "36 enrolments from 66 starters"
+    ("n09",      "critic_b", 2, "A", r"\b76\b"),      # "76 starters are not derived"
 ]
 
 def main():
