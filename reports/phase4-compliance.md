@@ -270,7 +270,7 @@ type-check under `deno check`.
 
 Proof artefacts (session scratchpad, results mirrored above):
 `scratchpad/ws4a/predicate_proofs.ts` (20/20), `postfix_proofs.ts` (13/13), `eight_forms.ts` (8/8 +
-no-silent-null), `sql_proofs.sql` + `p6.sql` (10 PROOF-OK against the replayed head and the
+no-silent-null), `sql_proofs.sql` + `p6_production_shape.sql` (10 PROOF-OK against the replayed head and the
 reproduced production shape), `make_docx.py` + `sample-n12-B.docx` + `render-page1.png`.
 
 <!-- END OF AUDIT SECTIONS — the end-to-end order section is appended below by a later workstream. -->
