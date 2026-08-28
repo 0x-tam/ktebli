@@ -49,6 +49,7 @@ import {
   verdictFromRecord, loopAttemptFromRecord, dbCauseFor,
   type GateDeps, type GateInput, type CriticRequest, type JudgeReply, type LoopAttempt,
 } from "./delivery_gate.ts";
+import { resolveDonorLimits, type LimitField, type LimitOutcome } from "./donor_limits.ts";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -275,25 +276,41 @@ interface Fmt {
   marginIn: number | null; pageSize: "A4" | "Letter" | null;
   maxPages: number | null; maxWords: number | null; requiredSections: string[];
   limitUnparsed: string[];
+  /** Per-field record of how each donor limit resolved (invariant 9). */
+  limitOutcomes: Record<LimitField, LimitOutcome> | null;
 }
-function normalizeFmt(raw: unknown): Fmt {
+// WS4a-15/-14 (subsumes F1): the two donor LIMITS resolve through
+// donor_limits.ts (limit | absent | refused — never a silent null, and never a
+// confidently WRONG number: "1,400 characters", "at least 1,400 words",
+// "1400 words or 4 pages", "$1,400", "A4", "1,200-1,400" all refuse instead of
+// coercing; executed corpus in tests/donor-limits). Typography fields keep the
+// permissive numLike coercion below: they carry safe defaults and are not
+// compliance gates. required_sections present but NOT an array is pushed onto
+// limitUnparsed (the refusal channel enforced before generation) instead of
+// silently becoming [] — the shape that turned the whole donor-structure gate
+// off (WS4a-1).
+function normalizeFmt(raw: unknown, guidelines = ""): Fmt {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-  // A limit the donor stated and the extractor mangled must never read as "no limit".
-  // numLike accepts the shapes a model actually emits for a number ("1,800",
-  // "1800 words"); anything still unreadable is reported as unparsed, not dropped.
   const numLike = (x: unknown): number | null => {
     if (typeof x === "number" && Number.isFinite(x)) return x;
     if (typeof x !== "string") return null;
     const m = x.replace(/,/g, "").match(/\d+(?:\.\d+)?/);
     return m ? Number(m[0]) : null;
   };
-  const unparsed: string[] = [];
-  const num = (x: unknown, lo: number, hi: number, field?: string) => {
+  const num = (x: unknown, lo: number, hi: number) => {
     const n = numLike(x);
-    if (n !== null && n >= lo && n <= hi) return n;
-    if (field && x !== null && x !== undefined && x !== "") unparsed.push(`${field}=${JSON.stringify(x)}`);
-    return null;
+    return n !== null && n >= lo && n <= hi ? n : null;
   };
+  const lr = resolveDonorLimits(r, guidelines);
+  const unparsed = [...lr.limitUnparsed];
+  let requiredSections: string[] = [];
+  if (r.required_sections !== undefined && r.required_sections !== null) {
+    if (Array.isArray(r.required_sections)) {
+      requiredSections = (r.required_sections as unknown[]).map(String).filter((s) => s.trim().length > 2).slice(0, 20);
+    } else {
+      unparsed.push(`required_sections=${JSON.stringify(r.required_sections).slice(0, 200)}`);
+    }
+  }
   const fontRaw = typeof r.font === "string" ? r.font.trim() : "";
   const KNOWN_FONTS = ["Times New Roman", "Arial", "Calibri", "Garamond", "Georgia", "Helvetica", "Cambria", "Verdana", "Book Antiqua", "Tahoma"];
   const font = KNOWN_FONTS.find((f) => fontRaw.toLowerCase().includes(f.toLowerCase())) ?? null;
@@ -305,10 +322,11 @@ function normalizeFmt(raw: unknown): Fmt {
     lineSpacing: num(r.line_spacing, 1, 3),
     marginIn: num(r.margin_inches, 0.5, 2),
     pageSize,
-    maxPages: num(r.max_pages, 1, 200, "max_pages"),
-    maxWords: num(r.max_words, 100, 100000, "max_words"),
-    requiredSections: Array.isArray(r.required_sections) ? (r.required_sections as unknown[]).map(String).filter((s) => s.trim().length > 2).slice(0, 20) : [],
+    maxPages: lr.maxPages,
+    maxWords: lr.maxWords,
+    requiredSections,
     limitUnparsed: unparsed,
+    limitOutcomes: lr.limitOutcomes,
   };
 }
 const EMPTY_FMT = normalizeFmt(null);
@@ -506,6 +524,40 @@ function wordCount(md: string): number {
   return md.replace(/[|#*`>]/g, "").split(/\s+/).filter((w) => /[A-Za-z0-9؀-ۿ]/.test(w)).length;
 }
 
+// ---- HEADING-GATE-BEGIN (tests/adversarial extracts and executes this block verbatim)
+// A donor-mandated heading is satisfied when the document REPRODUCES the
+// donor's wording — the heading may carry more, never less (invariant 5;
+// compliance-by-truncation history in tests/adversarial/compliance_truncation).
+//
+// WS4a-16: the ASCII normaliser strips [^a-z0-9 ], so EVERY non-Latin-script
+// donor heading normalised to empty and was silently skipped — an Arabic
+// donor's entire required structure went unchecked, zero findings. When the
+// ASCII rule empties a non-empty section name, both needle and headings fall
+// back to a Unicode-aware normalisation (letters of any script survive;
+// punctuation and symbols become spaces). Only a needle empty under THAT rule
+// too is unmatchable, and then it is a recorded violation, never a silent skip.
+const normHead = (x: string) =>
+  x.toLowerCase().replace(/[*_`]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+const normHeadU = (x: string) =>
+  x.toLowerCase().normalize("NFKC").replace(/[*_`]/g, "").replace(/[\p{P}\p{S}]+/gu, " ").replace(/\s+/g, " ").trim();
+function requiredSectionFindings(headingPlain: string[], required: string[]): string[] {
+  const out: string[] = [];
+  const headingText = headingPlain.map(normHead);
+  const headingTextU = headingPlain.map(normHeadU);
+  for (const s of required) {
+    let needle = normHead(s);
+    let hay = headingText;
+    if (!needle && s.trim()) { needle = normHeadU(s); hay = headingTextU; }
+    if (!needle) {
+      if (s.trim()) out.push("required_section_unreadable:" + s.slice(0, 40));
+      continue;
+    }
+    if (!hay.some((h) => h.includes(needle))) out.push("missing_required_section:" + s.slice(0, 40));
+  }
+  return out;
+}
+// ---- HEADING-GATE-END
+
 const BOX_RE = /[┌┐└┘├┤┬┴┼│═-╬]|─{3,}/;
 interface ContentOpts { requiredSections?: string[]; maxWords?: number | null; minWords?: number | null; signoff?: boolean; limitScope?: LimitScope; donorHeadings?: string[]; attachments?: string[] }
 function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}): string[] {
@@ -552,15 +604,9 @@ function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}):
   // the reverse direction, accepting any fragment of the donor's own text, so five
   // donor questions were satisfied by one heading reading "Question". That is
   // compliance by truncation, which invariant 5 forbids outright.
-  const normHead = (x: string) =>
-    x.toLowerCase().replace(/[*_`]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
-  const headingText = real.filter((b) => b.kind === "heading")
-    .map((b) => normHead(plainOf((b as { inline: InlineRun[] }).inline)));
-  for (const s of opts.requiredSections ?? []) {
-    const needle = normHead(s);
-    if (!needle) continue;
-    if (!headingText.some((h) => h.includes(needle))) v.push("missing_required_section:" + s.slice(0, 40));
-  }
+  const headingPlain = real.filter((b) => b.kind === "heading")
+    .map((b) => plainOf((b as { inline: InlineRun[] }).inline));
+  v.push(...requiredSectionFindings(headingPlain, opts.requiredSections ?? []));
   // A donor word limit is a hard limit: never ship over it. wordCount above is
   // calibrated to approximate a word processor's count, so exact enforcement is
   // fair in both directions.
@@ -927,6 +973,38 @@ const VISUAL_TYPES = new Set([
 const ALWAYS_BLOCKING = new Set(["clipping", "overflow", "broken_table", "raw_markdown", "ascii_art", "unreadable_content", "missing_page_number"]);
 interface VisualIssue { type: string; page: number; severity: "blocking" | "warning"; note: string }
 interface VisualVerdict { status: "passed" | "failed" | "unavailable"; issues: VisualIssue[] }
+// ---- VISUAL-NORMALISE-BEGIN (tests/adversarial extracts and executes this block verbatim)
+// WS4a-6a: a parseable reply with issues missing/non-array used to read as
+// status "passed". An unparsed verdict is no verdict — throw (the caller's
+// retry catches it; after the retry budget the verdict is "unavailable", which
+// never reads as verified).
+// WS4a-6b: a BLOCKING report under a near-miss type name ("text_overflow") was
+// silently dropped and the page passed. An unrecognised blocking report is
+// still a blocking report; it is kept under unreadable_content with the
+// original type name preserved in the note. Unknown NON-blocking types are
+// still dropped: only the blocking half can defeat the gate.
+function normalizeVisualIssues(parsedIssues: unknown): VisualIssue[] {
+  if (!Array.isArray(parsedIssues)) throw new Error("visual QA reply unparsed: issues missing or not an array");
+  return parsedIssues
+    .map((raw) => {
+      const r = raw as Record<string, unknown>;
+      const type = String(r.type ?? "");
+      if (!VISUAL_TYPES.has(type)) {
+        if (r.severity === "blocking") {
+          return {
+            type: "unreadable_content", page: Math.max(1, Number(r.page) || 1),
+            severity: "blocking" as const,
+            note: `unrecognised issue type "${type.slice(0, 40)}": ${String(r.note ?? "").slice(0, 150)}`,
+          };
+        }
+        return null;
+      }
+      const sev = ALWAYS_BLOCKING.has(type) ? "blocking" : (r.severity === "blocking" ? "blocking" : "warning");
+      return { type, page: Math.max(1, Number(r.page) || 1), severity: sev as "blocking" | "warning", note: String(r.note ?? "").slice(0, 200) };
+    })
+    .filter((x): x is VisualIssue => x !== null);
+}
+// ---- VISUAL-NORMALISE-END
 async function visualQA(images: string[]): Promise<VisualVerdict> {
   if (!images.length) return { status: "unavailable", issues: [] };
   const pick = images.length <= 6 ? images : [...images.slice(0, 4), images[images.length - 2], images[images.length - 1]];
@@ -947,15 +1025,9 @@ async function visualQA(images: string[]): Promise<VisualVerdict> {
     try {
       const { text } = await llmRaw([{ role: "user", content }], 900);
       const parsed = jsonOf(text) as { issues?: unknown[] };
-      const issues: VisualIssue[] = (Array.isArray(parsed.issues) ? parsed.issues : [])
-        .map((raw) => {
-          const r = raw as Record<string, unknown>;
-          const type = String(r.type ?? "");
-          if (!VISUAL_TYPES.has(type)) return null;
-          const sev = ALWAYS_BLOCKING.has(type) ? "blocking" : (r.severity === "blocking" ? "blocking" : "warning");
-          return { type, page: Math.max(1, Number(r.page) || 1), severity: sev as "blocking" | "warning", note: String(r.note ?? "").slice(0, 200) };
-        })
-        .filter((x): x is VisualIssue => x !== null);
+      // WS4a-6a/-6b: see normalizeVisualIssues above (throws on an unparsed
+      // reply; keeps unknown-type blocking reports).
+      const issues = normalizeVisualIssues(parsed.issues);
       return { status: issues.some((i) => i.severity === "blocking") ? "failed" : "passed", issues };
     } catch { /* retry once */ }
   }
@@ -1181,6 +1253,31 @@ function certificationsMd(certs: Array<Record<string, unknown>>, mismatch: Recor
   return md;
 }
 
+// ---- CLAIM-NORMALISE-BEGIN (tests/adversarial extracts and executes this block verbatim)
+// The Claim Ledger's documented classification enum (validate + revise).
+//
+// WS4a-2 (F3): a claims field that is not an array used to become [] and the
+// grounding gate — the project's stated central control — passed VACUOUSLY. An
+// unparsed ledger is a failed audit, not a clean one: throw.
+// WS4a-3 (F3): the enum test was case-sensitive, so "Unsupported" slid past
+// every filter. Classifications normalise to lowercase, and any value outside
+// the documented enum becomes "unsupported" (with the raw value recorded) —
+// refuse-toward-blocking, the module's own asymmetry.
+const CLAIM_CLASSES = new Set([
+  "supported", "qualified", "model_proposed_future", "stale", "conflicting",
+  "donor_required_certification", "unsupported",
+]);
+function normalizeClaims(claims: unknown): Array<Record<string, unknown>> {
+  if (!Array.isArray(claims)) throw new Error("claim ledger unparsed: claims is not an array");
+  return (claims as Array<Record<string, unknown>>).map((cl) => {
+    const c0 = String(cl.classification ?? "").toLowerCase().trim();
+    return CLAIM_CLASSES.has(c0)
+      ? { ...cl, classification: c0 }
+      : { ...cl, classification: "unsupported", classification_raw: String(cl.classification ?? "").slice(0, 60) };
+  });
+}
+// ---- CLAIM-NORMALISE-END
+
 async function runStage(stage: { stage_id: number; proposal_id: string; key: string; attempt?: number }) {
   usageReset();
   const beat = () => patch(`job_stages?id=eq.${stage.stage_id}`, { heartbeat_at: new Date().toISOString() }).catch(() => {});
@@ -1192,12 +1289,22 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   const strategy = c.out["strategy"] as Record<string, unknown> | undefined;
   const design = c.out["design"] as Record<string, unknown> | undefined;
   const voice = c.out["voice"] as { profile?: unknown; files?: number } | undefined;
-  const fmt = normalizeFmt((analysis as { format_spec?: unknown } | undefined)?.format_spec);
+  const guidelinesForLimits = String((analysis as { guidelines_text?: unknown } | undefined)?.guidelines_text ?? "") ||
+    String((analysis as { summary?: unknown } | undefined)?.summary ?? "");
+  const fmt = normalizeFmt((analysis as { format_spec?: unknown } | undefined)?.format_spec, guidelinesForLimits);
+  // The analyze stage resolved the limits against the FULL grant text and
+  // recorded any refusal in its output (limit_unparsed). The recompute above
+  // only sees the summary, so the union of both refusal lists gates generation:
+  // whichever side saw a problem, the order stops before the spend.
+  const analyzeUnparsed = (analysis as { limit_unparsed?: unknown } | undefined)?.limit_unparsed;
+  const limitUnparsedAll = [...new Set([
+    ...fmt.limitUnparsed,
+    ...(Array.isArray(analyzeUnparsed) ? (analyzeUnparsed as unknown[]).map(String) : []),
+  ])];
   // What the donor's limit COVERS, read from the donor's own words. Defaults to the
   // whole document, so this can only ever narrow when the guidelines say attachments
   // sit outside the limit -- never the other way round (invariant 5).
-  const limitScope = limitScopeFrom(String((analysis as { guidelines_text?: unknown } | undefined)?.guidelines_text ?? "") ||
-    String((analysis as { summary?: unknown } | undefined)?.summary ?? ""));
+  const limitScope = limitScopeFrom(guidelinesForLimits);
   const donorHeadings = [
     ...fmt.requiredSections,
     ...(((analysis as { application_structure?: { sections_or_questions?: unknown[] } } | undefined)
@@ -1243,8 +1350,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       try {
         const res = await safeFetchText(trimmed, { maxRedirects: 3, timeoutMs: 12_000, maxBytes: 2_000_000 });
         text = stripHtml(res.body, 80_000);
-      } catch {
-        text = text.slice(0, 80_000);
+      } catch (e) {
+        // WS4a-5 (F5): the catch used to substitute the URL STRING as the grant
+        // text — every requirement, limit and section then extracted as null
+        // and the proposal was written against a document never read. A failed
+        // fetch fails the stage: a retry tick is the correct cost, a proposal
+        // against nothing is not.
+        throw new Error("grant page unreachable: " + String(e).slice(0, 140));
       }
     }
     await beat();
@@ -1278,7 +1390,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       grantId = g.id;
     }
     await patch(`order_proposals?id=eq.${stage.proposal_id}`, { grant_id: grantId, title: String(a.title ?? "Your proposal").slice(0, 120), status: "processing" });
-    return done(a);
+    // The donor limits resolved against the FULL grant text, recorded with the
+    // analysis (invariant 9: nothing decides silently). limit_unparsed here is
+    // a refusal channel: gen:narrative refuses to generate while it is
+    // non-empty, so an unreadable stated limit stops the order BEFORE the
+    // generation spend (WS4a-14/-15; silent-gates §6.4).
+    const lr = resolveDonorLimits((a as { format_spec?: unknown }).format_spec ?? null, text);
+    return done({ ...a, limit_unparsed: lr.limitUnparsed, limit_outcomes: lr.limitOutcomes });
   }
 
   if (stage.key === "org") {
@@ -1556,8 +1674,14 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       4500, { effort: "high", model: MODEL_STRATEGY || MODEL }));
     const candidates = (Array.isArray(s.candidates) ? s.candidates as Array<Record<string, unknown>> : []);
     if (!candidates.length) throw new Error("strategy generation returned no candidates");
-    const ranking = (Array.isArray(s.ranking) ? s.ranking as number[] : candidates.map((_, i) => i))
-      .filter((i) => i >= 0 && i < candidates.length);
+    // WS4a-18 (P2): a non-array ranking ("1,2") used to become identity order
+    // with the model's stated preference silently discarded. The fallback
+    // stands (selection still feasibility-filtered below) but the refusal to
+    // rank is RECORDED in the stage output, never silent.
+    const rankingParsed = Array.isArray(s.ranking);
+    if (!rankingParsed) console.error(JSON.stringify({ strategy: "ranking_unparsed", got: String(s.ranking).slice(0, 60) }));
+    const ranking = (rankingParsed ? s.ranking as number[] : candidates.map((_, i) => i))
+      .filter((i) => Number.isInteger(i) && i >= 0 && i < candidates.length);
     const rejected: Array<Record<string, unknown>> = [];
     const usedT = new Set(takenRows.map((t: Record<string, number>) => t.structural_template_id));
     const usedO = new Set(takenRows.map((t: Record<string, number>) => t.opening_device_id));
@@ -1619,6 +1743,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       selected, claim_id: claimed.claim_id, template: claimed.template, opening: claimed.opening,
       template_style: tplRow, opening_style: opRow,
       candidate_count: candidates.length, rejected, ranking_reason: s.ranking_reason ?? null,
+      ...(rankingParsed ? {} : { ranking_unparsed: true }),
       reserved_count_at_selection: takenRows.length, usage: usageSnap(),
     });
   }
@@ -1669,6 +1794,14 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     const kind = stage.key.slice(4);
     const spec = GEN_SPECS[kind];
     if (!spec) throw new Error("unknown gen kind " + kind);
+    // A donor limit the resolver refused is not an absent limit: nothing
+    // downstream can enforce what was never read, so the order stops HERE,
+    // before any generation spend, not at package after paying for a document
+    // whose compliance is unknowable (WS4a-15; silent-gates §6.4). The package
+    // stage keeps its own check as a backstop.
+    if (kind === "narrative" && limitUnparsedAll.length) {
+      throw new Error(`donor limit not parsed, compliance cannot be established: ${limitUnparsedAll.join(", ")}`);
+    }
     await beat();
     const priorNarrative = kind !== "narrative" ? finalNarrative(c.out) : "";
     const extra = priorNarrative ? `\n\nTHE PROPOSAL NARRATIVE (be consistent with it):\n${priorNarrative.slice(0, 12_000)}` : "";
@@ -1777,7 +1910,9 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         `Reply strict JSON only: {"claims":[{"claim":string,"classification":string,"evidence_id":string|null,"material":boolean,"note":string}]}\n\n` +
         `DONOR REQUIREMENTS (for judging (a) above):\n${JSON.stringify(reqRows).slice(0, 6000)}\n\n` +
         `EVIDENCE LEDGER:\n${JSON.stringify(allowedEvidence)}\n\nNARRATIVE:\n${narrative.slice(0, 28_000)}`, 3000));
-      claimLedger = (Array.isArray(ledgerOut.claims) ? ledgerOut.claims as Array<Record<string, unknown>> : []);
+      // WS4a-2/-3 (F3): unparsed ledger throws; classifications normalised,
+      // out-of-enum values block. See normalizeClaims above.
+      claimLedger = normalizeClaims(ledgerOut.claims);
       // A donor-required self-certification cannot be evidenced by its nature: the
       // donor obliges the applicant to assert it. Blocking on it deadlocks the
       // correction loop (remove it -> missing mandatory requirement -> restate it
@@ -1801,7 +1936,18 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         `\nPROJECT DESIGN (what the documents are supposed to express):\n${JSON.stringify(project).slice(0, 8000)}\n\nDRAFT NARRATIVE:\n${narrative.slice(0, 28_000)}` +
         (docs.concept_note ? `\n\nCONCEPT NOTE:\n${docs.concept_note.slice(0, 6000)}` : ""),
         3500, { effort: deep ? "high" : "low", model: deep ? (MODEL_STRATEGY || MODEL) : MODEL }));
-      coverage = (Array.isArray(revOut.coverage) ? revOut.coverage as Array<Record<string, unknown>> : []);
+      // WS4a-4: non-array coverage used to become [] and the requirement gate
+      // passed vacuously; an EMPTY array against a non-empty requirement
+      // matrix is the same defeat one shape later. Either is a failed audit.
+      if (!Array.isArray(revOut.coverage)) {
+        if (reqRows.length > 0) throw new Error("requirement coverage unparsed: coverage is not an array");
+        coverage = [];
+      } else {
+        coverage = revOut.coverage as Array<Record<string, unknown>>;
+        if (reqRows.length > 0 && coverage.length === 0) {
+          throw new Error(`requirement coverage empty against ${reqRows.length} requirement(s)`);
+        }
+      }
       reviewFindings = (Array.isArray(revOut.findings) ? revOut.findings : []).map((f: unknown) => String(f).slice(0, 300));
       const missingMandatory = coverage.filter((r) => r.mandatory !== false && r.status === "missing");
 
@@ -1885,7 +2031,9 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `Audit FACTUAL GROUNDING. Extract material claims this narrative makes about the organisation's PAST or PRESENT and classify each against the evidence ledger: "supported"|"qualified"|"model_proposed_future"|"stale"|"conflicting"|"unsupported".\n` +
       `Reply strict JSON only: {"claims":[{"claim":string,"classification":string,"material":boolean}]}\n\n` +
       `EVIDENCE LEDGER:\n${JSON.stringify(allowedEvidence)}\n\nNARRATIVE:\n${text.slice(0, 28_000)}`, 2500));
-    const bad = (Array.isArray(ledgerOut.claims) ? ledgerOut.claims as Array<Record<string, unknown>> : [])
+    // Same F3 shape as validate (WS4a-2/-3): unparsed ledger throws, and an
+    // out-of-enum classification is already "unsupported" after normalisation.
+    const bad = normalizeClaims(ledgerOut.claims)
       .filter((cl) => cl.material !== false && ["unsupported", "stale", "conflicting"].includes(String(cl.classification)));
     if (bad.length) {
       text = await generateValidated(
@@ -2150,8 +2298,8 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         // downstream can enforce what was never carried, so the order stops here rather
         // than shipping a document whose compliance is unknown (invariant 5), loudly
         // rather than silently (invariant 8).
-        if (isNarrative && fmt.limitUnparsed.length) {
-          throw new Error(`donor limit not parsed, compliance cannot be established: ${fmt.limitUnparsed.join(", ")}`);
+        if (isNarrative && limitUnparsedAll.length) {
+          throw new Error(`donor limit not parsed, compliance cannot be established: ${limitUnparsedAll.join(", ")}`);
         }
         const { bytes, blocks } = await buildDoc(md, meta, docFmt, opts);
         if (isNarrative) {
@@ -2161,7 +2309,12 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
             stage_attempt: stage.attempt ?? null,
             content_validation: "passed",
             donor_requirements: (fmt.maxWords || fmt.requiredSections.length) ? "passed" : "n/a",
-            word_count: wordCount(md),
+            // WS4a-20: BOTH counts are recorded — the whole document and the
+            // span the limit gate actually counted. Their divergence is the
+            // mechanism behind the historical 19-of-20 over-count; recording
+            // one of them hid the drift.
+            word_count_whole: wordCount(md),
+            word_count_counted: wordCount(limitedText(md, limitScope, donorHeadings, donorAttachments).text),
             word_limit: fmt.maxWords,
             page_limit: fmt.maxPages,
             estimated_pages_metadata_only: estimatePages(blocks, fmt),
