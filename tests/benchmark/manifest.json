@@ -1,0 +1,26 @@
+{
+  "manifest": "phase-6 e2e + mini-benchmark (ws6-bench)",
+  "date": "2026-08-28",
+  "environment": "LOCAL Supabase stack only (127.0.0.1:54321/54322); production blackholed in /etc/hosts; Stripe and Resend absent by design",
+  "checkout_bypass": "orders inserted directly via service role with status='paid', pre_intake_id=null, sufficiency_fingerprint=null, intake_answers=null. The invariant-2 gates (save-intake clearance -> checkout_token -> stripe-webhook consume) protect the real checkout and are NOT exercised or forged here.",
+  "intake_policy": "identity-only: org name, explicitly-unverified test registration string, real website URL. No fabricated intake answers; the live crawl of the applicant's own site is the sole applicant-evidence source.",
+  "grant": {
+    "source": "Lloyds Bank Foundation for England and Wales — Good Place to Live: New Beginnings Fund, application guidance 2026 (real, publicly published call; open at run time, deadline 2026-09-09 17:00 UK)",
+    "fetched": "2026-08-28 from https://www.lloydsbankfoundation.org.uk/media/rgxdenkw/gptl-guidance-2026-final.pdf",
+    "grant_input": "verbatim pdftotext of the guidance PDF: tests/benchmark/grant-lbf-new-beginnings-2026-guidance.txt",
+    "note": "the donor's per-question word limits live in the separate example application form (tests/benchmark/grant-lbf-new-beginnings-2026-example-form.txt), kept for the donor-limits refusal demonstration; the guidance document itself states no whole-document word or page limit"
+  },
+  "orders": [
+    {
+      "slug": "sufra",
+      "purpose": "task 1: end-to-end order",
+      "org_name": "Sufra NW London",
+      "org_reg": "UNVERIFIED-TEST-0000001",
+      "org_website": "https://www.sufra-nwlondon.org.uk",
+      "tier": "draft",
+      "order_id": "38328988-f347-495b-a9b4-9f57f5a46197",
+      "order_no": "KT-10001 (LOCAL sequence — unrelated to production's KT-10001)",
+      "proposal_id": "3ce03ea6-aa99-41d9-b470-82c02cd84c0a"
+    }
+  ]
+}

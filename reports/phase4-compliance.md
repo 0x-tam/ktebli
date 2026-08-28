@@ -274,3 +274,145 @@ no-silent-null), `sql_proofs.sql` + captured run output `sql_proofs.out` (9 PROO
 reproduced production shape), `make_docx.py` + `sample-n12-B.docx` + `render-page1.png`.
 
 <!-- END OF AUDIT SECTIONS — the end-to-end order section is appended below by a later workstream. -->
+
+---
+
+## 8. End-to-end order (phase 6, ws6-bench)
+
+**Date:** 2026-08-28 · **Workstream:** ws6-bench · **Stack:** the shared LOCAL Supabase
+stack (API 127.0.0.1:54321, DB 54322, all 17 migrations, fingerprints 8/8), `supabase
+functions serve` running THIS checkout's worker, render container `ktebli-render` on
+:8790. Production blackholed in `/etc/hosts` (verified before starting, never weakened).
+Stripe and Resend absent by design: no charge is made, `sendEmail` returns false, and
+every attempt is still recorded.
+
+**Order:** KT-10001 (LOCAL order-no sequence, unrelated to production), **Sufra NW London**,
+Draft tier, on a **real, currently-open UK grant** — the Lloyds Bank Foundation for England
+and Wales *Good Place to Live: New Beginnings Fund* (guidance PDF fetched 2026-08-28,
+deadline 2026-09-09; verbatim text at `tests/benchmark/grant-lbf-new-beginnings-2026-guidance.txt`).
+Manifest: `tests/benchmark/manifest.json`.
+
+**How the order was created — and why the checkout is bypassed.** The order was inserted
+directly via the service role with `status='paid'`, `pre_intake_id=null`,
+`sufficiency_fingerprint=null`, `intake_answers=null` (`tests/benchmark/create-order.sh`).
+This deliberately bypasses the invariant-2 checkout gates (save-intake clearance →
+`checkout_token` → stripe-webhook `consume_checkout_token`, §2 of `phase6-eng.md`): those
+gates protect the REAL payment path, and a benchmark that forged a clearance would be
+testing its own forgery. The intake is **identity-only** — org name, an explicitly-unverified
+test registration string, website URL — with **no fabricated intake answers**; the live crawl
+of the applicant's own site is the sole applicant-evidence source, exactly like a legacy or
+ungated real order.
+
+### 8.1 Four defects the run surfaced, found and fixed
+
+Each is a minimal diff with a test; none is a change to a model, threshold, or the service list.
+
+1. **`donor_limits.absenceIsSuspicious` cross-line footer false-positive** (`worker/donor_limits.ts`).
+   The suspicious-absence regex used `\s*` and a permissive `[\d,. ]*` run between a number
+   and its unit, so a year at the end of one paragraph bridged to a `pdftotext` page footer
+   four blank lines later ("…in 2024\n\n\n\nPage 5") and read as a *stated page limit*. On the
+   real LBF guidance — whose only "page" tokens are footers — analyze recorded
+   `max_pages … absence_contradicted`, which would have blocked `gen:narrative` at the
+   `limitUnparsedAll` gate over a limit the donor never stated. Fix: the number, grouping and
+   unit must now share one line. A line-wrapped statement between number and unit is now
+   missed **by design** (documented trade — it can only return that text to the pre-check
+   state, never loosen an active gate). Regression: `tests/donor-limits/donor_limits_test.ts`
+   (the exact footer string + same-line statements still fire). Commit `ba56d2b`.
+2. **analyze stage did not snapshot its usage** (`worker/index.ts`). analyze was the one
+   stage output without a `usage:{…stageUsage}` snapshot, so its model call was invisible to
+   the per-stage cost accounting. Fix: add the snapshot. Test: `cost_accounting_test.ts`
+   (source assertion + the "11 stage outputs" count). Commit `ba56d2b`.
+3. **Strategy stage still on the pre-composer schema** — the P0 of this run. Migration
+   `20260826160000_unbounded_composer.sql` DROPPED `claims.structural_template_id` /
+   `claims.opening_device_id` and replaced `claim_approach`'s `(…smallint,smallint…)` signature
+   with `(…p_fingerprint,p_axes,p_composition…)`, but the worker's strategy stage still
+   `select`ed the dropped columns and called the dropped signature. **Every order died at
+   strategy with a PostgREST 400 on the taken-set select — before any claim was attempted.**
+   Nothing had caught it: `tests/exclusivity` calls `claim_approach` directly with its own SQL
+   composer, and no worker-driven order had reached strategy on the composer schema until this
+   run. Fix (`COMPOSER-BEGIN..END` marked block + strategy stage): compose an exclusive house
+   style across `composition_axes`, hash the canonical axes (codes+integers only), reserve via
+   the composer signature, and re-roll on `fingerprint_taken` — as the migration header and
+   `ceiling_test.sql` describe. Evidence-gated axis codes are excluded when the applicant has no
+   allowed evidence. Verified live: KT-10001 strategy composed, reserved and confirmed claim
+   `2e67a65a` (fingerprint `d08dae91…`), intervention `move_on_casework` for
+   `refugees_new_leave_to_remain` — a precise fit to LBF's "leaving the asylum system with
+   secured leave to remain" target group. Test: `tests/adversarial/composer_reservation_test.ts`.
+   Commit `bfa6b4a`.
+4. **validate did not snapshot usage on the grounding-FAILURE path** (`worker/index.ts`).
+   The "validation unresolved" throw patched the round diagnostics but not the usage sink;
+   validate makes several model calls per round and retries up to 3× on a grounding block, so
+   a held order's spend was invisible to per-stage accounting and to the per-order cap. Fix:
+   snapshot usage in the unresolved-throw output. Residual noted: other throw sites still lose
+   partial usage. Test: `cost_accounting_test.ts`. Commit `494c343`.
+
+### 8.2 The run, stage by stage (final serve on the fixed worker)
+
+Per-stage cost is OpenRouter's own `usage.cost` read from `job_stages.output.usage`.
+`voice` skipped (no uploaded proposals) and made no model call. `analyze` completed before
+its usage-snapshot fix landed, so its cost is not captured for THIS order (captured for
+every benchmark order below).
+
+| seq | stage | outcome | wall | usage.cost | calls | notes |
+|----|-------|---------|------|-----------|-------|-------|
+| 1 | analyze | done | 95s | *(uncaptured — pre-fix #2)* | — | LBF intelligence; donor limits both `absent` (no whole-doc word/page limit) after fix #1 |
+| 2 | org | done | 95s | $0.3123 | 2 | **live crawl of sufra-nwlondon.org.uk: OK, 178 surviving referents — identical to the phase-5 ledger**; identity gate cleared; 35 evidence items |
+| 3 | voice | done | 0s | — | 0 | skipped: no uploaded past proposals |
+| 4 | strategy | done | 147s | $0.4752 | 3 | composer: fingerprint `d08dae91…`, `move_on_casework` / `refugees_new_leave_to_remain` |
+| 5 | design | done | 226s | $0.7009 | 3 | single high-effort call hit the 6000-token cap and did 2 continuation hops |
+| 6 | gen:narrative | done | 76s | $0.2721 | 1 | 2,870-word draft, real proper nouns from the crawl (Raphael's Estate, Stonebridge, London Borough of Brent), donor's exact Q1–Q10 headings |
+| 7 | validate | **failed (held on merits)** | — | *(uncaptured pre-fix #4; ~3 attempts)* | — | see §8.3 |
+
+Captured per-stage total: **$1.76**. Real spend is higher: analyze (1 call) and validate
+(~3 attempts × ~5 calls) were not snapshotted before fixes #2/#4 — estimated true e2e spend
+**≈ $4.2**. This undercount IS the reason fixes #2 and #4 exist.
+
+### 8.3 Terminal outcome: a CORRECT grounding hold (data starvation, launch P0 #1)
+
+validate ran to completion and **correctly held the document on the merits** — this is not a
+bug. The Claim Ledger + coverage gate found, per its own output: round 0 → 19 blocking (14
+unsupported/stale material claims, 5 missing mandatory requirements); round 1 → 16 blocking;
+after the 2-round correction budget, still 16 → `validation unresolved` → terminal.
+
+The unsupported claims and missing requirements are exactly the administrative facts that
+**identity-only intake + an own-domain crawl cannot supply**: a safeguarding policy and
+Designated Safeguarding Lead, audited accounts, income band, a bank account, insurance. The
+narrative asserted some (e.g. "Sufra has a safeguarding policy and a Designated Safeguarding
+Lead") as present fact; the ledger correctly classified them *unsupported* and the correction
+loop could neither evidence nor honestly qualify them away in two rounds. This is a live
+demonstration of **launch-readiness P0 #1 (data starvation)**: the grounding gate holds, and
+a demanding grant's mandatory administrative questions cannot be answered from identity alone.
+The hold is correct; per the run's own rule it was not retried into passing without material
+change. (One missing-mandatory — the charity registration number — is an artifact of the
+`UNVERIFIED-TEST-…` placeholder rather than data starvation; a real order carries a real number.)
+
+**Terminal notification verified live (WS6-core §4).** On the final failure the worker wrote a
+`stage_failed` escalation (priority `deadline_72h`) and both `notify_customer` and
+`notify_operator` events, each `sent:false` (Resend absent by design), and set the stage's
+`notified_at`. The generic terminal-failure path fired for a real failure exactly as specified.
+
+### 8.4 Real render verified
+
+Because validate held, package/deliver — and thus the pipeline's own render — were never
+reached. The render path was verified directly against the **real render service** with THIS
+order's actual `gen:narrative` output: the 2,870-word Sufra narrative, wrapped in a minimal
+A4/11pt docx (`scratchpad/md2docx.py`), POSTed to `ktebli-render` as raw docx bytes → **HTTP
+200 `{ok:true, pages:6, images:6, images_truncated:false}`**; unauthenticated → 401; non-docx
+bytes → 422. The docx→pdf→page-count round trip works on real pipeline output. (LBF states no
+page limit, so 6 pages would not have blocked.)
+
+### 8.5 Operational finding — monolithic stages vs the local invocation window
+
+`design`, `validate` and `check` are single high-effort stages that make several model calls
+(and `design`/`gen` may do continuation hops when they hit the token cap). Their per-invocation
+latency (design here: 226s / 3 calls) exceeds a naive single worker invocation, and on this
+local stack pg_cron **cannot** drive the worker (pg_net inside the DB container gets "Couldn't
+connect to server" reaching the host gateway — verified), so the worker is driven by host-side
+ticks only. Kong returns "upstream timing out" to the client at ~150s but does **not** cancel a
+DETACHED worker request, so the reliable pattern is one detached tick per stage, polled to
+completion, never overlapping (overlapping ticks caused `WorkerRequestCancelled` churn). Unlike
+`gen:*` (made section-resumable by WS6-core §8), `design`/`validate` have no checkpoint, so a
+runtime kill restarts them from scratch. This is the launch **P0.3** resumability concern shown
+to reach even Draft-tier `design`; per the stack's own README, resumability is **not** proven by
+a local run and was not "fixed" here. It did not block the run — patient detached driving
+completed every stage up to the validate hold.
