@@ -113,7 +113,7 @@ section("1. A LEDGER THAT CLEARS");
   eq(v.gaps.length, 0, "no gaps");
   eq(v.score, 6, "six distinct referents scored");
   eq(v.threshold, 1, "against the hard floor of 1");
-  eq(v.scorer, "referent-count-v1", "the count scorer is active while the ladder is pending");
+  eq(v.scorer, "referent-count-v1", "the count scorer is active — a flat ladder falls back to count");
 
   const texts = v.referents.map((r) => r.text).sort();
   eq(
@@ -386,13 +386,17 @@ section("4. THE THRESHOLD IS IN ONE PLACE");
   });
   ok(!zeroed.cleared, "an empty ledger refuses even with the provisional arm set to zero");
 
-  // The one place also reports itself honestly.
-  eq(SUFFICIENCY_THRESHOLD.ladder, null, "the shipped threshold has NO ladder value — it is not yet known");
-  eq(SUFFICIENCY_THRESHOLD.ladderStatus, "pending", "and says so");
+  // The one place also reports itself honestly. The ladder REPORTED FLAT
+  // (2026-08-28, tests/sufficiency/ladder_tau.ts): neither referent count nor
+  // referent weight predicts the blind fundability rankings, so the shipped
+  // threshold carries no ladder value and says its own scoring rule is
+  // unsupported, in the verdict every customer decision records.
+  eq(SUFFICIENCY_THRESHOLD.ladder, null, "the shipped threshold has NO ladder value — flat earns none");
+  eq(SUFFICIENCY_THRESHOLD.ladderStatus, "flat", "and says so");
   ok(thresholdSource().startsWith("hard_floor_only(1)"), "every verdict records which arm set the bar");
   ok(
-    ladderVerdictNote().includes("does not yet stop orders that are merely thin"),
-    "and the module states, in the verdict, what it cannot yet know",
+    ladderVerdictNote().includes("This gate's scoring rule is therefore WRONG"),
+    "and the module states, in the verdict, that the scoring rule carries no evidential weight",
   );
   ok(
     ladderVerdictNote({ hardFloor: 1, ladder: null, ladderStatus: "flat" })
