@@ -1611,6 +1611,55 @@ async function composeDraw(
   axes["weight_profile"] = fnv1a(seedBase + "|wp") % 997;
   return { axes, composition, fingerprint: await sha256Hex(canonicalAxes(axes)) };
 }
+// The style the WRITER receives, built from the WHOLE composition — every axis the
+// fingerprint hashes, not just spine + opening_move. This is invariant 6's real fix:
+// the lock draws a fingerprint across eleven axes, but the pre-fix styleNote fed the
+// generator only two of them, so the reader-visible style space was a finite pool of
+// |spine| x |opening_move| = 182 however astronomically large the fingerprint space
+// was — distinct hash, identical writing. Here every categorical axis contributes its
+// prompt_directive and every integer grid a concrete instruction, so the string the
+// generator receives is injective in the fingerprint: two distinct fingerprints yield
+// two distinct style briefs. The hash is NOT narrowed (that would REINTRODUCE a
+// ceiling); the visible space is widened to MATCH it. adv2_exclusivity imports this
+// exact function as its model of the writer's input, so a collision here would be a
+// real collision in what the writer sees.
+//
+// MECHANISM WIRED + UNIT-TESTED. The PROSE-DISTINCTNESS half — that move_order 5 vs 6
+// (or weight_profile 41 vs 42) actually read differently to a human, not just as
+// different instruction bytes — needs a full pipeline order and is
+// UNPROVEN-WITHOUT-E2E (not run: costs money).
+function composedStyleNote(axes: Record<string, string | number>, composition: Record<string, string>): string {
+  const CATEGORICAL: Array<[string, string]> = [
+    ["Structure (spine)", "spine"],
+    ["Opening move", "opening_move"],
+    ["Argument carrier", "argument_carrier"],
+    ["Paragraph regime", "paragraph_regime"],
+    ["Stance", "stance"],
+    ["Evidence integration", "evidence_integration"],
+    ["Closing move", "closing_move"],
+    ["Tabular policy", "tabular_policy"],
+  ];
+  const lines: string[] = [];
+  for (const [label, ax] of CATEGORICAL) {
+    if (axes[ax] === undefined) continue;
+    const directive = composition[ax] ?? String(axes[ax]);
+    lines.push(`${label} [${axes[ax]}]: ${directive}`);
+  }
+  // The three integer grids, expressed as CONCRETE, perceivable instructions so each
+  // distinct value shapes the writing (cadence is a real sentence-length target; the
+  // other two are fixed non-default orderings/weightings keyed to their value).
+  if (axes["cadence_mu"] !== undefined) {
+    lines.push(`Cadence: hold a mean sentence length near ${axes["cadence_mu"]} words, varying deliberately around it (never a monotone).`);
+  }
+  if (axes["move_order"] !== undefined) {
+    lines.push(`Move order: sequence your supporting moves in the fixed non-default arrangement keyed ${axes["move_order"]} — commit to one order and keep it.`);
+  }
+  if (axes["weight_profile"] !== undefined) {
+    lines.push(`Emphasis weighting: distribute depth unevenly across sections by weighting profile ${axes["weight_profile"]}, not evenly.`);
+  }
+  return "\nHOUSE STYLE — realise EVERY axis below; together they are what make this application unlike any other to this grant, so no two read alike:\n" +
+    lines.join("\n") + "\n";
+}
 // ---- COMPOSER-END
 
 async function runStage(stage: { stage_id: number; proposal_id: string; key: string; attempt?: number }) {
@@ -2244,7 +2293,17 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     await beat();
     const priorNarrative = kind !== "narrative" ? finalNarrative(c.out) : "";
     const extra = priorNarrative ? `\n\nTHE PROPOSAL NARRATIVE (be consistent with it):\n${priorNarrative.slice(0, 12_000)}` : "";
-    const styleNote = strategy ? `\nStructure style: ${JSON.stringify(strategy.template_style)}. Opening style: ${JSON.stringify(strategy.opening_style)}.` : "";
+    // Route the WHOLE composition to the writer, not just spine + opening_move (the
+    // 182-pool defect, inv6). composedStyleNote expresses every hashed axis as a style
+    // instruction, so the reader-visible style space is as wide as the fingerprint the
+    // lock enforces. strategy.axes / strategy.composition are stored by the strategy
+    // stage for exactly this. (template_style/opening_style remain stored for the DB.)
+    const styleNote = strategy
+      ? composedStyleNote(
+        (strategy.axes ?? {}) as Record<string, string | number>,
+        (strategy.composition ?? {}) as Record<string, string>,
+      )
+      : "";
     // Donor-defined structure overrides everything (contract part 13)
     const appStruct = analysis?.application_structure as { defined_by_donor?: boolean; sections_or_questions?: string[] } | undefined;
     const donorStructure = kind === "narrative" && appStruct?.defined_by_donor && (appStruct.sections_or_questions?.length ?? 0) > 0

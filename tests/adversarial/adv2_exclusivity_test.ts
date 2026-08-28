@@ -64,7 +64,7 @@ const mod = await import(
   "data:application/typescript;base64," +
   btoa(String.fromCharCode(...new TextEncoder().encode(
     SRC.slice(SRC.indexOf("\n", A) + 1, B) +
-    "\nexport { canonicalAxes, composeDraw };\n",
+    "\nexport { canonicalAxes, composeDraw, composedStyleNote };\n",
   )))
 ) as {
   canonicalAxes: (a: Record<string, string | number>) => string;
@@ -72,32 +72,62 @@ const mod = await import(
     byAxis: Map<string, Array<{ code: string; requires_evidence: boolean; prompt_directive: string }>>,
     hasEvidence: boolean, seedBase: string,
   ) => Promise<{ axes: Record<string, string | number>; composition: Record<string, string>; fingerprint: string }>;
+  // The style the writer ACTUALLY receives, from the shipped composer block. The fix
+  // (inv6) routes the WHOLE composition through this, so the test's model of "what the
+  // writer sees" is the worker's own function, not a paraphrase — a collision here is a
+  // real collision in the generator's style input.
+  composedStyleNote: (axes: Record<string, string | number>, composition: Record<string, string>) => string;
 };
 
 // ---------------------------------------------------------------------------
-// 1. THE ROOT CAUSE, ASSERTED BY SOURCE: only spine and opening_move reach the
-//    writer; everything else the fingerprint hashes is mute. These are the bytes
-//    the argument rests on, so a change here means the test must be re-derived
-//    (guard), not that the invariant silently passed.
+// 1. WHAT THE WRITER ACTUALLY RECEIVES (by source). Round-2 UPDATED for the fix:
+//    the pre-fix version pinned the DEFECT — only spine + opening_move reached the
+//    writer while the fingerprint hashed eleven axes. The consolidation fix routes
+//    the WHOLE composition through composedStyleNote(), so these guards now verify
+//    the OPPOSITE: the generator's style input is built from every hashed axis. A
+//    drift (styleNote no longer built from the composer's own function, or an axis
+//    dropped from it) is "cannot verify", not a silent pass.
 // ---------------------------------------------------------------------------
 console.log("1. WHAT THE WRITER ACTUALLY RECEIVES (by source)");
 
-guard(/template_style:\s*\{\s*name:\s*claimed\.axes\.spine\b/.test(SRC),
-  "template_style is built ONLY from axes.spine");
-guard(/opening_style:\s*\{\s*name:\s*claimed\.axes\.opening_move\b/.test(SRC),
-  "opening_style is built ONLY from axes.opening_move");
-const styleNoteLine = (SRC.match(/const styleNote = strategy \? `[^`]*`/) ?? [""])[0];
-guard(/JSON\.stringify\(strategy\.template_style\)/.test(styleNoteLine) &&
-      /JSON\.stringify\(strategy\.opening_style\)/.test(styleNoteLine),
-  "the generator styleNote carries template_style + opening_style …");
-guard(styleNoteLine !== "" &&
-      !/paragraph_regime|stance|evidence_integration|argument_carrier|closing_move|tabular_policy|cadence|move_order|weight_profile|strategy\.composition/.test(styleNoteLine),
-  "… and NOTHING else — no register, stance, closing, tabular, cadence or the full composition");
-// The nine mute axes are named in no prompt anywhere (only in composeDraw's own
-// integer lines and history comments). Strip line comments before checking.
-const codeNoComments = SRC.replace(/\/\/[^\n]*\n/g, "");
-guard(!/paragraph_regime|evidence_integration|argument_carrier|tabular_policy|closing_move/.test(codeNoComments),
-  "the six mute categorical axes are named in NO code path at all (never sent to the model)");
+// The gen:narrative styleNote is now built from the composer's composedStyleNote(),
+// fed the FULL stored composition — strategy.axes and strategy.composition — not just
+// template_style/opening_style.
+guard(/const styleNote = strategy\s*\?\s*[\s\S]{0,400}?composedStyleNote\(/.test(SRC),
+  "the generator styleNote is built by composedStyleNote() over the whole composition");
+guard(/composedStyleNote\(\s*[\s\S]{0,120}?strategy\.axes[\s\S]{0,120}?strategy\.composition/.test(SRC),
+  "… fed BOTH strategy.axes (incl. the integer grids) and strategy.composition (the directives)");
+
+// composedStyleNote itself must NAME every hashed axis. Run it on a real draw and
+// require each of the eleven axes to appear in the writer's brief. This is the crux:
+// once every axis is in the brief, the visible-style space equals the fingerprint space.
+{
+  const probeByAxis = new Map<string, Array<{ code: string; requires_evidence: boolean; prompt_directive: string }>>();
+  for (
+    const [axis, code] of [
+      ["spine", "cost_of_inaction"], ["opening_move", "statistic"], ["argument_carrier", "case_study"],
+      ["paragraph_regime", "short_blocks"], ["stance", "measured"], ["evidence_integration", "woven"],
+      ["closing_move", "call_forward"], ["tabular_policy", "sparing"],
+    ] as Array<[string, string]>
+  ) probeByAxis.set(axis, [{ code, requires_evidence: false, prompt_directive: `directive:${axis}:${code}` }]);
+  const probe = await mod.composeDraw(probeByAxis, true, "probe|0|x|0");
+  const note1 = mod.composedStyleNote(probe.axes, probe.composition);
+  for (
+    const ax of [
+      "spine", "opening_move", "argument_carrier", "paragraph_regime", "stance",
+      "evidence_integration", "closing_move", "tabular_policy",
+    ]
+  ) {
+    guard(note1.includes(`directive:${ax}:`) || note1.toLowerCase().includes(ax.replace(/_/g, " ")),
+      `composedStyleNote carries the ${ax} axis`);
+  }
+  guard(note1.includes(String(probe.axes["move_order"])) && /move order/i.test(note1),
+    "composedStyleNote carries the move_order integer grid as an instruction");
+  guard(note1.includes(String(probe.axes["cadence_mu"])) && /cadence/i.test(note1),
+    "composedStyleNote carries the cadence_mu integer grid as an instruction");
+  guard(note1.includes(String(probe.axes["weight_profile"])) && /weight|emphasis/i.test(note1),
+    "composedStyleNote carries the weight_profile integer grid as an instruction");
+}
 
 // ---------------------------------------------------------------------------
 // 2. THE REAL VOCABULARY, parsed from the migrations the composer reads. Derived
@@ -143,8 +173,11 @@ const byAxis = new Map<string, Array<{ code: string; requires_evidence: boolean;
 for (const [axis, codes] of codesByAxis) {
   byAxis.set(axis, [...codes].map((code) => ({ code, requires_evidence: false, prompt_directive: `directive:${axis}:${code}` })));
 }
-const POOL_SIZE = (codesByAxis.get("spine")?.size ?? 0) * (codesByAxis.get("opening_move")?.size ?? 0);
-guard(POOL_SIZE > 0, `reader-visible style pool = |spine| x |opening_move| = ${POOL_SIZE} (finite, independent of the fingerprint space)`);
+// The OLD reader-visible pool, when only spine + opening_move reached the writer. Kept
+// as the yardstick the fix must beat: after routing every axis in, the distinct visible
+// styles must exceed this pool and track the fingerprint count instead.
+const OLD_POOL_SIZE = (codesByAxis.get("spine")?.size ?? 0) * (codesByAxis.get("opening_move")?.size ?? 0);
+guard(OLD_POOL_SIZE > 0, `pre-fix pool (|spine| x |opening_move|) = ${OLD_POOL_SIZE} — the finite ceiling the fix must break past`);
 
 // ---------------------------------------------------------------------------
 // 3. THE DRAW, EXECUTED: many applicants on ONE grant. Worker seedBase shape is
@@ -155,12 +188,12 @@ guard(POOL_SIZE > 0, `reader-visible style pool = |spine| x |opening_move| = ${P
 console.log("\n3. MANY APPLICANTS ON ONE GRANT (shipped composeDraw, real vocabulary)");
 
 const orgUuid = (i: number) => `00000000-0000-4000-8000-${i.toString(16).padStart(12, "0")}`;
-// EXACTLY what the strategy stage stores as the writer's style input (worker ~2065-2066).
+// EXACTLY the bytes the generator receives as its style brief: the worker's own
+// composedStyleNote() over the full composition (worker gen:narrative styleNote). Two
+// applicants share a visible style iff this string is identical — iff every hashed axis
+// matches, iff the fingerprint matches.
 const writerStyle = (d: { axes: Record<string, string | number>; composition: Record<string, string> }) =>
-  JSON.stringify({
-    template_style: { name: d.axes.spine, description: d.composition.spine ?? null },
-    opening_style: { name: d.axes.opening_move, description: d.composition.opening_move ?? null },
-  });
+  mod.composedStyleNote(d.axes, d.composition);
 
 type Row = { i: number; fp: string; style: string; spine: string; open: string; axes: Record<string, string | number>; composition: Record<string, string> };
 async function draws(N: number): Promise<Row[]> {
@@ -201,34 +234,40 @@ const collision = [...byStyle.values()].find((g) => g.length > 1);
 const broken = servedAll && collision !== undefined;
 
 note(servedAll, `${big.length}/${big.length} applicants served, all fingerprints distinct — the "nobody waits" half HOLDS`);
-note(distinctStyles <= POOL_SIZE, `only ${distinctStyles} distinct reader-visible styles among ${big.length} served (<= the ${POOL_SIZE}-pool): ${styleSharers} applicants reuse another's style`);
+note(distinctStyles === new Set(big.map((r) => r.fp)).size,
+  `${distinctStyles} distinct reader-visible styles among ${big.length} served — the visible-style space now tracks the fingerprint space (was capped at the ${OLD_POOL_SIZE}-pool); ${styleSharers} share another's style`);
+note(distinctStyles > OLD_POOL_SIZE,
+  `distinct visible styles (${distinctStyles}) exceed the old |spine|x|opening_move| pool (${OLD_POOL_SIZE}) — the finite ceiling is gone`);
 
 if (collision) {
+  // Should not occur after the fix: a collision now means the writer's style brief is
+  // NOT injective in the fingerprint, i.e. an axis the hash carries is again absent
+  // from composedStyleNote — the 182-pool defect regressed. Diagnose which axes differ
+  // yet produced the same brief.
   const [a, b] = collision;
   const differing = Object.keys(a.axes).filter((k) => String(a.axes[k]) !== String(b.axes[k]));
-  const MUTE = new Set(["paragraph_regime", "stance", "evidence_integration", "argument_carrier", "closing_move", "tabular_policy", "move_order", "cadence_mu", "weight_profile"]);
-  console.log(`\n   concrete pair on one grant:`);
-  console.log(`     applicant ${a.i}: fp=${a.fp.slice(0, 16)}…  spine=${a.spine}  opening_move=${a.open}`);
-  console.log(`     applicant ${b.i}: fp=${b.fp.slice(0, 16)}…  spine=${b.spine}  opening_move=${b.open}`);
+  console.log(`\n   REGRESSED pair on one grant:`);
+  console.log(`     applicant ${a.i}: fp=${a.fp.slice(0, 16)}…`);
+  console.log(`     applicant ${b.i}: fp=${b.fp.slice(0, 16)}…`);
   note(a.fp !== b.fp, "their fingerprints DIFFER — the (grant_id, fingerprint) lock blocks neither; both served");
-  note(a.style === b.style, "their template_style + opening_style are BYTE-IDENTICAL — the generator gets the same style from both");
-  note(differing.length > 0 && differing.every((k) => MUTE.has(k)), `the only axes separating their fingerprints are MUTE: ${differing.join(", ")}`);
-  note(mod.canonicalAxes(a.axes).includes('"move_order"') && !a.style.includes("move_order"),
-    "the hashed canonical form carries move_order et al.; the writer's style input does not — the decoupling exactly");
+  note(a.style === b.style, "yet their composedStyleNote is BYTE-IDENTICAL — the generator gets the same style from both");
+  console.log(`   axes differing but MUTE in the style brief: ${differing.join(", ")}`);
 }
 
 // ---------------------------------------------------------------------------
 console.log("");
 if (setupFail > 0) {
-  console.log(`CANNOT VERIFY: ${setupFail} setup guard(s) drifted — the shipped styleNote shape or the seeded vocabulary changed. ` +
-    `Re-derive the reader-visible axis set and the pool against a fresh PG17 replay before trusting this test. Treating as failure.`);
+  console.log(`CANNOT VERIFY: ${setupFail} setup guard(s) drifted — the styleNote wiring or the seeded vocabulary changed. ` +
+    `Re-derive the reader-visible axis set against a fresh PG17 replay before trusting this test. Treating as failure.`);
   Deno.exit(2);
 }
 if (broken) {
-  console.log(`INVARIANT 6 BROKEN: on one grant, ${styleSharers} of ${big.length} served applicants share a reader-visible style ` +
-    `(pool = ${POOL_SIZE}). Distinct fingerprints are bought with ${9} mute axes the writer never sees — uniqueness nominal, not real. ` +
+  console.log(`INVARIANT 6 BROKEN: on one grant, ${styleSharers} of ${big.length} served applicants share a reader-visible style. ` +
+    `Distinct fingerprints are bought with axes the writer never sees — uniqueness nominal, not real. ` +
     `Fix spec in reports/adversarial/invariant-6-exclusivity.md.`);
   Deno.exit(1);
 }
-console.log("INVARIANT 6 HELD: reader-visible style is as unique as the fingerprint the lock enforces.");
+console.log(`INVARIANT 6 HELD: reader-visible style is as unique as the fingerprint the lock enforces ` +
+  `(${distinctStyles} distinct styles for ${big.length} served, past the old ${OLD_POOL_SIZE}-pool). ` +
+  `MECHANISM proven (every hashed axis is in the writer's brief); prose-distinctness of the integer grids is UNPROVEN-WITHOUT-E2E.`);
 Deno.exit(0);
