@@ -89,3 +89,12 @@ Next: install postgres + supabase CLI → phase 0.
 - tests/exclusivity/run.sh is GREEN: 40 concurrent applicants on one grant, 40 served,
   0 refused, 16 sessions racing one fingerprint arbitrated by the partial unique index,
   no pool FK in claims. Invariant 6's unbounded composer holds in the replayed schema.
+
+## 2026-08-28 — wave 1 coordination
+
+- WS5 correctly refused to patch index.ts: live-run.sh's guard found the crawl_outcome
+  wiring missing from index.ts (patch spec lost with scratch dir). Resolution: wiring
+  assigned to WS3 (owns index.ts) as bounded task 1b; WS5 proceeds offline (silent-failure
+  audit of crawl_outcome/ssrf + canned-response regression tests) and re-runs live after
+  WS3 merges. Git push to origin was denied by the session's permission layer — commits
+  stay local; operator pushes.
