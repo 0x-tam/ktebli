@@ -143,3 +143,19 @@ Next: install postgres + supabase CLI → phase 0.
   rates stable, instrument not reproducible per-document, must be disclosed; (3) 17→18
   arithmetic; (4) JUDGE_MAX_TOKENS reframe (the claimed deterministic failure did not
   reproduce; change stands as reliability headroom). WS3 resumed with exactly those.
+
+## 2026-08-28 — WS3 merged; wave 2 launched
+
+- WS3 corrections confirmed by critic (PASS, quoted passages) and MERGED (c893af1).
+  Post-merge: 555 gate checks, sufficiency suite, worker typecheck all green.
+- WS5 worktree refreshed with trunk (crawl wiring present) and given the GO for the
+  six-site live run.
+- WS6-core launched (worktree): P0 escalations migration + re-recorded fingerprint
+  (argued, in-commit), invariant-2 clearance enforcement in save-intake/stripe-webhook,
+  WS4a's open index.ts specs (F1/F3/F5, numLike…), failure emails with DRAFT wordings,
+  strategy-retry strand proof, crawler→sufficiency wiring, per-stage cost accounting,
+  resumable generation (marked unproven-on-deployed-runtime). $0 model budget.
+- Balance at wave-2 start: $23.99. Session spend so far ≈ $1.19 (ladder 0.87 + gate 0.28
+  + critic spot-checks 0.02, usage-field attribution) + phase-1 $0.45 already counted in
+  the 0.87? — correction: ladder line total = phase1 $0.45 + phase2 $0.43 = $0.88; gate
+  line = $0.275 + $0.015 critic = $0.29. All inside lines.
