@@ -359,3 +359,9 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   whole-run bounded both sides; +A9c). fix-report wording corrected, residuals noted. Commits
   39c73ed/6b71a82/524185b. Critic sent back for bounded re-verification of exactly those two
   spots (re-run its own stranger reproductions + right-extension attack). On PASS: merge.
+- Re-verify: inv4.1 CONFIRMED CLOSED (right-extension refused, controls intact). inv3.3 still
+  open on subdomain/hyphen variants (shelter.evil.com, shelter-supplies.com admit — whole-
+  COMPONENT match splits on both - and .). Sent back with a precise registrable-main-label
+  algorithm (embedded public-suffix set, exact-equality, discard-on-doubt) + adv2 assertions
+  for the 4 variants. Third pass on the identity gate — invariant 3's worst-outcome direction,
+  worth converging precisely.
