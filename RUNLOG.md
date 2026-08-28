@@ -172,3 +172,8 @@ Next: install postgres + supabase CLI → phase 0.
   bounded before merge: (A) sitemap/wp-json machine files crawled as prose pollute 3
   of 7 ledgers with junk referents — fix + re-crawl affected sites; (B) entity residue
   in siteNameCandidates; (C) 203→205 count. Merge follows the fix.
+- WS5 MERGED (0fda2e6) after critic re-check PASS: machine-file exclusion in two layers,
+  entity-decoded name candidates, 215 checks green, honest 53→90 Magpie rise explained
+  mechanically. Phase 5 CLOSED. Seven clean ledgers at stack/out/phase5-ledgers/.
+- Remaining: WS6-core (running) → critic → merge → WS6-bench (e2e + mini-benchmark, ≤$8)
+  → adversarial round → phase 7 handoff.
