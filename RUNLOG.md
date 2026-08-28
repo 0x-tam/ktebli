@@ -466,3 +466,8 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   >=2 shared distinctive tokens+containment or domain spelling the applicant's own name;
   stranger with neither is structurally unadmittable. 5 reachable classes closed. Dead
   `shared` counter removed. Committed 70e48cd. Awaiting inv4 final concession.
+- inv4 RE-6 (genuinely outside the boundary — sub-sum labelled as the whole, total IS a
+  declared sum): the denWithinS sibling-escape allowed a proper sub-sum (F1 ⊂ D1=108k
+  sub-sum of the 120k total) → 0.75 vs honest 0.675. Fixed (9ee6bc7): sibling escape now
+  requires den's leaves DISJOINT from num's. overhead/direct still resolves; part-of-a-
+  larger-part refused. A17 green, full suite green. Final concession requested. inv3 done.
