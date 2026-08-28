@@ -98,3 +98,20 @@ Next: install postgres + supabase CLI → phase 0.
   audit of crawl_outcome/ssrf + canned-response regression tests) and re-runs live after
   WS3 merges. Git push to origin was denied by the session's permission layer — commits
   stay local; operator pushes.
+
+## 2026-08-28 — wave 1 landing sequence
+
+- WS4a COMPLETE: fixtures 8/8 ("two pages" → loud refusal, argued); 21 proven parser
+  findings (7 fixed in its paths, 14 specced for index.ts/migrations owners); NEW P0:
+  migration 20260826180000 re-creates escalations_kind_check WITHOUT the gate_* kinds
+  that 20260826170000's gate_refund_order() inserts → a confirmed refund can never be
+  recorded (proven by executing the function on a replayed head). Render service verified
+  with a real render (port 8790, n12-B → 4 pages). Critic spawned (verifying the P0 by
+  execution among other checks) before merge.
+- WS5 offline half COMPLETE: 8 silent-failure fixes + canned regressions (contract
+  1.1.0), six sites committed; live run parked until WS3's index.ts crawl wiring merges.
+- WS3 in flight: commit 9859e9f wires the v2 gate between package and deliver AND
+  delegates the crawl to crawl_outcome.ts; validate_judge_ladder.ts created; model-call
+  validation presumably running.
+- P0 escalations-kind fix (new migration + re-recorded expected fingerprint, argued in
+  the commit, never fudged) → assigned to wave-2 ws6-core alongside WS4a's 14 specs.
