@@ -38,3 +38,22 @@ Next: install postgres + supabase CLI → phase 0.
   n03/critic_b ($0.0377, gen-1787902295…) rank B>D>C>A fund B, fundable B+D.
   Fingerprints added and green: 55/B, 12,500/C (critic_a); 72/C (critic_b).
 - Spend so far this run ≈ $0.146 of the $15 ladder line.
+
+## 2026-08-28 — phase 1 CLOSED (10/10), phase 2 fork called, hybrid judging in flight
+
+- Phase 1: all 6 outstanding cells landed first-attempt via direct streaming. Zero MISSING,
+  zero SUBSTITUTE. Spend $0.4511 (usage fields). Every decode confirmed by critic-quoted
+  figures unique to one arm (bytematch: 20 fingerprints green). reports/phase1-verdicts.md.
+- Result: B (pipeline+opus) vs D (single+opus) ties 5–5; families agree per non-thin rung
+  (n03→B, n06→D, n09→D, n12→B). Flash arms never win. Fork = CASE B.
+- Phase 2: reports/phase2-decision.md pre-commits the hybrid test (win condition fixed
+  before any call). Hybrid = single-prompt core at D's exact params + deterministic gates
+  (word count / numeric closure / grounding) with named repairs, max 2.
+- Hybrid gates calibrated on existing arms: every finding they raise on B/D is one a critic
+  or meta independently recorded. Three silent-pass bugs found and fixed in MY OWN new
+  code along the way (char-set rstrip mangling names; £-only budget parse skipping a
+  bare-number budget; quantity regex missing adjective gaps). Verify the measurement first.
+- out-n12-H.md (1155 words, 0 findings, $0.119, gen-1787903110), out-n06thin-H.md
+  (1115 words, 0 findings, $0.089, gen-1787903160). Both clean on the FIRST generation.
+- 4 packets built (H position rotates: AHDB/DBHA/HDAB/BADH), structurally derived.
+  run-phase2.py launched (pid 1921153). Ladder-line spend so far ≈ $0.87 of $15.
