@@ -149,6 +149,24 @@ ok(!admits("Bright Futures Youth Club", "Bright Horizons Family Solutions", "bri
 ok(!admits("Community Arts Reach", "Smarts Data Analytics Limited", "smartsdata.io"),
   "a coincidental domain substring ('arts' inside 'smartsdata') does not admit an unrelated company's site");
 
+// SINGLE-DISTINCTIVE-TOKEN org names (Shelter, Mind, Scope, Sense, Refuge — a large
+// real charity class). For a one-token want, a domain-substring test IS a bare
+// includes(); it must instead require a whole-label match, and a single shared name
+// token must not admit on its own.
+ok(!admits("Shelter", "ShelterLogic Inc", "shelterlogic.com"),
+  "single-token 'Shelter' does not admit shelterlogic.com (carports) — substring is not a match");
+ok(!admits("Mind", "", "mindbodygreen.com"),
+  "single-token 'Mind' does not admit mindbodygreen.com — 'mind' buried in a longer label");
+ok(!admits("Scope", "Scopely Inc", "scopely.com"),
+  "single-token 'Scope' does not admit scopely.com (games) — 'scope' inside 'scopely'");
+ok(!admits("The Bright Foundation", "Bright Ltd", "brightltd.com"),
+  "one shared common word ('bright') with an unrelated single-token legal name does not admit");
+// … and the REAL single-token applicant, whose token is a whole DNS label, still admits.
+ok(admits("Shelter", "Shelter", "shelter.org.uk"),
+  "the real 'Shelter' at shelter.org.uk still admits (whole-label match) — the gate is asymmetric, not blind");
+ok(admits("Mind", "", "mind.org.uk"),
+  "the real 'Mind' at mind.org.uk still admits (whole DNS label)");
+
 console.log(
   bad
     ? `\n${bad} FAILURE(S) — each is a live route for an unsupported fact reaching a customer`

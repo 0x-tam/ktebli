@@ -457,17 +457,32 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
   //       site carries that same one token).
   let shared = 0;
   for (const t of want) if (site.has(t)) shared++;
+  // (1) TWO or more distinctive tokens agree — an independent second signal, strong.
+  // A SINGLE shared distinctive token is never a confident legal-name match: it is one
+  // common word ("grace" in Grace Kitchen vs W. R. Grace; "bright" in The Bright
+  // Foundation vs an unrelated "Bright Ltd"), and admitting on it imports a stranger's
+  // history — the worst outcome invariant 3 has. So there is NO single-token name-only
+  // admit: a one-word org must be corroborated by the domain branch below (or rejected).
   if (shared >= 2) return true;
-  if (shared >= 1 && shared === want.size && shared === site.size) return true;
-  // A site may state no usable legal name; the domain is then the only signal. But a
-  // distinctive token appearing as a bare SUBSTRING of the host is coincidental —
-  // "arts" sits inside "smartsdata" with no relation to "Community Arts Reach". So the
-  // domain admits only when EVERY distinctive applicant token appears in the host (and
-  // at least one of real length), never on a single token buried in an unrelated word.
-  // amel.org still does NOT match "Beit Al-Shabab Community Association", the case B1
-  // was about. Stays asymmetric: on any doubt the site is discarded, never imported.
-  const host = domain.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (host && [...want].every((t) => host.includes(t)) && [...want].some((t) => t.length > 3)) return true;
+
+  // The domain, when it is the only usable signal. A distinctive token appearing as a
+  // bare SUBSTRING of the host is coincidental — "arts" inside "smartsdata", "shelter"
+  // inside "shelterlogic", "mind" inside "mindbodygreen", "scope" inside "scopely".
+  const wantArr = [...want];
+  const labels = domain.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean); // DNS labels
+  const host = domain.toLowerCase().replace(/[^a-z0-9]/g, "");             // concatenated
+  if (wantArr.length === 1) {
+    // A single-token org admits only on a WHOLE-LABEL match (a DNS label IS the token),
+    // never a substring: shelter.org.uk admits "Shelter"; shelterlogic.com does not.
+    const t = wantArr[0];
+    if (t.length > 3 && labels.includes(t)) return true;
+  } else {
+    // Two or more distinctive tokens: a concatenated domain (brightfutures.org) rarely
+    // spells them all by coincidence, so EVERY token must appear in the host and at
+    // least one be of real length. amel.org still does NOT match "Beit Al-Shabab …".
+    if (host && wantArr.every((t) => host.includes(t)) && wantArr.some((t) => t.length > 3)) return true;
+  }
+  // Stays asymmetric: on any doubt the site is discarded, never imported.
   return false;
 }
 
