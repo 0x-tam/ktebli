@@ -54,7 +54,7 @@ doing nothing.
 
 Every finding below is **proven by execution**: predicates copied verbatim from source into
 `scratchpad/ws4a/predicate_proofs.ts` (20 assertions, 20 held) and `postfix_proofs.ts` (13
-assertions, 13 held), plus SQL proofs in `scratchpad/ws4a/sql_proofs.sql` + `p6.sql` (10 PROOF-OK,
+assertions, 13 held), plus SQL proofs in `scratchpad/ws4a/sql_proofs.sql` (self-contained, re-run end to end after a send-back correction: 9 PROOF-OK — P1, P2, P3a–c, P4, P5, P6a, P6b —
 0 unexpected). The scratch files are session-local; the load-bearing predicate and result for each
 finding is recorded in the tables here so the finding survives the scratchpad.
 
@@ -270,7 +270,7 @@ type-check under `deno check`.
 
 Proof artefacts (session scratchpad, results mirrored above):
 `scratchpad/ws4a/predicate_proofs.ts` (20/20), `postfix_proofs.ts` (13/13), `eight_forms.ts` (8/8 +
-no-silent-null), `sql_proofs.sql` + `p6_production_shape.sql` (10 PROOF-OK against the replayed head and the
+no-silent-null), `sql_proofs.sql` + captured run output `sql_proofs.out` (9 PROOF-OK in one transaction against the replayed head and the
 reproduced production shape), `make_docx.py` + `sample-n12-B.docx` + `render-page1.png`.
 
 <!-- END OF AUDIT SECTIONS — the end-to-end order section is appended below by a later workstream. -->
