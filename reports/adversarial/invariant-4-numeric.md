@@ -395,3 +395,79 @@ no model at all.
 `B4 = "total project cost" = 120000`; `resolveRegister` accepts `asserted 0.75` where the honest
 share of the register's own total is `0.675`, because the scope-reframe walk never inspects the
 word `"total"` sitting before the denominator. Failing test: A14 in `adv2_numeric_test.ts`.
+
+---
+
+# RE-ATTACK #3 2026-08-28 — BROKEN (structural rule tests node identity, not value-subsumption)
+
+RE-3 was fixed and merged (trunk `6fbabdb`): the reframe walk is now direction-symmetric,
+the scope-word set gained `complete/cumulative/collective/grand/sum/totality/net`, and — per
+my own fix spec — a word-list-free structural closure was added: if the numerator is
+transitively a member of a same-unit `sum` node `S`, the share must divide by `S`, else
+`rate_denominator_not_whole`. I re-ran `adv2_numeric_test.ts`: **A14 is now GREEN** (both the
+left-side `"total"` and the `"complete"` synonym are refused), and A9–A13 remain green.
+
+The orchestrator's claim for the durable rule was: *"the structural sum-membership rule is the
+durable closure when the register declares its aggregate as a sum (a closed budget always
+does)."* I attacked exactly that claim, and it does not hold.
+
+## (a) The MECHANISM — BROKEN
+
+### RE-4 — the sum-membership test is node-IDENTITY, not value-subsumption
+
+**Where:** `numeric_register.ts:299-320` (the `numInSum` recursion and the `for (const s of list)` loop).
+
+`numInSum(S.of, num.id, …)` returns true only if the numerator **node id** appears (transitively)
+in `S.of`. It never asks whether the numerator's *value* is subsumed by `S` — whether its
+components are a subset of `S`'s components. So a **partial sub-aggregate** numerator escapes:
+
+```
+L1 delivery staff      = 50000        L2 sessional workers = 31000     L3 administration = 39000
+F1 frontline delivery  = sum[L1,L2]   = 81000      (a roll-up subtotal)
+T1 total project cost  = sum[L1,L2,L3]= 120000     (sums the LEAVES, flat)
+G1 cost                = 108000        (the grant — the wrong denominator)
+R1 "frontline delivery share of cost" = rate F1 / G1, asserted 0.75
+```
+
+`F1`'s components `{L1,L2}` are entirely inside `T1`, so `F1` is provably a part of `T1`
+(`81000 < 120000`, componentwise). But `"F1"` is not a member of `T1.of = [L1,L2,L3]`, so
+`numInSum(T1.of,"F1")` is false and `rate_denominator_not_whole` never fires. **No scope word is
+used**, so the symmetric walk is irrelevant — this is purely the structural gap, independent of
+the (still enumerable) word list. `resolveRegister` returns `R1 = 81000/108000 = 0.75`, though the
+honest frontline share of the register's own total is `81000/120000 = 0.675`.
+
+**The control proves it is exactly this.** Change one thing — declare the total as
+`T1 = sum[F1, L3]` (frontline as a listed subtotal) instead of the flat `sum[L1, L2, L3]`.
+Identical values, identical economics. Now `"F1"` IS a member of `T1.of`, the rule fires, and the
+same division throws `rate_denominator_not_whole` (test A15, control assertion, green today). So
+whether a part-over-wrong-whole is caught depends on an **incidental structuring choice** in how
+the model wrote the total — flat over leaves vs nested over subtotals — not on the economics. A
+model that builds a flat line-item budget and a separate `"% to frontline"` roll-up (a natural
+shape) is unprotected; the durable closure the orchestrator relied on is silent for it.
+
+This is **not** the acknowledged narrow residual. That residual was "an UNDECLARED-leaf total
+using an unlisted synonym". Here the total **is** declared, **as a sum**, and the attack uses **no
+scope word at all** — it defeats the structural rule head-on.
+
+**Fix spec:** the membership test must be over **value/components**, not node identity. After
+resolving, for a `rate` whose `num` is a `sum`/leaf of unit `U`, refuse any denominator `D` when a
+`sum` node `S` of unit `U` exists whose resolved component-leaf set is a proper superset of `num`'s
+component-leaf set and `S.value ≠ D.value` — i.e. `num`'s leaves ⊂ `S`'s leaves ⟹ the share must be
+over `S`. Equivalently, precompute each node's transitive leaf set and compare sets rather than ids.
+That closes RE-4 and subsumes the direct-member case the current rule already handles.
+
+## (b) The GENERATION-QUALITY half — still UNPROVEN, not broken
+
+Unchanged and re-affirmed: whether every figure a real narrative prints is routed through the
+register end-to-end is **unproven-without-e2e** (needs a paid pipeline run). That is an open
+measurement, distinct from RE-4, which is a deterministic hole in `resolveRegister` reachable with
+a crafted register and no model.
+
+## Verdict
+
+**BROKEN.** Exact defeating input (test A15): a register with `F1 = sum[L1,L2] = 81000`,
+`T1 = sum[L1,L2,L3] = 120000`, `G1 = 108000`, and `R1 = rate F1 / G1` labelled
+`"frontline delivery share of cost"` with `asserted 0.75`. `resolveRegister` accepts `0.75` where
+the honest share of the register's own declared total is `0.675`, because the structural rule tests
+node-identity membership and `F1` is a sub-aggregate not directly listed in `T1.of`. The control
+(total declared `sum[F1, L3]`) throws, isolating the defect to the membership test.

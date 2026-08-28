@@ -288,35 +288,33 @@ function resolveRegister(
           `denominator — the label is absent, or a content word extends it into a different quantity. ` +
           `A rate must name the exact quantity it is divided by, or it is right about the wrong one.`);
       }
-      // STRUCTURAL closure, word-list-free (adv2 A14). A share divides a part by its
-      // WHOLE. If the numerator is transitively a member of a `sum` node S of the same
-      // unit — S is the aggregate it is a part of — then dividing by any node other than
-      // S is dividing a component by a quantity that is not its whole. This catches the
-      // reframe class however it is phrased (no scope word needed) whenever the register
-      // actually declares the aggregate as a sum, which a closed budget always does. It
-      // only ever ADDS a refusal, and never fires for an honest "share of the grant"
-      // whose numerator is not a declared member of a different-valued same-unit total.
-      const numInSum = (sumOf: readonly string[] | undefined, target: string, seen: Set<string>): boolean => {
-        for (const m of sumOf ?? []) {
-          if (m === target) return true;
-          if (seen.has(m)) continue;
-          seen.add(m);
-          const c = byId.get(m);
-          if (c && (c.kind === "sum" || c.kind === "product") && numInSum(c.of, target, seen)) return true;
-        }
-        return false;
-      };
+      // STRUCTURAL closure, word-list-free (adv2 A13/A14/A15). The denominator name must
+      // be UNAMBIGUOUS. If another same-unit register node names a strictly larger version
+      // of the same quantity — its label token-set is a proper SUPERSET of the
+      // denominator's, with a different value — then "share of <den>" could mean either,
+      // and dividing by the smaller certifies a part of the larger as if it were the whole.
+      // "cost" (the grant, 108k) is refused whenever "total project cost" (120k) is also in
+      // the register, however the rate is phrased and with no scope word at all — the label
+      // "cost" does not distinguish them. This does NOT fire on distinct quantities: the
+      // donor's own "overhead over DIRECT costs" is safe because no node's label is a
+      // superset of "direct costs", and "share of the grant" is safe when "grant" is a
+      // token no larger label carries. Discard-on-doubt: an ambiguous denominator refuses.
       const denNode = byId.get(den.id);
-      for (const s of list) {
-        if (s.kind !== "sum" || s.id === den.id) continue;
-        if (s.unit_kind !== den.unit_kind || s.unit !== (denNode?.unit ?? den.unit)) continue;
-        if (!numInSum(s.of, num.id, new Set())) continue;
-        const sVal = done.get(s.id)?.value;
-        if (sVal !== undefined && sVal === den.value) continue; // den IS that aggregate's value
-        throw new RegisterError("rate_denominator_not_whole", n.id,
-          `${num.id} is a component of ${s.id} ("${s.label}"), so a share of it must be taken over ` +
-          `${s.id}, not ${den.id} ("${den.label}"). Dividing a part by a quantity that is not its ` +
-          `whole is right about the wrong denominator.`);
+      const denTok = new Set(norm(denNode?.label ?? "").split(" ").filter(Boolean));
+      if (denTok.size > 0) {
+        for (const other of list) {
+          if (other.id === den.id || other.unit_kind !== den.unit_kind) continue;
+          const otherVal = done.get(other.id)?.value;
+          if (otherVal !== undefined && otherVal === den.value) continue; // same quantity
+          const otherTok = new Set(norm(other.label).split(" ").filter(Boolean));
+          if (otherTok.size > denTok.size && [...denTok].every((t) => otherTok.has(t))) {
+            throw new RegisterError("rate_denominator_ambiguous", n.id,
+              `"${den.label}" (${den.id}) names a denominator that ${other.id} ("${other.label}") ` +
+              `names a larger version of — "share of ${den.label}" does not distinguish them, so ` +
+              `dividing by the smaller certifies a part of the larger as its whole. Name the exact ` +
+              `quantity, or divide by ${other.id}.`);
+          }
+        }
       }
       value = num.value / den.value;
       derivation = `${members[0]} / ${members[1]} = ${num.value} / ${den.value}`;

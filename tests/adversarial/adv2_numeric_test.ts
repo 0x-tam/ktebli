@@ -206,6 +206,41 @@ throws(() => solve([
 ], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
   "a right-side scope SYNONYM the enumerated set omits ('complete') reframes the same way");
 
+console.log("\nA15 — RE-ATTACK #3: the structural rule checks node-IDENTITY membership, not value-subsumption");
+// A14 above (both left-side 'total' and the 'complete' synonym) is now GREEN — the reframe
+// walk is direction-symmetric and a structural sum-membership rule (rate_denominator_not_whole)
+// was added: if the numerator is a transitive member of a same-unit `sum` S, the share must
+// divide by S. But it tests whether the numerator NODE is a listed member, not whether its
+// VALUE is subsumed by the total. A partial sub-aggregate defeats it, with NO scope word:
+//   F1 "frontline delivery" = L1 + L2 = 81000     (a roll-up subtotal)
+//   T1 "total project cost"  = L1 + L2 + L3 = 120000   (sums the LEAVES, flat)
+// F1's components (L1,L2) are entirely inside T1, so F1 is provably a part of T1 — but "F1"
+// is not in T1.of, so numInSum(T1.of,"F1") is false and the rule never fires. The share
+// F1 / grant(108000) = 0.75 is certified, though F1's honest share of the register's own
+// total is 81000/120000 = 0.675. The label uses no scope word, so this is purely the
+// structural gap, independent of the (still enumerable) SCOPE_REFRAME word list.
+const partialAgg = (totalOf: string[]) => [
+  { id: "L1", label: "delivery staff", unit: "GBP", unit_kind: "money", kind: "leaf", value: 50000, basis: B("estimate", "2 FTE") },
+  { id: "L2", label: "sessional workers", unit: "GBP", unit_kind: "money", kind: "leaf", value: 31000, basis: B("estimate", "hourly") },
+  { id: "L3", label: "administration", unit: "GBP", unit_kind: "money", kind: "leaf", value: 39000, basis: B("estimate", "overheads") },
+  { id: "F1", label: "frontline delivery", unit: "GBP", unit_kind: "money", kind: "sum", of: ["L1", "L2"], asserted: 81000, basis: B("arithmetic", "delivery + sessional") },
+  { id: "T1", label: "total project cost", unit: "GBP", unit_kind: "money", kind: "sum", of: totalOf, asserted: 120000, basis: B("arithmetic", "all lines") },
+  { id: "G1", label: "cost", unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the grant") },
+  { id: "R1", label: "frontline delivery share of cost", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["F1", "G1"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
+];
+// PRIMARY (fails today): total sums the leaves flat, F1 not a listed member -> rule misses it.
+// Fix landed as label-superset ambiguity (rate_denominator_ambiguous) rather than
+// node-id membership: it refuses BOTH structurings by the "cost" vs "total project cost"
+// label overlap, subsuming the node-id case. The refusal (the security property) is what
+// A15 asserts; only the code name reflects the stronger, structuring-independent form.
+throws(() => solve(partialAgg(["L1", "L2", "L3"]), "GBP", NO_LEDGER, NONE), "rate_denominator_ambiguous",
+  "F1 (=L1+L2) is a part of T1 (=L1+L2+L3), so F1 / grant must be refused even though 'F1' is not a DIRECT member of T1.of");
+// CONTROL (passes today): identical values, but T1 is declared [F1, L3] so F1 IS a listed
+// member — the rule fires. The only difference is an incidental structuring choice, which
+// must not decide whether a part-over-wrong-whole is caught.
+throws(() => solve(partialAgg(["F1", "L3"]), "GBP", NO_LEDGER, NONE), "rate_denominator_ambiguous",
+  "control: when T1 is declared [F1, L3] the SAME division IS caught — isolating the gap to node-identity membership");
+
 // ---------------------------------------------------------------------------
 console.log(failures ? `\n${failures} FAILURE(S) — invariant 4 is not upheld` : "\nALL ADV2 NUMERIC TESTS PASSED");
 if (failures) Deno.exit(1);
