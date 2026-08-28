@@ -1,6 +1,6 @@
 # Phase 3 — the delivery gate, wired
 
-**Date:** 2026-08-28 · **Workstream:** WS3 · **Branch:** worktree, base `809d532`
+**Date:** 2026-08-28 · **Workstream:** WS3 · **Branch:** worktree, base `809d532` · **Status: COMPLETE — gate wired hold-biased, LOW-AGREEMENT flagged, sufficiency FLAT**
 
 ## 1. What was wired, and where
 
@@ -111,8 +111,54 @@ to packet bytes by `tests/ladder/bytematch.py` (green in the suite).
 does not), excluded from every rate. Undisputed: 5 fundable, 11 not fundable.
 Each per-critic judgement on an undisputed document is one datum.
 
-(TO FILL: results table, per-model, with always-hold baseline, false-pass /
-false-hold, MISSING, spend.)
+### Results (exact production settings: temp 0, seed 20260827, reasoning high, structured outputs, neutral v2 instrument)
+
+| candidate | n (data) | agree | rate | **always-hold baseline** | false-pass | false-hold | MISSING | own-family docs excluded |
+|---|---|---|---|---|---|---|---|---|
+| z-ai/glm-5.3-flash (the specified primary) | 40 | 26 | **65.0%** | **65.0%** | 14 | 0 | 0 | 0 |
+| google/gemini-3.7-flash | 18 | 14 | **77.8%** | **22.2%** | 4 | 0 | 0 | 10 (A/C arms are gemini-generated) |
+
+- **glm-5.3-flash: NO SIGNAL.** 65.0% agreement is *exactly* the always-hold
+  baseline — it does not beat refusing everything. It passed 17 of 22 documents
+  including 7 undisputed not-fundable ones; its only correct holds were four
+  flash-generated documents (n03-C, n06thin-A, n12-A, n12-C).
+- **gemini-3.7-flash: real signal, still under the 80% bar.** +55.6pp over its
+  baseline, zero false holds — but it passed *every* document it judged
+  (scores 48–50 on all 12), including both undisputed not-fundable opus
+  documents (n06-B, n12-H), which is where its 4 false-pass data come from.
+- On the **production-relevant subset** (opus-generated documents — production's
+  generator is anthropic/claude-opus-5, so every real order's document is one
+  of these), the two candidates tie at 77.8% and both passed everything. The
+  corpus's two not-fundable opus documents were caught by neither.
+
+### The decision, per the pre-committed cascade
+
+glm < 80% → gemini as primary candidate → also < 80% → **wire the better one
+(gemini) as primary, HOLD-BIASED, and flag LOW-AGREEMENT**. Done:
+
+- `delivery_gate.ts` judge config: `JUDGE_PRIMARY = google/gemini-3.7-flash`,
+  `JUDGE_FALLBACK = z-ai/glm-5.3-flash`, with the full cascade in the comment.
+- Hold-biased posture in `runDeliveryGate` step 8: a pass now requires the
+  computed bar (applyBar) **and** the judge's own asserted `clears_bar`;
+  either signal failing holds, sticky, on the merits. Strictly tightening —
+  the asserted verdict can veto a pass and still cannot rescue a failing bar.
+  Tested: `v2: hold-biased — a pass needs the bar AND the asserted verdict;
+  either alone cannot pass`.
+- LOW-AGREEMENT comment at the wiring site (`index.ts`, top of the package
+  stage) and in the judge config.
+- **Measured honestly: the hold-biased veto changes nothing on this corpus.**
+  Re-run with asserted-verdict capture (temp 0 + fixed seed reproduce the
+  judgements): both models asserted `clears_bar` on every document whose
+  computed bar cleared, so the hold-biased rates equal the plain rates (77.8%
+  and 65.0%). The veto is a real mechanism with a measured effect of zero
+  here; it can only help in production, and it cannot hurt (it never converts
+  a hold to a pass). The honest headline stands: **the wired judge agrees with
+  blind ground truth 77.8% of the time, below the 80% bar — LOW-AGREEMENT.**
+  What this gate now reliably provides is the deterministic preflight layer,
+  the recorded-verdict stickiness, the INFRA/QUALITY separation, and a judge
+  that has real signal over flash-grade output but rubber-stamps opus-grade
+  output. Nothing unfundable-per-the-critics is *known* to be caught at
+  opus quality; drift monitoring must not assume otherwise.
 
 ### A production-config defect found by the harness
 
@@ -152,7 +198,9 @@ Loop stop:
   INFRA with alerts, never honoured, never a pass)
 - `wiring: dbCauseFor maps every cause into the verdict table's CHECK without crossing the hold partition`
 
-Suite total after the additions: **550 checks, all passing.**
+Also: `v2: hold-biased — a pass needs the bar AND the asserted verdict; either alone cannot pass` (the LOW-AGREEMENT posture of §2, both directions plus the agreeing pass).
+
+Suite total after the additions: **555 checks, all passing.**
 
 ## 4. Sufficiency — the re-test, and what was wired
 
@@ -202,7 +250,22 @@ not byte-verified — they must be re-pulled before editing). Flagged as a
 
 ## 6. Spend
 
-(TO FILL: per-call and total from usage fields.)
+All figures from each response's own `usage.cost` (`usage.include: true`),
+never from the account meter. Budget: $3.00 HARD, checked before every call
+with a reserve; no call was refused for budget, 0 MISSING.
+
+| run | calls | usage-field total |
+|---|---|---|
+| glm-5.3-flash, 22 documents | 22 | $0.0486 |
+| gemini-3.7-flash, 12 documents (10 own-family skipped unbilled) | 12 | $0.0795 |
+| re-run of both with asserted-verdict capture (hold-biased measurement) | 34 | $0.1392 |
+| probes (liveness $0.00001; short structured $0.0005; full-doc at 3000 tok $0.0021; at 9000 tok $0.0051) | 4 | $0.0077 |
+| **total** | **72** | **$0.2750** |
+
+Per-call range on the real documents: $0.0009–$0.0079. Remaining of the $3.00
+budget: ~$2.73. Per-document judging cost for the wired primary:
+~$0.006–0.008 — the marginal gate cost per order is under a cent per
+judgement against the provisional $6 per-order cap.
 
 ## 7. Found and not fixed (with why)
 
@@ -233,11 +296,29 @@ not byte-verified — they must be re-pulled before editing). Flagged as a
    covers every customer-visible path.
 6. **`qa-visual-test` / other transcribed functions** untouched, per CLAUDE.md.
 
-## 8. Test status
+## 8. Test status and reproduction
 
-`bash tests/run-all.sh`: every suite that passed at baseline still passes
-(delivery gate 550 checks, sufficiency, crawl-outcome, proper-nouns, numeric
-register, word limit, referent weight, donor limits, replay, bytematch, all
-four adversarial suites). `tests/exclusivity` fails at baseline and after — it
-is the deliberately-failing ceiling probe (CLAUDE.md), untouched by this
-workstream. Worker and gate module typecheck clean under deno 2.9.5.
+`bash tests/run-all.sh` (run before and after): every suite that passed at
+baseline still passes — delivery gate **555 checks** (was 470 at baseline;
+the additions are the wiring proofs of §3 and the hold-biased contract),
+sufficiency, crawl-outcome, proper-nouns, numeric register, word limit,
+referent weight (61/61), donor limits (71 forms), replay, ladder bytematch,
+all four adversarial suites. `tests/exclusivity` fails at baseline and after,
+identically — it is the deliberately-failing ceiling probe (CLAUDE.md),
+untouched by this workstream. Worker and gate module typecheck clean under
+deno 2.9.5.
+
+Reproduce the numbers:
+
+```
+npx --yes deno@2.9.5 run --allow-read tests/sufficiency/ladder_tau.ts        # §4, offline
+OPENROUTER_API_KEY=... npx --yes deno@2.9.5 run \
+  --allow-net=openrouter.ai --allow-read --allow-env \
+  tests/delivery-gate/validate_judge_ladder.ts \
+  --models=google/gemini-3.7-flash,z-ai/glm-5.3-flash                        # §2, ~$0.19
+```
+
+**Deployment note:** nothing here is deployed. Deployed worker remains v26;
+`supabase/functions/worker/` now carries these changes on top of the already-
+undeployed stranded-claim/notification work (CLAUDE.md source-of-truth
+warning). Diff before deploying, per DEPLOY.md discipline.
