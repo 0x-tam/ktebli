@@ -198,13 +198,44 @@ function decodeEntities(s: string): string {
     .replace(/&([a-z]+);/gi, (_, name: string) => NAMED_ENTITIES[name.toLowerCase()] ?? " ");
 }
 
+// Elements whose CONTENT is site furniture, not the organisation's prose. A nav
+// menu stripped to bare words reads as "Volunteer Donate Get Help Menu Home
+// About" — a run of capitalised words that the proper-noun counter (correctly,
+// for narrative text) reads as one giant name. The phase-5 live run showed
+// two-thirds of "referents" on real charity sites were exactly this. Removing
+// the elements is the honest fix: the words were never the applicant's prose.
+// <header>, <footer> and <form> are deliberately KEPT — real sites put
+// straplines, addresses and charity numbers there — and the paragraph filter
+// (crawl_outcome.keepParagraphs) handles the link lists they also carry.
+const BOILERPLATE_RE =
+  /<(nav|aside|menu|select|button|iframe|svg|noscript)\b[\s\S]*?<\/\1>/gi;
+
+// Closing a block element ends a run of text. Without a real boundary here, a
+// menu's last label glues onto the first word of the article ("About We run a
+// pantry…") and a card grid's labels glue to each other. The sentinel becomes a
+// newline AFTER source whitespace is collapsed, so the line structure of the
+// OUTPUT reflects the block structure of the page, never the pretty-printing of
+// its HTML.
+const BLOCK_BOUNDARY_RE =
+  /<\/?(p|div|li|ul|ol|dl|dt|dd|h[1-6]|tr|td|th|table|thead|tbody|section|article|main|header|footer|form|blockquote|figure|figcaption|pre|address)\b[^>]*>|<(br|hr)\b[^>]*\/?>/gi;
+
 export function stripHtml(raw: string, cap = 60_000): string {
+  // Block boundaries become a NUL sentinel, which survives the whitespace
+  // collapse (NUL is not \s) and then becomes a real line break — so the line
+  // structure of the OUTPUT reflects the block structure of the page, never the
+  // pretty-printing of its HTML source.
+  const S = "\u0000";
   return decodeEntities(
     raw
+      .replace(/<!--[\s\S]*?-->/g, " ")
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(BOILERPLATE_RE, " ")
+      .replace(BLOCK_BOUNDARY_RE, S)
       .replace(/<[^>]+>/g, " "),
   )
     .replace(/\s+/g, " ")
+    .replace(/ ?\u0000[\s\u0000]*/g, "\n")
+    .replace(/^\n+|\n+$/g, "")
     .slice(0, cap);
 }

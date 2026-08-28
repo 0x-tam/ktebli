@@ -26,6 +26,7 @@ import {
   crawlSiteObserved,
   hasRecordedOutcome,
   identityVerdict,
+  isFurniture,
   keepParagraphs,
   looksLikeBotChallenge,
   looksLikeJsShell,
@@ -799,6 +800,126 @@ section("13. silent-failure audit (phase 5) — the status survives every layer"
   eq(report.outcome, "nothing_relevant", "the served homepage still classifies on its own content");
   ok(report.reason.includes("2 further page(s) were refused"),
     "but the refused subpages are named in the reason");
+}
+
+// ===========================================================================
+section("14. site furniture is not evidence (phase 5 live-run finding)");
+// ===========================================================================
+//
+// On every real charity site the live run crawled, two-thirds of the extracted
+// "referents" were navigation glued into giant capitalised runs: "Sufra NW
+// London Volunteer Donate Get Help Menu Home About About", a 30-language
+// selector, card-grid labels ("Donate Learn More"). A succeeded(308) whose 308
+// are mostly menu labels misdescribes the crawl, and those counts feed the
+// sufficiency gate and the phase-6 benchmark. This section pins the fix at all
+// three layers from one canned page.
+
+// A realistic small-charity page: nav menu, language selector, all-caps banner,
+// card grid, footer link list — and two real paragraphs of prose.
+const FURNISHED_PAGE = `<!doctype html>
+<html><head><title>riverbank pantry</title></head><body>
+<header>
+  <nav><ul>
+    <li><a href="/">Home</a></li><li><a href="/about">About Us</a></li>
+    <li><a href="/our-work">Our Work</a></li><li><a href="/donate">Donate</a></li>
+    <li><a href="/volunteer">Volunteer</a></li><li><a href="/news">News And Events</a></li>
+    <li><a href="/contact">Contact Us</a></li>
+  </ul></nav>
+  <select><option>English</option><option>Arabic</option><option>Polish</option>
+  <option>Romanian</option><option>Urdu</option></select>
+  <div>WE ARE CLOSED OVER THE BANK HOLIDAY</div>
+</header>
+<main>
+  <div class="cards">
+    <div class="card"><h3>Food Aid</h3><a href="/food">Learn More</a></div>
+    <div class="card"><h3>Advice Service</h3><a href="/advice">Learn More</a></div>
+    <div class="card"><h3>Community Garden</h3><a href="/garden">Learn More</a></div>
+  </div>
+  <p>Riverbank Pantry has run a weekly food club from St Cuthbert's Church Hall on
+  Weaver Street since 2017, serving about sixty households across the Deeside ward.</p>
+  <p>We work with Chester Foodshare and with Cheshire West Council on referrals, and
+  our growing plot behind Hoole Community Centre supplies the club each summer.</p>
+</main>
+<footer>
+  <ul><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms</a></li>
+  <li><a href="/safeguarding">Safeguarding Policy</a></li></ul>
+  <p>Registered charity number 1180000. Riverbank Pantry, Weaver Street, Chester.</p>
+</footer>
+</body></html>`;
+
+// Layer 1: stripHtml removes furniture elements and emits real block boundaries.
+{
+  const t = stripHtml(FURNISHED_PAGE);
+  ok(!t.includes("Volunteer"), "nav menu content is removed entirely");
+  ok(!t.includes("Romanian"), "the language selector is removed entirely");
+  ok(t.includes("\n"), "block elements produce real line boundaries");
+  ok(!/Learn More[ \t]+(Advice|Community)/.test(t),
+    "card labels no longer share a line with the next card's title");
+  ok(t.includes("Registered charity number 1180000"),
+    "the footer's charity number and address SURVIVE — footers carry real facts");
+  const pretty = stripHtml("<p>The pantry opened\n  in 2017 and serves\n  sixty households.</p>");
+  eq(pretty, "The pantry opened in 2017 and serves sixty households.",
+    "pretty-printed source newlines do NOT become line boundaries");
+}
+
+// Layer 2: keepParagraphs refuses unpunctuated capitalised-majority link runs.
+{
+  eq(isFurniture("Home About Us Our Work Donate Volunteer News And Events Contact Us"), true,
+    "a menu run with no punctuation and capitalised words is furniture");
+  eq(isFurniture("we support families across the Deeside ward whatever the season"), false,
+    "an unpunctuated lowercase-majority mission line is NOT furniture");
+  eq(isFurniture("The pantry opened in 2017 and serves sixty households."), false,
+    "punctuated prose is never furniture, whatever its capitalisation");
+  const seen = new Set<string>();
+  const kept = keepParagraphs(
+    "Food Aid Advice Service Community Garden Winter Appeal Business Partners Programme\n" +
+    "St Cuthbert's flooded in January 2021 and the club moved to Hoole Community Centre for a year.",
+    seen);
+  eq(kept.length, 1, "the link run is dropped, the prose paragraph is kept");
+  ok(/flooded in January/.test(kept[0] ?? ""), "and it is the right one");
+}
+
+// Layer 3: siteReferents refuses seven-word runs outright, and a single word
+// that also occurs in lowercase in the corpus is position, not a name.
+{
+  const refs = siteReferents(
+    "Sufra NW London Volunteer Donate Get Help Menu Home About Mission Principles Annual Reports. " +
+    "The club runs from St Cuthbert's Church Hall on Weaver Street.", "Riverbank Pantry");
+  ok(!refs.some((r) => r.split(/\s+/).length > 6), "no referent is longer than six words");
+  ok(refs.some((r) => /Weaver Street/.test(r)), "real referents still come through");
+
+  const refs2 = siteReferents(
+    "However the club kept going. Volunteers said, however, that Brent needed more. " +
+    "Deliveries reach Kilburn each week.", "Riverbank Pantry");
+  ok(!refs2.includes("However"), "a sentence-opener that occurs lowercase elsewhere is not a referent");
+  ok(refs2.includes("Brent") && refs2.includes("Kilburn"),
+    "single-word names with no lowercase occurrence are kept");
+
+  // The counter trims its stop words at phrase edges, which can leave a
+  // dangling connective ("Board of Trustees" -> "of Trustees"). Edge glue is
+  // debris; internal glue ("London Borough of Brent") is structure.
+  const refs3 = siteReferents(
+    "Board of Trustees meets quarterly. Deliveries reach the London Borough of Brent weekly.",
+    "Riverbank Pantry");
+  ok(!refs3.some((r) => /^(of|the|and|for)\s/.test(r)), "no referent starts with dangling glue");
+  ok(refs3.some((r) => r === "London Borough of Brent"), "internal connectives are untouched");
+}
+
+// End to end: the furnished page yields the real referents and only those.
+{
+  const { report, referents } = await run("https://riverbankpantry.org", {
+    "https://riverbankpantry.org/robots.txt": ROBOTS_OPEN,
+    "https://riverbankpantry.org/": { status: 200, body: FURNISHED_PAGE },
+  }, { org: "Riverbank Pantry", legalName: "Riverbank Pantry" });
+  eq(report.outcome, "succeeded", "the page still succeeds on its actual prose");
+  ok(referents.some((r) => /St Cuthbert/.test(r)), "the church hall is a referent");
+  ok(referents.some((r) => /Chester Foodshare/.test(r)), "the named partner is a referent");
+  ok(referents.some((r) => /Cheshire West Council/.test(r)), "the council is a referent");
+  ok(!referents.some((r) => /Donate|Learn More|Privacy|Menu/i.test(r)),
+    `no menu label survives as a referent (got: ${referents.join(" | ").slice(0, 120)})`);
+  ok(!referents.some((r) => r.split(/\s+/).length > 6), "and nothing longer than six words");
+  ok(report.referents_extracted <= 12,
+    `the count is a count of NAMES, not of furniture (${report.referents_extracted})`);
 }
 
 // ===========================================================================

@@ -1,0 +1,89 @@
+{
+  "site": "https://thefelixproject.org",
+  "org": "The Felix Project",
+  "stated_name": null,
+  "report": {
+    "outcome": "fetch_failed",
+    "reason": "thefelixproject.org could not be reached: offsite:https://felix.org/",
+    "pages_fetched": 1,
+    "pages_parsed": 0,
+    "referents_extracted": 0,
+    "referents_surviving": 0,
+    "domain": "thefelixproject.org",
+    "detail": {
+      "contract": "1.2.0",
+      "robots": {
+        "fetched": true,
+        "status": 200,
+        "allowed": true,
+        "rule": null,
+        "error": null
+      },
+      "statuses": [
+        {
+          "url": "https://thefelixproject.org/robots.txt",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://thefelixproject.org/",
+          "status": 200,
+          "error": "offsite:https://felix.org/"
+        }
+      ],
+      "discovered": 0,
+      "kept_chars": 0,
+      "text_chars": 0,
+      "fetch_budget_exhausted": false,
+      "prose_pages": 0,
+      "identity_gate": "not_run",
+      "elapsed_ms": 2411
+    }
+  },
+  "referents": [],
+  "pages": [],
+  "observations": {
+    "website": "https://thefelixproject.org",
+    "domain": "thefelixproject.org",
+    "bad_url": false,
+    "robots": {
+      "fetched": true,
+      "status": 200,
+      "allowed": true,
+      "rule": null,
+      "error": null
+    },
+    "pages": [
+      {
+        "url": "https://thefelixproject.org/robots.txt",
+        "role": "robots",
+        "status": 200,
+        "error": null,
+        "content_type": "text/plain; charset=utf-8",
+        "html_chars": 0,
+        "text_chars": 0,
+        "kept_chars": 0,
+        "script_chars": 0,
+        "prose": false,
+        "body_sample": ""
+      },
+      {
+        "url": "https://thefelixproject.org/",
+        "role": "home",
+        "status": 200,
+        "error": "offsite:https://felix.org/",
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 0,
+        "text_chars": 0,
+        "kept_chars": 0,
+        "script_chars": 0,
+        "prose": false,
+        "body_sample": ""
+      }
+    ],
+    "fetch_budget_exhausted": false,
+    "discovered": 0,
+    "elapsed_ms": 2411
+  },
+  "wall_ms": 2419
+}

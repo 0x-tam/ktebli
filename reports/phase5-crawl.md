@@ -1,165 +1,247 @@
 # Phase 5 — the six-site live crawl (WS5)
 
-Status: **live run pending.** `stack/live-run.sh` refuses to run until
-`worker/index.ts` delegates to `crawl_outcome.ts`, and that wiring belongs to WS3
-(worker/index.ts is read-only for this workstream). Everything that does not need
-the network is done: the six sites are chosen and committed, the offline
-silent-failure audit of the crawler is complete with fixes and regression tests,
-and the full test suite is green. The outcome table below fills in when the run
-is unblocked.
+Status: **complete.** The run was first attempted before WS3's merge and was
+refused by live-run.sh's own guard (worker/index.ts did not yet delegate to
+crawl_outcome.ts — refusal preserved verbatim in §6); after the merge the wiring
+check passed and the crawl ran three times: once to observe, once to verify the
+first fix round, once to produce the committed ledgers. All three egress guards
+held on every run (production blackholed, `--deny-net`, live probe refused).
 
-## The refusal, verbatim
+One large truthfulness defect was found **by** the live run and fixed
+(§3, finding 9), on top of eight found by the offline audit that preceded it
+(§3, findings 1–8). Every fix is in WS5-owned files and pinned by a
+canned-response regression test. Contract version 1.0.0 → 1.2.0.
+
+## 1. The six sites
+
+Real small nonprofits, buyer-shaped; names are the organisations' real working
+names, never derived from the domain (deriving them would make the identity gate
+pass by construction). File: `stack/sites-phase5.txt`.
+
+| # | URL | Organisation | Criterion covered |
+|---|-----|--------------|-------------------|
+| 1 | thefelixproject.org | The Felix Project | The documented prior silent-failure case (CLAUDE.md P1.6); blocks-crawlers candidate |
+| 2 | www.sufra-nwlondon.org.uk | Sufra NW London | Ordinary WordPress-class charity site, rich local nouns |
+| 3 | www.themagpieproject.org | The Magpie Project | Thin ordinary-CMS site, very small org |
+| 4 | www.glassdoor.org.uk | Glass Door Homeless Charity | Ordinary CMS; identity-gate exercise (working name ≠ registered shape; domain collides with a famous commercial brand) |
+| 5 | www.nourishcommunityfoodbank.org.uk | Nourish Community Foodbank | Squarespace/Wix-class small site |
+| 6 | watsi.org | Watsi | JS-rendered candidate (historically client-side React) |
+
+Offline sanity before the run: all six org/domain pairings clear
+`identityVerdict()` with and without a stated site name, so any live
+`identity_mismatch` would have been a genuine finding, not a mispairing.
+
+## 2. Outcomes (final run, contract 1.2.0)
+
+| Site | Outcome | Fetched | Parsed | Referents surviving | Failure point / cause |
+|------|---------|---------|--------|---------------------|----------------------|
+| thefelixproject.org | **FETCH_FAILED** | 1 | 0 | 0 | Homepage 301s **offsite** to `https://felix.org/`. The traversal refuses to read a cross-domain redirect as the applicant's site (identity asymmetry); the offsite target is named in the reason. See §5. |
+| sufra-nwlondon.org.uk | **OK(178)** | 10 | 8 | 178 | — |
+| themagpieproject.org | **OK(53)** | 8 | 8 | 53 | — (4 of 8 parsed pages read as prose; the rest are short) |
+| glassdoor.org.uk | **OK(152)** | 9 | 8 | 152 | — |
+| nourishcommunityfoodbank.org.uk | **OK(117)** | 9 | 9 | 117 | — |
+| watsi.org | **OK(130)** | 10 | 10 | 130 | — (not JS_ONLY: the site now server-renders; see §5) |
+
+Identity gate: `cleared` on all five OK sites, `not_run` on Felix (nothing was
+site-derived, so there was nothing to gate). robots.txt allowed the crawl on all
+six. No outcome is silent: the one failure carries its exact cause and the
+offsite target.
+
+Sample surviving referents (full lists in the ledgers):
+
+- **Sufra NW London** — St. Raphael's Estate, London Borough of Brent, SALIENT
+  Consortium, University of Hertfordshire, British Empire Medal, Community
+  Kitchens, Fresh Meal Service
+- **The Magpie Project** — Grassroots Resouce Centre (the site's own spelling),
+  Newham, Magpie Mums, National Insurance, Money Advice Service
+- **Glass Door** — Duke of York Square, Chelsea, Team Glass Door, TCS London
+  Marathon, Sleep Out, Ace of Clubs, Women's Night Shelter, named guests (Samir,
+  Bruna, Jaromir, Rodrigo)
+- **Nourish** — Tunbridge Wells, Tonbridge, Tunbridge Wells Borough Council,
+  Business Supporters' Club, Country Housing Group, Dawn Stanford
+- **Watsi** — AIC Kijabe Hospital (Kenya), Nkhoma Hospital, Dedza District
+  (Malawi), African Mission Healthcare, named patients
+
+## 3. Silent failures found, fixes, regression tests
+
+The reference defect (thefelixproject.org, P1.6) was a **discarded status**.
+Findings 1–8 came from the offline audit of the remaining layers before the run;
+finding 9 came from the live run itself. All fixes are in
+`supabase/functions/worker/crawl_outcome.ts` / `ssrf.ts`; all regressions are in
+`tests/crawl-outcome/crawl_outcome_test.ts` (§§13–14, from canned responses).
+
+1. **Content-type gate swallowed refusal statuses** (ssrf.ts). A 403/429 served
+   with a missing or non-text content-type threw plain `bad_content_type` and
+   classified `fetch_failed` ("did not answer" — false). The reason now carries
+   the status (`bad_content_type_http_403`), the traversal recovers it, and the
+   crawl classifies `blocked_bot`. A 5xx variant stays `fetch_failed` and names
+   the status. Tests §13a.
+2. **Charset ignored** — UTF-8-only decoding turned windows-1252 sites into
+   replacement-character junk → false `extraction_failed`. `decodeBody()`
+   honours the content-type charset, sniffs `<meta charset>`, falls back to
+   UTF-8. Tests §13d.
+3. **Numeric entities survived stripping as residue** ("St Aidan&#8217;s"),
+   polluting referents and dragging the prose signal down. Entities now decode.
+   Tests §13d.
+4. **Challenge markers satisfiable by prose fragments** — bare "forbidden",
+   "rate limit", "you have been blocked", "just a moment" (zero dots required)
+   could reclassify a thin served 2xx page as `blocked_bot`. Markers split
+   STRONG (branded challenge signatures, CAPTCHA walls — may flag a 200/503/202
+   with almost no prose) / WEAK (ordinary English — may only *name* a refusal
+   whose status already proves it). Accepted trade: a 503 whose body says "rate
+   limit" now reports `fetch_failed` HTTP 503 — less specific, never false.
+   Tests §13b.
+5. **A mount-point div with no script is not a JS shell** — a static page using
+   `id="app"` as markup was called `js_only` ("draws its text with JavaScript",
+   false). Mount-point markers now require the page to load any script. §13c.
+6. **A malformed empty `User-agent:` line fabricated a robots block** (the empty
+   string matched every crawler's UA); and group selection was file-order, not
+   most-specific-token. Both fixed. Tests §13f.
+7. **Parsed-page boundary off by one** vs the traversal's own `> 120` threshold.
+   Aligned. Tests §13e.
+8. **`nothing_relevant` hid refused subpages** — a rate limiter that serves the
+   homepage and 429s the rest read as "thin site". The reason now counts the
+   refusals. Tests §13g.
+9. **Site furniture counted as referents** — found by the live run. On every OK
+   site, roughly two-thirds of "referents" were navigation glued into giant
+   capitalised runs ("Sufra NW London Volunteer Donate Get Help Menu Home About
+   About", a 30-language selector, card-grid labels), because `stripHtml`
+   flattened all markup into one space-joined line and the proper-noun counter
+   (correctly, for narrative text) reads consecutive capitalised words as one
+   name. A `succeeded(308)` whose 308 are mostly menu labels misdescribes the
+   crawl, and these counts feed the sufficiency gate and the phase-6 benchmark.
+   Fixed in four layers, all WS5-owned; furniture never *was* the applicant's
+   prose, so removing it cannot lose evidence:
+   - `stripHtml` removes furniture elements (`nav`, `aside`, `menu`, `select`,
+     `button`, `iframe`, `svg`, `noscript`, comments) and emits a real line
+     break per block element (via a sentinel, so pretty-printed source newlines
+     still collapse). `<header>`/`<footer>`/`<form>` are deliberately kept —
+     footers carry charity numbers and addresses;
+   - `keepParagraphs` splits per line and drops *furniture*: a paragraph with no
+     sentence punctuation anywhere and a capitalised-word majority. An
+     unpunctuated lowercase mission line is untouched;
+   - `siteReferents` refuses any "name" longer than six words, trims connective
+     glue dangling at phrase edges ("Board of Trustees" → stop-word trim →
+     "of Trustees" → "Trustees"), and drops a single-word referent whose
+     lowercase form also occurs in the corpus ("However", "Please") — a true
+     proper noun is capitalised wherever it appears; corpus-driven, no
+     dictionary, errs toward counting fewer.
+   Effect on the live sites: Sufra 308→178, Magpie 157→53, Glass Door 348→152,
+   Nourish 276→117, Watsi 299→130 — and the survivors are the real names in §2.
+   Tests §14 (three layer tests + end-to-end: the furnished fixture page yields
+   exactly its six real referents and no menu label).
+
+## 4. Residual noise, stated plainly
+
+A small residue of single-word sentence-openers survives on thin corpora
+("However", "Fortunately", "Please") — they survive only when the word never
+occurs lowercase in the ~10 crawled pages, so the corpus-driven filter cannot
+prove them grammar. Phrase-level referents are unaffected. Chasing these with a
+hardcoded adverb list would be a dictionary arms race inside the wrong module
+(the counter belongs to proper_nouns.ts, which is outside WS5 ownership); the
+proposal-time audit resolves them by ledger containment anyway. Counts in §2
+should be read as "at most this many names", accurate to within a handful.
+
+## 5. What the run proved about the taxonomy, and what it could not
+
+- **No BLOCKED and no JS_ONLY occurred in the wild.** The blocks-crawlers
+  candidate (thefelixproject.org — the 2026 launch-readiness failure) no longer
+  blocks: the domain now 301s to `felix.org`. The JS candidate (watsi.org) now
+  server-renders its content. Both paths are exercised by fixture regressions
+  (§13 and the original §1–§3 suites), but this run provides no in-the-wild
+  confirmation of either. That is a coverage gap of the sample, stated rather
+  than papered over.
+- **The offsite refusal is the identity gate doing its job.** thefelixproject.org
+  redirecting to felix.org was refused even though it is almost certainly the
+  same charity after a rebrand — a cross-domain redirect *from* the supplied
+  domain is exactly the parked-domain shape the rule exists for, and the reason
+  names the target so a human can act. A follow-up probe
+  (`stack/sites-phase5-followup.txt`, ledger `felix.org.json`) crawled the
+  redirect target as its own site: **OK(271)** — trustee bios, Waitrose,
+  national locations — with the gate cleared on the stated name "Felix" and the
+  domain token. If a real order supplied the old domain, the customer-facing gap
+  line would say the site did not answer and nothing was used; the operator
+  detail carries the redirect target.
+- **Fetch/parse honesty held everywhere**: every page attempt on every site is
+  recorded with a status or an error; robots.txt was read and honoured on all
+  seven crawls; no observation was swallowed.
+
+## 6. The pre-merge refusal (history)
+
+Before WS3's merge, the run refused at live-run.sh's pipeline-delegation check:
 
 ```
-==> checking that this measures the pipeline's own crawl path
-
 FATAL: worker/index.ts does not import crawl_outcome.ts.
   The crawler patch has not been applied yet, so a run now would measure a module
   the pipeline does not call. Apply the patch spec first (qloop/inv/patch-crawl.md).
 ```
 
-This check is correct and was not weakened: a run today would measure a module
-the pipeline does not call. Two notes for whoever wires it: the referenced patch
-spec `qloop/inv/patch-crawl.md` does not exist in the repo (the directory was
-never committed), and per RUNLOG the wiring is scheduled as wave-2 index.ts work
-after the WS3 merge. All three egress guards passed before the refusal
-(production blackholed in /etc/hosts, no Supabase host in the sites file; the
-`--deny-net` and live-probe guards sit later in the script).
+The check was correct and was not weakened. (Note: the referenced
+`qloop/inv/patch-crawl.md` never existed in the repo; the wiring arrived with
+the WS3 merge instead.) index.ts was read-only for WS5 throughout.
 
-## The six sites
+## 7. What the crawler still cannot do (by design)
 
-Format matches `stack/sites-phase5.txt` (committed). Names are the organisations'
-real working names, never derived from the domain — deriving them would make the
-identity gate pass by construction.
+- **No JavaScript engine.** A client-rendered site is `js_only`, never worked
+  around — eight edge functions, no browser. `stack/ground-truth.sh` exists to
+  separate "crawler got nothing" from "there was nothing to get"; it was NOT run
+  in this phase because WS5's network permission covers only the crawler's own
+  fetches via live-run.sh, and a Chromium render is a different fetch path.
+  With five OK sites and no js_only verdict, nothing in this run *required*
+  ground truth to interpret.
+- **No PDFs.** The traversal skips `.pdf`; the owner's deep-crawl decision is
+  future work.
+- **robots.txt is honoured, not negotiated.**
+- **The harness identity gate uses ONE stated-name candidate** (og:site_name
+  first), never "whichever clears".
+- **MAX_PAGES=10 / MAX_FETCHES=14 / 60k chars** — a large site is sampled, not
+  exhausted; budget exhaustion is recorded when it happens (it did not here).
 
-| # | URL | Organisation | Why chosen / criterion covered |
-|---|-----|--------------|-------------------------------|
-| 1 | https://thefelixproject.org | The Felix Project | **The documented prior silent-failure case** (CLAUDE.md P1.6: zero evidence, no error). Known crawler-blocker candidate (WAF class). |
-| 2 | https://www.sufra-nwlondon.org.uk | Sufra NW London | Ordinary WordPress-class charity site, rich in local nouns (food bank + community kitchen, Brent). The buyer archetype. |
-| 3 | https://www.themagpieproject.org | The Magpie Project | Small Newham charity (mothers and under-5s in temporary accommodation); thin ordinary-CMS site. |
-| 4 | https://www.glassdoor.org.uk | Glass Door Homeless Charity | Ordinary CMS; also a deliberate identity-gate exercise — the working name ("Glass Door") differs in shape from the registered name, and the domain collides with a famous commercial brand. |
-| 5 | https://www.nourishcommunityfoodbank.org.uk | Nourish Community Foodbank | Squarespace/Wix-class small site (Tunbridge Wells food bank). |
-| 6 | https://watsi.org | Watsi | **JS-rendered candidate** — historically a client-side React app with content absent from raw HTML. The least community-shaped of the six, chosen because genuinely client-rendered small-nonprofit sites are rare and this is the one that can be named with confidence. If it now ships server-rendered HTML, the criterion is recorded as missed, not massaged. |
+## 8. Ledgers for phase 6
 
-Offline sanity (pure functions, no network): all six org/domain pairings clear
-`identityVerdict()` both with the site's stated name and with no stated name at
-all (domain-token fallback). So if the live run reports `identity_mismatch` for
-any of them, that is a genuine finding — an offsite redirect, a parked domain —
-and not a mispairing in the sites file.
+`stack/out/phase5-ledgers/<slug>.json`, committed — public website facts only.
+Each carries the site, the organisation, the stated site name, the full
+CrawlReport (outcome, counts, per-URL statuses, robots verdict, elapsed), the
+surviving referents, and per-page URL + kept-char counts:
 
-## Outcome table
+- `sufra-nwlondon.org.uk.json` — OK(178)
+- `themagpieproject.org.json` — OK(53)
+- `glassdoor.org.uk.json` — OK(152)
+- `nourishcommunityfoodbank.org.uk.json` — OK(117)
+- `watsi.org.json` — OK(130)
+- `thefelixproject.org.json` — FETCH_FAILED (offsite → felix.org), kept as the
+  negative fixture it is
+- `felix.org.json` — OK(271), the follow-up probe of the redirect target
 
-**Pending the live run.** To be filled from `stack/live-run.sh stack/sites-phase5.txt`:
-outcome per site (BLOCKED / JS_ONLY / EXTRACTION_FAILED / NOTHING_RELEVANT /
-OK(n)), pages fetched/parsed, referents extracted and surviving the identity
-gate, and the failure point where it failed. Per-site ledgers go to
-`stack/out/phase5-ledgers/<slug>.json` for the phase-6 mini-benchmark.
+## 9. Test status
 
-The identity gate stays asymmetric. An empty surviving-referents column for a
-site that cannot be confidently attributed to the applicant is the correct
-result and will not be softened to make this table look better.
+- `tests/crawl-outcome/crawl_outcome_test.ts`: **203 checks, all pass** — the
+  original 12 taxonomy sections plus §13 (offline audit regressions) and §14
+  (furniture regressions).
+- `bash tests/run-all.sh` (with `PGBIN=/usr/lib/postgresql/17/bin`, as root):
+  every suite green — REPLAY OK, BYTEMATCH OK, 555 delivery-gate checks, all
+  adversarial suites. In the combined run the exclusivity suite failed to START
+  its throwaway Postgres — another workstream's concurrent test run held the
+  suite's fixed `/tmp/ktebli-exclusivity` dir and port 5434 — and a re-run with
+  a private `RUNDIR`/`PORT` passed cleanly: STRANDED-CLAIM PASSED, ceiling probe
+  UNBOUNDED (40/40). Two host hazards for whoever runs this next: (1) Postgres
+  16 is the scripts' default and is not installed here — set
+  `PGBIN=/usr/lib/postgresql/17/bin` or both DB suites die on a missing
+  `initdb`; (2) the DB suites use fixed /tmp paths and ports, so two worktrees
+  running them concurrently collide — pass private `RUNDIR`/`PORT` when
+  parallel agents are active.
+- `deno check` clean on `crawl_outcome.ts` and `ssrf.ts` (deno 2.9.5 via npx).
+  (`deno check` on index.ts fails in this environment on an unrelated npm
+  specifier, `npm:fflate@0.8.2`, needing `deno install`/node_modules — WS3's
+  file, predates this workstream's changes; live-run.sh's own driver typecheck
+  against the crawl module passes.)
 
-## Offline silent-failure audit (done before the run)
+## 10. Deploy note
 
-The reference defect is a **discarded status**: thefelixproject.org produced
-`pages: []`, a `meta` with no error key, and one useless sentence, because
-`crawlSite()` fetched the HTTP status and threw it away. `crawl_outcome.ts`
-fixed that layer. The audit looked for the same class recurring in the layers
-that remain — (a) fetch errors swallowed into empty results, (b) outcomes that
-misdescribe what happened, (c) permissive defaults on malformed inputs, (d)
-matchers satisfiable by fragments. Eight findings, all fixed in WS5-owned files
-and each pinned by a canned-response regression test
-(`tests/crawl-outcome/crawl_outcome_test.ts` §13). Contract bumped 1.0.0 → 1.1.0.
-
-1. **(b) The content-type gate swallowed the refusal status** (`ssrf.ts`). A
-   403/429 served with a non-text or missing `content-type` threw plain
-   `bad_content_type` before any caller saw the status, and classified
-   `fetch_failed` — "did not answer", which is false; the server answered with a
-   refusal. This is the reference defect class recurring one layer down. Fix:
-   the error reason carries the status (`bad_content_type_http_403`) and the
-   traversal recovers it into the observation, so it classifies `blocked_bot`
-   (a 5xx variant stays `fetch_failed` and names the status). Tests: §13a.
-2. **(c) Charset ignored.** Bodies were always decoded as UTF-8; a
-   windows-1252/iso-8859-1 site (disproportionately the small-charity CMS
-   estate) mis-decoded into replacement-character junk and a false
-   `extraction_failed`. Fix: `decodeBody()` honours the content-type charset,
-   sniffs `<meta charset>` when the header names none, and falls back to UTF-8
-   on unknown labels. Tests: §13d.
-3. **(c) Numeric entities survived `stripHtml` as residue** (`St Aidan&#8217;s`),
-   polluting referents and dragging `letter_ratio` toward false
-   `extraction_failed`. Fix: numeric, hex and common named entities decode;
-   unknown named entities strip to a space as before. Tests: §13d.
-4. **(d) Challenge matchers satisfiable by prose fragments.** Bare `forbidden`,
-   `rate limit`, `you have been blocked`, and `just a moment` (the regex
-   required zero of the three dots) could reclassify a thin *served* 2xx page as
-   `blocked_bot`. Fix: markers split into STRONG (branded challenge signatures,
-   CAPTCHA walls — may flag a 200/503/202 with almost no prose) and WEAK
-   (ordinary English — may only *name* a refusal whose status already proves
-   it). A page whose prose says "dogs are forbidden inside the hall" now
-   classifies on its content; the end-to-end fixture flips from `blocked_bot`
-   to `succeeded`. Accepted trade: a 503 whose body says "rate limit" now
-   reports as `fetch_failed` HTTP 503 — less specific, never false. Tests: §13b.
-5. **(d) A mount-point div with no script is not a JS shell.** A static page
-   using `id="app"` as markup, with zero `<script>` elements, was called
-   `js_only` ("draws its text with JavaScript" — false). Fix: mount-point
-   markers additionally require the page to load any script at all. Tests: §13c.
-6. **(c) A malformed empty `User-agent:` line fabricated a robots block.** The
-   empty string became a group key, and every crawler's UA contains the empty
-   string, so the group matched everyone — a broken robots.txt read as
-   `blocked_robots` for the whole site. Fix: token-less UA lines name no
-   crawler and are ignored. Also: where several groups match (`bot` and
-   `kteblibot`), the most specific token now wins, not whichever the file
-   stated first. Tests: §13f.
-7. **(b, boundary) Parsed-page counting disagreed with the traversal** — the
-   classifier counted `kept_chars >= 120` as parsed while the extraction keeps
-   a page only when `> 120` (the worker/index.ts:1272 threshold). At exactly
-   120 a report described a page as parsed that the crawl never kept. Aligned.
-   Tests: §13e.
-8. **(b) `nothing_relevant` hid refused subpages.** A rate limiter that serves
-   the homepage and 429s everything after it read as "thin site". The reason
-   now appends "N further page(s) were refused by the server", so "the site is
-   thin" and "we were only shown one page of it" are distinguishable findings.
-   Tests: §13g.
-
-Verified not present (class a): every fetch attempt in the traversal — robots,
-homepage, sitemap, subpages, offsite hops, budget exhaustion — records a
-`PageObservation`; no catch discards an error.
-
-## What the crawler still cannot do (by design, stated plainly)
-
-- **No JavaScript engine.** A client-rendered site is reported `js_only`, never
-  worked around — the architecture is eight edge functions with no browser, and
-  that stays true. `stack/ground-truth.sh` (real browser) exists to tell
-  "crawler got nothing" apart from "there was nothing to get".
-- **No PDFs.** The traversal skips `.pdf` links; the owner's deep-crawl decision
-  (annual reports, accounts) is future work, not this phase.
-- **robots.txt is honoured, not negotiated.** A site that forbids automated
-  readers is `blocked_robots` and nothing is read; the customer is told to paste
-  the text instead.
-- **One name candidate for the harness gate.** The live-run driver hands the
-  identity gate the single most authoritative name the homepage states — never
-  "whichever candidate clears".
-
-## Test status
-
-- `tests/crawl-outcome/crawl_outcome_test.ts`: all 13 sections pass (the 8
-  original taxonomy sections plus the §13 audit regressions).
-- `bash tests/run-all.sh`: **ALL SUITES PASSED** (exit 0), including migration
-  replay (REPLAY OK), the stranded-claim test, and the exclusivity probe — which
-  now reports UNBOUNDED (40/40 applicants served; the ceiling fix from another
-  workstream is in this branch, so the deliberately-failing test has turned
-  green). Host note: this machine has Postgres 17/18, not the scripts' default
-  16 — run with `PGBIN=/usr/lib/postgresql/17/bin`, or the two DB suites fail
-  on a missing `initdb` before testing anything.
-- `deno check` clean on `crawl_outcome.ts`, `ssrf.ts`, and the test file
-  (deno 2.9.5 via npx).
-
-## Deploy note
-
-These fixes change `supabase/functions/worker/ssrf.ts`, which deployed v26 also
-bundles. Production is unaffected until the next worker deploy; whoever deploys
-next should know that the old in-repo `crawlSite()` path in `index.ts` still
-discards `status` — the ssrf change makes a 4xx-with-untyped-body *throw with a
-status-bearing reason* rather than a bare `bad_content_type`, which the old path
-records into `meta.errors` exactly as before. Nothing about the old path gets
-worse; it simply stays wrong until the wave-2 wiring replaces it.
+These changes touch `ssrf.ts` and `crawl_outcome.ts`, which the worker bundles.
+Production stays on v26 until the next deploy; `stripHtml`'s output is now
+line-structured and entity-decoded, which also feeds the analyze stage's grant
+fetch — strictly less junk in prompts, but worth knowing when diffing the next
+deploy. Cached `org_intel` rows hash differently under 1.2.0, so first crawls
+after deploy will re-crawl rather than reuse — by design (`hasRecordedOutcome`
+already refuses pre-contract rows).

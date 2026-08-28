@@ -89,7 +89,13 @@ import { safeFetchText, stripHtml } from "./ssrf.ts";
 // User-agent line no longer fabricates a robots block; the most specific robots
 // group wins; parsed-page counting matches the traversal's own threshold; and
 // nothing_relevant names the subpages the server refused.
-export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.1.0";
+// 1.2.0: extraction truthfulness, from the live run's evidence. Site furniture
+// (nav menus, language selectors, card-grid link labels) glued into giant
+// capitalised runs that counted as "referents" — two-thirds of the extracted
+// count on real charity sites. stripHtml removes furniture elements and emits
+// real block boundaries; keepParagraphs drops unpunctuated capitalised-majority
+// link runs; siteReferents refuses any "name" longer than six words.
+export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.2.0";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -454,17 +460,40 @@ export const PARA_MIN_CHARS = 40;
 export const PAGE_MIN_CHARS = 120;
 export const PER_PAGE_CHARS = 9_000;
 
+/**
+ * Site furniture that survived the length floor: a run of words with no sentence
+ * punctuation anywhere, most of them capitalised, is a menu, a card-grid of link
+ * labels, or a heading — not a paragraph the organisation wrote. The phase-5
+ * live run showed these gluing into giant pseudo-referents ("Volunteer Donate
+ * Get Help Menu Home About…") that inflated succeeded counts on every site.
+ * Real prose is lowercase-majority and punctuated; both checks must fail for a
+ * paragraph to be dropped, so an unpunctuated mission line in ordinary case
+ * ("we support families across Brent…") is never touched.
+ */
+export function isFurniture(p: string): boolean {
+  if (/[.!?]/.test(p)) return false;
+  const words = p.split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  const capitalish = words.filter((w) => /^[A-Z0-9]/.test(w)).length;
+  return capitalish / words.length >= 0.6;
+}
+
 export function keepParagraphs(rawText: string, seen: Set<string>): string[] {
-  const paras = String(rawText ?? "")
-    .split(/(?<=[.!?])\s+(?=[A-Z؀-ۿ])/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > PARA_MIN_CHARS);
   const kept: string[] = [];
-  for (const p of paras) {
-    const k = p.toLowerCase().slice(0, 120);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    kept.push(p);
+  // stripHtml now emits one line per block element, so menu labels and card
+  // titles arrive as their own short lines and fall to the length floor instead
+  // of gluing onto the prose that follows them.
+  for (const line of String(rawText ?? "").split(/\n+/)) {
+    const paras = line
+      .split(/(?<=[.!?])\s+(?=[A-Z؀-ۿ])/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > PARA_MIN_CHARS && !isFurniture(p));
+    for (const p of paras) {
+      const k = p.toLowerCase().slice(0, 120);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      kept.push(p);
+    }
   }
   return kept;
 }
@@ -521,12 +550,36 @@ export function crawlCorpus(pages: ReadonlyArray<{ url: string; text: string }>)
 export function siteReferents(corpus: string, applicantName: string): string[] {
   const own = new Set<string>();
   for (const p of properNouns(String(applicantName ?? ""))) own.add(normPN(p));
+  // A true proper noun is capitalised wherever it appears; a grammar word is
+  // capitalised only where a sentence begins. So a SINGLE word that also occurs
+  // in lowercase in the same corpus ("However", "Once", "Please") is position,
+  // not a name — corpus-driven, no dictionary, and it errs toward counting
+  // fewer referents, never more.
+  const lower = new Set(
+    String(corpus ?? "").split(/[^\p{L}\p{N}'’-]+/u)
+      .filter((w) => w && /^\p{Ll}/u.test(w)).map((w) => w.toLowerCase()),
+  );
+  // Connectives the proper-noun counter can leave dangling at a phrase edge
+  // when it trims a stop word ("Board of Trustees" -> "of Trustees"). Inside a
+  // phrase they are structure ("London Borough of Brent"); at an edge they are
+  // debris.
+  const GLUE = new Set(["of", "the", "and", "for", "de", "la", "le", "du", "el", "al", "van", "von", "bin"]);
   const seen = new Map<string, string>();
   for (const p of properNouns(String(corpus ?? ""))) {
     if (p === p.toUpperCase()) continue;   // UNKNOWN / NOT RECORDED scaffolding
-    const k = normPN(p);
+    const words = p.split(/\s+/);
+    while (words.length && /^\p{Ll}/u.test(words[0]) && GLUE.has(words[0].toLowerCase())) words.shift();
+    while (words.length && /^\p{Ll}/u.test(words[words.length - 1]) && GLUE.has(words[words.length - 1].toLowerCase())) words.pop();
+    if (!words.length) continue;
+    // No place, partner, venue or programme needs seven capitalised words. A run
+    // that long is site furniture glued together, and counting it would inflate
+    // exactly the number the sufficiency gate and the phase-6 benchmark read.
+    if (words.length > 6) continue;
+    if (words.length === 1 && lower.has(words[0].toLowerCase())) continue;
+    const phrase = words.join(" ");
+    const k = normPN(phrase);
     if (!k || own.has(k)) continue;
-    if (!seen.has(k)) seen.set(k, p);
+    if (!seen.has(k)) seen.set(k, phrase);
   }
   return [...seen.values()];
 }
