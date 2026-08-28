@@ -80,3 +80,12 @@ Next: install postgres + supabase CLI → phase 0.
     stack/sites*, reports/phase5-crawl.md. $0 model budget.
 - Wave 2 (after ws3 merge): phase 6 index.ts workstreams + e2e order + mini-benchmark.
   Wave 3: adversarial round. Then handoff.
+
+## 2026-08-28 — orchestrator checks while wave 1 runs
+
+- stack/tick.sh written (up.sh referenced it; never existed). Verified: {"ok":true,...}.
+- Invariant 9 substrate proven on the live local stack: events_immutable trigger blocks
+  UPDATE and DELETE (both raise), probe row survives.
+- tests/exclusivity/run.sh is GREEN: 40 concurrent applicants on one grant, 40 served,
+  0 refused, 16 sessions racing one fingerprint arbitrated by the partial unique index,
+  no pool FK in claims. Invariant 6's unbounded composer holds in the replayed schema.
