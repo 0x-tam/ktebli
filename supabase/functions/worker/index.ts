@@ -512,8 +512,6 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
   //   (2) the two distinctive-token sets are IDENTICAL and non-empty (the site's
   //       stated name IS the applicant, e.g. a single-distinctive-token org whose
   //       site carries that same one token).
-  let shared = 0;
-  for (const t of want) if (site.has(t)) shared++;
   // (1) TWO or more distinctive tokens agree — an independent second signal, strong.
   // A SINGLE shared distinctive token is never a confident legal-name match: it is one
   // common word ("grace" in Grace Kitchen vs W. R. Grace; "bright" in The Bright

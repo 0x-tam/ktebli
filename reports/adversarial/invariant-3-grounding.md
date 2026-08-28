@@ -670,3 +670,68 @@ national body that owns the topic, importing a stranger's achievements. Exact ca
 Best mitigation: treat sector vocabulary as generic (extend `ORG_GENERIC_WORDS`);
 honestly, the residual is broader and closer to irreducible than "exact-same-name."
 Deterministic; **$0.00**.
+
+---
+
+# RE-ATTACK #6 2026-08-28 — **CONCEDED** (residual is the documented deterministic-irreducibility boundary)
+
+Re-ran `adv2_grounding_test.ts` on trunk `5a04a60` — green. The narrow sector-word
+addition to `ORG_GENERIC_WORDS` (`index.ts:438`) closes my round-5 topical-containment
+instances (`Mental Health Leeds Project` vs `Mental Health Foundation`,
+`Youth Music Bradford` vs `Youth Music`) while keeping `Sufra`, and keeping words that
+double as distinctive names (`Shelter`, `Green House`, `Grace Kitchen`) working.
+
+I then attacked for a class **outside** the boundary — a substring/prefix/override/
+intersection survivor, or a stranger admitted with **no** shared topical stem — by
+structural analysis and a confirmation battery.
+
+**Structural argument.** `orgNameMatchesSite` now has exactly three `return true`
+paths: (1) name-token **containment** (`:535` — `nameSmaller.size >= 2 && nameSmaller ⊆
+nameLarger`); (2) **single-token domain** (`:552` — `t.length > 3 && registrableMainLabel
+=== t`); (3) **multi-token domain** (`:584` — `site.size === 0 && mainStripped ===
+orgConcat`). Every one requires either **≥2 shared distinctive name tokens** (with one
+name containing the other) **or the registrable main label spelling the applicant's own
+distinctive name**. So a stranger with no shared name-token and a domain that does not
+spell the applicant's name is **structurally unadmittable** — there is no coincidental
+path left.
+
+**Confirmation battery (all as expected).** Zero-shared-token strangers reject,
+including domain-parse tricks (IP literal `127.0.0.1`, userinfo/port
+`shelter@evil.com:8080`, uppercase + trailing-dot subdomain `SHELTER.EVIL.COM.`, the
+`shelter.evil.com` subdomain and `shelterlogic.com` substring). Every prior break class
+rejects (substring `Art Care`/`smartcare.com`; prefix `Care Reach`/`careeroutreach.com`;
+override `Green House`/`greenhouse.io`+"Greenhouse Software Inc"; intersection
+`Youth Climate Hub Bristol`/`Climate Youth Action Fund`; listed-topical containment).
+The only strangers still admitted are instances of the documented residual — a
+topical-stem **containment** whose stem cannot be generic-ised without rejecting a real
+applicant: `Green Streets` ⊆ `Green Streets Leeds` ("green" is distinctive in
+`Green House`), `Refuge House` ⊆ `Refuge House Leeds` ("Refuge" is a real charity). No
+static list separates these from a genuine own-name shortening.
+
+**Conclusion.** I confirm `reports/adversarial/residual-boundary.md`: the remaining
+class for invariant 3 is the deterministic-irreducibility residual — "two organisations
+sharing a topical stem NOT in the generic list, one name a subset of the other, where
+that stem is also a real charity's own distinctive name" (plus the strictly-irreducible
+same-exact-name and same-name-domain cases). Separating "a local project of a national
+field" from "the national body" needs a frequency/distinctiveness judgement a string
+matcher cannot make without a complete-and-never-wrong lexicon, which does not exist.
+It is backstopped exactly as documented: (1) the gate stays asymmetric (discards on
+doubt — the only failure it can produce is importing a same-topic stranger's site,
+never fabricating); (2) the LLM Claim Ledger is the actual fact-grounding gate and held
+the Sufra e2e — imported facts that do not trace to the applicant's own ledger are
+blocked there; (3) the applicant supplies their own domain, so a mismatch is applicant
+error, not an adversary-controlled surface. None is a launch blocker.
+
+Across six rounds the gate closed five reachable classes (substring, prefix,
+contradicting-name override, bare intersection, listed-topical containment), each
+re-attack-proven; the sixth attempt finds only the irreducible boundary. **CONCEDED.**
+
+(One non-security aside: after the containment rewrite the `shared` counter at
+`index.ts:515–516` is dead — the admit uses `nameSmaller ⊆ nameLarger`, not `shared`.
+Harmless; a cleanup, not a finding.)
+
+## Verdict #6
+
+**CONCEDED** — no reachable class outside the documented deterministic-irreducibility
+boundary. Invariant 3's grounding gate is closed to every demonstrated attack;
+`residual-boundary.md`'s characterization holds. Deterministic; **$0.00**.
