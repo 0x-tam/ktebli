@@ -327,3 +327,84 @@ same function carries an untested sibling path (the ≥2-token domain branch,
 not one of the accepted residuals (it is neither an exotic phone format nor a
 single-common-word same-name coincidence): it admits a site whose legal name shares
 zero tokens with the applicant. No model spend; deterministic. **$0.00.**
+
+---
+
+# RE-ATTACK #2 2026-08-28 — **BROKEN** (anchor+in-order rule still admits a stranger)
+
+The multi-token break above was fixed and committed to trunk (`eae6b18`). The
+≥2-token domain branch now requires (`index.ts:533–557`): the token concatenation
+equals the main label exactly, **or** the first distinctive token (len>3) is a
+**prefix** of the stripped main label and every token then appears **in order** (via
+`indexOf`) through the label. `adv2_grounding_test.ts` is **35/35 green**, including
+7 new multi-token assertions.
+
+Re-attacked in the main checkout at `eae6b18`. The exact-concatenation case (cond. 1)
+is safe. **The anchor+in-order relaxation (cond. 2) is not**, for one reason: the
+anchor is a **prefix, not a word/segment boundary**, and a 4-character first token is
+a prefix of many *longer, unrelated* words. The remaining tokens are then matched by
+bare `indexOf` — any substring, anywhere after the anchor, across compound words. So
+the coincidental-substring class survives, merely reshaped to "prefix-anchored,
+left-to-right."
+
+Confirmed against the deployed `index.ts` (secure = reject; all admit):
+
+| Applicant (charity) | Stranger site, 0 shared legal-name tokens | Domain | main label | Admitted? |
+|---|---|---|---|---|
+| **Care Reach** | Career Outreach LLC (recruitment) | `careeroutreach.com` | `careeroutreach` | **yes** — `care`◁`career`, `reach`⊂`out`**reach** |
+| **Star Reach** | Startup Outreach Ltd (consultancy) | `startupoutreach.com` | `startupoutreach` | **yes** — `star`◁`startup`, `reach`⊂`outreach` |
+| **Read Well** | Ready Wellness Co (corporate wellness) | `readywellness.com` | `readywellness` | **yes** — `read`◁`ready`, `well`⊂`wellness` |
+| **Care Well** | Career Wellness Inc | `careerwellness.com` | `careerwellness` | **yes** — `care`◁`career`, `well`⊂`wellness` |
+
+(◁ = "is a prefix of a different, longer word".) A literacy charity *Read Well* is
+not *Ready Wellness*; a caregiver charity *Care Reach* is not *Career Outreach*. The
+legal names share zero distinctive tokens with the applicants, so this is a stranger
+import — the B1 outcome, not a carved-out residual (not single-common-word, not an
+abbreviation of the org name; the domain is a *longer, different* name).
+
+**Exact defeating org + domain:** `Care Reach` → `careeroutreach.com` (and
+`Star Reach` → `startupoutreach.com`; `Read Well` → `readywellness.com`).
+
+### Failing cases (drop-in for `adv2_grounding_test.ts`, section 3)
+
+```ts
+ok(!admits("Care Reach", "Career Outreach LLC", "careeroutreach.com"),
+  "prefix-anchor bleed: 'care' prefixes 'career', 'reach' is inside 'outreach' — reject");
+ok(!admits("Star Reach", "Startup Outreach Ltd", "startupoutreach.com"),
+  "'star' prefixes 'startup', 'reach' inside 'outreach' — reject a startup consultancy");
+ok(!admits("Read Well", "Ready Wellness Co", "readywellness.com"),
+  "'read' prefixes 'ready', 'well' inside 'wellness' — reject an unrelated wellness firm");
+```
+
+### Fix spec
+
+The relaxation exists only to admit a domain that carries a token the org-name
+tokenizer dropped (`sufra-nwlondon.org.uk` for *Sufra NW London*: `nw` is the dropped
+two-letter gap). Bind the relaxation to the structure that legitimises it — the
+**hyphen segmentation of the main label** — instead of to an unbounded prefix:
+
+1. Split the main label on `-` into segments. Admit under cond. 2 only when the
+   **first org token equals the first segment exactly** (not merely prefixes it), and
+   each remaining org token matches a later segment (allowing a segment to be an
+   un-tokenised concatenation containing the token at a **segment start**). Under this
+   rule `sufra-nwlondon` (segments `sufra`|`nwlondon`, first == `sufra`, `london`
+   opens the tail of `nwlondon`) still admits, `brightfutures.org` admits via the
+   exact-concat case, while `careeroutreach` / `startupoutreach` / `readywellness`
+   (single segment ≠ the first token) reject.
+2. Residual, honestly noted: a concatenated registrable label carries **no** word
+   boundaries, so *any* rule looser than exact concatenation can be gamed by a
+   stranger whose label happens to segment favourably (e.g. a hyphenated
+   `care-outreach.com` would still substring-match `reach` inside `outreach`). The
+   only fully closed positions are (a) exact main-label concatenation, or
+   (b) corroboration off the domain — a legal name sharing ≥2 tokens. If the asymmetry
+   is to be honoured strictly, the domain-only anchor branch should be dropped and the
+   *Sufra* case admitted via exact-concat of its actual tokens or via its legal name;
+   the anchor+in-order convenience is what keeps reopening this class.
+
+## Verdict #2
+
+**BROKEN.** The three original fixes hold; the fix to my first re-attack holds for the
+exact-concatenation case but its anchor+in-order relaxation admits a stranger whenever
+the applicant's first distinctive token is a prefix of a longer unrelated word in the
+site's registrable label. Defeating case: **`Care Reach` / `careeroutreach.com`**.
+Deterministic; **$0.00**.

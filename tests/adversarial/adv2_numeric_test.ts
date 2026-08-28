@@ -176,6 +176,36 @@ throws(() => solve([
 ], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
   "'share of cost of the whole project' divides by the grant while the register's own total is 120000 (true 0.675)");
 
+console.log("\nA14 — RE-ATTACK #2: the scope-reframe walk is RIGHT-ONLY, so a scope word BEFORE the denominator passes");
+// A12/A13 above are now green. The A13 fix walks the connective run AFTER the matched
+// denominator and rejects a scope word in it (numeric_register.ts:268-273). But it does
+// not walk LEFT. A scope word placed BEFORE the denominator, connective-separated so it
+// clears the adjacency `leftOk` check, is never inspected — and it reframes the quantity
+// exactly as the right-side qualifier did. This is the mirror of the bug that fix note
+// itself records ("Left-anchoring alone let the right-extension through"), now on the
+// reframe axis. Worst of all it admits the CANONICAL scope word "total": "share of the
+// total of cost" divides by the grant (B2, 108000) while the register's own total (B4)
+// is 120000, so 0.75 closes where the honest share is 0.675.
+throws(() => solve([
+  { id: "B1", label: "frontline delivery costs", unit: "GBP", unit_kind: "money", kind: "leaf", value: 81000, basis: B("estimate", "delivery staff") },
+  { id: "B2", label: "cost", unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the grant") },
+  { id: "B3", label: "match funding", unit: "GBP", unit_kind: "money", kind: "leaf", value: 12000, basis: B("estimate", "reserves") },
+  { id: "B4", label: "total project cost", unit: "GBP", unit_kind: "money", kind: "sum", of: ["B2", "B3"], asserted: 120000, basis: B("arithmetic", "grant + match") },
+  { id: "R1", label: "frontline share of the total of cost", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["B1", "B2"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
+], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
+  "a scope word ('total') BEFORE the denominator, connective-separated, reframes the grant into the total and must be refused");
+// Corroboration that enumeration is the wrong shape of fix: a right-side scope SYNONYM
+// the set omits ("complete") also passes. The set is {whole,total,entire,overall,combined,
+// full,gross,aggregate,all}; "complete"/"cumulative"/"consolidated" are not in it.
+throws(() => solve([
+  { id: "B1", label: "frontline delivery costs", unit: "GBP", unit_kind: "money", kind: "leaf", value: 81000, basis: B("estimate", "delivery staff") },
+  { id: "B2", label: "cost", unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the grant") },
+  { id: "B3", label: "match funding", unit: "GBP", unit_kind: "money", kind: "leaf", value: 12000, basis: B("estimate", "reserves") },
+  { id: "B4", label: "total project cost", unit: "GBP", unit_kind: "money", kind: "sum", of: ["B2", "B3"], asserted: 120000, basis: B("arithmetic", "grant + match") },
+  { id: "R1", label: "share of cost of the complete project reaching frontline delivery", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["B1", "B2"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
+], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
+  "a right-side scope SYNONYM the enumerated set omits ('complete') reframes the same way");
+
 // ---------------------------------------------------------------------------
 console.log(failures ? `\n${failures} FAILURE(S) — invariant 4 is not upheld` : "\nALL ADV2 NUMERIC TESTS PASSED");
 if (failures) Deno.exit(1);

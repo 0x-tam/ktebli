@@ -534,27 +534,21 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
     if (main !== null) {
       const mainStripped = main.replace(/[^a-z0-9]/g, "");
       const orgConcat = wantArr.join("");
-      // Exact: the main label IS the token concatenation (brightfutures.org).
+      // EXACT concatenation only. The main label, delimiters removed, must EQUAL the
+      // distinctive-token concatenation: brightfutures.org for "Bright Futures".
+      //
+      // Nothing weaker is safe, and five adversarial passes proved it. A concatenated
+      // registrable label carries NO word boundaries, so any relaxation that matches a
+      // token as a prefix or an interior substring imports a stranger: "Art Care" ->
+      // smartcare.com ("art"+"care" inside a different word), "Care Reach" ->
+      // careeroutreach.com ("care" prefixes "career", "reach" ends "outreach"). The
+      // asymmetry invariant 3 is built on says discard good evidence rather than attribute
+      // a stranger's: an applicant whose domain interleaves a word the tokenizer dropped
+      // (Sufra NW London / sufra-nwlondon.org.uk, "nw" is two letters) is corroborated by
+      // its crawled legal name instead (the shared>=2 branch above), which is how the
+      // phase-5 crawl admitted it. The domain-ONLY fallback stays exact, and refuses on
+      // any doubt.
       if (orgConcat.length > 3 && mainStripped === orgConcat) return true;
-      // Otherwise the FIRST distinctive token must ANCHOR the main label (be its
-      // prefix) and every token must then appear IN ORDER through the label. This
-      // admits a main label that carries a token the org-name tokenizer dropped
-      // (sufra-nwlondon for "Sufra NW London": "sufra" anchors, "london" follows,
-      // "nw" is the two-letter gap orgTokens discards) and rejects the coincidental
-      // substring: "smartcare" does not START with "art", and "grace.com" (main
-      // "grace") anchors "grace" but has no "kitchen" after it, so "Grace Kitchen"
-      // cannot import W. R. Grace's site. A first token of <=3 chars is too generic
-      // to anchor on and never admits.
-      const first = wantArr[0];
-      if (first.length > 3 && mainStripped.startsWith(first)) {
-        let pos = 0, allInOrder = true;
-        for (const t of wantArr) {
-          const at = mainStripped.indexOf(t, pos);
-          if (at < 0) { allInOrder = false; break; }
-          pos = at + t.length;
-        }
-        if (allInOrder) return true;
-      }
     }
   }
   // Stays asymmetric: on any doubt the site is discarded, never imported.

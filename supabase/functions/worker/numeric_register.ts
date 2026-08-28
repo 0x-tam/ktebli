@@ -257,19 +257,29 @@ function resolveRegister(
       // of the total (adv2 A13). "of" is a legal connective, so rightOk alone accepts it;
       // this refuses the match when the connective run after the denominator introduces a
       // scope word. Discard-on-doubt: a rate must name the EXACT node it divides by.
+      // A SCOPE word adjacent to the denominator run (through a connective run, on
+      // EITHER side) reframes it into a larger quantity than the node it names: "share
+      // of cost OF THE WHOLE PROJECT" and "frontline share of the TOTAL of cost" both
+      // match the "cost" node (the grant, 108k) yet mean the register's own 120k total
+      // (adv2 A13/A14). The reframe walk is DIRECTION-SYMMETRIC — a one-sided walk is the
+      // very "right about the wrong denominator" mirror this refuses. Discard-on-doubt.
       const SCOPE_REFRAME = new Set(["whole", "total", "entire", "overall", "combined",
-        "full", "gross", "aggregate", "all"]);
+        "full", "gross", "aggregate", "all", "complete", "cumulative", "collective",
+        "grand", "sum", "totality", "net"]);
+      const scopeAdjacent = (from: number, step: -1 | 1): boolean => {
+        let k = from;
+        while (k >= 0 && k < rateToks.length && RATE_LABEL_CONNECTIVES.has(rateToks[k])) k += step;
+        return k >= 0 && k < rateToks.length && k !== from && SCOPE_REFRAME.has(rateToks[k]);
+      };
       const namesDenominator = denToks.length > 0 && rateToks.some((_, i) => {
         if (i + denToks.length > rateToks.length) return false;
         for (let j = 0; j < denToks.length; j++) if (rateToks[i + j] !== denToks[j]) return false;
         const leftOk = i === 0 || RATE_LABEL_CONNECTIVES.has(rateToks[i - 1]);
         const end = i + denToks.length;
         const rightOk = end === rateToks.length || RATE_LABEL_CONNECTIVES.has(rateToks[end]);
-        // Walk the connective run after the denominator; if a scope word appears in it,
-        // the denominator has been reframed into a different quantity — refuse.
-        let k = end;
-        while (k < rateToks.length && RATE_LABEL_CONNECTIVES.has(rateToks[k])) k++;
-        const reframed = k < rateToks.length && k > end && SCOPE_REFRAME.has(rateToks[k]);
+        // A scope word reachable through the connective run on EITHER side reframes the
+        // denominator into a different quantity — refuse.
+        const reframed = scopeAdjacent(end, 1) || scopeAdjacent(i - 1, -1);
         return leftOk && rightOk && !reframed;
       });
       if (!namesDenominator) {
@@ -277,6 +287,36 @@ function resolveRegister(
           `"${n.label}" is taken over ${den.id} ("${den.label}") but does not name it as its own ` +
           `denominator — the label is absent, or a content word extends it into a different quantity. ` +
           `A rate must name the exact quantity it is divided by, or it is right about the wrong one.`);
+      }
+      // STRUCTURAL closure, word-list-free (adv2 A14). A share divides a part by its
+      // WHOLE. If the numerator is transitively a member of a `sum` node S of the same
+      // unit — S is the aggregate it is a part of — then dividing by any node other than
+      // S is dividing a component by a quantity that is not its whole. This catches the
+      // reframe class however it is phrased (no scope word needed) whenever the register
+      // actually declares the aggregate as a sum, which a closed budget always does. It
+      // only ever ADDS a refusal, and never fires for an honest "share of the grant"
+      // whose numerator is not a declared member of a different-valued same-unit total.
+      const numInSum = (sumOf: readonly string[] | undefined, target: string, seen: Set<string>): boolean => {
+        for (const m of sumOf ?? []) {
+          if (m === target) return true;
+          if (seen.has(m)) continue;
+          seen.add(m);
+          const c = byId.get(m);
+          if (c && (c.kind === "sum" || c.kind === "product") && numInSum(c.of, target, seen)) return true;
+        }
+        return false;
+      };
+      const denNode = byId.get(den.id);
+      for (const s of list) {
+        if (s.kind !== "sum" || s.id === den.id) continue;
+        if (s.unit_kind !== den.unit_kind || s.unit !== (denNode?.unit ?? den.unit)) continue;
+        if (!numInSum(s.of, num.id, new Set())) continue;
+        const sVal = done.get(s.id)?.value;
+        if (sVal !== undefined && sVal === den.value) continue; // den IS that aggregate's value
+        throw new RegisterError("rate_denominator_not_whole", n.id,
+          `${num.id} is a component of ${s.id} ("${s.label}"), so a share of it must be taken over ` +
+          `${s.id}, not ${den.id} ("${den.label}"). Dividing a part by a quantity that is not its ` +
+          `whole is right about the wrong denominator.`);
       }
       value = num.value / den.value;
       derivation = `${members[0]} / ${members[1]} = ${num.value} / ${den.value}`;

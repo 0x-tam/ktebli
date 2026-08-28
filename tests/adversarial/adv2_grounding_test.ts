@@ -179,26 +179,29 @@ ok(admits("Shelter", "Shelter", "shelter.org.uk"),
 ok(admits("Mind", "", "mind.org.uk"),
   "the real 'Mind' at mind.org.uk still admits (main label 'mind' under org.uk)");
 
-// RE-ATTACK 2026-08-28: the MULTI-token domain branch had the same coincidental-
-// substring flaw the single-token branch was fixed for — "Art Care" (art+care) matched
-// "smartcare.com". The fix anchors the FIRST distinctive token at the main label's start
-// and requires the rest in order, so a stranger substring rejects while a real org
-// (incl. a domain carrying a token orgTokens dropped, like "nw") still admits.
+// RE-ATTACK 2026-08-28 (two passes): the MULTI-token domain branch first had the same
+// coincidental-substring flaw as the single-token branch ("Art Care" -> smartcare.com),
+// then an anchor+in-order relaxation that a prefix-not-boundary still defeated ("Care
+// Reach" -> careeroutreach.com: "care" prefixes "career", "reach" ends "outreach"). A
+// concatenated registrable label carries no word boundaries, so the only safe domain-ONLY
+// rule is EXACT concatenation; an org whose domain interleaves a dropped word relies on
+// its crawled legal name (the shared>=2 branch), which is how phase 5 admitted Sufra.
 ok(!admits("Art Care", "SmartCare Inc", "smartcare.com"),
-  "multi-token: 'art'+'care' as substrings of 'smartcare' (a different word) do not admit");
-ok(!admits("Arts Reach Collective", "Smarts Outreach Limited", "smartsoutreach.com"),
-  "multi-token: coincidental substrings inside 'smartsoutreach' do not admit a stranger");
+  "multi-token: 'art'+'care' inside 'smartcare' (a different word) do not admit");
 ok(!admits("Arts Reach", "", "reach.smartsdata.io"),
-  "multi-token: 'reach' only in the subdomain, 'arts' buried in the main label — reject");
-ok(!admits("Art Care", "", "smart-carecentre.org"),
-  "multi-token: hyphen-merged 'smart-carecentre' does not start with 'art' — reject");
+  "multi-token: substrings across a subdomain boundary do not admit");
+ok(!admits("Care Reach", "Career Outreach Ltd", "careeroutreach.com"),
+  "multi-token: 'care' prefixes 'career' and 'reach' ends 'outreach' — a stranger, rejected");
+ok(!admits("Star Reach", "Startup Outreach", "startupoutreach.com"),
+  "multi-token: prefix+suffix coincidence does not admit a stranger");
 ok(!admits("Grace Kitchen", "W. R. Grace and Company", "grace.com"),
-  "multi-token: 'grace.com' anchors 'grace' but has no 'kitchen' after it — W.R. Grace not imported");
+  "multi-token: grace.com is only the first word — W.R. Grace is not imported");
 ok(admits("Bright Futures", "", "brightfutures.org"),
-  "multi-token legit: the main label IS the token concatenation");
-ok(admits("Sufra NW London", "", "sufra-nwlondon.org.uk"),
-  "multi-token legit: 'sufra' anchors, 'london' follows, 'nw' is the dropped-token gap (the real phase-5 applicant)");
-
+  "multi-token legit: the main label EXACTLY IS the token concatenation");
+ok(!admits("Sufra NW London", "", "sufra-nwlondon.org.uk"),
+  "multi-token domain-only: 'nw' breaks exact concatenation — REJECTED by domain alone (accepted asymmetric cost)");
+ok(admits("Sufra NW London", "Sufra NW London", "sufra-nwlondon.org.uk"),
+  "the same Sufra ADMITS on its crawled legal name (shared>=2), which is how phase 5 cleared it");
 console.log(
   bad
     ? `\n${bad} FAILURE(S) — each is a live route for an unsupported fact reaching a customer`

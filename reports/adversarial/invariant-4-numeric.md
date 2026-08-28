@@ -305,3 +305,93 @@ measurement, as the design-stage comment already does (`index.ts:2300-2304`):
 kept; fix comment's `0.20` example masks it). RE-2 is a narrower residual of the wrong-denominator
 class. Both are encoded as failing cases A12/A13. The generation-QUALITY coverage remains an honest
 open measurement (unproven-without-e2e), separate from these two mechanism holes.
+
+---
+
+# RE-ATTACK #2 2026-08-28 — BROKEN (scope reframe is one-directional)
+
+RE-1 and RE-2 were fixed and merged (trunk `eae6b18`). I re-ran `adv2_numeric_test.ts`
+against the merged register: **A12 and A13 are now GREEN**, and A9/A10/A11 remain green.
+
+- **RE-1 CLOSED.** The donor branch dropped `Math.round(r.value)` and is now
+  `!donorNums.has(r.value)` (`numeric_register.ts:399`), mirroring the evidence branch. A
+  fabricated `0.75` donor share no longer verifies against a stray `1`. Confirmed.
+- **RE-2 CLOSED (for the case tested).** After matching the denominator run, the code walks
+  the connective run to its **right** and refuses the match if it reaches a scope word in
+  `{whole,total,entire,overall,combined,full,gross,aggregate,all}` (`numeric_register.ts:260-273`).
+  `"share of cost of the whole project"` now throws `rate_denominator_label`. Confirmed.
+
+Then one more attempt on the mechanism. **Still BROKEN**, encoded as failing case **A14**.
+
+## (a) The MECHANISM — BROKEN
+
+### RE-3 (primary) — the scope-reframe walk only looks RIGHT of the denominator
+
+**Where:** `numeric_register.ts:262-274` (the `namesDenominator` predicate).
+
+```ts
+const leftOk  = i === 0 || RATE_LABEL_CONNECTIVES.has(rateToks[i - 1]);      // adjacency only
+const end = i + denToks.length;
+const rightOk = end === rateToks.length || RATE_LABEL_CONNECTIVES.has(rateToks[end]);
+let k = end;                                                                 // walk RIGHT only
+while (k < rateToks.length && RATE_LABEL_CONNECTIVES.has(rateToks[k])) k++;
+const reframed = k < rateToks.length && k > end && SCOPE_REFRAME.has(rateToks[k]);
+return leftOk && rightOk && !reframed;
+```
+
+`leftOk` checks only the **immediately adjacent** left token; the scope-reframe walk runs
+**only to the right** (`k = end` forward). So a scope word placed **before** the denominator,
+one connective away, clears `leftOk` (its neighbour is a connective, not the scope word) and is
+never seen by the reframe walk. It reframes the quantity exactly as the right-side qualifier did.
+This is the same defect the RE-2 fix note itself records — *"Left-anchoring alone let the
+right-extension through"* — now on the reframe axis: right-only reframe detection lets the
+**left-side** reframe through.
+
+**The exact defeating input (test A14):** denominator `B2 = "cost"` (the grant, £108,000), the
+register holding its own `B4 = "total project cost" = £120,000`, and
+
+```
+R1.label = "frontline share of the total of cost"   (rate = B1 / B2, asserted 0.75)
+```
+
+Tokens `[frontline, share, of, the, total, of, cost]`: `"cost"` at index 6 has left-neighbour
+`"of"` (a connective, so `leftOk`) and sits at the end (`rightOk`); the reframe walk starts past
+the end and finds nothing. The scope word — **`"total"`, the canonical member of `SCOPE_REFRAME`
+itself** — sits at index 4, before the denominator, and is never inspected. `R1` resolves to
+`81000/108000 = 0.75` over the grant while the register's own total says the honest share is
+`81000/120000 = 0.675`. Confirmed accepted. The honest construction (dividing by `B4`) resolves
+correctly at `0.675`, so the fix has a clean target.
+
+### RE-3b (corroboration) — the scope-word SET is enumerable and incomplete
+
+Independently of direction, the right-side check only fires on nine listed words. Natural
+totalising synonyms it omits — `"complete"`, `"cumulative"`, `"consolidated"` —
+reframe the same way: `"share of cost of the complete project"` is accepted (test A14, second
+assertion). This is corroboration that a word list is the wrong shape of defence, not a separate
+break.
+
+**Fix spec:** the reframe test must be **direction-symmetric and not enumerated**. After a
+denominator run matches, reject the match if any token in the rate label that is *not* part of
+some register node's own label is a scope/aggregation modifier — checked on **both** sides, and
+ideally as a positive rule rather than a blocklist: a share whose numerator is a component of a
+`sum` node of the same unit must divide by **that** `sum` node (its `Resolved` identity), not by a
+smaller sibling leaf. In A14 `B1` is a delivery line and `B4` is the total-cost `sum`; requiring
+the denominator of a "share of … cost" to be the maximal cost node closes RE-2, RE-3 and RE-3b at
+once, with no word list to keep current.
+
+## (b) The GENERATION-QUALITY half — still UNPROVEN, not broken
+
+Unchanged from the prior round and re-affirmed here: whether **every** figure a real narrative
+prints is first routed through the register end-to-end (so understatement is caught because each
+section writes from `register_derivations`) needs a full paid pipeline order and was not run —
+**unproven-without-e2e**. That is an open measurement, not a mechanism break, and it is distinct
+from RE-3, which is a deterministic hole in `resolveRegister` reachable with a crafted register and
+no model at all.
+
+## Verdict
+
+**BROKEN.** Exact defeating input: a `rate` node `R1 = B1 / B2` with
+`label = "frontline share of the total of cost"`, `B2 = "cost" = 108000` (the grant), alongside
+`B4 = "total project cost" = 120000`; `resolveRegister` accepts `asserted 0.75` where the honest
+share of the register's own total is `0.675`, because the scope-reframe walk never inspects the
+word `"total"` sitting before the denominator. Failing test: A14 in `adv2_numeric_test.ts`.
