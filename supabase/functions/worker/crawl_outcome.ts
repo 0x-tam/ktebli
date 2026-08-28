@@ -82,7 +82,14 @@
 import { normPN, properNouns } from "./proper_nouns.ts";
 import { safeFetchText, stripHtml } from "./ssrf.ts";
 
-export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.0.0";
+// 1.1.0: the phase-5 silent-failure audit. A refusal status survives the
+// content-type gate (blocked_bot, not fetch_failed, for a 403 with a non-text
+// body); weak challenge markers can no longer reclassify a served 2xx page;
+// a mount-point div without any script is not a JS shell; a malformed empty
+// User-agent line no longer fabricates a robots block; the most specific robots
+// group wins; parsed-page counting matches the traversal's own threshold; and
+// nothing_relevant names the subpages the server refused.
+export const CRAWL_OUTCOME_CONTRACT_VERSION = "1.1.0";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -239,8 +246,13 @@ export function parseRobots(txt: string): RobotsRules {
     if (field === "user-agent") {
       // A new user-agent line after directives starts a new group.
       if (sawDirective) { active = []; sawDirective = false; }
-      active.push(value.toLowerCase());
-      if (!groups.has(value.toLowerCase())) groups.set(value.toLowerCase(), []);
+      const ua = value.toLowerCase();
+      // A user-agent line with NO token names no crawler. Adopting it would make
+      // the empty string a group key, and every crawler's UA contains the empty
+      // string — a malformed file would fabricate a blocked_robots for everyone.
+      if (!ua) continue;
+      active.push(ua);
+      if (!groups.has(ua)) groups.set(ua, []);
       continue;
     }
     if (field !== "allow" && field !== "disallow") continue;
@@ -264,7 +276,9 @@ function robotsPathMatches(pattern: string, path: string): boolean {
 
 /**
  * Longest-match wins; an Allow beats a Disallow of equal length (the rule every
- * major crawler implements). A group naming our token wins over `*` outright.
+ * major crawler implements). A group naming our token wins over `*` outright,
+ * and where several groups match ("bot" and "kteblibot"), the most specific —
+ * longest — token wins, not whichever the file happened to state first.
  */
 export function robotsAllows(
   rules: RobotsRules,
@@ -273,8 +287,12 @@ export function robotsAllows(
 ): { allowed: boolean; rule: string | null } {
   const uaLower = ua.toLowerCase();
   let group: Array<{ allow: boolean; path: string; line: string }> | undefined;
+  let bestName = -1;
   for (const [name, directives] of rules.groups) {
-    if (name !== "*" && uaLower.includes(name)) { group = directives; break; }
+    if (name !== "*" && uaLower.includes(name) && name.length > bestName) {
+      group = directives;
+      bestName = name.length;
+    }
   }
   if (!group) group = rules.groups.get("*");
   if (!group || !group.length) return { allowed: true, rule: null };
@@ -293,25 +311,39 @@ export function robotsAllows(
 // Pure helper: bot blocks and challenge interstitials
 // ---------------------------------------------------------------------------
 
-const CHALLENGE_MARKERS: ReadonlyArray<readonly [RegExp, string]> = [
-  [/just a moment\s*\.{0,3}/i, "Cloudflare 'Just a moment' interstitial"],
+// STRONG markers are challenge-page signatures a legitimate page essentially
+// never carries: branded challenge platforms, their exact interlock phrases, and
+// CAPTCHA walls. They may flag a 200/503/202 on their own (with almost no prose).
+const STRONG_CHALLENGE_MARKERS: ReadonlyArray<readonly [RegExp, string]> = [
+  // The ellipsis is required: "Just a moment..." is the Cloudflare title, while
+  // "it takes just a moment to donate" is a sentence a thin charity page really
+  // does write, and used to be flagged as a block.
+  [/just a moment\s*(\.{3}|…)/i, "Cloudflare 'Just a moment' interstitial"],
   [/attention required.{0,20}cloudflare/i, "Cloudflare 'Attention Required'"],
   [/checking your browser before accessing/i, "Cloudflare browser check"],
   [/cf-browser-verification|__cf_chl_|cf_chl_opt|cdn-cgi\/challenge-platform/i, "Cloudflare challenge platform"],
   [/enable javascript and cookies to continue/i, "JavaScript-and-cookies challenge"],
-  [/(sorry, )?you have been blocked/i, "explicit block page"],
-  [/access denied|403 forbidden|forbidden/i, "access denied page"],
+  [/sorry, you have been blocked/i, "explicit block page"],
   [/request unsuccessful.{0,40}incapsula/i, "Imperva/Incapsula block"],
   [/pardon our interruption/i, "Distil/Imperva interruption page"],
   [/(h|re)?captcha|are you a robot|verify you are human/i, "CAPTCHA challenge"],
+];
+
+// WEAK markers are ordinary English that block pages also happen to use. They
+// only ever NAME a refusal whose status already proves it (401/403/429) — they
+// can never flag a 2xx by themselves, because "dogs are forbidden inside the
+// hall" is prose, not a WAF.
+const WEAK_CHALLENGE_MARKERS: ReadonlyArray<readonly [RegExp, string]> = [
+  [/you have been blocked/i, "explicit block page"],
+  [/access denied|403 forbidden|forbidden/i, "access denied page"],
   [/rate limit|too many requests/i, "rate limiting"],
 ];
 
 /**
  * A refusal aimed at non-browser readers. Statuses 401/403/429 are conclusive on
- * their own. A 200 or 503 is only a block when a marker is present AND there is
- * almost no prose — otherwise a page that happens to discuss captchas would be
- * misread as a block.
+ * their own. A 200, 503 or 202 is only a block when a STRONG marker is present
+ * AND there is almost no prose — a weak, fragment-satisfiable marker ("forbidden",
+ * "rate limit") must never reclassify a page the server actually served.
  */
 export function looksLikeBotChallenge(
   status: number | null,
@@ -319,13 +351,15 @@ export function looksLikeBotChallenge(
   textChars: number,
 ): { blocked: boolean; marker: string | null } {
   const sample = String(body ?? "").slice(0, 20_000);
-  let marker: string | null = null;
-  for (const [re, name] of CHALLENGE_MARKERS) if (re.test(sample)) { marker = name; break; }
+  let strong: string | null = null;
+  for (const [re, name] of STRONG_CHALLENGE_MARKERS) if (re.test(sample)) { strong = name; break; }
   if (status === 401 || status === 403 || status === 429) {
-    return { blocked: true, marker: marker ?? `HTTP ${status}` };
+    let weak: string | null = null;
+    for (const [re, name] of WEAK_CHALLENGE_MARKERS) if (re.test(sample)) { weak = name; break; }
+    return { blocked: true, marker: strong ?? weak ?? `HTTP ${status}` };
   }
-  if (marker && textChars < 3000 && (status === 200 || status === 503 || status === 202)) {
-    return { blocked: true, marker };
+  if (strong && textChars < 3000 && (status === 200 || status === 503 || status === 202)) {
+    return { blocked: true, marker: strong };
   }
   return { blocked: false, marker: null };
 }
@@ -352,7 +386,10 @@ export function scriptChars(html: string): number {
  * Is this a shell whose text is drawn by JavaScript? Two independent signals:
  * a framework marker, or a body that is mostly script and carries no prose. Both
  * additionally require that there is essentially no readable text — a rendered
- * React page is a normal page and must not be classified as js_only.
+ * React page is a normal page and must not be classified as js_only. A
+ * mount-point div additionally requires that the page loads ANY script at all:
+ * a static page that happens to use id="app" as markup ships no script, and
+ * "draws its text with JavaScript" would be a false statement about it.
  */
 export function looksLikeJsShell(
   html: string,
@@ -365,7 +402,9 @@ export function looksLikeJsShell(
   const ratio = len ? sc / len : 0;
   if (textChars >= 600) return { shell: false, marker: null, script_ratio: ratio };
   for (const [re, name] of SHELL_MARKERS) {
-    if (re.test(h)) return { shell: true, marker: name, script_ratio: ratio };
+    if (!re.test(h)) continue;
+    if (/mount point/.test(name) && sc === 0) continue;
+    return { shell: true, marker: name, script_ratio: ratio };
   }
   if (ratio > 0.4 && len > 500) {
     return { shell: true, marker: "body is mostly script with no prose", script_ratio: ratio };
@@ -581,7 +620,10 @@ function httpReason(p: PageObservation): string {
 export function classifyCrawl(input: ClassifyInput): CrawlReport {
   const content = contentPages(input.pages);
   const fetched = content.filter((p) => p.status !== null && p.status >= 200 && p.status < 300);
-  const parsed = content.filter((p) => p.kept_chars >= PAGE_MIN_CHARS);
+  // Strictly greater: the traversal (and worker/index.ts:1272 before it) admits a
+  // page only when text.length > PAGE_MIN_CHARS, and the classifier must not
+  // count as "parsed" a page the extraction would never have kept.
+  const parsed = content.filter((p) => p.kept_chars > PAGE_MIN_CHARS);
   const proseParsed = parsed.filter((p) => p.prose);
   const keptChars = content.reduce((a, p) => a + p.kept_chars, 0);
   const textChars = content.reduce((a, p) => a + p.text_chars, 0);
@@ -686,8 +728,8 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
     return report(
       "extraction_failed",
       `${input.domain} answered HTTP ${home.status} and returned ${keptChars} characters, ` +
-        `but none of it reads as text (mis-declared encoding or a non-text body` +
-        (home.content_type ? `, content-type ${home.content_type}` : "") + `)`,
+        `but none of it reads as text (mis-declared encoding, a non-text body, or too little running text` +
+        (home.content_type ? `; content-type ${home.content_type}` : "") + `)`,
     );
   }
 
@@ -711,12 +753,18 @@ export function classifyCrawl(input: ClassifyInput): CrawlReport {
     }
   }
 
-  // 8. Prose, but it names nothing.
+  // 8. Prose, but it names nothing. If the server refused further pages after
+  //    serving the homepage (a rate limiter that lets the first request through),
+  //    that is said too: "the site is thin" and "we were only shown one page of
+  //    it" are different findings, and only the counts distinguish them.
   if (input.referents_extracted === 0 || input.referents_surviving === 0) {
+    const refused = content.filter((p) =>
+      p.status === 401 || p.status === 403 || p.status === 429).length;
     return report(
       "nothing_relevant",
       `${input.domain}: ${parsed.length} page(s) parsed and ${keptChars} characters of prose, ` +
-        `but no named referent (place, partner, venue, programme or dated result) was found`,
+        `but no named referent (place, partner, venue, programme or dated result) was found` +
+        (refused ? `; ${refused} further page(s) were refused by the server` : ""),
     );
   }
 
@@ -1075,7 +1123,14 @@ export async function crawlSiteObserved(
       fetchedHtml.set(u, res.body);
       return res.body;
     } catch (e) {
-      observations.push(observePage({ url: u, role, error: String((e as Error).message ?? e) }));
+      const msg = String((e as Error).message ?? e);
+      // safeFetchText refuses to READ a body whose content-type is not text, but
+      // it carries the refusal status out in the error reason. Recovering it here
+      // is what lets a 403 served with a non-text (or missing) content-type
+      // classify as blocked_bot rather than as a transport failure — the
+      // reference defect was exactly a discarded status.
+      const ct = /^bad_content_type_http_(\d{3})$/.exec(msg);
+      observations.push(observePage({ url: u, role, status: ct ? Number(ct[1]) : null, error: msg }));
       return null;
     }
   };

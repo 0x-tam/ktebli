@@ -29,6 +29,7 @@ import {
   keepParagraphs,
   looksLikeBotChallenge,
   looksLikeJsShell,
+  PAGE_MIN_CHARS,
   parseRobots,
   proseSignals,
   reclassifyCached,
@@ -39,6 +40,9 @@ import {
 import type {
   ClassifyInput, CrawlOutcome, CrawlReport, FetchOpts, FetchResult,
 } from "../../supabase/functions/worker/crawl_outcome.ts";
+import {
+  ctRefusalReason, decodeBody, stripHtml,
+} from "../../supabase/functions/worker/ssrf.ts";
 
 let failures = 0;
 function ok(c: boolean, msg: string) {
@@ -630,6 +634,171 @@ section("12. cached crawls — the identity gate is re-applied, never inherited"
   const notRun = reclassifyCached(cached, "hit",
     { identity_gate: "not_run", referents_extracted: 7, referents_surviving: 7, site_derived_output: true });
   eq(notRun.outcome, "identity_mismatch", "a cached crawl may never skip the gate");
+}
+
+// ===========================================================================
+section("13. silent-failure audit (phase 5) — the status survives every layer");
+// ===========================================================================
+//
+// The reference defect (thefelixproject.org, CLAUDE.md P1.6) was a DISCARDED
+// STATUS: a refusal indistinguishable from an empty site. This section pins the
+// places the same class could recur one layer down, each from a canned response.
+
+// 13a. A refusal whose content-type is unreadable. safeFetchText refuses to read
+// the body and throws — but the refusal status rides out in the error reason,
+// and the observation must recover it. Before this fix, a WAF 403 served with a
+// missing or non-text content-type was classified fetch_failed ("did not
+// answer"), which is false: the server answered, with a refusal.
+{
+  const { report } = await run("https://untypedblock.org", {
+    "https://untypedblock.org/robots.txt": ROBOTS_OPEN,
+    "https://untypedblock.org/": { throws: "bad_content_type_http_403" },
+  }, { org: "Untyped Block Trust" });
+  eq(report.outcome, "blocked_bot", "a 403 with an unreadable content-type is blocked_bot, not fetch_failed");
+  ok(report.reason.includes("403"), "and the reason carries the status");
+  eq(report.pages_fetched, 0, "no page was read");
+  ok(report.detail.statuses.some((s) => s.status === 403), "the recovered status is recorded");
+}
+{
+  const { report } = await run("https://untypedlimit.org", {
+    "https://untypedlimit.org/robots.txt": ROBOTS_OPEN,
+    "https://untypedlimit.org/": { throws: "bad_content_type_http_429" },
+  }, { org: "Untyped Limit Trust" });
+  eq(report.outcome, "blocked_bot", "a 429 with an unreadable content-type is blocked_bot");
+}
+{
+  const { report } = await run("https://untypederror.org", {
+    "https://untypederror.org/robots.txt": ROBOTS_OPEN,
+    "https://untypederror.org/": { throws: "bad_content_type_http_500" },
+  }, { org: "Untyped Error Trust" });
+  eq(report.outcome, "fetch_failed", "a 500 with an unreadable content-type stays fetch_failed");
+  ok(report.reason.includes("500"), "and names the status rather than a generic transport failure");
+}
+{
+  eq(ctRefusalReason(200), "bad_content_type", "a 2xx with a bad content-type keeps the plain reason");
+  eq(ctRefusalReason(403), "bad_content_type_http_403", "a refusal status is carried in the reason");
+}
+
+// 13b. Weak markers are prose. A page the server actually served (2xx) can no
+// longer be reclassified as a block by ordinary English — the words "forbidden",
+// "rate limit" or "you have been blocked" appearing in a thin page's text.
+{
+  eq(looksLikeBotChallenge(200, "Dogs are forbidden inside the hall itself.", 300).blocked, false,
+    "'forbidden' in prose does not block a served 200");
+  eq(looksLikeBotChallenge(200, "It takes just a moment to donate online.", 300).blocked, false,
+    "'just a moment' without the ellipsis is a sentence, not a Cloudflare title");
+  eq(looksLikeBotChallenge(200, "<title>Just a moment...</title>", 40).blocked, true,
+    "the Cloudflare title with its ellipsis still blocks a 200");
+  eq(looksLikeBotChallenge(403, "Access denied", 0).marker, "access denied page",
+    "a weak marker still NAMES a refusal whose status already proves it");
+  // A 503 whose body merely says "rate limit" is now reported by its status
+  // (fetch_failed, HTTP 503) — less specific, never false. The old behaviour
+  // let two words of prose reclassify any thin 503 maintenance page.
+  eq(looksLikeBotChallenge(503, "rate limit exceeded", 30).blocked, false,
+    "'rate limit' alone no longer flags a 503");
+}
+// End to end: a real page whose prose contains "forbidden" — with named
+// referents and a matching identity — is succeeded. It used to be blocked_bot.
+{
+  const body = "<p>The food hall on Maldon Road opens every Tuesday and Friday morning. " +
+    "Dogs are forbidden inside the hall itself, though guide dogs are always welcome, " +
+    "and volunteers meet visitors at the Maldon Road entrance from nine.</p>";
+  const { report } = await run("https://fenwickpantry.org", {
+    "https://fenwickpantry.org/robots.txt": ROBOTS_OPEN,
+    "https://fenwickpantry.org/": { status: 200, body: plain("fenwick pantry", body) },
+  }, { org: "Fenwick Pantry", legalName: "Fenwick Pantry" });
+  eq(report.outcome, "succeeded", "a served page whose prose says 'forbidden' classifies on its content");
+  ok(report.referents_surviving >= 1, "and its referents survive");
+}
+
+// 13c. A mount-point div with no script is markup, not an application shell.
+// "Draws its text with JavaScript" must never be said of a page that loads none.
+{
+  const staticApp = `<html><head><title>hall</title></head><body><div id="app"><h1>Hall</h1></div></body></html>`;
+  eq(looksLikeJsShell(staticApp, 12).shell, false,
+    "a scriptless page using id=\"app\" as markup is not a JS shell");
+  eq(looksLikeJsShell(`<div id="root"></div>`, 0).shell, false,
+    "an empty mount point with zero script characters is markup too");
+  const { report } = await run("https://scriptless.org", {
+    "https://scriptless.org/robots.txt": ROBOTS_OPEN,
+    "https://scriptless.org/": { status: 200, body: staticApp },
+  }, { org: "Scriptless Hall Trust" });
+  eq(report.outcome, "extraction_failed", "and the crawl classifies it extraction_failed, never js_only");
+}
+
+// 13d. Entities and charsets: mis-decoded prose used to strip into junk that
+// the prose detector then (correctly) refused — a false extraction_failed with
+// a true-looking reason.
+{
+  const t = stripHtml("<p>St Aidan&#8217;s Hall on Bramley&nbsp;Road &amp; the caf&eacute; &#x2014; open daily</p>");
+  ok(t.includes("St Aidan’s Hall"), "numeric entities decode instead of surviving as residue");
+  ok(t.includes("Road & the café"), "named entities decode to their characters");
+  ok(t.includes("—"), "hex entities decode");
+  ok(!/&#\d+;|&#x[0-9a-f]+;/i.test(t), "no numeric residue remains in the text");
+}
+{
+  const cafe1252 = new Uint8Array([0x63, 0x61, 0x66, 0xE9]); // "café" in windows-1252
+  eq(decodeBody(cafe1252, "text/html; charset=iso-8859-1"), "café", "the declared charset is honoured");
+  const meta = `<meta charset="windows-1252">café`;
+  const metaBytes = new Uint8Array([...meta].map((c) => c.charCodeAt(0)));
+  eq(decodeBody(metaBytes, "text/html").endsWith("café"), true,
+    "a meta charset is sniffed when the header names none");
+  eq(decodeBody(new Uint8Array([0x68, 0x69]), "text/html; charset=x-klingon"), "hi",
+    "an unknown charset label falls back to UTF-8 rather than failing the fetch");
+}
+
+// 13e. The parsed-page boundary matches the traversal's own threshold. The
+// extraction keeps a page only when text.length > 120; a classifier counting
+// >= 120 could describe a page as parsed that the crawl would never have kept.
+{
+  const page = (kept: number) => ({
+    url: "https://edge.org/", role: "home" as const, status: 200, error: null,
+    content_type: "text/html", html_chars: 900, text_chars: 400, kept_chars: kept,
+    script_chars: 0, prose: true, body_sample: "",
+  });
+  const base = (kept: number): ClassifyInput => ({
+    website: "https://edge.org", domain: "edge.org", bad_url: false,
+    robots: { fetched: true, status: 200, allowed: true, rule: null, error: null },
+    pages: [page(kept)], fetch_budget_exhausted: false, discovered: 1, elapsed_ms: 5,
+    referents_extracted: 0, referents_surviving: 0, identity_gate: "not_run",
+    site_derived_output: false,
+  });
+  eq(classifyCrawl(base(PAGE_MIN_CHARS)).pages_parsed, 0,
+    "exactly 120 kept characters is NOT a parsed page — the traversal would not have kept it");
+  eq(classifyCrawl(base(PAGE_MIN_CHARS)).outcome, "extraction_failed", "and the outcome says so");
+  eq(classifyCrawl(base(PAGE_MIN_CHARS + 1)).pages_parsed, 1, "one character over the floor is parsed");
+}
+
+// 13f. Malformed robots.txt cannot fabricate a block, and the most specific
+// group wins. Every crawler's UA contains the empty string, so an empty
+// User-agent line used to create a group that matched EVERYONE.
+{
+  eq(robotsAllows(parseRobots("User-agent:\nDisallow: /\n"), "/").allowed, true,
+    "a User-agent line with no token cannot fabricate a robots block");
+  const r = parseRobots("User-agent: bot\nDisallow: /\n\nUser-agent: kteblibot\nDisallow: /private/\n");
+  eq(robotsAllows(r, "/").allowed, true,
+    "the most specific matching group wins, not the first stated");
+  eq(robotsAllows(r, "/private/x").allowed, false, "and its own rules still apply");
+}
+
+// 13g. nothing_relevant no longer hides refused subpages. A rate limiter that
+// serves the homepage and 429s everything after it is not "a thin site".
+{
+  const vague = "<p>we support people gently and patiently across the town, every week of the year, " +
+    "whatever the weather brings to the door, and we are glad of every pair of hands offered.</p>";
+  const { report } = await run("https://ratelimited.org", {
+    "https://ratelimited.org/robots.txt": ROBOTS_OPEN,
+    "https://ratelimited.org/": {
+      status: 200,
+      body: `<!doctype html><html><head><title>quiet trust</title></head><body>` +
+        `<nav><a href="/about">about</a><a href="/our-work">our work</a></nav>${vague}</body></html>`,
+    },
+    "https://ratelimited.org/about": { status: 429, contentType: "text/plain", body: "too many requests" },
+    "https://ratelimited.org/our-work": { status: 429, contentType: "text/plain", body: "too many requests" },
+  }, { org: "Quiet Trust", legalName: "Quiet Trust", siteDerived: true });
+  eq(report.outcome, "nothing_relevant", "the served homepage still classifies on its own content");
+  ok(report.reason.includes("2 further page(s) were refused"),
+    "but the refused subpages are named in the reason");
 }
 
 // ===========================================================================
