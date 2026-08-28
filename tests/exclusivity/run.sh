@@ -26,10 +26,24 @@ psql_ "-d postgres -qc 'create database $DB'"
 psql_ "-d $DB -q -f $REPO/tests/replay/shim.sql"
 for f in "$REPO"/supabase/migrations/*.sql; do psql_ "-d $DB -q -f $f" >/dev/null; done
 
+echo "=== checkout-clearance test (must PASS; invariant-2 authority) ==="
+psql_ "-d $DB -f $REPO/tests/exclusivity/checkout_clearance_test.sql"
+clearance=$?
+[ $clearance -ne 0 ] && echo "CHECKOUT-CLEARANCE TEST FAILED"
+
+echo
+echo "=== escalation-kinds test (must PASS; WS4a-21 regression guard) ==="
+psql_ "-d $DB -f $REPO/tests/exclusivity/escalation_kinds_test.sql"
+kinds=$?
+[ $kinds -ne 0 ] && echo "ESCALATION-KINDS TEST FAILED"
+
+echo
 echo "=== stranded-claim test (must PASS) ==="
 psql_ "-d $DB -f $REPO/tests/exclusivity/stranded_claim_test.sql"
 stranded=$?
 [ $stranded -ne 0 ] && echo "STRANDED-CLAIM TEST FAILED"
+[ $kinds -ne 0 ] && stranded=1
+[ $clearance -ne 0 ] && stranded=1
 
 echo
 echo "=== ceiling probe (fails while any ceiling exists) ==="
