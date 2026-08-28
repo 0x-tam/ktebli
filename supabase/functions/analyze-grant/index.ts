@@ -91,11 +91,25 @@ Deno.serve(async (req) => {
     return json({ ok: false, reason: "parse" });
   }
 
+  // WS4a 2026-08-28: `...parsed` spread the model's JSON over the response
+  // envelope, so page-induced output could override `ok` and `source` (proven,
+  // reports/phase4-compliance.md §A6). The response now carries exactly the
+  // declared fields, typed; anything else the model returned is discarded.
+  const str = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null);
+  const result = {
+    issuer: str(parsed.issuer, 300),
+    title: str(parsed.title, 300),
+    looking_for: str(parsed.looking_for, 2000),
+    deadline: typeof parsed.deadline === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.deadline) ? parsed.deadline : null,
+    amount: str(parsed.amount, 200),
+    confidence: parsed.confidence === "high" ? "high" : "low",
+  };
+
   fetch(`${SB}/rest/v1/link_previews`, {
     method: "POST",
     headers: { "content-type": "application/json", apikey: KEY, authorization: `Bearer ${KEY}`, prefer: "return=minimal" },
-    body: JSON.stringify({ url_or_text_hash: fetchedFrom ?? "pasted-text", result: parsed }),
+    body: JSON.stringify({ url_or_text_hash: fetchedFrom ?? "pasted-text", result }),
   }).catch(() => {});
 
-  return json({ ok: true, source: fetchedFrom, ...parsed });
+  return json({ ok: true, source: fetchedFrom, ...result });
 });

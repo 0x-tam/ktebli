@@ -54,16 +54,27 @@ Deno.serve(async (req) => {
   for (const p of props) {
     const stages = await sel(`job_stages?proposal_id=eq.${p.id}&select=seq,key,label,status,started_at,finished_at,output&order=seq`);
     const files: Array<{ name: string; url: string; version: number }> = [];
+    // WS4a 2026-08-28: a failed storage-sign used to DROP the file from the
+    // response silently — a delivered order rendered with no downloads and no
+    // signal anywhere. The count of files that failed to sign is now disclosed
+    // (additive field; the page can say "temporarily unavailable" instead of
+    // showing an empty delivery) and logged.
+    let filesUnavailable = 0;
     for (const st of stages) {
       if (st.key === "package" && st.status === "done" && st.output?.files) {
         for (const f of st.output.files) {
           const signed = await signUrl(f.path);
           if (signed) files.push({ name: f.name, url: signed, version: f.version ?? 1 });
+          else {
+            filesUnavailable++;
+            console.error(JSON.stringify({ sign_failed: true, proposal: p.id }));
+          }
         }
       }
     }
     result.push({
       id: p.id, title: p.title, status: p.status,
+      files_unavailable: filesUnavailable,
       revisions_used: p.revisions_used, revisions_cap: p.revisions_cap,
       stages: stages.map((s: Record<string, unknown>) => ({
         seq: s.seq, label: s.label, status: s.status,
