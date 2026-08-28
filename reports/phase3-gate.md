@@ -10,17 +10,17 @@
 |---|---|
 | Gate loop wiring (judge → record → decide → regenerate) | `supabase/functions/worker/index.ts:1947` (top of the `package` stage) |
 | Judge HTTP call (temp 0, seed, structured outputs, `usage.include`, per-slot credential) | `supabase/functions/worker/index.ts:1016` (`judgeCall`) |
-| Fail-closed deliver guard (no recorded pass on the exact bytes → no delivery) | `supabase/functions/worker/index.ts:2216` |
+| Fail-closed deliver guard (no recorded pass on the exact bytes → no delivery) | `supabase/functions/worker/index.ts:2224` |
 | Revision base reads the gated text, not the pre-gate draft | `supabase/functions/worker/index.ts:1876` |
-| Loop driver (`runGateLoop`) — all decisions are `loopAction`'s | `supabase/functions/worker/delivery_gate.ts:1789` |
-| DB bridge: `dbCauseFor` / `verdictFromRecord` / `loopAttemptFromRecord` | `supabase/functions/worker/delivery_gate.ts:1700/1712/1754` |
+| Loop driver (`runGateLoop`) — all decisions are `loopAction`'s | `supabase/functions/worker/delivery_gate.ts:1824` |
+| DB bridge: `dbCauseFor` / `verdictFromRecord` / `loopAttemptFromRecord` | `supabase/functions/worker/delivery_gate.ts:1735/1747/1789` |
 
 The gate runs at the **top of the package stage**, not inside deliver. Reason: a
 QUALITY_HOLD regenerates the narrative, and files rendered from the held draft
 would be stale — so the gate settles the final text first, every file is
 rendered from a document carrying a recorded pass, and `deliver` then refuses
 to run without a pass recorded for the SHA-256 of the exact text it is about to
-deliver (`gate_verdict_for`, checked again at `index.ts:2216`). Nothing
+deliver (`gate_verdict_for`, checked again at `index.ts:2224`). Nothing
 customer-visible exists between the gate and the guard, and the guard is the
 "between package and deliver" enforcement in the literal sense: reordering the
 stages cannot smuggle a document past it.
