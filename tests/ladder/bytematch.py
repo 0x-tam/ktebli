@@ -88,8 +88,10 @@ FINGERPRINTS = [
 ]
 
 def main():
-    if len(docs) != 20:
-        print(f"FAIL: expected 20 ladder documents, found {len(docs)}")
+    # 20 original ladder documents + the phase-2 hybrid arm on two rungs (out-n12-H,
+    # out-n06thin-H). Growth, not weakening: every original document is still required.
+    if len(docs) not in (20, 22):
+        print(f"FAIL: expected 20 or 22 ladder documents, found {len(docs)}")
         return 1
     print(f"loaded {len(docs)} ladder documents\n")
     fail = 0
@@ -98,7 +100,8 @@ def main():
     packets = sorted(glob.glob(os.path.join(PKT_DIR, ".packet-*.txt")) +
                      glob.glob(os.path.join(PKT_DIR, ".prompt-*.txt")) +
                      glob.glob(os.path.join(PKT_DIR, "packet-*.txt")) +
-                     glob.glob(os.path.join(PKT_DIR, "prompt-*.txt")))
+                     glob.glob(os.path.join(PKT_DIR, "prompt-*.txt")) +
+                     glob.glob(os.path.join(PKT_DIR + "2", "prompt-*.txt")))
     if not packets:
         print("  FAIL: no packets found at all -- a glob matching zero files is a silent pass")
         fail = 1

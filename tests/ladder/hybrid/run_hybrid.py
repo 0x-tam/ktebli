@@ -108,12 +108,14 @@ def gate_numeric(doc):
         if not line.strip().startswith("|"):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        nums = [c for c in cells if re.fullmatch(r"£?[\d,]+(\.\d+)?", c.replace("£", "").strip() and c or "x") or re.fullmatch(r"£[\d,]+(\.\d+)?", c)]
+        # the amount is the LAST cell that is a number, with or without a pound sign,
+        # bold markers stripped. A budget written without pound signs must still be
+        # checked -- a parse that silently skips it is a silent-pass gate.
         gbp = None
-        for c in cells:
-            mm = re.fullmatch(r"£\s*([\d,]+(?:\.\d+)?)", c)
-            if mm:
-                gbp = _num(mm.group(1))
+        for c in cells[1:]:
+            bare = c.replace("**", "").replace("£", "").strip()
+            if re.fullmatch(r"[\d,]+(?:\.\d+)?", bare):
+                gbp = _num(bare)
         if gbp is None:
             continue
         label = cells[0].lower()

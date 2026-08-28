@@ -1,0 +1,18 @@
+{
+ "rung": "n12",
+ "arm": "H",
+ "mode": "hybrid-single-prompt-plus-gates",
+ "model": "anthropic/claude-opus-5",
+ "calls": [
+  {
+   "generation_id": "gen-1787903110-WQo2qxbBwX0WPCBRu3eS",
+   "cost_usd": 0.118985,
+   "kind": "generate"
+  }
+ ],
+ "total_cost_usd": 0.118985,
+ "word_count_q1_q5_only": 1155,
+ "word_limit": 1200,
+ "remaining_gate_findings": [],
+ "notes": "Hybrid arm per reports/phase2-decision.md. Single-prompt core at the D arms' exact parameters; deterministic word/numeric/grounding gates with named repairs, max 2, defect count must strictly decrease."
+}
