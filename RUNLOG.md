@@ -325,3 +325,16 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   explicit material===false, fraction floor kept). Resumed in-place: commit inv8.1 + run
   delivery-gate regression, then remaining fixes (inv8.2, inv1, inv3.x, inv4.x, inv6).
   Instructed to commit each fix as it goes so a re-drop loses at most one fix.
+
+## 2026-08-28 — consolidation fix complete, critic+re-attack running
+
+- Fix owner resumed and COMPLETED all fixes: full suite green, all 7 adv2 tests green,
+  15 files, deno check clean, no forbidden path touched. inv4.3 + inv6 mechanism halves
+  unit-tested; generation-quality halves explicitly marked unproven-without-e2e. Two
+  obsoleted test assertions (donor_limits, delivery_gate) argued as corrections. Branch
+  worktree-agent-ad9b7ede72a74647b, commits 73fdf6d…ac2d4cf.
+- Critic+re-attacker spawned: re-executes all 7 adv2 + round-1 tests + full suite, and
+  ADVERSARIALLY re-attacks each fix (esp. inv3.3 dangerous-direction: must reject
+  strangers without rejecting legit sites; verifies inv4.3/inv6 mechanism is really wired,
+  not just imported; no-weakening check). On PASS: merge, then batch-resume the 5
+  attackers for written concessions, then finalize handoff.
