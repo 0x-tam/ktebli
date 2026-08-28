@@ -273,3 +273,32 @@ Next: install postgres + supabase CLI → phase 0.
 - Posture for the remainder: adversarial round is deterministic ($0 for 5 of 7 attackers,
   $0.30 cap on 2); handoff is $0. No further full-pipeline runs. Headroom above floor
   ($7.16) is ample for that. No NEEDS-CREDIT.md required.
+
+## 2026-08-28 — adversarial round complete: 4 held, 5 broken
+
+Tally (each attacker filed BROKEN=failing test+fix spec, or CONCEDED, in writing; findings in
+reports/adversarial/findings/, full attacker reports on their worktree branches):
+- inv1 delivery gate: HELD (10 families held) + 1 cheap hardening (normaliseDocument \n{2,}→\n)
+- inv2 sufficiency: HELD (conceded, FOR-UPDATE race + RLS wall proven live)
+- inv3 grounding: BROKEN — contact_claims closed-label list; proper_nouns superset exemption;
+  orgNameMatchesSite admits a stranger on one shared word
+- inv4 numeric: BROKEN — resolveRegister wired to NOTHING; consistencyFindings one-directional;
+  + 2 register internals (denominator-by-label, %-provenance)
+- inv5 compliance: BROKEN — word counter not Unicode-aware (Cyrillic→0); zero-width collapse;
+  wrapped-limit backstop gap
+- inv6 exclusivity: BROKEN — 9 of 11 composed axes never reach the writer; visible style pool
+  = 182 regardless of fingerprint count; uniqueness NOMINAL not real
+- inv7 no-human-in-loop: HELD (orchestrator audit; no review/flag state)
+- inv8+loop: BROKEN — loop material-floor ignores retention/material (padding regen passes);
+  notifyTerminal sets notified_at before the attempt (silent-swallow)
+- inv9 observability: HELD (orchestrator audit; immutability + live per-stage cost/events)
+
+THE META-FINDING: every break shares one signature — round 1 built a sound isolated mechanism
+(materialChange.retention, resolveRegister, the 11 composer axes, Unicode-aware sibling
+tokenizers) and NEVER WIRED THE VERDICT/OUTPUT into the decision or generation path. This is the
+single most important pattern for the operator.
+
+Next: ONE consolidation fix owner (worktree) closes all 5 broken invariants + inv1 hardening,
+pulls the 5 failing adv2 tests + 2 concession tests onto its branch, makes the whole suite green,
+then a critic + attacker re-attack. Deep fixes (register-wiring, axes-wiring) get their MECHANISM
+wired + deterministically tested; generation-quality impact marked unproven-without-e2e (budget).
