@@ -50,6 +50,7 @@ import {
   type GateDeps, type GateInput, type CriticRequest, type JudgeReply, type LoopAttempt,
 } from "./delivery_gate.ts";
 import { resolveDonorLimits, type LimitField, type LimitOutcome } from "./donor_limits.ts";
+import { effectiveThreshold, referentsIn, SUFFICIENCY_THRESHOLD } from "./sufficiency.ts";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -523,6 +524,27 @@ function toBlocks(md: string): Block[] {
 function wordCount(md: string): number {
   return md.replace(/[|#*`>]/g, "").split(/\s+/).filter((w) => /[A-Za-z0-9؀-ۿ]/.test(w)).length;
 }
+
+// ---- CRAWL-STARVATION-BEGIN (tests/adversarial extracts and executes this block verbatim)
+// Phase 6.3: a paid order whose own-site crawl came back BLOCKED / JS-only /
+// fetch-failed / extraction-failed AND whose evidence ledger is below the
+// pre-payment sufficiency floor must take the hold/notify path — never
+// silently produce the generic proposal the launch report's blind critics
+// described. The org stage computes the ledger's referent count (intake
+// answers + uploaded-document text + surviving web evidence) and holds the
+// order when both conditions meet.
+//
+// nothing_relevant and identity_mismatch are DELIBERATELY not starvation
+// outcomes: there the site was read and yielded nothing admissible, which is a
+// truthful thin-evidence state the pipeline already discloses honestly (and
+// the pre-payment gate is the authority on thin). succeeded is obviously not.
+const CRAWL_STARVED_OUTCOMES = new Set([
+  "blocked_robots", "blocked_bot", "js_only", "fetch_failed", "extraction_failed",
+]);
+function crawlStarved(outcome: string | null | undefined, referentCount: number, floor: number): boolean {
+  return !!outcome && CRAWL_STARVED_OUTCOMES.has(outcome) && referentCount < floor;
+}
+// ---- CRAWL-STARVATION-END
 
 // ---- HEADING-GATE-BEGIN (tests/adversarial extracts and executes this block verbatim)
 // A donor-mandated heading is satisfied when the document REPRODUCES the
@@ -1678,6 +1700,38 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       // gaps; every other failure outcome gets the classifier's wording.
       if (cg && !(crawlReport.outcome === "identity_mismatch" && identityMismatch)) gaps.push(cg);
     }
+    // Phase 6.3: the crawl outcome feeds the sufficiency floor. On a
+    // starvation outcome, count the referents actually in hand: the E-ASK
+    // intake answers the order carries (orders.intake_answers, raw per
+    // 20260826180000 §4), the uploaded-document text, and any surviving web
+    // evidence. The count is deliberately GENEROUS (raw referentsIn, no
+    // own-name exclusion): overcounting can only let an order proceed thin —
+    // today's behaviour — while the pre-payment gate stays the authority on
+    // thin; undercounting cannot happen, so no adequately-evidenced order is
+    // ever held here.
+    if (crawlReport && CRAWL_STARVED_OUTCOMES.has(crawlReport.outcome)) {
+      let refCount = webEvidence.length;
+      const answers = (c.order.intake_answers ?? {}) as Record<string, unknown>;
+      for (const v of Object.values(answers)) if (typeof v === "string") refCount += referentsIn(v).length;
+      try {
+        const files = await sel(`intake_files?email=eq.${encodeURIComponent(c.order.email)}&extracted_text=not.is.null&select=extracted_text&order=created_at.desc&limit=3`);
+        for (const f of Array.isArray(files) ? files : []) {
+          refCount += referentsIn(String(f.extracted_text ?? "").slice(0, 40_000)).length;
+        }
+      } catch { /* count what is reachable; a missed source only means fewer referents, i.e. a hold */ }
+      const floor = effectiveThreshold(SUFFICIENCY_THRESHOLD);
+      if (crawlStarved(crawlReport.outcome, refCount, floor)) {
+        await ins("events", {
+          actor: "worker", action: "evidence_starved", entity: "order_proposal",
+          entity_id: stage.proposal_id,
+          detail: { crawl_outcome: crawlReport.outcome, crawl_reason: crawlReport.reason, referents: refCount, floor },
+        }).catch(() => {});
+        // "evidence starved" is a terminal HOLD in the tick handler: retrying
+        // cannot grow the ledger, so the order parks on the first pass and
+        // notifyTerminal tells the customer and the operator.
+        throw new Error(`evidence starved: crawl ${crawlReport.outcome} and the evidence ledger is below the sufficiency floor (${refCount} referent(s), need ${floor})`);
+      }
+    }
     // Only a clean, freshly extracted site is worth caching.
     if (freshExtraction && !identityMismatch && c.order.organisation_id) {
       const row = {
@@ -2565,9 +2619,14 @@ Deno.serve(async (req) => {
         processed++;
       } catch (e) {
         const msg = String(e).slice(0, 300);
-        const final = st.attempt >= 3 || msg.includes("claim blocked") || msg.includes("similarity gate");
+        // "evidence starved" (phase 6.3) is terminal on FIRST occurrence: a
+        // retry cannot grow the evidence ledger, so the order parks as held
+        // and notifyTerminal tells the customer and the operator now rather
+        // than after three identical failures.
+        const final = st.attempt >= 3 || msg.includes("claim blocked") || msg.includes("similarity gate") ||
+          msg.includes("evidence starved");
         const status = final
-          ? (msg.includes("similarity gate") || msg.includes("claim blocked") ? "held" : "failed")
+          ? (msg.includes("similarity gate") || msg.includes("claim blocked") || msg.includes("evidence starved") ? "held" : "failed")
           : "pending";
         await patch(`job_stages?id=eq.${st.stage_id}`, { status, error: msg }).catch(() => {});
         // A non-final failure is retried on the next tick and is not worth an email.
