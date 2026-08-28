@@ -45,7 +45,7 @@ import {
   type ClassifyInput, type CrawlReport, type IdentityGateState,
 } from "./crawl_outcome.ts";
 import {
-  JUDGE_GATE_VERSION, documentHash, runGateLoop, refundLetter,
+  JUDGE_GATE_VERSION, documentHash, runGateLoop,
   verdictFromRecord, loopAttemptFromRecord, dbCauseFor,
   type GateDeps, type GateInput, type CriticRequest, type JudgeReply, type LoopAttempt,
 } from "./delivery_gate.ts";
@@ -1128,6 +1128,98 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
   return r.ok;
 }
 
+// The operator's address: operator_email, falling back to support_email. No
+// address configured -> the attempt is recorded as sent:false and the
+// escalation row remains the alert of record.
+async function notifyOperator(subject: string, html: string): Promise<boolean> {
+  const to = (await rpc("get_secret", { p_name: "operator_email" }).catch(() => null)) ??
+    (await rpc("get_secret", { p_name: "support_email" }).catch(() => null));
+  if (!to) return false;
+  return await sendEmail(String(to), subject, html).catch(() => false);
+}
+
+// Every notification attempt is an events row (invariant 9): who was written
+// to, for what, and whether the send succeeded. The escalation row is written
+// BEFORE any email, so the alert of record exists even where Resend is not
+// configured; sent:false here is the durable evidence of the attempt.
+async function recordNotifyAttempt(
+  who: "notify_customer" | "notify_operator",
+  orderId: string,
+  detail: Record<string, unknown>,
+): Promise<void> {
+  await ins("events", { actor: "worker", action: who, entity: "order", entity_id: orderId, detail })
+    .catch(() => {});
+}
+
+// ===========================================================================
+// Customer and operator notification wordings.
+//
+// DRAFT — these are shipping defaults for the OWNER to edit before launch
+// (they are deliberately conservative: no refund or retry promise the owner
+// has not made, except on the quality-hold path where the refund is the
+// mechanism itself). Wording rules, enforced by tests/notifications:
+// short plain sentences; no em dashes; the INFRA text never implies the
+// proposal failed; QUALITY_HOLD and terminal failure speak to the customer,
+// INFRA_HOLD speaks to the operator only.
+// ---- WORDING-BLOCK-BEGIN (tests/notifications extracts and executes this block verbatim)
+const DRAFT_WORDINGS = {
+  // Terminal failure (a stage failed for good, or a terminal hold such as the
+  // similarity gate): the CUSTOMER is told, plainly.
+  customerTerminal(orderNo: string, stageLabel: string, support: string) {
+    return {
+      subject: `About your Ktebli order ${orderNo}`,
+      html: `<p>We could not finish your proposal.</p>` +
+        `<p>The work stopped at this step: <strong>${stageLabel}</strong>.</p>` +
+        `<p>Our team has been alerted. We will write to you about what happens next.</p>` +
+        `<p>You do not need to do anything.</p>` +
+        `<p>Order ${orderNo}. Questions: ${support}.</p>`,
+    };
+  },
+  // QUALITY_HOLD: the delivery gate judged the document, it did not clear the
+  // bar, and the regeneration ladder is spent. The CUSTOMER is told and the
+  // order is refunded. Same facts as delivery_gate.ts refundLetter, redrafted
+  // to the wording rules above (that letter keeps an em dash and long
+  // sentences; the hold classes themselves are unchanged).
+  customerQualityHold(orgName: string, orderNo: string, amountUsd: number | null, support: string, refundConfirmed: boolean) {
+    const money = amountUsd != null ? `$${Number(amountUsd).toFixed(2)}` : "your payment";
+    return {
+      subject: `We are refunding your Ktebli order ${orderNo}`,
+      html: `<p>We wrote a proposal for ${orgName}. Then we assessed it the way a funder's reviewer would.</p>` +
+        `<p>It did not clear that bar. A second attempt did not clear it either.</p>` +
+        `<p>We will not send you a document we do not believe in. A weak proposal costs you a submission round. That is worth more than what you paid us.</p>` +
+        (refundConfirmed
+          ? `<p><strong>We have refunded ${money} in full.</strong> It returns to the card you paid with, usually within five to ten business days.</p>`
+          : `<p><strong>We are refunding ${money} in full.</strong> Our payment provider will confirm when it settles.</p>`) +
+        `<p>You do not need to do anything. You are not being charged for anything else.</p>` +
+        `<p>If you want to try again with more detail about the opportunity, write to ${support} and quote order ${orderNo}. That conversation is free.</p>`,
+    };
+  },
+  // INFRA_HOLD: the OPERATOR only. The system could not finish a step; no
+  // judgement about the document was reached. This wording must never imply
+  // the proposal failed, and the customer hears nothing on this path.
+  operatorInfraHold(orderNo: string, stageKey: string, reason: string) {
+    return {
+      subject: `Ktebli operator alert: order ${orderNo} is parked`,
+      html: `<p>An automated step could not complete for order ${orderNo}.</p>` +
+        `<p>The proposal itself has not failed. No judgement about its quality was reached.</p>` +
+        `<p>The order is parked at stage ${stageKey}. The customer has not been contacted.</p>` +
+        `<p>Reason: ${reason}.</p>` +
+        `<p>The escalations table has the full record.</p>`,
+    };
+  },
+  // Terminal failure, operator half: terminal failures notify BOTH sides.
+  operatorTerminal(orderNo: string, stageKey: string, error: string) {
+    return {
+      subject: `Ktebli operator alert: order ${orderNo} failed at ${stageKey}`,
+      html: `<p>Order ${orderNo} stopped for good at stage ${stageKey}.</p>` +
+        `<p>Error: ${error}.</p>` +
+        `<p>The customer has been told we could not finish, and that we will follow up.</p>` +
+        `<p>The escalations table has the full record.</p>`,
+    };
+  },
+};
+// ---- WORDING-BLOCK-END
+
 // Terminal-failure notification.
 //
 // Until now `sendEmail` appeared exactly once in this file — in the deliver stage —
@@ -1155,9 +1247,10 @@ async function notifyTerminal(stageId: number, proposalId: string, status: strin
 
     const prop = (await sel(`order_proposals?id=eq.${proposalId}&select=id,order_id`))[0];
     if (!prop) return;
-    const order = (await sel(`orders?id=eq.${prop.order_id}&select=id,email,org_name,tier`))[0];
+    const order = (await sel(`orders?id=eq.${prop.order_id}&select=id,email,org_name,tier,order_no`))[0];
     if (!order) return;
 
+    // The alert of record, written BEFORE any email attempt.
     await ins("escalations", {
       kind: status === "held" ? "stage_held" : "stage_failed",
       order_id: order.id,
@@ -1166,17 +1259,33 @@ async function notifyTerminal(stageId: number, proposalId: string, status: strin
       detail: { stage: st.key, label: st.label, error, tier: order.tier },
     }).catch(() => {});
 
-    await sendEmail(
-      order.email,
-      `About your Ktebli proposal for ${order.org_name}`,
-      `<p>We were not able to finish your proposal, and we would rather tell you that ` +
-      `than leave you watching a progress bar.</p>` +
-      `<p>It stopped at: <strong>${st.label}</strong>.</p>` +
-      // --- owner: replace this paragraph with your refund / retry policy ---
-      `<p>Our team has been alerted and will be in touch about what happens next. ` +
-      `You do not need to do anything.</p>`,
-    ).catch(() => false);
+    // Terminal failures notify BOTH: the customer plainly, the operator with
+    // the mechanics. Each attempt is recorded whether or not Resend is
+    // configured (sendEmail returns false without a key).
+    const support = (await rpc("get_secret", { p_name: "support_email" }).catch(() => null)) ?? "hello@ktebli.com";
+    const cw = DRAFT_WORDINGS.customerTerminal(String(order.order_no ?? ""), String(st.label ?? st.key), String(support));
+    const sentCustomer = await sendEmail(order.email, cw.subject, cw.html).catch(() => false);
+    await recordNotifyAttempt("notify_customer", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentCustomer });
+
+    const ow = DRAFT_WORDINGS.operatorTerminal(String(order.order_no ?? ""), String(st.key), error.slice(0, 200));
+    const sentOperator = await notifyOperator(ow.subject, ow.html);
+    await recordNotifyAttempt("notify_operator", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentOperator });
   } catch { /* never let notification failure mask the original failure */ }
+}
+
+// The reaper marks a timed-out final attempt 'failed' in SQL, where
+// notifyTerminal cannot run — so a paid order could die by timeout with nobody
+// told. Every tick sweeps for terminal stages that have not been notified and
+// notifies them here; notified_at keeps it idempotent, and the gate's own
+// hold/refund paths set notified_at themselves so an INFRA hold can never be
+// re-notified to a customer by this sweep.
+async function notifyUnnotifiedTerminals(): Promise<void> {
+  try {
+    const rows = await sel(`job_stages?status=in.(failed,held)&notified_at=is.null&select=id,proposal_id,status,error&limit=10`);
+    for (const r of Array.isArray(rows) ? rows : []) {
+      await notifyTerminal(r.id, r.proposal_id, String(r.status), String(r.error ?? "").slice(0, 300));
+    }
+  } catch { /* sweep failure must not block the tick */ }
 }
 
 const GEN_SPECS: Record<string, { title: string; max: number; brief: string }> = {
@@ -2179,7 +2288,11 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         return;
       }
       if (gate.decision.action === "hold_alert") {
-        // INFRA, parked: an operator is alerted and the customer hears nothing.
+        // INFRA_HOLD, parked: the OPERATOR is alerted (escalation row first,
+        // then an email attempt) and the customer hears NOTHING on this path —
+        // the proposal has not failed, no judgement about it was reached.
+        // notified_at is set so the terminal sweep can never re-notify this
+        // stage to the customer.
         await ins("escalations", {
           kind: "gate_hold", order_id: c.order.id, order_proposal_id: stage.proposal_id,
           priority: "immediate",
@@ -2190,8 +2303,12 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
             unmeasured_calls: gate.spend.unmeasured_calls,
           },
         }).catch(() => {});
+        const iw = DRAFT_WORDINGS.operatorInfraHold(String(c.order.order_no ?? ""), stage.key, String(gate.decision.reason).slice(0, 200));
+        const sentOp = await notifyOperator(iw.subject, iw.html);
+        await recordNotifyAttempt("notify_operator", c.order.id, { kind: "gate_hold", stage: stage.key, sent: sentOp });
         await patch(`job_stages?id=eq.${stage.stage_id}`, {
           status: "held", error: `delivery gate infra hold: ${gate.decision.reason}`.slice(0, 300),
+          notified_at: new Date().toISOString(),
         });
         return;
       }
@@ -2205,17 +2322,23 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
           p_reason: gate.decision.reason, p_confirmed: false, p_stripe_refund: null,
         }).catch(() => null);
         if (rr?.ok && !rr.already_emailed) {
+          // QUALITY_HOLD: the customer is told, in the DRAFT wording (same
+          // facts as delivery_gate.ts refundLetter, wording rules applied).
           const support = (await rpc("get_secret", { p_name: "support_email" }).catch(() => null)) ?? "hello@ktebli.com";
-          const letter = refundLetter({
-            orgName: String(rr.org_name ?? c.order.org_name), orderNo: String(rr.order_no ?? ""),
-            amountUsd: typeof rr.amount_usd === "number" ? rr.amount_usd : null,
-            supportEmail: support, refundConfirmed: false,
-          });
+          const letter = DRAFT_WORDINGS.customerQualityHold(
+            String(rr.org_name ?? c.order.org_name), String(rr.order_no ?? ""),
+            typeof rr.amount_usd === "number" ? rr.amount_usd : null,
+            String(support), false,
+          );
           const sent = await sendEmail(String(rr.email ?? c.order.email), letter.subject, letter.html).catch(() => false);
           if (sent) await patch(`orders?id=eq.${c.order.id}`, { gate_refund_email_sent: true }).catch(() => {});
+          await recordNotifyAttempt("notify_customer", c.order.id, { kind: "gate_refund", stage: stage.key, sent });
         }
+        // notified_at: the customer was notified on THIS class's own channel;
+        // the terminal sweep must not send the generic failure letter on top.
         await patch(`job_stages?id=eq.${stage.stage_id}`, {
           status: "held", error: `delivery gate: ${gate.decision.reason}`.slice(0, 300),
+          notified_at: new Date().toISOString(),
         });
         return;
       }
@@ -2380,6 +2503,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     const order = (await sel(`orders?id=eq.${c.order.id}&select=*`))[0];
     const remaining = await sel(`order_proposals?order_id=eq.${c.order.id}&status=neq.complete&id=neq.${stage.proposal_id}&select=id`);
     const isRevision = c.stages.some((s: { key: string; status: string }) => s.key === "revise" && s.status === "done");
+    let emailFailed = false;
     if (remaining.length === 0 && !order.completion_email_sent) {
       const site = (await rpc("get_secret", { p_name: "site_url" })) ?? "https://ktebli-privs-projects-73c7bb38.vercel.app";
       const support = (await rpc("get_secret", { p_name: "support_email" })) ?? "hello@ktebli.com";
@@ -2391,8 +2515,22 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         `<p>Want changes? There is a Request changes button right on that page.</p>` +
         `<p>Order ${order.order_no} — quote this if you write to ${support}.</p><p>— Ktebli</p>`);
       if (ok) await patch(`orders?id=eq.${order.id}`, { completion_email_sent: true });
+      else {
+        // WS4a-19: a failed completion email used to leave completion_email_sent
+        // false with delivered:true — the stage never re-runs, so the customer
+        // paid, the work is done, and nobody would ever tell them. The failure
+        // is now an escalation and is recorded on the stage output so ops can
+        // re-trigger; the files remain downloadable on the order page.
+        emailFailed = true;
+        await ins("escalations", {
+          kind: "delivery_failed", order_id: order.id, order_proposal_id: stage.proposal_id,
+          priority: "deadline_72h",
+          detail: { reason: "completion email failed or unconfigured", order_no: order.order_no },
+        }).catch(() => {});
+      }
+      await recordNotifyAttempt("notify_customer", order.id, { kind: "delivery", stage: "deliver", sent: ok });
     }
-    return done({ delivered: true, revision: isRevision });
+    return done({ delivered: true, revision: isRevision, ...(emailFailed ? { email_failed: true } : {}) });
   }
   throw new Error("unknown stage " + stage.key);
 }
@@ -2408,6 +2546,9 @@ Deno.serve(async (req) => {
   const start = Date.now();
   let processed = 0;
   await rpc("reap_stale_stages").catch(() => {});
+  // Reaper-killed final attempts become 'failed' in SQL where notifyTerminal
+  // cannot run; sweep them (idempotent via notified_at).
+  await notifyUnnotifiedTerminals();
   while (Date.now() - start < TIME_BUDGET_MS) {
     const claims: Array<{ stage_id: number; proposal_id: string; seq: number; key: string; attempt: number }> = [];
     for (let i = 0; i < PARALLEL; i++) {
