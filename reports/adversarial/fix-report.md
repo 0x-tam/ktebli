@@ -29,6 +29,14 @@ boundaries, pipe table-cell walls split, and CJK counted per character. The rule
 MONOTONIC (counts ≥ the old rule for every input — the gate only ever gets stricter).
 Both twins kept identical; the test now asserts that and imports the real
 `gateWordCount` (it had inlined the broken copy).
+Residual (flagged by the critic): spaceless scripts NOT in the CJK per-character set —
+Thai, Khmer, Lao, Burmese — still count a whole run as ~1 (a word-segmentation gap, the
+same class as the CJK case but for scripts the per-character rule does not yet cover).
+The fix is monotonic (counts ≥ the old rule, so no regression), but this is an
+UNDER-count, and for a hard word limit under-counting is the direction that can let an
+over-limit doc in those scripts through — so it is a real, if narrow, residual, not a
+safe one. Closing it means extending the per-character rule to these scripts; left as a
+follow-up hardening pass.
 
 **inv5.2** folded into the same counter (zero-width + table cells above).
 
@@ -101,6 +109,11 @@ Comma-grouped budgets, slashed registration numbers and lone years/counts are ex
 by construction, so the round-1 prose false-positive control still raises nothing.
 Residual (fail-closed, documented): a space-grouped number or a filename in prose can be
 HELD for review — the safe direction for a blocking invariant-3 gate.
+Residual (non-blocking, flagged by the critic): exotic phone renderings the shape rule
+still MISSES — a number glued by NBSP/thin-space or a middot separator, a single
+contiguous run with no separators, or an IDN/Punycode host — are defense-in-depth gaps
+behind the LLM Claim Ledger, not new admits; the fail-closed direction means a miss
+under-reports rather than mis-certifies. Left for a follow-up hardening pass.
 
 **inv3.2 self-naming exemption exonerated supersets** (proper_nouns.ts:250). Two-way
 containment exempted ANY capitalised run whose token set was a SUPERSET of the org name,
@@ -111,24 +124,38 @@ that adds any token is a different invented entity and must match the ledger/des
 reported. Dead `pnOverlap` removed.
 
 **inv3.3 identity gate admitted a stranger** (`orgNameMatchesSite`, index.ts:445). The
-dangerous-direction fix. The gate admitted on any single shared distinctive token, or a
+dangerous-direction fix, in two passes (the first was re-attacked and reopened for
+single-token org names). The gate admitted on any single shared distinctive token, or a
 token appearing as a bare SUBSTRING of the domain, so "Grace Kitchen"→W.R. Grace,
 "Bright Futures Youth Club"→Bright Horizons, "Community Arts Reach"→smartsdata.io ("arts"
-inside "smartsdata"). **Fix (conservative, discard-on-doubt):** a legal-name match needs
-two distinctive tokens to agree OR identical distinctive-token sets; the domain admits
-only when EVERY distinctive applicant token appears in the host. Stays asymmetric —
-errs toward rejecting a real site, never toward importing a stranger's; the B1 wholesale
-mismatch still rejects.
+inside "smartsdata"); and, critically, one-word charity names (Shelter, Mind, Scope,
+Sense, Refuge) where the "EVERY token appears in the host" domain rule collapsed to a
+bare substring — "Shelter"→shelterlogic.com, "Mind"→mindbodygreen.com — and an
+identical single-token legal-name set admitted "The Bright Foundation" on an unrelated
+"Bright Ltd". **Fix (conservative, discard-on-doubt):**
+- a legal-name match needs TWO distinctive tokens to agree — there is NO single-token
+  name-only admit (one shared common word is a coincidence, not a match);
+- the domain branch is split by token count: a SINGLE-token org admits only on a WHOLE
+  DNS-LABEL match (`labels.includes(t)`), never a substring — shelter.org.uk admits
+  "Shelter", shelterlogic.com does not; a multi-token org keeps the concatenated-host
+  substring rule, where a coincidence of ≥2 distinctive tokens is negligible.
 
-## inv4 — numeric register (BROKEN → fixed). adv2_numeric_test.ts 7/7 green.
+Stays asymmetric — errs toward rejecting a real site, never toward importing a
+stranger's; the B1 wholesale mismatch and every single-token stranger reject, while a
+real "Shelter"/"Mind" at its own `.org.uk` still admits. adv2_grounding pins all of
+these.
 
-**inv4.1 rate right about the wrong denominator** (numeric_register.ts:251). The PATCH-6
-guard was `norm(label).includes(norm(den.label))` — a substring test, so "share of total
-project cost" divided by the "cost" node passed, certifying 75% of the grant as 75% of a
+## inv4 — numeric register (BROKEN → fixed). adv2_numeric_test.ts green (A9/A9b/A9c/A10/A11).
+
+**inv4.1 rate right about the wrong denominator** (numeric_register.ts:251, two passes —
+the first was re-attacked on right-extension). The PATCH-6 guard was
+`norm(label).includes(norm(den.label))` — a substring test, so "share of total project
+cost" divided by the "cost" node passed, certifying 75% of the grant as 75% of a
 different £120k total. **Fix:** match by node identity — the denominator's label must
-appear as a whole token-run whose left edge is the start or a connective; a run extended
-by a content word ("total"/"project" before "cost") names a different quantity and is
-refused. The honest "per participants" rate still resolves.
+appear as a WHOLE token-run bounded by the start/end or a connective on BOTH sides. A
+run extended by a content word on the LEFT ("total"/"project" before "cost") OR on the
+RIGHT ("cost overrun"/"budget shortfall"/"cost recovery" for a "cost" node) names a
+different quantity and is refused. The honest "per participants" rate still resolves.
 
 **inv4.2 ratio verified by a colliding integer** (numeric_register.ts:361). A 0.11 ratio
 was "verified" by "11 staff" because `asPercent(0.11)=11` was in the pooled integers.
