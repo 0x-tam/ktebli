@@ -159,3 +159,10 @@ Next: install postgres + supabase CLI → phase 0.
   + critic spot-checks 0.02, usage-field attribution) + phase-1 $0.45 already counted in
   the 0.87? — correction: ladder line total = phase1 $0.45 + phase2 $0.43 = $0.88; gate
   line = $0.275 + $0.015 critic = $0.29. All inside lines.
+- WS5 COMPLETE: 6 outcomes explicit (Felix FETCH_FAILED cross-domain-redirect named;
+  5×OK with 53–178 referents), identity gate cleared on all OK sites, felix.org probe
+  OK(271). Live run found the 9th silent failure — ~2/3 of referents were nav/menu
+  furniture glued into capitalised runs; fixed in four layers, counts fell to real
+  names. No wild BLOCKED/JS_ONLY (Felix redirects now, Watsi server-renders) —
+  fixture-proven, disclosed. 7 ledgers committed for phase 6. Critic spawned (re-crawl
+  one site, referent-quality audit, taxonomy honesty on FETCH_FAILED, coverage-gap call).
