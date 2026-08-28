@@ -177,3 +177,16 @@ Next: install postgres + supabase CLI → phase 0.
   mechanically. Phase 5 CLOSED. Seven clean ledgers at stack/out/phase5-ledgers/.
 - Remaining: WS6-core (running) → critic → merge → WS6-bench (e2e + mini-benchmark, ≤$8)
   → adversarial round → phase 7 handoff.
+
+## 2026-08-28 — WS6-core complete, critic running
+
+- WS6-core: all 8 tasks landed in 9 commits, $0 model spend, ALL SUITES PASSED in its
+  worktree. P0 escalation-kind union migration + re-recorded fingerprint (argued
+  in-commit) + regression guard; invariant-2 wired both sides with single-use
+  fingerprint-matched clearance; F1/F3/F5 + numLike + refusal-before-spend; hold-class
+  notifications with DRAFT wordings; strand release proven; crawl-starvation → HELD;
+  per-stage cost accounting contamination-free; resumable generation marked
+  unproven-on-deployed-runtime. Deferred honestly: numeric_register wiring (needs model
+  budget + design), upload-intake-file follow-up.
+- WS6-core critic spawned: deepest brief of the run (fingerprint re-record audit,
+  refusal-matrix replay, hold-class disjointness, marked-block spot checks).
