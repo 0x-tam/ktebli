@@ -212,3 +212,24 @@ Next: install postgres + supabase CLI → phase 0.
   advancing KT-10001 (analyze+org done on real Sufra crawl). Resumed the agent to finish
   the e2e + mini-benchmark. Handoff skeleton (reports/launch-readiness.md) written with
   DONE/OPERATOR/FIRST-ORDERS; benchmark + adversarial numbers pending.
+
+## 2026-08-28 — WS6-bench complete (committed to trunk), critic running
+
+- WS6-bench done. Surfaced a THIRD P0 (bfa6b4a): strategy stage was still on the
+  pre-composer schema (selected dropped columns, old claim_approach signature) → every
+  order died at strategy with PostgREST 400 before any claim. Rewired to the unbounded
+  composer (composition_axes, canonical-axes hash, reserve-by-fingerprint, re-roll on
+  race). Two more usage-snapshot gaps fixed (analyze, validate). All with tests.
+- e2e terminal outcome: a CORRECT grounding HOLD at validate — Sufra's identity-only
+  intake + own-domain crawl cannot supply mandatory admin facts (safeguarding, accounts,
+  income band, bank, insurance); the gate held rather than let fabrication through. This
+  is launch-readiness P0 #1 (data starvation) DEMONSTRATED LIVE, gate working. Real
+  render verified (200, 6 pages). Notification path verified live (sent:false, Resend
+  absent).
+- Benchmark: 4 applicants on one grant → 4 distinct fingerprints, no collision; worker
+  live crawl reproduced phase-5 counts (178/152/90/117); watsi+felix dropped at the $8
+  line. Spend true ≈$7.96 of $8. Full suite green.
+- Recorded not-fixed: design/validate are monolithic multi-call stages exceeding the
+  local single-invocation window (launch P0.3, now reaching Draft tier).
+- Critic spawned (deepest skepticism on the composer rewire + the grounding-hold honesty;
+  verifies benchmark numbers from the DB, not the report). $0.50 model cap.
