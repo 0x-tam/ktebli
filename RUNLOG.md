@@ -427,3 +427,21 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   admit now requires site.size===0 (no stated identity to contradict); a named site admits
   only via shared>=2. +4 assertions, full suite green. Final concession requested.
 - inv4 final concession still pending from the structural-fix round (6fbabdb).
+
+## 2026-08-28 — adversarial re-attack #3/#4: name-branch + partial-aggregate
+
+- inv3 re-attack #4: attacker found the NAME branch (shared>=2, never attacked before)
+  conflated two DIFFERENT names sharing only topic words ("Youth Climate Hub Bristol" vs
+  "Climate Youth Action Fund" → {youth,climate}). Fixed (20e2049) with the attacker's own
+  spec: containment not intersection (smaller distinctive-token set ⊆ larger). Attacker
+  states this reduces the residual to the irreducible exact-same-name case. Domain branch
+  (exact-concat + site.size===0) already closed. Full suite green. Final concession requested.
+- inv4 re-attack #3: attacker found the node-id structural rule missed a PARTIAL
+  sub-aggregate (F1=sum[L1,L2] part of flat T1=sum[L1,L2,L3] by value). The attacker's
+  leaf-set fix would over-refuse the donor's "overhead over direct costs" rule; instead
+  used label-superset ambiguity (13537a8) — refuse when another same-unit node's label is
+  a strict superset with a different value. Catches both structurings, no over-refusal.
+  A15 green. Final concession requested.
+- Identity gate: 7 passes, each a distinct real class (substring, prefix, domain-overrides-
+  stated-identity, topical-overlap). Numeric register: 5 passes. Both now on principled
+  structural rules (exact-concat + containment; label-superset + symmetric-scope).
