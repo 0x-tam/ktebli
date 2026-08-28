@@ -496,7 +496,19 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
   // Foundation vs an unrelated "Bright Ltd"), and admitting on it imports a stranger's
   // history — the worst outcome invariant 3 has. So there is NO single-token name-only
   // admit: a one-word org must be corroborated by the domain branch below (or rejected).
-  if (shared >= 2) return true;
+  //
+  // And two shared tokens are only confident when one name CONTAINS the other — the
+  // smaller distinctive-token set is a subset of the larger. Bare intersection (>=2
+  // shared, but each name also carrying tokens the other lacks) conflates two DIFFERENT
+  // names that merely overlap on topic: "Youth Climate Hub Bristol" and "Climate Youth
+  // Action Fund" share {youth, climate} — two sector words that co-occur across a whole
+  // field — yet neither is the other, and admitting imports the wrong charity's history
+  // (the B1 harm through a two-word overlap instead of zero). Containment keeps an own-name
+  // shortening or extension ("Sufra NW London" ⊆ "Sufra Food Bank NW London") admitting
+  // and reduces the residual to the irreducible exact-same-name case.
+  const nameSmaller = want.size <= site.size ? want : site;
+  const nameLarger = want.size <= site.size ? site : want;
+  if (nameSmaller.size >= 2 && [...nameSmaller].every((t) => nameLarger.has(t))) return true;
 
   // The domain, when it is the only usable signal. A distinctive token appearing as a
   // bare SUBSTRING of the host, a SUBDOMAIN prefix, or a HYPHEN component is

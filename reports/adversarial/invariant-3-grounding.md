@@ -490,3 +490,89 @@ because the domain-only branch ignores that legal name and concatenation erases 
 boundaries. Defeating case: **`Green House` / `greenhouse.io`** (site legal name
 `Greenhouse Software Inc`). One-line fix (`&& site.size === 0`) closes it without
 regressing `Bright Futures` or `Sufra`. Deterministic; **$0.00**.
+
+---
+
+# RE-ATTACK #4 2026-08-28 — **BROKEN** (new class: name-branch topical intersection)
+
+The bare-domain admit now requires `site.size === 0` (`index.ts:560`), so a domain
+spelling can no longer override a stated identity. Re-attacked at `2c273dc`:
+`adv2_grounding_test.ts` green; every domain-branch class (substring, prefix,
+contradicting-name-override) rejects. `Green House`/`greenhouse.io`/`Greenhouse
+Software Inc` now rejects; `Green House` with no stated name still admits its bare domain.
+
+Every prior round was the **domain** branch. The **name** branch (`shared >= 2`,
+`index.ts:499`) has never been attacked, and it is too permissive. It admits on any
+**two** shared distinctive tokens, and `ORG_GENERIC_WORDS` (`:431`) filters only
+*structural* words (association, foundation, community, development …) — never
+*sector/topic* words (youth, music, refugee, women, green, climate, streets, health,
+food …). Two sector words are not an "independent second signal": they co-occur across
+many unrelated organisations in the same field. So two **differently-named** orgs whose
+only overlap is a shared topic are conflated, and the crawled site's achievements are
+attributed to the applicant — the original B1 harm (Amel vs Beit Al-Shabab was a
+zero-overlap wrong URL; this is a two-topical-word wrong URL that slips the gate).
+
+Confirmed against the deployed `index.ts` (secure = reject; all admit). In each row
+neither name is a subset of the other — they are genuinely different names, not
+same-name:
+
+| Applicant | Crawled site legal name (a different org) | Shared | Admitted? |
+|---|---|---|---|
+| **Youth Climate Hub Bristol** `youth+climate+hub+bristol` | **Climate Youth Action Fund** `climate+youth+action` | `youth+climate` | **yes** |
+| **Bright Futures Youth Music** `bright+futures+youth+music` | **Youth Music Collective for Change** `youth+music+change` | `youth+music` | **yes** |
+| **Green Streets Leeds** `green+streets+leeds` | **Green Garden Streets Trust** `green+garden+streets` | `green+streets` | **yes** |
+
+The applicant carries `hub`,`bristol` (resp. `bright`,`futures` / `leeds`) that the
+site lacks; the site carries `action`,`fund` (resp. `change` / `garden`) that the
+applicant lacks. They are not namesakes — they are two organisations that happen to
+work on the same topic, and the gate imports one's website into the other's proposal.
+
+**Exact org + legal name + domain:** applicant `Youth Climate Hub Bristol`, crawled
+legal name `Climate Youth Action Fund`, domain `climateyouthaction.org` → **admitted**
+(also `Bright Futures Youth Music` / `Youth Music Collective for Change`
+/ `youthmusiccollective.org`).
+
+### Failing cases (drop-in for `adv2_grounding_test.ts`, section 3)
+
+```ts
+ok(!admits("Youth Climate Hub Bristol", "Climate Youth Action Fund", "climateyouthaction.org"),
+  "name branch: two shared TOPIC words (youth+climate) between different orgs do not admit");
+ok(!admits("Bright Futures Youth Music", "Youth Music Collective for Change", "youthmusiccollective.org"),
+  "name branch: youth+music overlap does not admit an unrelated music charity");
+ok(!admits("Green Streets Leeds", "Green Garden Streets Trust", "greengardenstreets.org"),
+  "name branch: green+streets overlap does not admit a different org whose name neither subsumes nor is subsumed");
+```
+
+### Fix spec
+
+The `shared >= 2` test rewards a topical *intersection*; a confident legal-name match
+is *containment*. Require the smaller distinctive-token set to be a **subset** of the
+larger, not merely to intersect it by two:
+
+```ts
+// confident legal-name match: one name genuinely IS the other (possibly extended),
+// not just topically overlapping. Requires >= 2 shared AND full containment.
+const contained = want.size <= site.size
+  ? [...want].every((t) => site.has(t))
+  : [...site].every((t) => want.has(t));
+if (shared >= 2 && contained) return true;
+```
+
+Effect: `Sufra NW London` / `Sufra Food Bank NW London` (`{sufra,london}` ⊆
+`{sufra,food,bank,london}`) still admits; an applicant whose crawl returns a shortened
+or extended form of its **own** name still admits; but `Youth Climate Hub Bristol`
+vs `Climate Youth Action Fund` (neither contains the other) rejects. Containment
+reduces the residual to the irreducible one the coordinator named — a site whose name
+truly **is** the applicant's (a superset/equal), i.e. genuine same-name — while closing
+the topical-overlap-of-different-names class. (`shared >= 2` with a two-word symmetric
+difference, e.g. `Refugee Women Rise` vs `Refugee Women Connect`, is the borderline
+that shades into that residual; the three cases above are well clear of it.)
+
+## Verdict #4
+
+**BROKEN** — a new class on the previously-untested name branch: `shared >= 2` admits
+two differently-named organisations that overlap only on sector/topic vocabulary,
+attributing a stranger's crawled achievements to the applicant. It is not
+single-exact-same-name (neither name subsumes the other). Exact case:
+**`Youth Climate Hub Bristol` / `Climate Youth Action Fund` / `climateyouthaction.org`**.
+Fix: require containment, not mere two-token intersection. Deterministic; **$0.00**.
