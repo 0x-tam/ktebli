@@ -722,6 +722,73 @@ async function generateValidated(prompt: string, maxTokens: number, opts: Conten
   throw new Error("content validation failed: " + v.join(","));
 }
 
+// ================= resumable generation (phase 6.5) =================
+// UNPROVEN ON DEPLOYED RUNTIME: the local stack cannot reproduce production's
+// edge-invocation limits, so the resume behaviour is proven only at the level
+// of these helpers (executed offline) and the wiring below. What this is for:
+// a Competitive/Full narrative that needs more than one generation attempt can
+// outlive a single invocation (launch-readiness P0.3 — one stage heartbeated
+// 807 s before being lost). Progress is therefore PERSISTED per section in the
+// running stage's own output (the same mechanism the delivery gate uses for
+// gate_text), so a re-invoked worker resumes instead of restarting:
+//
+//   * each donor-defined section is generated in its own bounded call, keyed
+//     by position, and persisted the moment it materially checks out;
+//   * a resumed invocation SKIPS persisted sections only after re-running the
+//     deterministic material check on them — nothing is trusted from storage;
+//   * assembly adds the donor's own headings deterministically (byte-exact by
+//     construction, not by model reproduction), then the whole document goes
+//     through the normal validation/repair path;
+//   * the finished document is persisted before done(), so a crash between
+//     completion and the status patch costs zero model calls on the retry.
+//
+// ---- RESUMABLE-GEN-BEGIN (tests/adversarial extracts and executes this block verbatim)
+interface GenProgress { kind: string; sections?: Record<string, string>; text?: string }
+interface SectionPlan { sections: Array<{ key: string; heading: string; targetWords: number | null }> }
+// Section-by-section applies ONLY where it is correct by construction: a
+// Competitive/Full order whose donor DEFINES the application structure (3-20
+// sections). Draft tier and free-structure narratives keep the single-shot
+// path — inventing a section split for them would change the document, not
+// just the delivery mechanics.
+function sectionPlan(
+  tier: string,
+  appStruct: { defined_by_donor?: boolean; sections_or_questions?: string[] } | undefined,
+  maxWords: number | null,
+): SectionPlan | null {
+  if (tier !== "competitive" && tier !== "full") return null;
+  if (!appStruct?.defined_by_donor) return null;
+  const qs = (appStruct.sections_or_questions ?? []).map(String).filter((s) => s.trim().length > 0);
+  if (qs.length < 3 || qs.length > 20) return null;
+  // Aim under the cap collectively (0.94, the same headroom the single-shot
+  // brief uses), floored so no section is squeezed into uselessness.
+  const per = maxWords ? Math.max(60, Math.floor((maxWords * 0.94) / qs.length)) : null;
+  return { sections: qs.map((heading, i) => ({ key: `s${i}`, heading, targetWords: per })) };
+}
+// Assembly: the donor's headings are added HERE, deterministically, in the
+// donor's order. Returns null if any section is missing or fails the caller's
+// material check — a partial document is never assembled.
+function assembleSections(
+  plan: SectionPlan,
+  sections: Record<string, string | undefined>,
+  complete: (md: string | null | undefined) => boolean,
+): string | null {
+  const parts: string[] = [];
+  for (const s of plan.sections) {
+    const body = sections[s.key];
+    if (!complete(body)) return null;
+    parts.push(`## ${s.heading}\n\n${String(body).trim()}`);
+  }
+  return parts.join("\n\n");
+}
+// ---- RESUMABLE-GEN-END
+
+// The material check a persisted or fresh section must pass: real content that
+// parses clean and ends complete. Deterministic, free, re-run on every resume.
+function sectionComplete(md: string | null | undefined): boolean {
+  if (!md || !md.trim() || md.trim().length < 40) return false;
+  return contentViolations(md, toBlocks(md), {}).length === 0;
+}
+
 // ================= page estimate (metadata only — never a compliance claim) =================
 function estimatePages(blocks: Block[], fmt: Fmt): number {
   const D = deriveDesign(fmt);
@@ -2012,6 +2079,26 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       return done({ json: bj, total_usd: total(lines), ceiling_usd: ceiling, envelope_usd: envelope, usage: { ...stageUsage } });
     }
     const opts: ContentOpts = kind === "narrative" ? narrativeOpts : (kind === "cover_email" ? { signoff: true } : {});
+
+    // ---------- resumable progress (phase 6.5; see RESUMABLE-GEN above) ----------
+    // The running stage's own prior output carries any persisted progress; a
+    // reaped-and-reclaimed invocation lands here with it intact (claim_next_stage
+    // does not clear output — the gate_text mechanism relies on the same fact).
+    const ownRow = c.stages.find((s: { id: number }) => s.id === stage.stage_id) as
+      { output?: { gen_progress?: GenProgress } } | undefined;
+    const progress: GenProgress =
+      ownRow?.output?.gen_progress && ownRow.output.gen_progress.kind === kind
+        ? ownRow.output.gen_progress
+        : { kind };
+    const saveProgress = () =>
+      patch(`job_stages?id=eq.${stage.stage_id}`, { output: { gen_progress: progress } }).catch(() => {});
+    // Resume shortcut: a persisted finished document is re-VERIFIED
+    // deterministically (never trusted from storage) and costs zero calls.
+    if (progress.text) {
+      const v = contentViolations(progress.text, toBlocks(progress.text), opts);
+      if (!v.length) return done({ text: progress.text, resumed: true, usage: { ...stageUsage } });
+    }
+
     // The brief's own default length range must never contradict the donor's limit.
     // A donor cap of 1,400 words against a hardcoded "1500-2500 words" brief gives the
     // model two incompatible instructions and it follows the task line, so the document
@@ -2020,7 +2107,55 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     const brief = kind === "narrative" && fmt.maxWords
       ? spec.brief.replace("(1500-2500 words)", `(about ${Math.round(fmt.maxWords * 0.94)} words — the donor's hard limit is ${fmt.maxWords} and going over it disqualifies the application)`)
       : spec.brief;
+
+    // ---------- section-by-section path (Competitive/Full, donor-defined structure) ----------
+    const plan = kind === "narrative" ? sectionPlan(String(c.order.tier ?? ""), appStruct, fmt.maxWords) : null;
+    if (plan) {
+      progress.sections = progress.sections ?? {};
+      for (const sec of plan.sections) {
+        if (sectionComplete(progress.sections[sec.key])) continue; // idempotent: persisted and re-checked, not re-paid
+        await beat();
+        const body = sanitizeMd(await llm(
+          baseCtx() +
+          `\n\nTASK: Write ONLY the body of ONE section of the proposal narrative. ` +
+          `The donor defines the application structure; this section's heading is added for you afterwards, so do NOT repeat it and do NOT add any other heading.\n` +
+          `Section (answer it directly): "${sec.heading}"\n` +
+          `Position: section ${plan.sections.indexOf(sec) + 1} of ${plan.sections.length}. Do not summarise other sections and do not conclude the whole document unless this is the final section.` +
+          (sec.targetWords ? `\nWrite about ${sec.targetWords} words for this section.` : "") +
+          `\nContext already written (for consistency, never repetition):\n${
+            plan.sections.filter((p) => sectionComplete(progress.sections![p.key])).map((p) => `## ${p.heading}\n${String(progress.sections![p.key]).slice(0, 1200)}`).join("\n\n").slice(0, 8000)
+          }` +
+          styleNote + STYLE_RULES + FORMAT_RULES,
+          2500, { u: stageUsage }));
+        if (!sectionComplete(body)) throw new Error(`section generation incomplete: ${sec.heading.slice(0, 40)}`);
+        progress.sections[sec.key] = body;
+        await saveProgress(); // a re-invoked worker resumes exactly here
+      }
+      const assembled = assembleSections(plan, progress.sections, sectionComplete);
+      if (!assembled) throw new Error("section assembly failed: a persisted section no longer passes its material check");
+      let text = sanitizeMd(assembled);
+      let v = contentViolations(text, toBlocks(text), opts);
+      if (v.length) {
+        // Whole-document repair through the normal validated path, from the
+        // assembled draft (typically over_word_limit across sections). The
+        // donor's headings must survive byte-exact.
+        text = await generateValidated(
+          `The following document draft violates these content rules: ${v.join(", ")}.` +
+          (opts.maxWords ? `\nHard word limit: ${opts.maxWords} words.` : "") +
+          `\nRewrite the COMPLETE document fixing every violation. Keep every ## heading EXACTLY as written, in the same order — the headings are the donor's own wording. Cut body prose, never headings.` +
+          `\nReturn the complete corrected document only.${FORMAT_RULES}\n\nDRAFT:\n${text}`,
+          spec.max, opts, stageUsage);
+      }
+      progress.text = text;
+      await saveProgress(); // finished document persisted BEFORE done()
+      return done({ text, sectioned: true, sections: plan.sections.length, usage: { ...stageUsage } });
+    }
+
     const text = await generateValidated(baseCtx() + extra + `\n\nTASK: ${brief}${donorStructure}${kind === "narrative" ? styleNote + STYLE_RULES : ""}${FORMAT_RULES}`, spec.max, opts, stageUsage);
+    // Document-level checkpoint for every single-shot gen:* too: a crash
+    // between this call and done() costs zero model calls on the retry.
+    progress.text = text;
+    await saveProgress();
     return done({ text, usage: { ...stageUsage } });
   }
 
