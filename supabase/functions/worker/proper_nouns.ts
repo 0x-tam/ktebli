@@ -176,16 +176,11 @@ function pnContains(docKey: Set<string>, ledgerKey: Set<string>): boolean {
   return true;
 }
 
-// TWO-WAY, and deliberately so. This is used for ONE purpose: recognising the applicant
-// naming itself inside a longer phrase. Self-naming is never particularity and never
-// fabrication, in either spelling, so the asymmetry above does not apply to it. Do not
-// reuse this for evidence support — that is what pnContains() is for.
-function pnOverlap(a: Set<string>, b: Set<string>): boolean {
-  if (!a.size || !b.size) return false;
-  const [small, big] = a.size <= b.size ? [a, b] : [b, a];
-  for (const w of small) if (!big.has(w)) return false;
-  return true;
-}
+// Self-naming (line 247) once used a TWO-WAY overlap here, which also exempted any
+// SUPERSET of the org name and so swallowed a fabricated award/endowment/fellowship
+// that merely embedded the applicant's name. It now uses the ONE-WAY pnContains()
+// above — every token of the run must be within the org name — so the two-way helper
+// is gone. Do not reintroduce a symmetric self-naming test: it reopens that route.
 
 interface PNAudit {
   ledger_offers: number;      // distinct proper nouns the ledger could supply
@@ -241,10 +236,18 @@ function properNounAudit(
     const n = normPN(p);
     if (!n) continue;
     const key = pnKey(p);
-    // Containment in EITHER direction: "Mashghal Community Association In Bab
-    // al-Tabbaneh's" is still the applicant naming itself, and crediting it as a
-    // named referent inflates exactly the metric this is meant to measure.
-    if (own.has(n) || ownKeys.some((o) => pnOverlap(key, o) || [...o].every((w) => key.has(w)))) continue;
+    // Self-naming, ONE direction only. The applicant may name ITSELF, in full or in
+    // part ("Mashghal Community Association", "Mashghal", "Community Association"),
+    // and that is never particularity and never fabrication — so exempt a run whose
+    // every token appears in the org name (the exact span or a sub-span of it). But
+    // it may name only itself: the earlier two-way containment also exempted any
+    // SUPERSET of the org name, so "Mashghal Community Association Excellence Prize"
+    // (an invented award), "... Endowment", "... Fellowship", and fabricated tokens
+    // WRAPPED around the name ("Golden Cedar Mashghal Community Association
+    // Fellowship") were swallowed unreported — a different, invented entity riding on
+    // the applicant's own words. A run that ADDS a token the org name does not carry
+    // is no longer exempt; it must match the ledger/design or be reported.
+    if (own.has(n) || ownKeys.some((o) => pnContains(key, o))) continue;
 
     let hit = ledgerKeys.find(([k, kk]) => k === n || pnContains(key, kk));
     // The grammar reading, tried only where grammar could actually have capitalised the
