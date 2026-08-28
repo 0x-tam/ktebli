@@ -176,6 +176,8 @@ let unmeasuredCalls = 0;
 
 class BudgetStop extends Error {}
 
+const CALL_TIMEOUT_MS = 240_000;
+
 async function call(req: CriticRequest): Promise<{ text: string; usd: number | null; id: string | null }> {
   // HARD budget, checked BEFORE the call. A conservative reserve of the worst
   // call seen so far (or $0.05 before any call has priced) keeps the last call
@@ -184,21 +186,33 @@ async function call(req: CriticRequest): Promise<{ text: string; usd: number | n
   if (spentUsd + reserve > BUDGET_USD) {
     throw new BudgetStop(`spent $${spentUsd.toFixed(4)}, reserve $${reserve.toFixed(4)}, budget $${BUDGET_USD.toFixed(2)}`);
   }
-  const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${KEY}`, "HTTP-Referer": "https://ktebli.com", "X-Title": "Ktebli judge validation (ladder)" },
-    body: JSON.stringify({
-      model: req.model,
-      max_tokens: req.maxTokens,
-      temperature: req.temperature ?? JUDGE_TEMPERATURE,
-      seed: req.seed ?? JUDGE_SEED,
-      reasoning: { effort: req.effort },
-      response_format: req.responseFormat,
-      usage: { include: true },
-      messages: [{ role: "user", content: req.prompt }],
-    }),
-  });
-  const text = await r.text();
+  // Aborted, not merely raced: a first exploratory run hung indefinitely on a
+  // full-document call (the 16-token probe and a short structured-output call
+  // both returned normally), so every call carries a real abort. A timed-out
+  // call follows the MISSING path: one retry, then recorded MISSING.
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(new Error(`no reply after ${CALL_TIMEOUT_MS}ms`)), CALL_TIMEOUT_MS);
+  let r: Response, text: string;
+  try {
+    r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${KEY}`, "HTTP-Referer": "https://ktebli.com", "X-Title": "Ktebli judge validation (ladder)" },
+      body: JSON.stringify({
+        model: req.model,
+        max_tokens: req.maxTokens,
+        temperature: req.temperature ?? JUDGE_TEMPERATURE,
+        seed: req.seed ?? JUDGE_SEED,
+        reasoning: { effort: req.effort },
+        response_format: req.responseFormat,
+        usage: { include: true },
+        messages: [{ role: "user", content: req.prompt }],
+      }),
+      signal: ac.signal,
+    });
+    text = await r.text();
+  } finally {
+    clearTimeout(timer);
+  }
   if (!r.ok) {
     const err = `HTTP ${r.status} ${text.slice(0, 300)}`;
     if (classifyProviderError(err) === "cap") throw new BudgetStop(`provider cap: ${err}`);
@@ -295,24 +309,40 @@ if (!KEY) {
   Deno.exit(1);
 }
 
+// A judge call at reasoning high runs ~2-3 minutes on a full document, so the
+// 22 documents are judged with bounded concurrency. The budget check stays
+// per-call and BEFORE the call; the worst it can overshoot is (concurrency-1)
+// in-flight calls, each ~$0.005 against the $3 cap.
+const CONCURRENCY = 3;
 const rows: Row[] = [];
 let stopped: string | null = null;
-outer:
 for (const model of MODELS) {
-  for (const d of docs) {
+  const queue = docs.filter((d) => {
     if (modelFamily(model) === modelFamily(d.generator)) {
       console.error(`  ${model} ${d.rung}-${d.arm}: SKIPPED (generator's own family; never judged, never billed)`);
-      continue;
+      return false;
     }
-    try {
-      const r = await judgeOne(d, model);
-      rows.push(r);
-      console.error(`  ${model} ${d.rung}-${d.arm}: ${r.gate}${r.score !== null ? ` (score ${r.score})` : ""}${r.error ? ` [${r.error.slice(0, 80)}]` : ""} $${(r.usd ?? 0).toFixed(4)}`);
-    } catch (e) {
-      if (e instanceof BudgetStop) { stopped = String(e.message); break outer; }
-      throw e;
+    return true;
+  });
+  let next = 0;
+  const worker = async () => {
+    for (;;) {
+      if (stopped) return;
+      const i = next++;
+      if (i >= queue.length) return;
+      const d = queue[i];
+      try {
+        const r = await judgeOne(d, model);
+        rows.push(r);
+        console.error(`  ${model} ${d.rung}-${d.arm}: ${r.gate}${r.score !== null ? ` (score ${r.score})` : ""}${r.error ? ` [${r.error.slice(0, 80)}]` : ""} $${(r.usd ?? 0).toFixed(4)} (total $${spentUsd.toFixed(4)})`);
+      } catch (e) {
+        if (e instanceof BudgetStop) { stopped = String((e as Error).message); return; }
+        throw e;
+      }
     }
-  }
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  if (stopped) break;
 }
 
 console.log(`\nmodel                              n(data)  agree  rate    always-hold  false-pass  false-hold  missing  own-family-excluded`);

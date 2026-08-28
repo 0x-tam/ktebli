@@ -725,7 +725,13 @@ const JUDGE_FALLBACK = "google/gemini-3.7-flash";
 const JUDGE_SEED = 20260827;
 const JUDGE_TEMPERATURE = 0;
 const JUDGE_EFFORT: "high" = "high";
-const JUDGE_MAX_TOKENS = 3000;
+// MEASURED 2026-08-28, not guessed: at 3000 the primary judge burned the ENTIRE
+// completion budget on reasoning and returned EMPTY content on a real ladder
+// document (finish=length, content_len=0) — every production call would have
+// parse-failed into an INFRA hold. At 9000 the same call completed naturally at
+// 8907 tokens (finish=stop, parseable). 12000 leaves headroom for longer
+// documents; reasoning_effort stays high per the phase-3 specification.
+const JUDGE_MAX_TOKENS = 12000;
 
 interface KeySlot { slot: string; model: string; secret: string }
 // Two slots, two providers, two credentials. The secrets are Vault names; the
