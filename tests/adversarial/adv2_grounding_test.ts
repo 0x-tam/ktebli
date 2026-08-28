@@ -202,6 +202,19 @@ ok(!admits("Sufra NW London", "", "sufra-nwlondon.org.uk"),
   "multi-token domain-only: 'nw' breaks exact concatenation — REJECTED by domain alone (accepted asymmetric cost)");
 ok(admits("Sufra NW London", "Sufra NW London", "sufra-nwlondon.org.uk"),
   "the same Sufra ADMITS on its crawled legal name (shared>=2), which is how phase 5 cleared it");
+// RE-ATTACK #3 2026-08-28: exact-concat still admitted on the domain SPELLING while
+// ignoring a CONTRADICTING crawled legal name — "Green House" (green+house) spells
+// greenhouse.io whose page says "Greenhouse Software Inc" (HR SaaS, zero shared tokens).
+// The bare-domain admit now requires the crawl to state NO identity (site.size===0), so a
+// domain coincidence can never override a stated, contradicting name.
+ok(!admits("Green House", "Greenhouse Software Inc", "greenhouse.io"),
+  "a domain-spelling collision does not override a contradicting crawled legal name");
+ok(!admits("Kids Care", "KidScare LLC", "kidscare.com"),
+  "'kidscare.com' = 'KidScare LLC' — a different segmentation of the same letters is not the applicant");
+ok(!admits("Green House", "Acme Ventures Ltd", "greenhouse.io"),
+  "a stated name sharing NOTHING with the applicant is maximal doubt — never overridden by the domain");
+ok(admits("Green House", "", "greenhouse.io"),
+  "with NO stated identity to contradict, the exact-spelling domain still admits the applicant's own site");
 console.log(
   bad
     ? `\n${bad} FAILURE(S) — each is a live route for an unsupported fact reaching a customer`

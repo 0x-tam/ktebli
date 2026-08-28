@@ -408,3 +408,85 @@ exact-concatenation case but its anchor+in-order relaxation admits a stranger wh
 the applicant's first distinctive token is a prefix of a longer unrelated word in the
 site's registrable label. Defeating case: **`Care Reach` / `careeroutreach.com`**.
 Deterministic; **$0.00**.
+
+---
+
+# RE-ATTACK #3 2026-08-28 — **BROKEN** (exact-concat ignores a contradicting legal name)
+
+The anchor+in-order relaxation was removed; the ≥2-token domain branch now admits
+**only** on exact main-label concatenation (`index.ts:551`,
+`mainStripped === orgConcat`). `adv2_grounding_test.ts` is green, and every prior
+substring/prefix break now rejects (`Art Care`/`smartcare.com`,
+`Care Reach`/`careeroutreach.com`, `Star Reach`/`startupoutreach.com` all reject). The
+coincidental-substring class is closed, as my own analysis predicted.
+
+But "exact main-label concatenation" is not fully closed, for a reason distinct from
+every prior round: **it ignores the site's own crawled legal name.** The branch runs
+whenever `shared < 2`, and then admits on the domain spelling alone — even when a
+legal name IS present and identifies a *different organisation*. Concatenation also
+erases the space, so a different word-segmentation of the same letters collides.
+
+Confirmed against the deployed `index.ts` (`orgNameMatchesSite(org, legalName, domain)`;
+secure = reject; all admit):
+
+| Applicant | Crawled site legal name (0 shared tokens) | Domain | main | Admitted? |
+|---|---|---|---|---|
+| **Green House** (eco charity) `green`+`house` | **Greenhouse Software Inc** (HR SaaS) `greenhouse`+`software` | `greenhouse.io` | `greenhouse` | **yes** |
+| **Kids Care** (childcare) `kids`+`care` | **KidScare LLC** (Halloween events) `kidscare` | `kidscare.com` | `kidscare` | **yes** |
+| **Green House** `green`+`house` | **Acme Ventures Ltd** `acme`+`ventures` | `greenhouse.io` | `greenhouse` | **yes** |
+
+The third row is the clean structural proof: the site openly identifies as **Acme
+Ventures Ltd** — a name sharing nothing with the applicant — and the gate imports it
+anyway, because `greenhouse.io` letter-spells `green`+`house`. A stated, contradicting
+identity is maximal doubt, yet the domain-spelling coincidence overrides it. Rows one
+and two are the realistic instances: the crawler pulls *Greenhouse Software*'s funding
+rounds / customers / headcount (or *KidScare*'s), and the pipeline asserts them as the
+eco charity's / childcare charity's own history — a false statement to a funder, which
+is invariant 3's exact harm.
+
+This is **not** a carved-out cost: it is two distinctive tokens (not single-common-word),
+and it is an *admit over a contradicting legal name* (not a domain-abbreviation
+*rejection*). The single-common-word same-name residual is a domain that spells one
+common word; here the site names itself a different organisation and is imported regardless.
+
+**Exact defeating org + domain:** `Green House` / `greenhouse.io` (crawled legal name
+`Greenhouse Software Inc`); also `Kids Care` / `kidscare.com` (`KidScare LLC`).
+
+### Failing cases (drop-in for `adv2_grounding_test.ts`, section 3)
+
+```ts
+ok(!admits("Green House", "Greenhouse Software Inc", "greenhouse.io"),
+  "exact-concat must not import a site whose legal name is a different org ('Greenhouse Software')");
+ok(!admits("Kids Care", "KidScare LLC", "kidscare.com"),
+  "segmentation collision: 'kids'+'care' == 'kidscare' does not admit the unrelated 'KidScare LLC'");
+ok(!admits("Green House", "Acme Ventures Ltd", "greenhouse.io"),
+  "a stated, contradicting legal name ('Acme Ventures') is discarded, not overridden by the domain");
+```
+
+### Fix spec
+
+The exact-concat admit is legitimate only when the domain is the **sole** signal —
+i.e. the crawl produced no stated identity to contradict. Gate it on that:
+
+```ts
+// admit on exact concatenation ONLY when the site states no identity to contradict.
+if (orgConcat.length > 3 && mainStripped === orgConcat && site.size === 0) return true;
+```
+
+`site` is already computed at the top of the function. Effect:
+`Bright Futures`/`brightfutures.org` (no crawled legal name, `site.size === 0`) still
+admits; `Sufra NW London` still admits via the `shared >= 2` legal-name branch (its
+crawl carries the name), exactly as phase 5 cleared it; `greenhouse.io` /
+`kidscare.com` — which DO carry a contradicting legal name (`site.size > 0`, `shared < 2`)
+— now discard. A stated identity that fails the ≥2-token name test is a conflict, and
+the asymmetry the gate is built on resolves a conflict by discarding, never by
+importing.
+
+## Verdict #3
+
+**BROKEN** — the exact-concatenation rule closes the coincidental-substring class but
+still admits a stranger whose crawled legal name identifies a *different organisation*,
+because the domain-only branch ignores that legal name and concatenation erases word
+boundaries. Defeating case: **`Green House` / `greenhouse.io`** (site legal name
+`Greenhouse Software Inc`). One-line fix (`&& site.size === 0`) closes it without
+regressing `Bright Futures` or `Sufra`. Deterministic; **$0.00**.

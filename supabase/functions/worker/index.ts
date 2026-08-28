@@ -546,9 +546,18 @@ function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: str
       // a stranger's: an applicant whose domain interleaves a word the tokenizer dropped
       // (Sufra NW London / sufra-nwlondon.org.uk, "nw" is two letters) is corroborated by
       // its crawled legal name instead (the shared>=2 branch above), which is how the
-      // phase-5 crawl admitted it. The domain-ONLY fallback stays exact, and refuses on
-      // any doubt.
-      if (orgConcat.length > 3 && mainStripped === orgConcat) return true;
+      // phase-5 crawl admitted it.
+      //
+      // AND the bare-domain spelling may admit ONLY when the crawl stated NO identity to
+      // contradict (site.size === 0). Concatenation erases the space, so a different
+      // segmentation of the same letters collides: "Green House" (green+house) spells
+      // greenhouse.io, whose page says "Greenhouse Software Inc" — an HR SaaS sharing zero
+      // tokens; "Kids Care" spells kidscare.com = "KidScare LLC". Admitting on the spelling
+      // would let a domain coincidence OVERRIDE a stated, contradicting identity and
+      // attribute a differently-named company's achievements to the applicant — invariant
+      // 3's exact harm. When the site names itself, the only admit is a real second signal
+      // (shared>=2, above); the bare-domain match is for a site that states no name at all.
+      if (site.size === 0 && orgConcat.length > 3 && mainStripped === orgConcat) return true;
     }
   }
   // Stays asymmetric: on any doubt the site is discarded, never imported.
