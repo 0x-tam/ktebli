@@ -121,3 +121,6 @@ Next: install postgres + supabase CLI → phase 0.
   including independent re-execution of the P0 refund regression, scope, secrets,
   fixture-weakening rule, and a byte-matched render reproduction. WS4a resumed with
   exactly that fix; no other changes permitted.
+- WS4a MERGED (5fa9663) after critic PASS in writing: sole send-back fixed (artifact now
+  reproduces 9/0/0), critic re-ran everything. P0 refund-regression fix + the 14 open
+  specs go to wave-2 ws6-core.
