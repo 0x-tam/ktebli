@@ -302,3 +302,17 @@ Next: ONE consolidation fix owner (worktree) closes all 5 broken invariants + in
 pulls the 5 failing adv2 tests + 2 concession tests onto its branch, makes the whole suite green,
 then a critic + attacker re-attack. Deep fixes (register-wiring, axes-wiring) get their MECHANISM
 wired + deterministically tested; generation-quality impact marked unproven-without-e2e (budget).
+
+## 2026-08-28 — consolidation fix owner dispatched
+
+- One fix owner (worktree) closes all 5 broken invariants + inv1 hardening, pulls the 5
+  failing adv2 tests + 2 concession tests onto its branch, greens the whole suite. Ordered
+  cleanest-first: (1) Unicode word counter, (2) zero-width/table counting, (3) notifyTerminal
+  notified_at-last, (4) normaliseDocument \n{2,}→\n, (5) loop material/retention wired, (6)
+  contact-by-shape, (7) proper_nouns exact-span exemption, (8) orgNameMatchesSite distinctive
+  overlap, (9) register denominator-by-identity, (10) register %-provenance, (11 DEEP) register
+  wired + consistencyFindings bidirectional, (12 DEEP) all axes → generation prompt.
+- Clarified for the agent: inv6 fix is route-all-axes-to-writer, NOT shrink-the-hash (shrinking
+  would reintroduce a ceiling). The two DEEP fixes get mechanism wired + deterministically
+  tested; generation-QUALITY halves marked unproven-without-e2e (budget: no full pipeline runs).
+- On its critic+re-attack PASS: merge, then phase 7 handoff finalization.
