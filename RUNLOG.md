@@ -365,3 +365,8 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   algorithm (embedded public-suffix set, exact-equality, discard-on-doubt) + adv2 assertions
   for the 4 variants. Third pass on the identity gate — invariant 3's worst-outcome direction,
   worth converging precisely.
+- inv3.3 third pass CLOSED (e24cdbc): registrableMainLabel() with embedded public-suffix set,
+  exact main-label match, discard-on-doubt fallback; adv2_grounding 28 checks. All four
+  subdomain/hyphen variants reject, legit sites admit, full suite green. Critic sent for final
+  bounded re-attack (its 4 variants + 3 fresh, esp. unrecognised-eTLD fallback). On PASS: merge
+  the whole consolidation fix.
