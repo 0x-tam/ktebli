@@ -1,14 +1,17 @@
-<!-- SYNTHETIC FIXTURE. Halewater Commons Trust, Kelverton, Marlpit, Dunmore Sixth Form College, the Wren Hill Foundation and the Neighbourhood Futures Fund do not exist. Every name, figure and date in this file is invented for a test fixture and is not a fact about any real organisation. -->
+NOTE ON THE MATERIAL: this is a synthetic test fixture. The funder, the applicant organisation, the town, the neighbourhoods, the partners, the venues, the vendors and the named people are all invented and none of them is a fact about any real body. Assess the documents exactly as you would assess real submissions.
 
-You are a grant assessor — a program officer for a small independent foundation. You have read several hundred applications to this fund and its predecessors. Most of them are mediocre: competent, plausible, forgettable. You are hard to please by disposition and by experience, and a high mark from you has to be EARNED, not assumed. You are not here to encourage anybody. You are here to decide where scarce money goes.
+You are a hard-to-please program officer. You have read hundreds of applications to funds like this one. Most of them are mediocre. A high mark is EARNED, not given; your default is unimpressed, and you should say plainly when something is thin, generic or unsupported. Do not be encouraging for its own sake.
 
-Below you have (1) the published guidance and assessment criteria for the round, (2) the applicant's identity, and (3) four applications, labelled Doc 1 to Doc 4. Read all four before you write anything.
+Below is the funder's guidance, the applicant's identity, and FOUR submissions to that call from that applicant. Read the guidance carefully - it is the only thing you assess against.
 
-Do not attempt to count words. Word-limit compliance has been checked separately and is not at issue in this review. Every other number IS at issue.
-
-=========================================================
-PART 1 — THE CALL
-=========================================================
+=========================
+FUNDER GUIDANCE
+=========================
+Funder: The Wren Hill Foundation (synthetic)
+Programme: Neighbourhood Futures Fund - Round 3 (synthetic)
+Word limit: 1200
+Budget range: GBP 25,000 - GBP 75,000 over up to 18 months; overhead recovery capped at 12% of direct costs
+Deadline: 17:00 GMT, Friday 27 November 2026
 
 THE WREN HILL FOUNDATION - NEIGHBOURHOOD FUTURES FUND, ROUND 3
 Guidance for applicants (read in full before you start; this guidance is the only document we assess against)
@@ -46,8 +49,16 @@ Two independent assessors score each application against the published criteria 
 DEADLINE
 Applications close at 17:00 GMT on Friday 27 November 2026. Late applications are not considered. Decisions are communicated by 12 February 2027.
 
---- PUBLISHED CRITERIA AND WEIGHTS ---
+REQUIRED SECTIONS
+- Q1. Who are you and what do you do?
+- Q2. What is the problem, and how do you know?
+- Q3. What will you do?
+- Q4. What will change, and how will you know?
+- Q5. What happens after the grant?
+- Budget table (one page, excluded from the word limit)
+- Declaration (self-certifications, excluded from the word limit)
 
+PUBLISHED ASSESSMENT CRITERIA AND WEIGHTS
 Published assessment criteria and weights (Wren Hill Foundation, Neighbourhood Futures Fund Round 3). Each criterion is scored 1-5 by two independent assessors; a score of 1 on any criterion is disqualifying.
 - Work rooted in a named place, with the geography, partners and venues identified - 25%
 - Quality and coherence of the project design (problem, causes, activities, outcomes) - 30%
@@ -55,22 +66,22 @@ Published assessment criteria and weights (Wren Hill Foundation, Neighbourhood F
 - Value for money at the requested amount - 15%
 - Credibility of what continues after the grant - 10%
 
-=========================================================
-PART 2 — THE APPLICANT
-=========================================================
-
+=========================
+THE APPLICANT
+=========================
 Legal name: Halewater Commons Trust
 Country: United Kingdom
 Town: Kelverton
 Website: halewatercommons.org.uk
 
-A small community organisation: a charitable incorporated organisation constituted in 2016, six paid staff (4.2 FTE), about 25 regular volunteers, annual expenditure around GBP 214,000. It runs open-access youth sessions for 11-19 year olds, a weekly supper club, and a small family advice desk, across two neighbourhoods on the east side of the town.
+Background (synthetic fixture): a small charitable incorporated organisation constituted in 2016 in Kelverton, a post-industrial town of about 41,000 people in northern England. Six paid staff (4.2 FTE), about 25 regular volunteers, annual expenditure of GBP 214,000. It runs open-access youth sessions for 11-19 year olds, a weekly supper club, and a small advice desk for families, across two neighbourhoods on the east side of the town.
 
-=========================================================
-PART 3 — THE FOUR APPLICATIONS
-=========================================================
+=========================
+THE FOUR SUBMISSIONS
+=========================
 
-===== DOC 1 — BEGINS =====
+
+<<<<<<<<<< DOC 1 - BEGINS >>>>>>>>>>
 
 ## Q1. Who are you and what do you do?
 
@@ -179,9 +190,10 @@ Position:
 
 Date:
 
-===== DOC 1 — ENDS =====
+<<<<<<<<<< DOC 1 - ENDS >>>>>>>>>>
 
-===== DOC 2 — BEGINS =====
+
+<<<<<<<<<< DOC 2 - BEGINS >>>>>>>>>>
 
 ## Q1. Who are you and what do you do? Your organisation, the people you already work with, and the geography you work in.
 
@@ -282,9 +294,10 @@ Halewater Commons Trust hereby self-certifies that:
 4. Safeguarding and equal opportunities policies have been formally reviewed and adopted within the last two years.
 5. This proposal will be formally submitted prior to the deadline of 17:00 GMT on Friday 27 November 2026.
 
-===== DOC 2 — ENDS =====
+<<<<<<<<<< DOC 2 - ENDS >>>>>>>>>>
 
-===== DOC 3 — BEGINS =====
+
+<<<<<<<<<< DOC 3 - BEGINS >>>>>>>>>>
 
 ## Q1. Who are you and what do you do?
 
@@ -386,9 +399,10 @@ Countersigned:
 
 Director, Halewater Commons Trust
 
-===== DOC 3 — ENDS =====
+<<<<<<<<<< DOC 3 - ENDS >>>>>>>>>>
 
-===== DOC 4 — BEGINS =====
+
+<<<<<<<<<< DOC 4 - BEGINS >>>>>>>>>>
 
 ## Q1. Who are you and what do you do? Your organisation, the people you already work with, and the geography you work in.
 
@@ -514,34 +528,35 @@ Signed,
 Chair of Trustees  
 Halewater Commons Trust
 
-===== DOC 4 — ENDS =====
+<<<<<<<<<< DOC 4 - ENDS >>>>>>>>>>
 
-=========================================================
-PART 4 — WHAT I NEED FROM YOU
-=========================================================
 
-Answer all of the following. Be blunt and be specific; quote the text when you are making an accusation.
+=========================
+WHAT I NEED FROM YOU
+=========================
 
-A. RANKING. Rank the four best-first. Then name the ONE you would fund, or say NONE. Justify the pick in a few sentences against the weighted criteria.
+Work through this in order and be concise but complete. Numbered lists, no preamble.
 
-B. PER DOCUMENT (do this for each of Doc 1, Doc 2, Doc 3, Doc 4):
-   - fundable as submitted? (y/n)
-   - reads machine-generated? (y/n)
-   - swappable? Would ANY paragraph survive swapping the organisation's name for a different charity's without becoming false or nonsensical? (y/n — y means yes, paragraphs are swappable, i.e. generic)
-   - COUNT of distinct concrete named referents. Count: places below city level (wards, estates, streets, neighbourhoods), venues and buildings, vendors and suppliers, named people with a role, named partner organisations, named prior results attached to a date. Do NOT count the applicant's own name, and do NOT count the funder or the fund. Give an integer and then list what you counted.
-   - the single weakest thing about it, in one sentence.
+1. RANK the four best-first (e.g. Doc 3 > Doc 1 > ...), with one sentence per position saying why it sits there. Then name the ONE you would fund, or say NONE. NONE is a legitimate answer and you should use it if none of them earns money.
 
-C. REJECT LIST. Go through this list and name EVERY hit, per document, with the offending text:
+2. For EACH of Doc 1-4 give, in a compact block:
+   - fundable as submitted (y/n)
+   - reads machine-generated (y/n)
+   - swappable (y/n): would any paragraph survive swapping in a different organisation's name and still read as true of that other organisation
+   - CONCRETE NAMED REFERENTS - an actual integer COUNT of distinct concrete named referents. Count: places below city level (wards, estates, streets, neighbourhoods), venues, vendors/suppliers, named people with roles, named partner organisations, named prior results with dates. Do NOT count the applicant's own name or the funder's name. List them, then give the count.
+   - the single weakest thing about it
+
+3. REJECT LIST. Check every document against this list and name every hit, with a quoted example for each hit:
    - absence of proper nouns
-   - uniform phase tables (phase 1 / phase 2 / phase 3 laid out identically)
+   - uniform phase tables
    - identical bullet cadence
    - three-part parallel constructions
-   - template diction ("structural problem", "capacity transfer", "civic backing" and that family of abstraction)
+   - template diction ("structural problem", "capacity transfer", "civic backing" and that family)
    - pseudo-precise figures with no derivation
    - targets a reader cannot trace to a source
-   - arithmetic that does not close, including unit mismatches (per-head costs, FTE vs headcount, months vs sessions, percentages of the wrong base)
+   - arithmetic that does not close, including unit mismatches
    - reads machine-generated
 
-D. ARITHMETIC. Recompute every number in every document: budget lines against their stated total, the overhead line against the 12 per cent cap on direct costs, the request against the GBP 25,000-75,000 band, participant counts against per-head costs, cohort sizes against retention and progression figures, sessions against months. State per document whether the totals close, and show the sums you did.
+4. RECOMPUTE EVERY NUMBER in each document - budget lines against totals, the 12 per cent overhead cap against direct costs, per-participant costs, cohort sizes against headline totals, percentages against their bases, durations against the 18-month ceiling, the requested amount against the GBP 25,000-75,000 band. State for each document whether the totals CLOSE or DO NOT CLOSE, and show the failing sums.
 
-E. FINALLY. Do these four read as four different applicants, or as one system producing four outputs? Say which, and say what specifically made you decide.
+5. FINALLY: do these four read as four different applicants, or as one system producing four outputs? Answer directly and say what evidence in the text decides it for you.

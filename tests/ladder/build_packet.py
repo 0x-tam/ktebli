@@ -17,7 +17,7 @@ import sys, io, os, hashlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DOCS, PKTS = os.path.join(HERE, "documents"), os.path.join(HERE, "packets")
-REF = os.path.join(PKTS, ".prompt-n09-critic_a.txt")
+REF = os.path.join(PKTS, "prompt-n09-critic_a.txt")
 
 def _frame():
     ref = open(REF, encoding="utf-8").read().split("\n")
@@ -42,10 +42,10 @@ def build(rung, order):
 
 def verify():
     # (rung, order, packet file it must reproduce byte for byte)
-    known = [("n06thin", "BDCA", ".prompt-n06thin-critic_a.txt"),
-             ("n06thin", "DCAB", ".prompt-n06thin-critic_b.txt"),
-             ("n12",     "BACD", ".prompt-n12-critic_a.txt"),
-             ("n12",     "BDAC", ".prompt-n12-critic_b.txt")]
+    known = [("n06thin", "BDCA", "prompt-n06thin-critic_a.txt"),
+             ("n06thin", "DCAB", "prompt-n06thin-critic_b.txt"),
+             ("n12",     "BACD", "prompt-n12-critic_a.txt"),
+             ("n12",     "BDAC", "prompt-n12-critic_b.txt")]
     fail = 0
     for rung, order, name in known:
         built = hashlib.md5(build(rung, order).encode()).hexdigest()

@@ -85,7 +85,12 @@ def main():
 
     print("== 1. structural: every packet decodes to its own recorded map ==")
     packets = sorted(glob.glob(os.path.join(PKT_DIR, ".packet-*.txt")) +
-                     glob.glob(os.path.join(PKT_DIR, ".prompt-*.txt")))
+                     glob.glob(os.path.join(PKT_DIR, ".prompt-*.txt")) +
+                     glob.glob(os.path.join(PKT_DIR, "packet-*.txt")) +
+                     glob.glob(os.path.join(PKT_DIR, "prompt-*.txt")))
+    if not packets:
+        print("  FAIL: no packets found at all -- a glob matching zero files is a silent pass")
+        fail = 1
     for path in packets:
         base = os.path.basename(path)
         text = open(path, encoding="utf-8").read()
@@ -97,7 +102,7 @@ def main():
             key, _how = match(body)
             rung, arm = key.rsplit("-", 1)
             rungs.add(rung); derived += arm
-        mapfile = os.path.join(PKT_DIR, ".map-" + base.split("-", 1)[1])
+        mapfile = os.path.join(PKT_DIR, ".map-" + base.lstrip(".").split("-", 1)[1])
         recorded = open(mapfile).read().strip().replace(" ", "") if os.path.exists(mapfile) else None
         md5 = hashlib.md5(text.encode()).hexdigest()
         if recorded is None:

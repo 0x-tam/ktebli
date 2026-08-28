@@ -67,3 +67,5 @@ ecb3be4271118d3788ba3d097d4d7adf  meta-n12-B.json
 17391fec965bc76ff3be7b394867171a  meta-n12-C.json
 c5da6765dea30516ec4bfdc079b0105f  meta-n12-D.json
 11e3f43e393f23c9173d260ddde340df  org.json
+c0e60d5d437bbad113b4d7031ece3c31  prompt-n03-critic_b.txt
+27638a4f0575ba56922641acfad75067  prompt-n09-critic_b.txt
