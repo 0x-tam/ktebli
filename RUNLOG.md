@@ -338,3 +338,19 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   strangers without rejecting legit sites; verifies inv4.3/inv6 mechanism is really wired,
   not just imported; no-weakening check). On PASS: merge, then batch-resume the 5
   attackers for written concessions, then finalize handoff.
+
+## 2026-08-28 — fix critic+re-attack: SEND BACK on 2 fresh holes
+
+- Critic re-executed all 7 adv2 + 10 round-1 + full suite (green) AND re-attacked each fix.
+  REPELLED: inv5, inv6, inv8, inv4.2, inv4.3, inv3.2. Confirmed both DEEP mechanisms genuinely
+  wired (resolveRegister called at index.ts:2263 + register_derivations in prompt; 11 axes in
+  composedStyleNote reaching both generation paths, hash not narrowed). Two obsoleted test
+  assertions confirmed strengthened-not-weakened.
+- TWO FRESH HOLES (not closed until they survive re-attack):
+  * inv3.3 (dangerous): single-distinctive-token org names (Shelter/Mind/Scope…) still admit
+    strangers — for want.size===1, `want.every(t=>host.includes(t))` is a bare substring test;
+    Shelter→shelterlogic.com admits. Identical-single-token-set branch admits Bright→"Bright Ltd".
+  * inv4.1: denominator-identity guard anchors only the LEFT edge; "share of cost overrun"/cost
+    node resolves 0.75 (the wrong-denominator defect).
+  Sent back with exact fixes + regression assertions. Non-blocking residuals noted (inv3.1
+  exotic phone formats behind the LLM ledger; inv5 no-space non-CJK scripts).
