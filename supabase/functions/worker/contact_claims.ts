@@ -81,16 +81,40 @@ const LABELLED = new RegExp(
 const EMAIL = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 const IBAN = /\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]{4}){2,7}\b/g;
 const URL = /\bhttps?:\/\/[^\s)<>\]]+/gi;
-// A domain is a contact detail whether or not the generator typed a scheme. The TLD set
-// is closed on purpose: an open `\.[a-z]{2,}` would read "e.g." and "i.e." as hostnames
-// and bury the signal in noise. The lookbehind keeps the host inside an email address
-// from being reported a second time as a website.
+// A domain is a contact detail whether or not the generator typed a scheme. SHAPE, not
+// a TLD allow-list, decides: a closed TLD set (org/com/net/...) let a fabricated
+// mashghal-project.io or mashghal.ly walk straight through, and invariant 3 does not
+// care which registry a fabricated site sits in. The TLD is now any run of >=2 letters;
+// what keeps "e.g." and "i.e." out is the FIRST-label rule — [a-z0-9][a-z0-9-]{1,62}
+// requires the label before the (first) dot to be at least two characters, which a
+// single-letter abbreviation ("e", "i", "a") can never satisfy. Multi-part public
+// suffixes (org.uk, com.lb) are still matched through the middle-label repetition. The
+// lookbehind keeps the host inside an email address from being reported twice.
+// Residual, fail-closed: a filename in prose (budget.xlsx) can be read as a host and
+// HELD — the safe direction for a blocking grounding gate; a fabricated site must never
+// pass because its TLD was not on a list.
 const BARE_HOST =
-  /(?<![@\w.-])(?:www\.)?[a-z0-9][a-z0-9-]{1,62}(?:\.[a-z0-9-]{2,63})*\.(?:org|com|net|ngo|int|edu|gov|info|charity|foundation|org\.[a-z]{2}|co\.[a-z]{2}|com\.[a-z]{2}|ac\.[a-z]{2})\b/gi;
+  /(?<![@\w.-])(?:www\.)?[a-z0-9][a-z0-9-]{1,62}(?:\.[a-z0-9-]{2,63})*\.[a-z]{2,24}\b/gi;
 // An international dialling number needs no label to be a contact detail: "Reach the
 // coordinator on +961 6 431 227" states one. The leading "+" is required, which is what
 // keeps budgets, beneficiary counts and years out of this pattern.
 const INTL_PHONE = /\+\d[\d \t().-]{5,}\d/g;
+
+// A DOMESTIC dialling number needs no label and no "+" either: "Call the coordinator on
+// 06 431 227" states one, and anchoring detection on a label ("Reception:", "Enquiries",
+// "Head office line:") or a separator ("WhatsApp IS 06...") let every un-listed field
+// name walk a fabricated number through. So the SHAPE is the anchor, not the label.
+// Phone shape = two or more digit groups (2-5 digits each) joined ONLY by spaces, dots,
+// dashes or parens, with >= 7 digits in total (enforced by minNorm on push). What this
+// deliberately excludes, so ordinary proposal prose raises nothing:
+//   * comma-grouped thousands ("USD 21,000", "1,250 households") — comma is not a group
+//     separator here, so such a number is a single group and never a phone;
+//   * a slashed registration/date ("1487/2019") — "/" is not a separator, and the
+//     leading guard refuses a run that begins right after a digit, comma, slash or dot;
+//   * a bare year or count ("2019", "216 people", "24 months") — one group, never >= 2.
+// Residual, fail-closed: a SPACE-grouped number ("1 500 000") is phone-shaped and would
+// be HELD for review — the safe direction for a blocking grounding gate.
+const PHONE_SHAPE = /(?<![\d,/.])(?:\(?\d{2,5}\)?[ \t.\-]){1,5}\d{2,5}(?!\d)/g;
 
 // All of the above are module-level and carry /g. `String.prototype.matchAll` iterates
 // over an internal clone and never advances the original's lastIndex, so they are safe
@@ -171,6 +195,9 @@ export function contactClaims(md: string): ContactClaim[] {
   for (const m of md.matchAll(URL)) push("url", m[0], m[0]);
   for (const m of md.matchAll(BARE_HOST)) push("url", m[0], m[0]);
   for (const m of md.matchAll(INTL_PHONE)) push("telephone", m[0], m[0]);
+  // A domestic number is a phone only if it carries phone-length digits; minNorm 7
+  // drops a two-group four-digit accident while keeping "06 431 227" (8 digits).
+  for (const m of md.matchAll(PHONE_SHAPE)) push("telephone", m[0], m[0], 7);
   return out;
 }
 
