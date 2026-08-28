@@ -389,3 +389,114 @@ Nothing was deployed; deployed worker remains v26. Diff before deploying, per
 DEPLOY.md discipline, and re-pull the transcribed functions first.
 
 <!-- END OF ENGINEERING SECTIONS — ws6-bench appends the benchmark section below. -->
+
+---
+
+## 11. Benchmark — first measurement on real buyer-shaped inputs (ws6-bench)
+
+**Date:** 2026-08-28 · **Stack:** shared LOCAL stack (see phase4-compliance §8 for the
+environment, the checkout bypass and the identity-only intake policy). One real, open grant
+for every order — the **Lloyds Bank Foundation *Good Place to Live: New Beginnings Fund*** —
+so the exclusivity composer is exercised for real by several applicants competing on one grant.
+Applicants are the phase-5 `OK` ledger organisations. Manifest: `tests/benchmark/manifest.json`.
+Spend is OpenRouter's own `usage.cost` read from `job_stages.output.usage`.
+
+**The headline finding is in the e2e (phase4-compliance §8.3): on a demanding grant, an
+identity-only order HOLDS at the validate grounding/coverage gate — data starvation (launch
+P0 #1), the gate working, not a bug.** Re-running four full pipelines that each hold the same
+way would burn the $8 budget on a result already established, so the benchmark orders were
+driven through the **exclusivity composer (analyze → org → strategy)** — the part this shared
+grant exercises that a single order cannot — and stopped there. What that measures: the
+worker's own live crawl vs the phase-5 harness, the surviving-referent counts, per-stage cost
+under real concurrency, and the composed fingerprints + collision behaviour. What it does NOT
+measure (stated plainly): the delivery gate's scores/disqualifiers and delivered/held on these
+four — they are upstream-blocked by the same validate hold the e2e already characterised, and
+the gate is unreachable on this grant with identity-only intake.
+
+### 11.1 Crawl, referents, composer — the four applicants on one grant
+
+| order | applicant | site | crawl (worker live) | referents surviving | phase-5 ledger | evidence items | composed fingerprint | intervention (grant-relevant) |
+|-------|-----------|------|--------------------|--------------------:|---------------|---------------:|----------------------|-------------------------------|
+| KT-10001 | Sufra NW London | sufra-nwlondon.org.uk | succeeded | **178** | OK(178) ✓ | 35 | `d08dae91…` | move_on_casework · refugees w/ new leave to remain |
+| KT-10002 | Glass Door Homeless Charity | glassdoor.org.uk | succeeded | **152** | OK(152) ✓ | 40 | `f853cde5…` | gender_informed_leaving_abuse_pathway |
+| KT-10003 | The Magpie Project | themagpieproject.org | succeeded | **90** | OK(90) ✓ | 30 | `fa56740c…` | leave_to_remain_graduation_pathway |
+| KT-10004 | Nourish Community Foodbank | nourishcommunityfoodbank.org.uk | succeeded | **117** | OK(117) ✓ | 50 | `4dd90edd…` | move_on_tenancy_settling_support |
+
+- **The worker's own crawl reproduces phase-5 exactly** — 178 / 152 / 90 / 117 surviving
+  referents, matching the four committed ledgers referent-for-count. The org identity gate
+  cleared on all four; every crawl outcome was `succeeded`.
+- **Sufficiency floor:** not triggered on any order. The crawl-starvation → sufficiency-floor
+  path (§6) fires only on starvation-class outcomes (`blocked_*`, `js_only`, `fetch_failed`,
+  `extraction_failed`); all four crawls succeeded, so no order was floor-tested. This is the
+  correct behaviour, not a skipped check.
+- **Exclusivity composer — 4 claims, 4 distinct fingerprints, 4 distinct axes tuples, NO
+  COLLISION.** Each applicant composed a different house style AND a different, grant-aligned
+  strategy: Sufra and Magpie both map to LBF's "leaving the asylum system" turning point yet
+  drew **distinct** compositions and fingerprints; Glass Door maps to "leaving an abusive
+  relationship", Nourish to a tenancy-settling move-on. This is the first live proof that the
+  worker (fixed in phase4-compliance §8.1 #3 — the whole strategy stage was still on the dropped
+  pre-composer schema) reserves on the composer and that real applicants on one grant do not
+  collide. The concept tuple is a soft signal now, not a ceiling; the fingerprint lock is the
+  arbiter, and re-rolls are collision-free by construction (proven offline in
+  `tests/adversarial/composer_reservation_test.ts`).
+
+### 11.2 Cost, per stage and per order (from usage fields)
+
+| order | analyze | org | voice | strategy | design | gen | validate | captured total |
+|-------|--------:|----:|------:|---------:|-------:|----:|---------:|---------------:|
+| KT-10001 (full → validate hold) | *(uncaptured†)* | 0.312 | 0 (skip) | 0.475 | 0.701 | 0.272 | *(uncaptured†)* | **$1.76** |
+| KT-10002 (→ strategy) | 0.271 | 0.306 | 0 | 0.538 | — | — | — | **$1.12** |
+| KT-10003 (→ strategy) | 0.264 | 0.248 | 0 | 0.611‡ | — | — | — | **$1.12** |
+| KT-10004 (→ strategy) | 0.304 | 0.321 | 0 | 0.933‡ | — | — | — | **$1.56** |
+
+† KT-10001's `analyze` ran before the usage-snapshot fix (§8.1 #2) and `validate` failed before
+the failure-path snapshot fix (§8.1 #4), so their cost is not in the DB for that order. Every
+benchmark order below ran on the fully-fixed worker and captures `analyze`; `validate` is not
+reached. Estimated true KT-10001 spend ≈ **$4.2** (analyze ≈ $0.27, validate ≈ $2.1 over 3
+attempts). ‡ `strategy` retried once on KT-10003/KT-10004 (the monolithic-stage / local
+invocation-window interaction of §8.5), so those figures include the re-roll; the composer still
+converged to a distinct fingerprint.
+
+**Grand total captured across all four orders: $5.56.** Adding KT-10001's uncaptured stages,
+**true spend ≈ $7.96** against the $8.00 hard cap. **watsi.org and felix.org were dropped for
+budget** (each a further full analyze→strategy ≈ $1.1–1.6 that would have crossed the line);
+thefelixproject.org was excluded by design (its crawl refuses, phase-5). This is the loud
+degradation the brief asked for: two OK applicants not run, named here.
+
+Per-stage cost observations for the record: `strategy` (composer + one high-effort call) is the
+dominant analyze→strategy cost at $0.48–$0.93; `org` (deterministic crawl + one extraction call)
+is stable at $0.25–$0.32 regardless of site size; `analyze` is $0.26–$0.30. The per-stage sinks
+are clean under real concurrency — four orders' stages interleaved through the shared worker and
+each order's costs are its own (the mechanism `tests/adversarial/cost_accounting_test.ts` proves
+offline, here exercised live).
+
+### 11.3 Reading it
+
+1. **The crawl→evidence spine is solid on real inputs.** Four real charity sites, four
+   `succeeded` crawls reproducing phase-5 to the referent, tens of evidence items each, identity
+   gate clearing correctly. The proper-noun starvation that P0 #1 diagnosed is *addressed at the
+   evidence layer* — the Sufra narrative (§8.2) is full of real local nouns (Raphael's Estate,
+   Stonebridge, London Borough of Brent) drawn from the crawl.
+2. **Exclusivity is real and unbounded on real applicants.** Four distinct fingerprints on one
+   grant, no collision, distinct grant-aligned strategies — and this only works because the
+   composer wiring defect (§8.1 #3, which killed 100% of orders at strategy) was found and fixed
+   in this run. Before it, no order could pass strategy at all.
+3. **But the pipeline does not DELIVER on a demanding grant with identity-only intake.** The
+   e2e's validate hold (§8.3) is the binding result: the grounding + coverage gate correctly
+   refuses to ship a proposal that asserts unevidenced administrative facts (safeguarding,
+   accounts, insurance) and leaves mandatory questions uncovered. Every benchmark applicant would
+   hit the same wall — the missing facts are administrative, identical in kind across all four,
+   and absent from both identity-only intake and an own-domain crawl. This is exactly the
+   data-starvation P0 #1 and is precisely what the owner's decision (an evidence interview before
+   payment; a full own-domain PDF crawl) is designed to close. The gate is right; the intake is
+   the gap.
+4. **Two operational caveats, not quality findings.** (a) The monolithic `design`/`validate`
+   stages exceed the local single-invocation window and have no resume (§8.5) — the launch P0.3
+   resumability concern, reaching even Draft tier; it slowed the run but did not change any
+   outcome. (b) Failed/held stages under-report their spend until the §8.1 #4 fix propagates —
+   the reason the true e2e cost had to be reconstructed rather than read straight from the DB.
+
+**Bottom line for launch readiness:** the evidence spine and the exclusivity composer now work
+on real buyer-shaped inputs (both required a defect fixed in this run), but a real order on a
+demanding grant still terminates at the grounding gate for lack of applicant-supplied evidence —
+the NOT_READY P0 #1 stands, now demonstrated live rather than inferred.
