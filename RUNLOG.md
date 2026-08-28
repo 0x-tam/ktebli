@@ -471,3 +471,32 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   sub-sum of the 120k total) → 0.75 vs honest 0.675. Fixed (9ee6bc7): sibling escape now
   requires den's leaves DISJOINT from num's. overhead/direct still resolves; part-of-a-
   larger-part refused. A17 green, full suite green. Final concession requested. inv3 done.
+
+## 2026-08-28 — ADVERSARIAL ROUND COMPLETE
+
+Both hard invariants conceded in writing after driving each to its deterministic-
+irreducibility boundary:
+- inv4 CONCEDED (6 rounds): all reachable classes RE-1..RE-6 closed and re-attack-proven
+  (wrong-denominator substring, scope-reframe symmetric, partial sub-aggregate leaf-set,
+  label-normalization, sub-sum-as-whole disjointness). Article-stripped the backstop per
+  the attacker's refinement. Committed 1fc84ab.
+
+FINAL TALLY (9 invariants, all held or closed, every reachable break re-attack-proven):
+- inv1 delivery gate  HELD (conceded, 10 families)
+- inv2 sufficiency    HELD (conceded, FOR-UPDATE race + RLS proven live)
+- inv3 grounding      CLOSED (6 rounds, conceded; 5 reachable classes; residual documented)
+- inv4 numeric        CLOSED (6 rounds, conceded; 6 reachable classes; residual documented)
+- inv5 compliance     CLOSED (conceded; Unicode counter + zero-width + wrapped backstop)
+- inv6 exclusivity    CLOSED (conceded; all 11 axes reach the writer, 1000/1000 distinct)
+- inv7 no-human       HELD (orchestrator audit)
+- inv8 loop/notify    CLOSED (conceded; material-floor wired + notify-last)
+- inv9 observability  HELD (orchestrator audit; immutability + live per-stage cost/events)
+
+Full suite ALL SUITES PASSED on trunk. Balance $10.15 (adversarial round ~$0, deterministic).
+Residuals: reports/adversarial/residual-boundary.md (inv3 topical-stem containment; inv4
+crafted-undeclared-part-whole with token-disjoint synonym) — both asymmetric-safe, backstopped
+by the LLM Claim Ledger. THE META-FINDING stands: every break shared "round 1 built a sound
+isolated mechanism and never wired the verdict into the decision/generation path."
+
+Remaining: phase 7 handoff finalization (fill the adversarial line + meta-finding + residuals),
+clean up agent worktrees, final commit. Then DONE.
