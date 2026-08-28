@@ -1491,6 +1491,63 @@ function normalizeClaims(claims: unknown): Array<Record<string, unknown>> {
 }
 // ---- CLAIM-NORMALISE-END
 
+// ---- COMPOSER-BEGIN
+// The strategy stage's reservation, on the unbounded composer (migration
+// 20260826160000). Found live by the phase-6 e2e: the pre-composer stage walked
+// an 8x8 structural_template/opening_device pool whose columns that migration
+// DROPPED, so its taken-set select 400'd and no order could pass strategy at
+// all. This composes an exclusive house style across the composition_axes and
+// reserves it by fingerprint, re-rolling on a race exactly as the migration
+// header and tests/exclusivity/ceiling_test.sql describe the worker doing.
+type AxisOption = { code: string; requires_evidence: boolean; prompt_directive: string };
+function fnv1a(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return h >>> 0;
+}
+// Deterministic pick: the option whose seeded hash is smallest. Same seed -> same
+// choice (reproducible), and the seed carries the re-roll counter so a race draws
+// a genuinely different composition rather than spinning on the same one.
+function pickBySeed(options: AxisOption[], seed: string): AxisOption {
+  let best = options[0], bestH = 0xffffffff;
+  for (const o of options) { const h = fnv1a(seed + "|" + o.code); if (h <= bestH) { bestH = h; best = o; } }
+  return best;
+}
+// The canonical form that is hashed: sorted keys, codes and integers only — the
+// migration's contract for claims.fingerprint ("never a hash of free text: two
+// compositions differing only in wording produce the same digest"). Reproducible
+// from the stored axes row.
+function canonicalAxes(axes: Record<string, string | number>): string {
+  return JSON.stringify(Object.keys(axes).sort().map((k) => [k, axes[k]]));
+}
+async function sha256Hex(s: string): Promise<string> {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+// One composition draw: a code per axis (evidence-requiring codes excluded when
+// the applicant has no allowed evidence, so nothing invites an anecdote it has no
+// ledger for) plus three integer grids that widen the space so a re-roll always
+// finds a free fingerprint. Returns the axes to hash, the prose realisation to
+// store (never hashed), and the fingerprint.
+async function composeDraw(
+  byAxis: Map<string, AxisOption[]>, hasEvidence: boolean, seedBase: string,
+): Promise<{ axes: Record<string, string | number>; composition: Record<string, string>; fingerprint: string }> {
+  const axes: Record<string, string | number> = {};
+  const composition: Record<string, string> = {};
+  for (const axis of [...byAxis.keys()].sort()) {
+    let opts = byAxis.get(axis)!;
+    if (!hasEvidence) { const f = opts.filter((o) => !o.requires_evidence); if (f.length) opts = f; }
+    const choice = pickBySeed(opts, seedBase + "|" + axis);
+    axes[axis] = choice.code;
+    composition[axis] = choice.prompt_directive;
+  }
+  axes["move_order"] = fnv1a(seedBase + "|mo") % 997;
+  axes["cadence_mu"] = 8 + (fnv1a(seedBase + "|cad") % 20);
+  axes["weight_profile"] = fnv1a(seedBase + "|wp") % 997;
+  return { axes, composition, fingerprint: await sha256Hex(canonicalAxes(axes)) };
+}
+// ---- COMPOSER-END
+
 async function runStage(stage: { stage_id: number; proposal_id: string; key: string; attempt?: number }) {
   const stageUsage = newUsage();
   const beat = () => patch(`job_stages?id=eq.${stage.stage_id}`, { heartbeat_at: new Date().toISOString() }).catch(() => {});
@@ -1888,13 +1945,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     // the life of the grant. This releases only a claim this proposal could
     // legitimately own; a genuine second concurrent order from the same
     // organisation is untouched and stays blocked. It must run BEFORE takenRows
-    // is read, so the freed template and opening are visible to this same run.
+    // is read, so the freed composition is visible to this same run.
     await rpc("release_stranded_claim", { p_proposal: stage.proposal_id }).catch(() => {});
     let vp = (await sel(`voice_profiles?organisation_id=eq.${c.order.organisation_id}&select=id&limit=1`))[0];
     if (!vp) vp = await ins("voice_profiles", { organisation_id: c.order.organisation_id, kind: "custom", profile: {} });
     // Reserved approaches on this grant: ABSTRACT strategy records only — never
     // another customer's text, name, or facts (contract parts 17/43).
-    const takenRows = await sel(`claims?grant_id=eq.${grantId}&status=in.(hold,confirmed)&select=intervention_type,delivery_method,beneficiary,geography_bucket,signature_mechanic,structural_template_id,opening_device_id,strategy`);
+    const takenRows = await sel(`claims?grant_id=eq.${grantId}&status=in.(hold,confirmed)&select=intervention_type,delivery_method,beneficiary,geography_bucket,signature_mechanic,axes,composition,fingerprint,strategy`);
     const takenAbstract = takenRows.map((t: Record<string, unknown>) => ({
       intervention_type: t.intervention_type, delivery_method: t.delivery_method,
       beneficiary: t.beneficiary, geography_bucket: t.geography_bucket,
@@ -1931,9 +1988,20 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     const ranking = (rankingParsed ? s.ranking as number[] : candidates.map((_, i) => i))
       .filter((i) => Number.isInteger(i) && i >= 0 && i < candidates.length);
     const rejected: Array<Record<string, unknown>> = [];
-    const usedT = new Set(takenRows.map((t: Record<string, number>) => t.structural_template_id));
-    const usedO = new Set(takenRows.map((t: Record<string, number>) => t.opening_device_id));
-    let claimed: Record<string, unknown> | null = null;
+    // The composition vocabulary (unbounded_composer). The pre-composer 8x8
+    // template/opening pool is gone; the fingerprint lock is the sole arbiter.
+    const axisRows = await sel(`composition_axes?active=eq.true&select=axis,code,requires_evidence,prompt_directive`);
+    const byAxis = new Map<string, AxisOption[]>();
+    for (const r of (Array.isArray(axisRows) ? axisRows : []) as Array<Record<string, unknown>>) {
+      const a = String(r.axis);
+      if (!byAxis.has(a)) byAxis.set(a, []);
+      byAxis.get(a)!.push({ code: String(r.code), requires_evidence: r.requires_evidence === true, prompt_directive: String(r.prompt_directive) });
+    }
+    if (!byAxis.size) throw new Error("composition axes vocabulary is empty");
+    const hasEvidence = allowedEvidence.length > 0;
+    let claimed:
+      | { claim_id: string; axes: Record<string, string | number>; composition: Record<string, string>; fingerprint: string }
+      | null = null;
     let selected: Record<string, unknown> | null = null;
     for (const idx of ranking) {
       const cand = candidates[idx];
@@ -1941,29 +2009,31 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       const dist = (cand.distinctness as { vs_reserved?: string } | undefined)?.vs_reserved ?? "clear";
       if (feas < 40) { rejected.push({ idx, reason: "infeasible", feasibility: feas }); continue; }
       if (dist === "same") { rejected.push({ idx, reason: "not_distinct_from_reserved" }); continue; }
-      // transactional reservation — the DB partial unique indexes are the race arbiter
-      for (let tpl = 1; tpl <= 8 && !claimed; tpl++) {
-        if (usedT.has(tpl)) continue;
-        for (let op = 1; op <= 8 && !claimed; op++) {
-          if (usedO.has(op)) continue;
-          const res = await rpc("claim_approach", {
-            p_org: c.order.organisation_id, p_grant: grantId,
-            p_intervention: cand.intervention_type, p_delivery: cand.delivery_method,
-            p_beneficiary: cand.beneficiary, p_geography: cand.geography_bucket,
-            p_mechanic: cand.signature_mechanic, p_template: tpl, p_opening: op,
-            p_voice: vp.id, p_voice_kind: "custom",
-          });
-          if (res.granted) { claimed = { claim_id: res.claim_id, template: tpl, opening: op }; selected = cand; break; }
-          if (["sanctions_screening", "existing_claim_same_org"].includes(res.blocked_by)) {
-            throw new Error("claim blocked: " + res.blocked_by);
-          }
-          if (res.blocked_by === "concept_combination") {
-            // another customer holds this exact concept combination — try next candidate
-            rejected.push({ idx, reason: "concept_combination_taken" });
-            break;
-          }
+      // Draw, hash, insert; on fingerprint_taken re-roll with a DIFFERENT draw.
+      // Nobody waits and nobody is refused for a race: the composed space is
+      // astronomically larger than any grant's applicant count. The concept
+      // tuple is no longer a hard lock (it was demoted to a soft signal), so a
+      // feasible, distinct candidate is always placeable.
+      for (let reroll = 0; reroll < 50 && !claimed; reroll++) {
+        const seedBase = `${c.order.organisation_id}|${idx}|${String(cand.intervention_type ?? "")}|${reroll}`;
+        const draw = await composeDraw(byAxis, hasEvidence, seedBase);
+        const res = await rpc("claim_approach", {
+          p_org: c.order.organisation_id, p_grant: grantId,
+          p_intervention: cand.intervention_type, p_delivery: cand.delivery_method,
+          p_beneficiary: cand.beneficiary, p_geography: cand.geography_bucket,
+          p_mechanic: cand.signature_mechanic,
+          p_fingerprint: draw.fingerprint, p_axes: draw.axes, p_composition: draw.composition,
+          p_resolution: 1, p_voice: vp.id, p_voice_kind: "custom",
+        });
+        if (res.granted) { claimed = { claim_id: res.claim_id, ...draw }; selected = cand; break; }
+        if (["sanctions_screening", "existing_claim_same_org"].includes(res.blocked_by)) {
+          throw new Error("claim blocked: " + res.blocked_by);
         }
-        if (rejected.at(-1)?.idx === idx && rejected.at(-1)?.reason === "concept_combination_taken") break;
+        if (res.blocked_by === "fingerprint_taken") continue; // a race — re-roll
+        // malformed_fingerprint / unknown_unique_violation: not a race and not
+        // recoverable by spinning; record and move to the next candidate.
+        rejected.push({ idx, reason: String(res.blocked_by ?? "claim_refused") });
+        break;
       }
       if (claimed) break;
     }
@@ -1985,11 +2055,15 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     await rpc("confirm_claim", { p_claim: claimed.claim_id });
     await patch(`claims?id=eq.${claimed.claim_id}`, { strategy: selected });
     await patch(`order_proposals?id=eq.${stage.proposal_id}`, { claim_id: claimed.claim_id });
-    const tplRow = (await sel(`structural_templates?id=eq.${claimed.template}&select=name,description`))[0];
-    const opRow = (await sel(`opening_devices?id=eq.${claimed.opening}&select=name,description`))[0];
+    // The writer's shape + opening directives come from the composed axes now
+    // (structural_templates/opening_devices are DEPRECATED by 20260826160000).
+    // Kept under template_style/opening_style so the gen:narrative styleNote
+    // consumer needs no change.
     return done({
-      selected, claim_id: claimed.claim_id, template: claimed.template, opening: claimed.opening,
-      template_style: tplRow, opening_style: opRow,
+      selected, claim_id: claimed.claim_id,
+      fingerprint: claimed.fingerprint, axes: claimed.axes, composition: claimed.composition,
+      template_style: { name: claimed.axes.spine, description: claimed.composition.spine ?? null },
+      opening_style: { name: claimed.axes.opening_move, description: claimed.composition.opening_move ?? null },
       candidate_count: candidates.length, rejected, ranking_reason: s.ranking_reason ?? null,
       ...(rankingParsed ? {} : { ranking_unparsed: true }),
       reserved_count_at_selection: takenRows.length, usage: { ...stageUsage },
