@@ -133,7 +133,7 @@ before deploying.
 ## 3. WS4a's open fix-specs in worker/index.ts
 
 All proofs: **DENO-EXTRACT**, `tests/adversarial/parser_silent_pass_wiring_test.ts`
-(43 assertions, ALL HELD) — the fixed predicates live in marked blocks that the
+(38 printed assertions from 34 ok() sites, ALL HELD; an earlier draft said 43 — the critic recounted) — the fixed predicates live in marked blocks that the
 suite extracts from the real source and executes; glue asserted by source.
 
 | spec | change | where |

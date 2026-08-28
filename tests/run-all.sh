@@ -25,6 +25,7 @@ run "crawler outcome taxonomy"             $DENO run "$REPO/tests/crawl-outcome/
 run "donor-scoped word limit"              $DENO run --allow-read "$REPO/tests/word-limit/word_limit_test.ts"
 run "referent weight"                      $DENO run --allow-read "$REPO/tests/referent-weight/referent_weight_test.ts"
 run "donor limit literal forms"            $DENO run --allow-read "$REPO/tests/donor-limits/donor_limits_test.ts"
+run "hold-class notifications and wordings" bash "$REPO/tests/notifications/run.sh"
 # Written by agents trying to BREAK each invariant. All four broke it on first contact
 # and every one of these failed against the code as shipped. They stay in the suite.
 for t in "$REPO"/tests/adversarial/*_test.ts; do
