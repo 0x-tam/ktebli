@@ -83,6 +83,8 @@ FINGERPRINTS = [
     ("n06",      "critic_a", 4, "C", r"90 young people"), # "90 young people ... four times the pilot"
     ("n09",      "critic_a", 1, "B", r"\b66\b"),      # "36 enrolments from 66 starters"
     ("n09",      "critic_b", 2, "A", r"\b76\b"),      # "76 starters are not derived"
+    ("n12",      "critic_a", 1, "B", r"44 of 50"),      # "44 of 50 completers accompanied"
+    ("n12",      "critic_a", 3, "C", r"5,?120"),        # "total 5,124, not the claimed 5,120"
 ]
 
 def main():

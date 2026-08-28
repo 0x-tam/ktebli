@@ -1,113 +1,89 @@
-# Phase 1 — STOPPED. No verdict was obtained, and no call was made.
+# Phase 1 — ten verdicts. COMPLETE: 10/10, zero MISSING, zero SUBSTITUTE.
 
-**Date:** 2026-08-27 · **Spend this run: $0.00** · **Balance $25.10 before and after**
-(total_credits $45.00, total_usage $19.8987 — unchanged, because nothing was sent).
+**Date:** 2026-08-28 · **Host:** Jarvis · **Run spend: $0.4511** (usage fields) · **Balance $24.92 → $24.55**
 
-This file is a STOP record, not a set of verdicts.
+Supersedes the 2026-08-27 STOP record (preserved in git history). Every model call went
+direct to `/chat/completions` with `stream: true`, generation id captured from the first
+chunk, blinding derived from packet bytes at read time, verdict written to disk the moment
+it landed. Runner: `tests/ladder/run-phase1.py`, unmodified. Critics are the original
+models: `openai/gpt-5.6-sol` (critic_a), `x-ai/grok-4.6` (critic_b), at
+`reasoning_effort: low`, `max_tokens: 8000` — matching every previously landed cell.
 
-## Where this stopped, and why
+## Pre-flight (before any paid call)
 
-At the first model call. Two independent blockers, either one sufficient:
+- `bytematch.py` byte-verified the 3 previously landed verdicts in `tests/ladder/verdicts/`
+  plus the corrected n06/critic_b decode (DCAB): all content fingerprints ok.
+- Its structural pass was found to be globbing dotted scratch-names and so checked **zero
+  packets while printing OK** — the silent-pass class again. Fixed; an empty glob now fails
+  loudly. All packets then derived to the README's recorded permutations.
+- The hand-built `prompt-n03-critic_b.txt` carried a fifth delimiter style; rebuilt with the
+  verified builder (`build_packet.py`, re-verified byte-for-byte against 4 sent packets) at
+  the same order, BADC. The lost `n09/critic_b` packet was rebuilt at DACB so the two
+  critics do not share a document order on that rung.
+- The landed `n06thin/critic_a` verdict was staged into `tests/ladder/verdicts/` so the
+  runner could not re-bill that cell.
 
-1. **`openrouter.ai` and `api.openrouter.ai` are denied by this session's egress policy** —
-   `403 to CONNECT`, logged at `15:45:34Z` by the session proxy, whose own README states a
-   403 is an organisation policy denial that must be reported rather than retried or routed
-   around. Operating rule 4 requires these calls to go direct over HTTP. They cannot leave
-   this machine.
-2. **There is no OpenRouter key on this machine.** `stack/.env` does not exist, no
-   `OPENROUTER_*` variable is set, and a key must not be taken out of production.
+## The ten cells
 
-**The MCP path was not used, deliberately.** Rule 4 forbids it and the last run is why: seven
-calls were accepted, generated and billed upstream, then discarded by the MCP server's
-60-second ceiling with no generation id, so $0.9521 bought nothing. Sending them that way
-again would have spent real money at the same odds. The balance check that rule 3 requires
-was made through the MCP server's read-only credit endpoint — a metadata read, not a model
-call, and the only thing that endpoint was used for.
+| rung | critic | source | order (derived) | generation id | cost |
+|---|---|---|---|---|---|
+| n03 | critic_a | **DIRECT, this run** | CBAD | gen-1787902200-3wtPr1xWjC1mMRsKNIMl | $0.1079 |
+| n03 | critic_b | **DIRECT, this run** | BADC | gen-1787902295-2qUhdyqtkkGqCRX2RmRF | $0.0377 |
+| n06 | critic_a | **DIRECT, this run** | BDAC | gen-1787902331-8Bg2dIKuu92LtL9bdpdR | $0.0802 |
+| n06 | critic_b | landed 2026-08-27 | DCAB | gen-1787840048-c19hZOi7SX2UWi8anOFD | (prior run) |
+| n09 | critic_a | **DIRECT, this run** | BDAC | gen-1787902389-xBRsjWLLfQdRl0tylEvh | $0.0953 |
+| n09 | critic_b | **DIRECT, this run** | DACB | gen-1787902463-0l4w7zRXQ764uw2oAdz4 | $0.0426 |
+| n12 | critic_a | **DIRECT, this run** | BACD | gen-1787902502-GSznByML89GFDEYmbdw1 | $0.0873 |
+| n12 | critic_b | landed 2026-08-27 | BDAC | (recorded in file) | (prior run) |
+| n06thin | critic_a | landed 2026-08-27 | BDCA | (recorded in file) | (prior run) |
+| n06thin | critic_b | landed 2026-08-27 | DCAB | (recorded in file) | (prior run) |
 
-**Note the pattern.** Three runs, three different transports, none of which reached a verdict:
-a key spend cap (2026-08-26), the MCP 60-second ceiling (2026-08-27 am), an egress policy
-denial (now). Credit has never been the binding constraint. Transport always has.
+**MISSING: 0. SUBSTITUTE: 0.** No stream died; no retry was needed.
 
-## Verdict inventory — 4 landed, 6 outstanding
+Every DIRECT verdict's decoding was then confirmed by **content fingerprint**: a figure the
+critic itself quoted about a specific Doc n, appearing in exactly the arm the derived
+blinding assigns (`bytematch.py`, 20 fingerprints, all ok, exit 0). Ledger facts shared
+across arms were rejected as fingerprints; only derived/computed figures unique to one arm
+were used.
 
-The brief says "3 of 10 landed" and asks for the remaining 7. The count is **4 and 6**: the
-brief's 3 plus the n06/critic_b cell, whose decoding is settled below.
+## Decoded results
 
-| rung | critic_a `openai/gpt-5.6-sol` | critic_b `x-ai/grok-4.6` | packet on disk |
-|---|---|---|---|
-| n03 | OUTSTANDING | OUTSTANDING | critic_a yes · **critic_b: no packet, no map — must be built** |
-| n06 | OUTSTANDING | **LANDED** | both |
-| n09 | OUTSTANDING | OUTSTANDING | both |
-| n12 | OUTSTANDING | **LANDED** | both |
-| n06thin | **LANDED** | **LANDED** | both |
+Arms: **A** pipeline+flash · **B** pipeline+opus · **C** single-prompt+flash · **D** single-prompt+opus.
 
-Every packet and every map, plus the 20 ladder documents and the fixture, existed **only**
-in an ended session's `/tmp` scratch directory. They are now in `tests/ladder/` with an md5
-manifest. Had this container been reclaimed first, no verdict in
-`reports/design/ladder-critics/` could ever have been checked again.
-
-## The retroactive byte-match — this part did complete
-
-Phase 1 requires the byte-match to be applied retroactively to the landed verdicts and
-"hardest" to the corrected n06 result, "which currently favours the shipped default". It
-does not survive.
-
-**Finding: the "DECODING CORRECTED 2026-08-27" banner on `critic-n06-critic_b.md` was itself
-wrong, and it inverted that cell in favour of the pipeline.** The banner claimed critic_a's
-packet (`BDAC`) had been sent, re-decoding the verdict from `D > B > C > A` (funds single
-prompt + opus) to `B > C > D > A` (funds pipeline + opus). The critic's own quoted arithmetic
-settles which document it actually read:
-
-| the critic wrote | figure | occurs in | under `DCAB` | under `BDAC` |
+| rung | critic | ranking (best first) | funds | fundable as submitted |
 |---|---|---|---|---|
-| Doc 4's budget states 55,385, sums to 53,885 | `55,385` | only `out-n06-B.md` | Doc 4 = B ✓ | Doc 4 = C ✗ |
-| Doc 1: 38,840 + 4,660 = 43,500 | `38,840` | only `out-n06-D.md` | Doc 1 = D ✓ | Doc 1 = B ✗ |
+| n03 | a | B > D > C > A | **B** | B |
+| n03 | b | B > D > C > A | **B** | B, D |
+| n06 | a | D > B > C > A | **D** | D |
+| n06 | b | D > B > C > A | **D** | D, C (barely) |
+| n09 | a | D > B > A > C | **D** | D (narrowly) |
+| n09 | b | D > B > C > A | **D** | D, B |
+| n12 | a | B > D > A > C | **B** | B |
+| n12 | b | B > D > C > A | **B** | B |
+| n06thin | a | B > D > C > A | **B** | B |
+| n06thin | b | D > B > C > A | **D** | D, B |
 
-Neither figure appears in any other arm at that rung. `DCAB` fits both, `BDAC` neither. The
-banner is withdrawn in place, with the evidence, and **the original decoding stands: ranking
-`D > B > C > A`, would fund `D`, both pipeline arms not fundable.** `reports/referent-ladder.md`
-§1 and §2 already recorded `DCAB` and need no change — the report was right and the banner
-was wrong, which is the opposite of the direction anyone would have guessed.
+## Cost accounting
 
-All four landed cells were then re-derived from scratch, trusting no `.map-` file:
+Sum of the six calls' `usage.cost` fields: **$0.4511**. Meter: $24.9214 before the first
+call, $24.5492 after the last (delta $0.3722). The two numbers do not reconcile exactly,
+and the meter also moved $0.12 in the ten minutes before the run with no call in flight
+from this machine — the account meter is shared and settles asynchronously, which is
+exactly why rule 4 forbids using it for attribution. Usage-field sum is the recorded spend.
+Budget line: $0.45 of $15.00.
 
-| cell | packet actually read | permutation | how established |
-|---|---|---|---|
-| n06 / critic_b | `.packet-n06-critic_b.txt` | `DCAB` | structure + 2 content fingerprints |
-| n12 / critic_b | `.prompt-n12-critic_b.txt` | `BDAC` | structure + 4 content fingerprints |
-| n06thin / critic_a | `.prompt-n06thin-critic_a.txt` | `BDCA` | structure + 1 content fingerprint |
-| n06thin / critic_b | `.prompt-n06thin-critic_b.txt` | `DCAB` | structure + 4 content fingerprints |
+## The ladder shape, in one paragraph
 
-All 11 packets on disk also decode structurally to their own recorded maps, and every packet
-draws its four documents from exactly one rung — so no cross-rung pairing survives anywhere.
-Re-runnable as `tests/ladder/bytematch.py`; exit 0 today.
-
-Two failure modes are now separated by construction. *Structure* answers "which documents are
-in this file"; only a *content fingerprint* answers "which document did the critic read". The
-n06 banner was produced by a method that could only answer the first, and got the second
-wrong.
-
-## Ladder shape — NOT ESTABLISHED
-
-Four of ten cells, one critic on three of them, one document per cell, no repeat calls. On
-what is in hand: **no movement on the count axis** — arm A is last in all four rankings, arm C
-third in all four, and the winner is always an opus arm, with referent supply changing only
-*which* opus arm wins. With the n06 banner withdrawn the funded arm splits 2–2 between
-pipeline (n12/critic_b, n06thin/critic_a) and single prompt (n06/critic_b, n06thin/critic_b),
-where the banner had made it 3–1 for the pipeline. That is a tie on four judgements, not a
-finding, and it is the strongest statement the evidence supports. Six cells missing, and not
-missing at random — critic_a has answered on exactly one rung, the smallest packet.
-
-## To run this phase
-
-1. Allow `openrouter.ai` and `api.openrouter.ai` through the egress policy.
-2. Put an OpenRouter key in `stack/.env`.
-3. Build the missing `n03 / critic_b` packet: `tests/ladder/build_packet.py n03 <ORDER> <dest>`
-   with an order that is not `CBAD` (critic_a's). That builder reproduces four
-   actually-sent packets byte for byte (`--verify`), so the new packet carries identical
-   framing. The other five packets are already on disk. Do not store the order beside the
-   packet — `bytematch.py` re-derives it.
-4. Original critic models only, one verdict per call, `stream: true`, log the generation id
-   from the first chunk, cost from `usage`, write each verdict to its own file before the
-   next call starts, and run `tests/ladder/bytematch.py` after each — adding that verdict's
-   quoted figures to `FINGERPRINTS` so the next run inherits the check.
+The ladder is **not a ladder on the count axis, and the axis that moves is the mode of the
+winning opus arm, agreed by both critic families within every standard rung.** In all ten
+cells the two opus arms occupy the top two places and the two flash arms the bottom two
+(A last in 8/10, C last in 2/10); referent supply from 3 to 12 never changes that. What it
+changes is *which* opus arm wins, and on every non-thin rung the two families agree: n03 →
+pipeline (B), n06 → single-prompt (D), n09 → single-prompt (D), n12 → pipeline (B). That
+is a 5–5 head-to-head tie between B and D overall (the thin rung splits the critics), so
+fundability tracks neither referent count nor the pipeline — it tracks generator strength
+first (opus arms drew 13 fundable-as-submitted marks across 10 cells; flash arms drew 1,
+"barely"), and mode second with no consistent direction. The specificity contrast (n06 vs
+n06thin at fixed count) moves the winner for critic_a (D→B) but not critic_b (D→D), so it
+discriminates critics, not documents. Fork: **case B — the single prompt matches the
+pipeline** (5–5 with family agreement per rung), and the phase 2 rule applies.
