@@ -316,3 +316,12 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   would reintroduce a ceiling). The two DEEP fixes get mechanism wired + deterministically
   tested; generation-QUALITY halves marked unproven-without-e2e (budget: no full pipeline runs).
 - On its critic+re-attack PASS: merge, then phase 7 handoff finalization.
+
+## 2026-08-28 — consolidation fix owner dropped (connection), resumed
+
+- Fix owner died on a connection error (not session limit) after committing inv5 (Unicode
+  counter + wrapped backstop, 73fdf6d) and the adv2 test pulls; inv8.1 (loop material floor)
+  was complete but uncommitted (correct diff: material wired into LoopAttempt, refuse only on
+  explicit material===false, fraction floor kept). Resumed in-place: commit inv8.1 + run
+  delivery-gate regression, then remaining fixes (inv8.2, inv1, inv3.x, inv4.x, inv6).
+  Instructed to commit each fix as it goes so a re-drop loses at most one fix.
