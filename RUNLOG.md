@@ -462,3 +462,7 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   Claim Ledger, budget-total-as-sum). Both attackers acknowledged the boundary in writing.
 - Final concession requested: concede the boundary, or report a genuinely NEW reachable
   class outside it. Balance $10.15 (adversarial round ~$0, all deterministic).
+- inv3 CONCEDED (6 rounds): attacker's structural proof — 3 admit paths, all requiring
+  >=2 shared distinctive tokens+containment or domain spelling the applicant's own name;
+  stranger with neither is structurally unadmittable. 5 reachable classes closed. Dead
+  `shared` counter removed. Committed 70e48cd. Awaiting inv4 final concession.
