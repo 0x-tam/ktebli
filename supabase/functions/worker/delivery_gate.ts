@@ -748,12 +748,17 @@ const JUDGE_FALLBACK = "z-ai/glm-5.3-flash";
 const JUDGE_SEED = 20260827;
 const JUDGE_TEMPERATURE = 0;
 const JUDGE_EFFORT: "high" = "high";
-// MEASURED 2026-08-28, not guessed: at 3000 the primary judge burned the ENTIRE
-// completion budget on reasoning and returned EMPTY content on a real ladder
-// document (finish=length, content_len=0) — every production call would have
-// parse-failed into an INFRA hold. At 9000 the same call completed naturally at
-// 8907 tokens (finish=stop, parseable). 12000 leaves headroom for longer
-// documents; reasoning_effort stays high per the phase-3 specification.
+// HEADROOM against variable reasoning verbosity — not a deterministic
+// measurement. 2026-08-28: ONE observed call on a real ladder document at 3000
+// burned the entire completion budget on reasoning and returned EMPTY content
+// (finish=length, content_len=0 → a parse failure, i.e. an INFRA hold); an
+// identical re-call under the same settings later completed fine at ~940
+// completion tokens, and a raised budget completed naturally at 8907. Reasoning
+// spend at effort high varies wildly call to call — the same instrument
+// instability the phase-3 validation recorded in per-document verdicts
+// (reports/phase3-gate.md §2). 12000 buys the worst observed case room at
+// ~$0.005/call against the $6 per-order cap; reasoning_effort stays high per
+// the phase-3 specification.
 const JUDGE_MAX_TOKENS = 12000;
 
 interface KeySlot { slot: string; model: string; secret: string }

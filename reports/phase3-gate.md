@@ -23,7 +23,10 @@ to run without a pass recorded for the SHA-256 of the exact text it is about to
 deliver (`gate_verdict_for`, checked again at `index.ts:2224`). Nothing
 customer-visible exists between the gate and the guard, and the guard is the
 "between package and deliver" enforcement in the literal sense: reordering the
-stages cannot smuggle a document past it.
+stages cannot smuggle a document past it. Disclosed: if the guard ever fired,
+its throw would end in the terminal-failure path's generic customer email — an
+acceptable never-reached backstop (a pass is recorded before deliver becomes
+reachable), noted here rather than hidden.
 
 Mechanics, against the unbreakable rules:
 
@@ -119,7 +122,7 @@ Each per-critic judgement on an undisputed document is one datum.
 | google/gemini-3.7-flash | 18 | 14 | **77.8%** | **22.2%** | 4 | 0 | 0 | 10 (A/C arms are gemini-generated) |
 
 - **glm-5.3-flash: NO SIGNAL.** 65.0% agreement is *exactly* the always-hold
-  baseline — it does not beat refusing everything. It passed 17 of 22 documents
+  baseline — it does not beat refusing everything. It passed 18 of 22 documents
   including 7 undisputed not-fundable ones; its only correct holds were four
   flash-generated documents (n03-C, n06thin-A, n12-A, n12-C).
 - **gemini-3.7-flash: real signal, still under the 80% bar.** +55.6pp over its
@@ -130,6 +133,9 @@ Each per-critic judgement on an undisputed document is one datum.
   generator is anthropic/claude-opus-5, so every real order's document is one
   of these), the two candidates tie at 77.8% and both passed everything. The
   corpus's two not-fundable opus documents were caught by neither.
+- Harness caveat, disclosed: the printed `own-family-excluded` column shows
+  `0 doc(s)` for gemini because it counts judged rows rather than skips — the
+  correct figure is the 10 skipped A/C documents stated in the table above.
 
 ### The decision, per the pre-committed cascade
 
@@ -147,12 +153,23 @@ glm < 80% → gemini as primary candidate → also < 80% → **wire the better o
 - LOW-AGREEMENT comment at the wiring site (`index.ts`, top of the package
   stage) and in the judge config.
 - **Measured honestly: the hold-biased veto changes nothing on this corpus.**
-  Re-run with asserted-verdict capture (temp 0 + fixed seed reproduce the
-  judgements): both models asserted `clears_bar` on every document whose
-  computed bar cleared, so the hold-biased rates equal the plain rates (77.8%
-  and 65.0%). The veto is a real mechanism with a measured effect of zero
-  here; it can only help in production, and it cannot hurt (it never converts
-  a hold to a pass). The honest headline stands: **the wired judge agrees with
+  On the re-run with asserted-verdict capture, both models asserted
+  `clears_bar` on every document whose computed bar cleared, so the
+  hold-biased rates equal the plain rates (77.8% and 65.0%). The veto is a
+  real mechanism with a measured effect of zero here; it can only help in
+  production, and it cannot hurt (it never converts a hold to a pass).
+- **Despite temperature 0 and the fixed seed, glm's per-document judgements
+  are NOT reproducible.** Between the first run and the re-run glm flipped
+  4 of 22 documents (n03-C hold→pass, n06thin-C pass→hold, and the disputed
+  n06-C and n06thin-D), with large score swings on unflipped documents too
+  (n06thin-A: 4 → 31). Its 65.0% headline survives only because the two
+  undisputed flips cancel: the *rates* are stable, the *verdicts* are not.
+  gemini reproduced exactly — every verdict, score and cost identical across
+  runs. This instability materially supports the hold-biased posture and the
+  gemini-primary ordering, and it belongs in the record: a glm verdict on a
+  single document is one draw from a noisy instrument, held stable in
+  production only by the DB stickiness rule, never by the seed.
+  The honest headline stands: **the wired judge agrees with
   blind ground truth 77.8% of the time, below the 80% bar — LOW-AGREEMENT.**
   What this gate now reliably provides is the deterministic preflight layer,
   the recorded-verdict stickiness, the INFRA/QUALITY separation, and a judge
@@ -160,17 +177,23 @@ glm < 80% → gemini as primary candidate → also < 80% → **wire the better o
   output. Nothing unfundable-per-the-critics is *known* to be caught at
   opus quality; drift monitoring must not assume otherwise.
 
-### A production-config defect found by the harness
+### A judge-budget reliability fix (`JUDGE_MAX_TOKENS` 3000 → 12000)
 
-At the specified settings the primary judge could not answer at all:
-`JUDGE_MAX_TOKENS` was 3000, and on a real ladder document
-z-ai/glm-5.3-flash at `reasoning_effort: high` burned the entire completion
-budget on reasoning and returned **empty content** (`finish_reason: length`,
-`content_len: 0`) — every production call would have parse-failed into an INFRA
-hold, i.e. the gate as previously configured would have parked every order.
-Measured, then fixed in `delivery_gate.ts` (constant now 12000, measurement in
-the comment): the same call completes naturally at 8907 completion tokens.
-Reasoning effort stays `high` per the phase specification.
+During the first harness attempt, one call on a real ladder document at the
+then-configured 3000-token budget spent the entire completion budget on
+reasoning and returned **empty content** (`finish_reason: length`,
+`content_len: 0` — a parse failure, so an INFRA hold). That was **one sample
+of a high-variance instrument, not a deterministic defect**: the critic
+re-issued the identical claimed-failure settings and the call completed fine
+(`finish=stop`, ~940 completion tokens), and my own probe's output was
+observed in-session but never persisted as an artifact. What IS established:
+reasoning spend at effort `high` varies wildly call to call (consistent with
+the glm verdict instability above), and a 3000-token ceiling leaves no
+headroom for the verbose tail — a raised-budget call completed naturally at
+8907 tokens. The change to 12000 stands as **headroom against variable
+reasoning verbosity** (~$0.005/call against the $6 per-order cap), with the
+code comment reframed to say exactly that. Reasoning effort stays `high` per
+the phase specification.
 
 ## 3. Proofs (offline, no network — `tests/delivery-gate/delivery_gate_test.ts`)
 
@@ -267,6 +290,10 @@ budget: ~$2.73. Per-document judging cost for the wired primary:
 ~$0.006–0.008 — the marginal gate cost per order is under a cent per
 judgement against the provisional $6 per-order cap.
 
+Disclosed: per-call generation ids were captured in-flight but are not
+persisted anywhere; the audit trail for these runs is the per-call console
+rows (verdict, score, asserted verdict, cost) in the harness logs.
+
 ## 7. Found and not fixed (with why)
 
 1. **No Stripe refund plumbing.** The QUALITY refund path calls
@@ -298,15 +325,24 @@ judgement against the provisional $6 per-order cap.
 
 ## 8. Test status and reproduction
 
-`bash tests/run-all.sh` (run before and after): every suite that passed at
-baseline still passes — delivery gate **555 checks** (was 470 at baseline;
-the additions are the wiring proofs of §3 and the hold-biased contract),
-sufficiency, crawl-outcome, proper-nouns, numeric register, word limit,
-referent weight (61/61), donor limits (71 forms), replay, ladder bytematch,
-all four adversarial suites. `tests/exclusivity` fails at baseline and after,
-identically — it is the deliberately-failing ceiling probe (CLAUDE.md),
-untouched by this workstream. Worker and gate module typecheck clean under
+`bash tests/run-all.sh` (run before and after): every deno/python suite that
+passed at baseline still passes — delivery gate **555 checks** (was 470 at
+baseline; the additions are the wiring proofs of §3 and the hold-biased
+contract), sufficiency, crawl-outcome, proper-nouns, numeric register, word
+limit, referent weight (61/61), donor limits (71 forms), ladder bytematch,
+all four adversarial suites. Worker and gate module typecheck clean under
 deno 2.9.5.
+
+The two Postgres suites need a privileged environment: in my unprivileged
+run-all they died on root/postgres-owned scratch dirs under `/tmp` before
+reaching their assertions — an environment failure, which an earlier revision
+of this report wrongly reported as the documented deliberate red. **Corrected,
+verified by running both privileged (`sudo PGBIN=/usr/lib/postgresql/17/bin
+bash tests/<suite>/run.sh`) on this exact base: `tests/replay` → `REPLAY OK`,
+and `tests/exclusivity` → "EXCLUSIVITY TEST PASSING — no ceiling", 40 of 40
+concurrent applicants served on one grant, 0 refused, exit 0.** The per-grant
+ceiling that CLAUDE.md and the launch-readiness report describe is closed on
+this branch; the probe is green here, not deliberately red.
 
 Reproduce the numbers:
 
