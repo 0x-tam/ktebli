@@ -201,3 +201,14 @@ Next: install postgres + supabase CLI → phase 0.
   e2e Sufra order through the full chain incl. real crawl, real gemini gate, real
   render; then the mini-benchmark over the remaining phase-5 ledgers, one shared grant
   (exercises the real composer), ≤$8 usage-field budget with loud scope degradation.
+
+## 2026-08-28 — WS6-bench resumed after session-limit death
+
+- WS6-bench died mid-e2e-setup on a session-wide usage limit (now reset). Preserved its
+  work: committed the two real defects it surfaced driving KT-10001 (commit ba56d2b) —
+  absenceIsSuspicious() cross-line footer false-positive (held orders on unconstrained
+  donor text; found on real LBF guidance) + analyze-stage usage snapshot gap. Both with
+  regressions, argued as corrections. Restarted serve cleanly on committed code; tick
+  advancing KT-10001 (analyze+org done on real Sufra crawl). Resumed the agent to finish
+  the e2e + mini-benchmark. Handoff skeleton (reports/launch-readiness.md) written with
+  DONE/OPERATOR/FIRST-ORDERS; benchmark + adversarial numbers pending.
