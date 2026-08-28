@@ -354,3 +354,8 @@ wired + deterministically tested; generation-quality impact marked unproven-with
     node resolves 0.75 (the wrong-denominator defect).
   Sent back with exact fixes + regression assertions. Non-blocking residuals noted (inv3.1
   exotic phone formats behind the LLM ledger; inv5 no-space non-CJK scripts).
+- Fix owner closed both re-attack holes: inv3.3 (single-token org → whole DNS-label match;
+  legal-name needs 2 distinctive tokens; +6 grounding assertions, 24/24), inv4.1 (denominator
+  whole-run bounded both sides; +A9c). fix-report wording corrected, residuals noted. Commits
+  39c73ed/6b71a82/524185b. Critic sent back for bounded re-verification of exactly those two
+  spots (re-run its own stranger reproductions + right-extension attack). On PASS: merge.
