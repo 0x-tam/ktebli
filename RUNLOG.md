@@ -370,3 +370,19 @@ wired + deterministically tested; generation-quality impact marked unproven-with
   subdomain/hyphen variants reject, legit sites admit, full suite green. Critic sent for final
   bounded re-attack (its 4 variants + 3 fresh, esp. unrecognised-eTLD fallback). On PASS: merge
   the whole consolidation fix.
+
+## 2026-08-28 — consolidation fix MERGED (41b25d7); adversarial round CLOSED
+
+- Critic's final re-attack on inv3.3 repelled every variant (4 pass-2 defeaters + deeper
+  subdomain + two-label-suffix + unrecognised-eTLD fallback + IP + 5 substring strangers all
+  REJECT; legit sites admit). Whole consolidation fix PASS. Merged. Full suite ALL SUITES PASSED
+  on trunk.
+- All 5 broken invariants closed and each survived a FRESH re-attack (not just a passing test),
+  which is the phase-6.5 bar. Documented safe-direction residuals: inv3.1 exotic phone/domain
+  formats (behind the LLM Claim Ledger), inv5 no-space non-CJK scripts (monotonic undercount),
+  single-common-word same-name identity limitation (inherent, discard-on-doubt). Two DEEP fixes
+  (inv4.3 register-wiring, inv6 axes-wiring) have mechanism wired+unit-tested; generation-quality
+  halves marked unproven-without-e2e.
+- Final step: batch-resume the 5 broken-invariant attackers to re-attack trunk and concede in
+  writing (the doctrine: "re-attacked until the attacker concedes in writing"), then finalize
+  the handoff.
