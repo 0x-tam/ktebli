@@ -48,17 +48,33 @@ Deno.serve(async (req) => {
   const orders = await sel(`orders?token=eq.${token}&select=id`);
   if (!orders.length) return json({ ok: false, reason: "not_found" }, 404);
 
+  // WS4a 2026-08-28: the revision_requests insert used to run AFTER claim_revision
+  // with its response unchecked. If it failed, the customer's revision slot was
+  // already burned, the revise stage found no request row, and worker/index.ts:1836
+  // fell back to "General improvement pass." — a revision that silently ignores
+  // what the customer asked for. The request is now stored FIRST and verified;
+  // only then is the slot claimed. An orphan row from a refused claim is harmless:
+  // the worker reads the latest row, and every later claim is preceded by its own
+  // insert.
+  //
+  // Because the insert now precedes claim_revision's own ownership check, the
+  // token->proposal ownership is verified explicitly first — otherwise any valid
+  // token could write revision instructions onto another order's proposal.
+  const owned = await sel(`order_proposals?id=eq.${proposalId}&order_id=eq.${orders[0].id}&select=id`);
+  if (!owned.length) return json({ ok: false, reason: "not_found" }, 404);
+
+  const insReq = await fetch(`${SB}/rest/v1/revision_requests`, {
+    method: "POST", headers: { ...H, prefer: "return=minimal" },
+    body: JSON.stringify({ proposal_id: proposalId, options, details: details || null }),
+  });
+  if (!insReq.ok) return json({ ok: false, reason: "request_store_failed" }, 500);
+
   const claim = await rpc("claim_revision", { p_proposal: proposalId, p_order: orders[0].id });
   if (!claim || claim.ok !== true) {
     const reason = claim?.reason ?? "not_found";
     const code = reason === "not_found" ? 404 : 400;
     return json({ ok: false, reason, remaining: claim?.remaining ?? undefined }, code);
   }
-
-  await fetch(`${SB}/rest/v1/revision_requests`, {
-    method: "POST", headers: { ...H, prefer: "return=minimal" },
-    body: JSON.stringify({ proposal_id: proposalId, options, details: details || null }),
-  });
 
   const stages = await sel(`job_stages?proposal_id=eq.${proposalId}&select=seq&order=seq.desc&limit=1`);
   const base = (stages[0]?.seq ?? 0) as number;

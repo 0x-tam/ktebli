@@ -23,13 +23,21 @@ Deno.serve(async (req) => {
   if (!email.includes("@")) return json({ ok: false }, 400);
   if (!(await rateLimit(SB, KEY, `intake:em:${email.toLowerCase()}`, 20, 3600))) return json({ ok: false, reason: "rate_limited" }, 429);
 
+  // WS4a 2026-08-28: a SUPPLIED deadline that does not parse used to become
+  // null silently — the customer's stated deadline was discarded with no
+  // signal, and downstream nothing can tell "no deadline" from "deadline we
+  // could not read". A malformed supplied value now refuses; absent stays null.
+  const deadlineRaw = String(b.deadline ?? "").trim();
+  if (deadlineRaw && !/^\d{4}-\d{2}-\d{2}$/.test(deadlineRaw)) {
+    return json({ ok: false, reason: "bad_deadline" }, 400);
+  }
   const row = {
     email,
     org_name: String(b.org ?? "").slice(0, 300) || null,
     org_reg: String(b.registration ?? "").slice(0, 100) || null,
     org_website: String(b.website ?? "").slice(0, 300) || null,
     grant_input: String(b.grant ?? "").slice(0, 100_000) || null,
-    deadline: /^\d{4}-\d{2}-\d{2}$/.test(String(b.deadline ?? "")) ? b.deadline : null,
+    deadline: deadlineRaw || null,
     directions: String(b.directions ?? "").slice(0, 8000) || null,
     upload_names: Array.isArray(b.files) ? (b.files as string[]).slice(0, 3).map((f) => String(f).slice(0, 200)) : null,
   };

@@ -121,7 +121,17 @@ Deno.serve(async (req) => {
   const tier = String(s.metadata?.tier ?? "draft");
   const paidUsd = (s.amount_total ?? 0) / 100;
   const expectedUsd = PRICES_USD[tier];
-  const priceOk = typeof expectedUsd === "number" && Math.abs(paidUsd - expectedUsd) < 0.01;
+  // WS4a 2026-08-28: the price check read amount_total without reading the
+  // currency, so 149.00 in ANY currency satisfied the USD 149 tier (proven,
+  // reports/phase4-compliance.md §A7). A non-USD session now parks exactly like
+  // a price mismatch: NO paid work on an amount the check cannot value.
+  const currency = String(s.currency ?? "usd").toLowerCase();
+  const priceOk = currency === "usd" &&
+    typeof expectedUsd === "number" && Math.abs(paidUsd - expectedUsd) < 0.01;
+  // An order with no reachable email would complete unpaid-for work with no way
+  // to deliver a link or a failure notice. Park it for the operator instead of
+  // silently accepting an undeliverable order.
+  const emailOk = email.includes("@");
 
   // primary source of truth: the wizard's saved intake
   let pi: Record<string, unknown> | null = null;
@@ -173,22 +183,32 @@ Deno.serve(async (req) => {
       org_name: orgName, org_reg: regNo, org_website: website, whatsapp: phone, tier,
       amount_usd: paidUsd, grant_input: grantInput,
       directions, deadline, uploads_expected: uploadsExpected,
-      ...(priceOk ? {} : { status: "attention" }),
+      ...(priceOk && emailOk ? {} : { status: "attention" }),
     });
   } catch (e) {
     if (String(e).toLowerCase().includes("duplicate")) return new Response("duplicate", { status: 200 });
     throw e;
   }
 
-  if (!priceOk) {
-    // Charged amount does not match the claimed tier: park the order, audit it,
+  if (!priceOk || !emailOk) {
+    // Charged amount does not match the claimed tier (or the currency is not
+    // USD, or there is no reachable customer email): park the order, audit it,
     // queue NO paid work and wake NO worker. A human resolves it.
+    const why = !priceOk ? "price_mismatch" : "email_missing";
     await ins("events", {
-      actor: "stripe-webhook", action: "price_mismatch", entity: "order", entity_id: order.id,
-      detail: { tier, paid_usd: paidUsd, expected_usd: expectedUsd ?? null, session: s.id },
+      actor: "stripe-webhook", action: why, entity: "order", entity_id: order.id,
+      detail: { tier, paid: paidUsd, currency, expected_usd: expectedUsd ?? null, email_ok: emailOk, session: s.id },
     }, false).catch(() => {});
+    // NOTE (WS4a): on the schema at migration head this insert writes a row
+    // (kind 'price_mismatch' allowed, due_at defaulted — 20260826150000). On the
+    // PRODUCTION schema it still violates the kind CHECK and the due_at NOT
+    // NULL, writes zero rows, and is swallowed here — proven in
+    // reports/phase4-compliance.md §F13. Deploy the migrations with this.
+    // kind is 'price_mismatch' for the email case too: the constraint has no
+    // closer kind, and inventing one here would recreate F13.
     await ins("escalations", {
-      kind: "price_mismatch", detail: `Order ${order.order_no}: tier ${tier} paid $${paidUsd}, expected $${expectedUsd ?? "?"}`,
+      kind: "price_mismatch",
+      detail: { order_no: order.order_no, why, tier, paid: paidUsd, currency, expected_usd: expectedUsd ?? null, email_ok: emailOk },
     }, false).catch(() => {});
     return new Response(JSON.stringify({ ok: true, parked: true }), { status: 200 });
   }
