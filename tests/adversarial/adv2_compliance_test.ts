@@ -23,14 +23,17 @@ let bad = 0;
 const ok = (c: boolean, m: string) => { c ? console.log(`  ok   ${m}`) : (console.error(`  FAIL ${m}`), bad++); };
 const note = (m: string) => console.log(`  --   ${m}`);
 
-// The gate's word-limit counter, VERBATIM. Two independent copies of this exact
-// line enforce the donor word limit:
-//   * index.ts:539-541          contentViolations() -> "over_word_limit"
-//   * delivery_gate.ts:279-281  preflight() line 307 -> "over the donor word limit"
-// Both count only tokens containing [A-Za-z0-9؀-ۿ] : Latin, ASCII digits, and the
-// Arabic block U+0600-06FF. Nothing else is a "word" to this counter.
-const gateWordCount = (md: string): number =>
-  md.replace(/[|#*`>]/g, "").split(/\s+/).filter((w) => /[A-Za-z0-9؀-ۿ]/.test(w)).length;
+// The gate's word-limit counter, imported LIVE from the module the delivery gate
+// runs. Two independent copies of this counter enforce the donor word limit:
+//   * index.ts     wordCount()      contentViolations() -> "over_word_limit"
+//   * delivery_gate.ts gateWordCount() preflight() -> "over the donor word limit"
+// The attacker's original file inlined the broken /[A-Za-z0-9؀-ۿ]/ rule so it would
+// fail in any checkout; now the fix has landed, this test imports the real counter
+// so a green result is a genuine proof of the source, not of a copy in the test.
+// index.ts is a Deno.serve module and cannot be imported by a unit test; its
+// gateWordCount() twin in delivery_gate.ts is kept byte-identical to it (asserted
+// below), so importing the twin measures both.
+import { gateWordCount } from "../../supabase/functions/worker/delivery_gate.ts";
 
 const repeat = (w: string, n: number) => Array.from({ length: n }, () => w).join(" ");
 
@@ -41,7 +44,27 @@ const GEN_MIN = 450;
 const PREFLIGHT_MIN = 250;
 const LIMIT = 1400;
 
-console.log("========== A. THE LIMIT COUNTER IS BLIND TO NON-LATIN SCRIPTS ==========");
+console.log("========== 0. THE TWO COUNTER COPIES ARE BYTE-IDENTICAL ==========");
+// The gate has two copies of this counter on purpose (index.ts cannot be imported
+// by a unit test). If a fix lands in one and not the other, the imported twin would
+// pass while the live over_word_limit path stayed blind. Assert the executable body
+// of both is character-for-character the same.
+{
+  const grab = (src: string, name: string): string => {
+    const m = src.match(new RegExp("function " + name + "\\(md: string\\): number \\{([\\s\\S]*?)\\n\\}"));
+    if (!m) return "<not found>";
+    // compare from `const cleaned` onward — the executable body, ignoring the one
+    // comment line that names the sibling file.
+    const b = m[1].indexOf("const cleaned");
+    return b >= 0 ? m[1].slice(b) : m[1];
+  };
+  const idx = Deno.readTextFileSync(new URL("../../supabase/functions/worker/index.ts", import.meta.url));
+  const gate = Deno.readTextFileSync(new URL("../../supabase/functions/worker/delivery_gate.ts", import.meta.url));
+  ok(grab(idx, "wordCount") === grab(gate, "gateWordCount") && grab(idx, "wordCount") !== "<not found>",
+    "index.ts wordCount() and delivery_gate.ts gateWordCount() share one executable body");
+}
+
+console.log("\n========== A. THE LIMIT COUNTER IS BLIND TO NON-LATIN SCRIPTS ==========");
 // A donor word limit applies to the document the donor receives. For every
 // space-separated script below, a word processor — and the donor — counts one
 // word per whitespace-separated token, exactly as for English. The gate counts 0.

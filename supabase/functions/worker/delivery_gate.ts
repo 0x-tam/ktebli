@@ -277,7 +277,30 @@ function criticModelsFor(generatorModel: string, configured?: string[]): { model
 // gate must be unit-testable without any of it. If that function changes, this
 // one changes with it.
 function gateWordCount(md: string): number {
-  return md.replace(/[|#*`>]/g, "").split(/\s+/).filter((w) => /[A-Za-z0-9؀-ۿ]/.test(w)).length;
+  // A donor word limit is checked against the document the donor RECEIVES, so the
+  // count must match what a word processor counts, for every script — not only
+  // Latin / ASCII / Arabic. The old /[A-Za-z0-9؀-ۿ]/ rule let two attacks through:
+  //   * every other script (Cyrillic, Greek, Hebrew, Devanagari, CJK) counted ~0,
+  //     so a document far over the limit in that script never tripped the gate; and
+  //   * zero-width joiners, soft hyphens and pipe-packed table cells GLUED words
+  //     into a single token, collapsing thousands of words to one.
+  // The rule below is deliberately MONOTONIC: for any input it counts >= the old
+  // rule (it only adds word boundaries and widens the accepted token class), so it
+  // can only make the compliance gate stricter, never looser. Kept byte-identical
+  // to wordCount() in index.ts.
+  const cleaned = md
+    // zero-width space / ZWNJ / ZWJ / soft hyphen / word joiner / BOM are invisible
+    // to a reader and are NOT boundaries to \s; treat each as one so a glued blob
+    // cannot undercount.
+    .replace(/[\u00AD\u200B\u200C\u200D\u2060\uFEFF]/g, " ")
+    // table cell walls glue adjacent cell text when the cells carry no padding.
+    .replace(/\|/g, " ")
+    // heading / emphasis / quote markers are not words (removed, as before).
+    .replace(/[#*`>]/g, "")
+    // scripts written without spaces (CJK) are a single whitespace token however
+    // long; a word processor counts each character, so split them out.
+    .replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu, " $& ");
+  return cleaned.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 }
 
 const PLACEHOLDER_RE = /\[(TBD|TODO|INSERT|PLACEHOLDER|XXX?)\]|lorem ipsum|\{\{[^}]*\}\}/i;

@@ -323,8 +323,18 @@ export function absenceIsSuspicious(guidelines: string, field: LimitField): stri
   // limit statement is now missed, which only returns that text to the pre-check
   // state -- the extractor's null is trusted, exactly as before this helper existed.
   // Missing a wrap cannot loosen a gate; the false positive was holding paid orders.
+  // For max_words the number and unit may WRAP across a single line break
+  // ("...keep to 1,400" then a newline then "words"): allow ONE newline (with
+  // optional indentation) between the digit group and the unit, but never a blank
+  // line. A blank line is the paragraph gap that let a trailing year reach an
+  // unrelated footer; only ONE newline is bridged, so that gap is still not crossed.
+  // The max_pages branch stays horizontal-only ON PURPOSE: its false positive was
+  // the "Page N" pdftotext footer (found live, phase-6 e2e order 1) and no adversary
+  // broke the page branch, so it keeps the documented footer trade rather than risk
+  // reopening it -- a wrapped page limit still returns to the extractor null, the
+  // same conservative state as before.
   const numeric = field === "max_words"
-    ? /\b\d+(?:[,.\u0020\u00A0\u202F]\d+)*[\t\u0020\u00A0\u202F\u2009]{0,3}(words?|mots?|palabras?|w[oö]rter)\b/
+    ? /\b\d+(?:[,.\u0020\u00A0\u202F]\d+)*[\t\u0020\u00A0\u202F\u2009]{0,3}(?:\n[\t\u0020\u00A0\u202F\u2009]{0,3})?(words?|mots?|palabras?|w[oö]rter)\b/
     : /\b\d+(?:[,. ]\d+)*[\t\u0020\u00A0\u202F\u2009]{0,3}(pages?|sides?|seiten|p[aá]ginas?)\b/;
   const phrase = field === "max_words"
     ? /\bword (limit|count|maximum)\b|\b(must not exceed|no more than|not exceeding|maximum of|up to)\b[^.\n]{0,40}\bwords?\b/
