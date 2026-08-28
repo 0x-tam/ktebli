@@ -57,3 +57,26 @@ Next: install postgres + supabase CLI → phase 0.
   (1115 words, 0 findings, $0.089, gen-1787903160). Both clean on the FIRST generation.
 - 4 packets built (H position rotates: AHDB/DBHA/HDAB/BADH), structurally derived.
   run-phase2.py launched (pid 1921153). Ladder-line spend so far ≈ $0.87 of $15.
+
+## 2026-08-28 — phase 2 CLOSED (hybrid loses 0/4); fan-out begins
+
+- Phase 2 hybrid test: H below both B and D in all 4 cells, below A once, funded 0/4.
+  Both critics independently: failure is STRATEGY (over-broad, "pile of existing work"),
+  not prose (critic_a verified H's budget closes — a first) and not referents. The
+  strategy layer is load-bearing. Pipeline+opus stays the core; the phase-2 deterministic
+  gates are kept as wrapper. BLOCKED.md written per fork rule with both tables.
+- Spend: phase 2 $0.43. Total this session ≈ $0.90. Balance $24.12.
+- Serial zone ends. Wave 1 fan-out (worktrees, disjoint ownership, critics before merge):
+  * ws3-gate: wire delivery-gate v2 into worker index.ts; validate judge vs the 14 verdict
+    files (agreement number); fallback + loop-stop proofs; sufficiency count-vs-weight.
+    OWNS: worker/index.ts, delivery_gate.ts, sufficiency.ts, tests/delivery-gate/,
+    tests/sufficiency/, reports/phase3-gate.md. Budget ≤$3 (gate line).
+  * ws4-compliance: donor-limit fixture forms; parser re-audit (index.ts READ-ONLY this
+    wave); render-service local. OWNS: tests/donor-limits/, tests/word-limit/,
+    render-service/, supabase/functions/* EXCEPT worker/index.ts, crawl_outcome.ts,
+    ssrf.ts; reports/phase4-compliance.md. $0 model budget.
+  * ws5-crawl: six real buyer-shaped sites through stack/live-run.sh; fix silent crawler
+    failures; keep ledgers for phase 6. OWNS: crawl_outcome.ts, ssrf.ts, stack/out/,
+    stack/sites*, reports/phase5-crawl.md. $0 model budget.
+- Wave 2 (after ws3 merge): phase 6 index.ts workstreams + e2e order + mini-benchmark.
+  Wave 3: adversarial round. Then handoff.
