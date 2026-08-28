@@ -1,8 +1,17 @@
 # Ktebli — launch readiness
 
 **Date:** 2026-08-28 · **Prepared by:** the autonomous gauntlet run (see RUNLOG.md, git log).
-**Recommendation:** _pending the mini-benchmark and adversarial round_ (this page is completed
-as those land; sections marked _[pending]_ are the only gaps).
+
+**Recommendation: READY for a controlled first-orders launch once the seven-item OPERATOR list
+below is cleared.** All eight phases are done, the full test suite is green, and all nine
+unbreakable invariants are held or closed with every adversarial break re-attacked to a written
+concession. Two things temper this into *controlled* rather than *open* launch, and both are
+already on the lists below: the quality gate is hold-biased with known low agreement (it errs
+toward holding, the safe direction), and three properties of Supabase's deployed runtime
+(invocation timeouts, cold starts, heartbeats under load) could not be reproduced on this machine
+and must be watched on the first Competitive and Full orders. The one genuine ceiling found —
+proposal prose quality is data-bound, not architecture-bound (phase 1/2) — is recorded in
+`BLOCKED.md`; it caps how good a Draft reads, not whether the system is safe to run.
 
 Launch is the operator pressing go after clearing the OPERATOR list below. Not the machine.
 
