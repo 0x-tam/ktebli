@@ -405,3 +405,19 @@ wired + deterministically tested; generation-quality impact marked unproven-with
 - Full suite ALL SUITES PASSED. Committed eae6b18. Final inv3+inv4 attacker concession on
   the fixed code requested (the doctrine: re-attacked until the attacker concedes in
   writing). inv1/inv2 conceded on the first pass. inv7/9 orchestrator-audited.
+
+## 2026-08-28 — adversarial re-attack #2: convergent structural fixes
+
+- inv3 and inv4 attackers each found ONE more variant on the re-attack, both proving the
+  same meta-lesson: heuristic patches (substring, anchor+in-order, one-directional word
+  list) keep reopening; only the STRUCTURAL rule closes the class.
+  * inv3 (5th pass): "Care Reach"->careeroutreach.com defeated anchor+in-order (care<career,
+    reach<outreach). Took the attacker's own conclusion — EXACT main-label concatenation
+    only for the domain-ONLY branch. Sufra admits on its crawled legal name (how phase 5
+    cleared it); domain-only rejection of Sufra is the accepted discard-on-doubt cost.
+  * inv4 (3rd pass): "frontline share of the total of cost" (scope word LEFT of the
+    denominator) evaded the one-directional walk. Made the scope walk direction-symmetric
+    + expanded synonyms, AND added the word-list-free STRUCTURAL closure the attacker
+    specced: a share whose numerator is transitively a member of a same-unit sum node
+    must divide by that aggregate, not a sibling leaf (rate_denominator_not_whole).
+- Full suite ALL SUITES PASSED. Committed 6fbabdb. Final concession requested on 6fbabdb.
