@@ -81,6 +81,17 @@ throws(() => solve([
 ], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
   "a denominator labelled 'project cost' is a substring of 'total project cost' and defeats the guard");
 
+// A9c — RIGHT-extension. The denominator label "cost" appears left-bounded by a
+// connective ("of cost …"), but a content word FOLLOWS it: "cost overrun" is a
+// different quantity than the "cost" node (£108k). Left-anchoring alone let this
+// through; the run must be whole on BOTH sides.
+throws(() => solve([
+  { id: "B1", label: "frontline delivery", unit: "GBP", unit_kind: "money", kind: "leaf", value: 81000, basis: B("estimate", "delivery staff") },
+  { id: "B2", label: "cost", unit: "GBP", unit_kind: "money", kind: "leaf", value: 108000, basis: B("estimate", "the grant") },
+  { id: "R1", label: "share of cost overrun reaching delivery", unit: "ratio", unit_kind: "ratio", kind: "rate", of: ["B1", "B2"], asserted: 0.75, basis: B("arithmetic", "frontline over cost") },
+], "GBP", NO_LEDGER, NONE), "rate_denominator_label",
+  "'cost overrun' extends 'cost' on the RIGHT into a different quantity — must not resolve against a 'cost' node");
+
 // CONTROL — a rate that HONESTLY names its denominator must still resolve after the fix.
 let honest: number | null = null;
 try {

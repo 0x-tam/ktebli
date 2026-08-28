@@ -242,16 +242,21 @@ function resolveRegister(
       // "cost" is a substring — but the label names a LARGER quantity ("total project
       // cost", the register's own £120k total, a different node) than the denominator
       // it divides by, certifying 75% of the grant as 75% of the total. Match by
-      // IDENTITY: the denominator's label must appear as a whole token-run in the rate
-      // label whose left edge is the start or a connective. A run extended on its left
-      // by a CONTENT word ("total"/"project" before "cost"/"project cost") names a
-      // different quantity and is refused — with or without that other node present.
+      // IDENTITY: the denominator's label must appear as a WHOLE token-run in the rate
+      // label, bounded on BOTH sides by the start/end or a connective. A content word on
+      // either side extends the run into a DIFFERENT quantity and is refused — whether it
+      // sits on the left ("total"/"project" before "cost") or the right ("cost overrun",
+      // "budget shortfall", "cost recovery" all point at a "cost" node yet mean something
+      // else). Left-anchoring alone let the right-extension through.
       const rateToks = norm(n.label).split(" ").filter(Boolean);
       const denToks = norm(den.label).split(" ").filter(Boolean);
       const namesDenominator = denToks.length > 0 && rateToks.some((_, i) => {
         if (i + denToks.length > rateToks.length) return false;
         for (let j = 0; j < denToks.length; j++) if (rateToks[i + j] !== denToks[j]) return false;
-        return i === 0 || RATE_LABEL_CONNECTIVES.has(rateToks[i - 1]);
+        const leftOk = i === 0 || RATE_LABEL_CONNECTIVES.has(rateToks[i - 1]);
+        const end = i + denToks.length;
+        const rightOk = end === rateToks.length || RATE_LABEL_CONNECTIVES.has(rateToks[end]);
+        return leftOk && rightOk;
       });
       if (!namesDenominator) {
         throw new RegisterError("rate_denominator_label", n.id,
