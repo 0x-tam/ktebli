@@ -37,6 +37,7 @@ import { marked } from "npm:marked@18.0.10";
 import { properNounAudit } from "./proper_nouns.ts";
 import { contactAudit } from "./contact_claims.ts";
 import { limitScopeFrom, limitedText, type LimitScope } from "./word_limit.ts";
+import { resolveRegister, numbersIn, RegisterError, type Resolved } from "./numeric_register.ts";
 import { unzipSync, strFromU8 } from "npm:fflate@0.8.2";
 import { safeFetchText, stripHtml } from "./ssrf.ts";
 import {
@@ -238,7 +239,6 @@ function jargonFindings(md: string): string[] {
 // ================= deterministic numeric consistency =================
 // Canonical values come from the Project Design; each document is scanned for
 // contradicting figures on the axes donors actually notice.
-function numbersNear(a: number, b: number): boolean { return a === b; }
 function scanNumbers(md: string, unitRe: RegExp): number[] {
   const out: number[] = [];
   for (const m of md.matchAll(new RegExp(`([0-9][0-9,]{0,8})\\s*(?:${unitRe.source})`, "gi"))) {
@@ -259,11 +259,25 @@ function consistencyFindings(docs: Record<string, string>, dn: DesignNumbers, bu
     if (!md) continue;
     if (dn.participants) {
       const found = scanNumbers(md, /participants|beneficiaries|people (?:reached|served|trained)|individuals/);
+      // BIDIRECTIONAL (adv2 A11 / launch P1.7). The old gate was `n > total * 1.01`
+      // only, so an UNDERSTATEMENT passed — the delivered 200-vs-216 defect, a total
+      // stated LOWER than the design's own components sum to. It also carried a dead
+      // numbersNear (`a === b`) inside a strict inequality that could never change the
+      // outcome. Now a prose figure contradicts the design when it is either above the
+      // total, or is a total-CLAIM (at least half the total) that falls short of it.
+      // A genuinely smaller per-cohort / per-event figure (below half) is legitimate.
+      const overBy = dn.participants * 0.01;                     // 1% rounding tolerance
+      const totalClaimFloor = dn.participants * 0.5;             // below this it is a component
       for (const n of found) {
-        if (n < dn.participants * 0.05) continue; // per-cohort / per-event figures are fine
         if (evidenceNums.has(n)) continue;        // cited ledger statistic, not a target claim
-        if (n > dn.participants * 1.01 && !numbersNear(n, dn.participants)) {
+        if (n > dn.participants + overBy) {
           v.push(`${name}: mentions ${n} participants/beneficiaries but the project design totals ${dn.participants}`);
+          break;
+        }
+        // understatement: n below the design total (n < dn.participants) but still a
+        // total-claim (at least half of it) — the 200-vs-216 direction.
+        if (n >= totalClaimFloor && n < dn.participants - overBy) {
+          v.push(`${name}: states ${n} participants/beneficiaries as the total, but the project design totals ${dn.participants} — the design's own figure, understated`);
           break;
         }
       }
@@ -272,7 +286,7 @@ function consistencyFindings(docs: Record<string, string>, dn: DesignNumbers, bu
       const found = scanNumbers(md, /-?\s*month(?:s)?\b/);
       for (const n of found) {
         if (evidenceNums.has(n)) continue;
-        if (n > dn.duration_months && n <= 60 && !numbersNear(n, dn.duration_months)) {
+        if (n > dn.duration_months && n <= 60) {
           v.push(`${name}: refers to a ${n}-month horizon but the project design is ${dn.duration_months} months`);
           break;
         }
@@ -2139,7 +2153,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `"sustainability":{"what_continues":string,"who_owns_it":string,"ongoing_costs":string,"how_paid":string,"capacity_remaining":string},` +
       `"risks":[{"risk":string,"mitigation":string}],` +
       `"indicators":[{"indicator":string,"type":"output"|"outcome","baseline":string,"target":string,"method":string,"frequency":string}],` +
-      `"budget_envelope_usd":number|null,"budget_drivers":[string]},` +
+      `"budget_envelope_usd":number|null,"budget_drivers":[string],` +
+      // NUMERIC REGISTER (invariant 4): every figure the proposal will state, as ONE
+      // derivable graph. A leaf carries its value and a real basis; a total (sum) names
+      // its members and its asserted figure and is RECOMPUTED, never believed. Resolved
+      // deterministically before any document is written — if it does not close, the
+      // design is rejected. ids match [A-Z]{1,2}[0-9]{1,3}.
+      `"numeric_register":[{"id":string,"label":"exact phrase the figure is written as","unit":"people|months|USD|ratio|GBP/person|...","unit_kind":"count"|"money"|"duration"|"ratio"|"rate","kind":"leaf"|"sum"|"product"|"rate","value":"LEAF ONLY:number","of":"DERIVED ONLY:[member ids]","asserted":"DERIVED ONLY:number you claim, will be recomputed","basis":{"kind":"evidence"|"donor"|"estimate"|"capacity"|"arithmetic","detail":"Evidence Ledger id (E-*) for evidence; the derivation otherwise"}}]},` +
       `"assumptions":[{"id":string,"assumption":string,"type":"model_proposed_target"|"estimated_cost"|"design_choice","reason":string,"confidence":"low"|"medium"|"high"}],` +
       `"logic_check":{"chain_holds":boolean,"weaknesses_fixed":[string]}}\n` +
       `Rules (strict):\n` +
@@ -2148,7 +2168,8 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `- Targets: never round-and-impressive by default; each numeric target must be producible by the listed activities inside the timeline and envelope, and must appear in assumptions as model_proposed_target with the reasoning.\n` +
       `- budget_envelope_usd: the natural cost of THIS design, at or under any donor ceiling in the grant intelligence. If the design naturally costs far less than the ceiling, keep it lower — never pad.\n` +
       `- partnerships: status "evidence_based" ONLY if the evidence ledger shows the partnership exists; otherwise "designed" (a partnership the project will build).\n` +
-      `- sustainability: a real mechanism (who owns what, what costs money, how it is paid). If no future funding source is evidenced, say so honestly in ongoing_costs/how_paid — do not invent one.`,
+      `- sustainability: a real mechanism (who owns what, what costs money, how it is paid). If no future funding source is evidenced, say so honestly in ongoing_costs/how_paid — do not invent one.\n` +
+      `- numeric_register: put EVERY figure the proposal will state into it, ONCE. A total is a "sum" node over its parts with an "asserted" value — it will be recomputed and MUST equal the parts (state 216 as N1+N2+N3, never a rounded 200). A share/percentage is a "rate"/"ratio" whose label names the exact denominator. Leaves need a real basis; a figure attributed to evidence must be the figure that Evidence Ledger item states. Do not pad, do not round a fraction into a headcount.`,
       6000, { effort: "high", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
     const project = d.project as Record<string, unknown> | undefined;
     if (!project || !Array.isArray(project.activities) || !(project.activities as unknown[]).length) {
@@ -2160,7 +2181,52 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     if (ceiling && envelope && envelope > ceiling) {
       throw new Error(`design over ceiling: envelope ${envelope} exceeds donor ceiling ${ceiling}`);
     }
-    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, usage: { ...stageUsage } });
+
+    // ---------- NUMERIC REGISTER (invariant 4; launch P1.7) ----------
+    // "Every number is derived once." Until now the register in numeric_register.ts
+    // was imported by nothing: the design emitted bare model scalars and the only
+    // numeric gate (consistencyFindings) checked prose against them. Here the design's
+    // own figure graph resolves THROUGH the register before any document is written —
+    // totals are recomputed from components (SUMMED, not believed), rates must name
+    // their denominator, and every figure is closed against its stated basis. A design
+    // whose own numbers do not close fails HERE, before generation spend, rather than
+    // producing the 200-vs-216 document. The register is opt-in on presence so the
+    // pipeline still runs while the design prompt (which now asks for `numeric_register`)
+    // beds in; the figures it carries then become the single source of truth generation
+    // writes from and the closed totals the consistency gate checks against.
+    //
+    // MECHANISM WIRED + UNIT-TESTED (adv2_numeric A11: imported, called, bidirectional
+    // consistency, live numbersNear gone). The GENERATION-QUALITY half — that a real
+    // narrative's understatement is now caught end-to-end because every section writes
+    // from the resolved register — needs a full pipeline order to prove and is
+    // UNPROVEN-WITHOUT-E2E (not run: costs money; same marking as WS6-core resumable gen).
+    let registerDerivations: Record<string, { value: number; unit: string; label: string; derivation: string }> | null = null;
+    const rawRegister = (project as { numeric_register?: unknown }).numeric_register;
+    if (Array.isArray(rawRegister) && rawRegister.length) {
+      const regEvidence = new Map<string, Set<number>>();
+      for (const e of allowedEvidence) {
+        const eid = String((e as { id?: unknown }).id ?? "");
+        if (eid) regEvidence.set(eid, numbersIn(String((e as { claim?: unknown }).claim ?? "")));
+      }
+      const donorNums = numbersIn(JSON.stringify(analysis ?? {}));
+      let resolved: Map<string, Resolved>;
+      try {
+        resolved = resolveRegister(rawRegister, "USD", regEvidence, donorNums);
+      } catch (e) {
+        if (e instanceof RegisterError) {
+          throw new Error(
+            `project design numbers do not close (${e.code}): ${e.message}. ` +
+            `Every figure must derive once and reconcile before any document is written.`);
+        }
+        throw e;
+      }
+      registerDerivations = {};
+      for (const [id, r] of resolved) {
+        registerDerivations[id] = { value: r.value, unit: r.unit, label: r.label, derivation: r.derivation };
+      }
+    }
+
+    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, numeric_register: rawRegister ?? null, register_derivations: registerDerivations, usage: { ...stageUsage } });
   }
 
   if (stage.key.startsWith("gen:")) {
@@ -2236,6 +2302,17 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       ? spec.brief.replace("(1500-2500 words)", `(about ${Math.round(fmt.maxWords * 0.94)} words — the donor's hard limit is ${fmt.maxWords} and going over it disqualifies the application)`)
       : spec.brief;
 
+    // The resolved numeric register (invariant 4) is the single source of truth every
+    // section writes from, so the same numbers appear everywhere and a total is its
+    // recomputed sum, never a re-invented round figure. Present when the design carried
+    // a register that closed. (Consumption is the generation-QUALITY half: wired here,
+    // its end-to-end effect on a real narrative is UNPROVEN-WITHOUT-E2E.)
+    const regDerivs = (design?.register_derivations ?? null) as Record<string, { label: string; value: number; unit: string; derivation: string }> | null;
+    const registerNote = regDerivs && Object.keys(regDerivs).length
+      ? "\n\nNUMERIC SINGLE SOURCE OF TRUTH — state each of these figures EXACTLY as resolved; use the same number everywhere it appears; never round a total away from its components:\n" +
+        Object.values(regDerivs).map((r) => `- ${r.label}: ${r.value} ${r.unit} (${r.derivation})`).join("\n")
+      : "";
+
     // ---------- section-by-section path (Competitive/Full, donor-defined structure) ----------
     const plan = kind === "narrative" ? sectionPlan(String(c.order.tier ?? ""), appStruct, fmt.maxWords) : null;
     if (plan) {
@@ -2244,7 +2321,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         if (sectionComplete(progress.sections[sec.key])) continue; // idempotent: persisted and re-checked, not re-paid
         await beat();
         const body = sanitizeMd(await llm(
-          baseCtx() +
+          baseCtx() + registerNote +
           `\n\nTASK: Write ONLY the body of ONE section of the proposal narrative. ` +
           `The donor defines the application structure; this section's heading is added for you afterwards, so do NOT repeat it and do NOT add any other heading.\n` +
           `Section (answer it directly): "${sec.heading}"\n` +
@@ -2279,7 +2356,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       return done({ text, sectioned: true, sections: plan.sections.length, usage: { ...stageUsage } });
     }
 
-    const text = await generateValidated(baseCtx() + extra + `\n\nTASK: ${brief}${donorStructure}${kind === "narrative" ? styleNote + STYLE_RULES : ""}${FORMAT_RULES}`, spec.max, opts, stageUsage);
+    const text = await generateValidated(baseCtx() + extra + registerNote + `\n\nTASK: ${brief}${donorStructure}${kind === "narrative" ? styleNote + STYLE_RULES : ""}${FORMAT_RULES}`, spec.max, opts, stageUsage);
     // Document-level checkpoint for every single-shot gen:* too: a crash
     // between this call and done() costs zero model calls on the retry.
     progress.text = text;
