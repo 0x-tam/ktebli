@@ -117,6 +117,74 @@ begin
   raise notice 'STRANDED-CLAIM TEST PASSED';
 end $$;
 
+-- ============================================================================
+-- WS6 addition: the ORPHAN branch of release_stranded_claim.
+--
+-- The other way a claim strands: the isolate died BETWEEN claim_approach() and
+-- the order_proposals.claim_id patch, so the claim is live but linked to no
+-- proposal at all. release_stranded_claim's second branch frees it — but only
+-- once it is older than 2 minutes, because a claim the strategy stage took
+-- seconds ago looks identical to this while its patch is still in flight.
+-- Both halves of that age guard are executed here.
+-- ============================================================================
+do $$
+declare
+  v_grant uuid; v_org uuid; v_vp uuid;
+  v_order uuid; v_prop uuid; v_claim uuid; v_released uuid; v jsonb;
+begin
+  insert into public.grants (funder, title, title_normalized, guidelines_text)
+  values ('Test Funder', 'Orphan Probe', 'orphan probe', 'probe') returning id into v_grant;
+  insert into auth.users (email) values ('orphan@example.invalid');
+  insert into public.organisations (owner_id, name, registration_number, email)
+  select id, 'Orphan Org', 'REG-O1', email from auth.users where email = 'orphan@example.invalid'
+  returning id into v_org;
+  insert into public.voice_profiles (organisation_id, kind, profile)
+  values (v_org, 'custom', '{}') returning id into v_vp;
+  insert into public.orders (organisation_id, email, org_name, tier, grant_input)
+  values (v_org, 'orphan@example.invalid', 'Orphan Org', 'draft', 'probe') returning id into v_order;
+  insert into public.order_proposals (order_id, grant_id)
+  values (v_order, v_grant) returning id into v_prop;
+
+  -- the dying isolate: claim taken, proposal NEVER patched
+  v := public.claim_approach(v_org, v_grant, 'i1','d1','b1','g1','m1',
+                             repeat('e', 64), '{"spine":"place"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp, 'custom');
+  if not (v->>'granted')::boolean then raise exception 'setup failed: orphan claim refused'; end if;
+  v_claim := (v->>'claim_id')::uuid;
+
+  -- FRESH orphan (the patch may still be in flight): must NOT be released
+  v_released := public.release_stranded_claim(v_prop);
+  if v_released is not null then
+    raise exception 'AGE-GUARD FAILURE: a seconds-old unlinked claim was released (patch race reopened)';
+  end if;
+  raise notice 'fresh orphan          -> untouched (the claim/patch race stays closed)';
+
+  -- the retry is genuinely blocked meanwhile
+  v := public.claim_approach(v_org, v_grant, 'i2','d2','b2','g2','m2',
+                             repeat('f', 64), '{"spine":"phase"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp, 'custom');
+  if (v->>'granted')::boolean then raise exception 'expected the retry to be blocked by the orphan'; end if;
+
+  -- AGED orphan: the isolate is long dead. Backdate past the guard and release.
+  update public.claims set created_at = created_at - interval '3 minutes' where id = v_claim;
+  v_released := public.release_stranded_claim(v_prop);
+  if v_released is distinct from v_claim then
+    raise exception 'ORPHAN FAILURE: aged unlinked claim was not released (got %)', v_released;
+  end if;
+  raise notice 'aged orphan           -> released';
+
+  -- and the retry now succeeds instead of existing_claim_same_org
+  v := public.claim_approach(v_org, v_grant, 'i2','d2','b2','g2','m2',
+                             repeat('f', 64), '{"spine":"phase"}'::jsonb, '{}'::jsonb,
+                             1::smallint, v_vp, 'custom');
+  if not (v->>'granted')::boolean then
+    raise exception 'retry after orphan release still blocked: %', v->>'blocked_by';
+  end if;
+  raise notice 'retry after release   -> granted';
+
+  raise notice 'ORPHAN-CLAIM TEST PASSED';
+end $$;
+
 \echo ''
 \echo '=== audit trail (the release must be recorded, not silent) ==='
 select actor, action, entity from public.events where action = 'claim_released';

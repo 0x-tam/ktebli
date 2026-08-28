@@ -198,6 +198,14 @@ ok(/const siteDerived = !!\(webEvidence\.length \|\| profile\.legal_name \|\|\s*
 ok(/ranking_unparsed/.test(SRC), "WS4a-18: a refusal to rank is recorded, not silently discarded");
 ok(/word_count_whole/.test(SRC) && /word_count_counted/.test(SRC),
   "WS4a-20: the QA record carries BOTH word counts (whole document and counted span)");
+{
+  // Phase 6.2: the strategy stage releases its own stranded claim BEFORE it
+  // reads the reserved set, so the freed template/opening are visible to the
+  // same run (DB semantics executed in tests/exclusivity/stranded_claim_test.sql).
+  const rel = SRC.indexOf('rpc("release_stranded_claim"');
+  const taken = SRC.indexOf("const takenRows = await sel(`claims?grant_id");
+  ok(rel > 0 && taken > rel, "strategy releases a stranded claim BEFORE reading the reserved approaches");
+}
 
 console.log(`\n${bad === 0 ? "ALL HELD" : `${bad} ASSERTION(S) FAILED`}`);
 Deno.exit(bad === 0 ? 0 : 1);
