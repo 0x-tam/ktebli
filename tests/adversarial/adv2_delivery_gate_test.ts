@@ -342,51 +342,45 @@ await test("adv2/12: the wired judges are the phase-3 primary/fallback, on two f
   for (const k of ["scores", "disqualifiers", "verdict", "reasons"]) ok(req.includes(k), `${k} stays required`);
 });
 
-// ---- CHARACTERIZATION 13: the LATENT DEFECT (see the report, "Strongest attempt").
-// The re-judge comment (delivery_gate.ts:218-220) says a regeneration that "only
-// reflows blank lines has not changed the document and must not earn a fresh
-// roll of the dice." That is TRUE for blank-line runs of >=1 (3+ newlines
-// collapse to 2), and FALSE at the 0<->1 blank-line boundary: toggling a single
-// line-break to a paragraph-break (1 newline <-> 2) changes the hash, so the
-// held verdict is NOT replayed and the judge rolls again. This test PINS current
-// behaviour (so a fix that closes the gap will visibly flip these assertions).
-// It is a CHARACTERIZATION, not a demonstrated break: the report sets out why no
-// attacker-controlled, deterministic path from here to a delivery was found
-// (materialChange is newline-insensitive and refunds cosmetic regenerations;
-// gate_text/finalNarrative are byte-stable; the customer controls no narrative
-// bytes; the deliver guard can only fail CLOSED on a hash miss).
-await test("adv2/13: CHARACTERIZATION — the 0<->1 blank-line boundary escapes the hash (latent defect)", async () => {
+// ---- 13: the latent re-judge defect, NOW CLOSED (see the report, "Strongest attempt").
+// The re-judge comment (delivery_gate.ts) says a regeneration that "only reflows
+// blank lines has not changed the document and must not earn a fresh roll of the
+// dice." The earlier normaliseDocument collapsed only runs of >=3 newlines (to
+// two), leaving the 0<->1 blank-line boundary open: toggling a single line-break
+// to a paragraph-break (1 newline <-> 2) changed the hash, so the held verdict
+// was NOT replayed and the judge rolled again. The inv1 hardening collapses EVERY
+// run of newlines to one, so blank-line reflow is hash-invariant at every
+// boundary. This test — which the CHARACTERIZATION version explicitly said a fix
+// would "visibly flip" — now asserts the CLOSED behaviour.
+await test("adv2/13: the 0<->1 blank-line boundary is hash-invariant (latent defect CLOSED)", async () => {
   const zeroBlank = "line one\nline two\nline three";        // 0 blank lines
   const oneBlank = "line one\n\nline two\n\nline three";     // 1 blank line
   const twoBlank = "line one\n\n\nline two\n\n\nline three"; // 2 blank lines
   const hz = await documentHash(zeroBlank, JUDGE_GATE_VERSION);
   const h1 = await documentHash(oneBlank, JUDGE_GATE_VERSION);
   const h2 = await documentHash(twoBlank, JUDGE_GATE_VERSION);
-  // What holds correctly: >=1 blank-line reflows are hash-stable.
-  eq(h1, h2, "1 blank line and 2 blank lines share a hash (the collapse works here)");
-  // The defect: 0 blanks vs 1 blank differ, so a semantically-equal document
-  // earns a fresh, independent roll of a judge the report shows is non-
-  // deterministic even at temperature 0.
-  ok(hz !== h1, "DEFECT: 0-blank vs 1-blank reflow changes the hash, contradicting the re-judge comment");
+  // >=1 blank-line reflows were already hash-stable.
+  eq(h1, h2, "1 blank line and 2 blank lines share a hash");
+  // FIXED: 0 blanks and 1 blank now share a hash too, so a semantically-equal
+  // document no longer earns a fresh, independent roll of the judge.
+  eq(hz, h1, "0-blank and 1-blank reflow now share a hash — blank-line reflow is fully hash-invariant");
 
-  // End-to-end shape of the defect: a HELD document, re-presented with a single
-  // blank-line delta, dodges the sticky replay and is judged afresh. (In
-  // production the loop's materialChange and byte-stable sources block this;
-  // here we show the stickiness layer alone does not.)
+  // End-to-end: a HELD document, re-presented with a single blank-line delta,
+  // now hits the sticky replay instead of being judged afresh.
   const s = makeStore();
   const heldInput = baseInput({ narrative: oneBlank + "\n\n" + NARRATIVE_GOOD }); // long enough for preflight
   const held = await runDeliveryGate(heldInput, jdeps(jrecorder(() => judgeJson({ verdict: "fails_bar" }))));
   s.record(held);
   eq(held.decision, "hold", "held on the merits, sticky");
   const semanticallyEqual = zeroBlank + "\n\n" + NARRATIVE_GOOD; // same content, one fewer blank line up top
-  ok(await documentHash(semanticallyEqual, JUDGE_GATE_VERSION) !== held.doc_hash, "the reflowed twin has a different hash");
+  eq(await documentHash(semanticallyEqual, JUDGE_GATE_VERSION), held.doc_hash, "the reflowed twin has the SAME hash");
   const generous = jrecorder(() => judgeJson());
   const twin = await runDeliveryGate(baseInput({ narrative: semanticallyEqual }), jdeps(generous, { storedVerdict: s.dep }));
-  eq(twin.from_record, false, "DEFECT: the held verdict is NOT replayed for the reflowed twin");
-  ok(generous.calls.length > 0, "DEFECT: the judge is rolled again on a semantically-unchanged document");
-  // With a generous judge this fresh roll lands on pass — the shape of the risk,
-  // gated in production by the reachability barriers named above.
-  eq(twin.decision, "pass", "the fresh roll on the reflowed twin can pass (contingent on judge behaviour)");
+  eq(twin.from_record, true, "the held verdict IS replayed for the reflowed twin (no fresh roll)");
+  eq(generous.calls.length, 0, "the judge is NOT rolled again on a semantically-unchanged document");
+  // The replayed verdict is the original hold — a generous fresh judge can no
+  // longer flip a held document to a pass by reflowing one blank line.
+  eq(twin.decision, "hold", "the replayed verdict is the original hold, not a fresh pass");
 });
 
 // ---------------------------------------------------------------- report
@@ -396,4 +390,4 @@ if (failures.length) {
   console.error("\nA red above is a delivery of something never affirmatively cleared. See reports/adversarial/invariant-1-delivery-gate.md.");
   Deno.exit(1);
 }
-console.log(`ok — ${checks} adversarial checks passed (INVARIANT 1 mechanism held; probe 13 pins the latent re-judge defect)`);
+console.log(`ok — ${checks} adversarial checks passed (INVARIANT 1 mechanism held; probe 13's latent re-judge defect CLOSED by the normaliseDocument hardening)`);

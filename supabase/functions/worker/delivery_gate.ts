@@ -225,7 +225,15 @@ function normaliseDocument(md: string): string {
     .split("\n")
     .map((l) => l.replace(/[ \t]+$/g, ""))
     .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
+    // Collapse EVERY run of newlines to a single one, so the hash and the
+    // change-detector are invariant to blank-line reflow at every boundary. The
+    // earlier \n{3,}->\n\n rule left the 0<->1 blank-line boundary open: toggling a
+    // line break to a paragraph break (1 newline <-> 2) changed the hash, so a
+    // regeneration that only reflowed blank lines dodged the sticky replay and
+    // earned a fresh judge roll — the exact thing the re-judge contract forbids.
+    // A newline is still a token boundary (words never merge across it), so the
+    // word/shingle counts are unaffected.
+    .replace(/\n{2,}/g, "\n")
     .trim();
 }
 

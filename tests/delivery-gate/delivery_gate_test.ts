@@ -349,7 +349,7 @@ await test("the hash tracks content, not whitespace", async () => {
   ok(await documentHash(NARRATIVE_GOOD.replace("180 young people", "190 young people")) !== a, "one number is a change");
   ok(await documentHash(NARRATIVE_GOOD.replace("Qobbe", "qobbe")) !== a, "case is a change");
   ok(await documentHash(NARRATIVE_GOOD, "delivery-gate-v2") !== a, "a change to the bar invalidates every stored verdict");
-  eq(normaliseDocument("  a  \n\n\n\n b \n\n"), "a\n\n b", "normalisation is whitespace only");
+  eq(normaliseDocument("  a  \n\n\n\n b \n\n"), "a\n b", "normalisation is whitespace only; every run of newlines collapses to one (inv1 hardening)");
 });
 
 // ---------------------------------------------------------------- 6. reservations
