@@ -124,3 +124,15 @@ Next: install postgres + supabase CLI → phase 0.
 - WS4a MERGED (5fa9663) after critic PASS in writing: sole send-back fixed (artifact now
   reproduces 9/0/0), critic re-ran everything. P0 refund-regression fix + the 14 open
   specs go to wave-2 ws6-core.
+
+## 2026-08-28 — WS3 complete, critic running
+
+- WS3 done ($0.275 of $3): gate wired package-side + independent deliver-side hash
+  refusal; QUALITY/INFRA disjoint; crawl delegated to crawl_outcome (unblocks WS5).
+  Judge validation on 56 blind judgements: glm 65.0% = always-hold baseline exactly
+  (NO SIGNAL); gemini 77.8% vs 22.2% baseline, <80% → wired gemini primary + glm
+  fallback, HOLD-BIASED, LOW-AGREEMENT flagged. JUDGE_MAX_TOKENS 3000 was unusable
+  (reasoning ate it; empty content) → 12000 with measurement. Sufficiency: tau count
+  +0.161 / weight −0.452 → FLAT wired. NEW invariant-2 blocker (read-only finding):
+  save-intake and stripe-webhook do not enforce sufficiency clearance → wave-2 core.
+- WS3 critic spawned (recompute rates from persisted artifacts; ≤4 spot calls, $0.20).
