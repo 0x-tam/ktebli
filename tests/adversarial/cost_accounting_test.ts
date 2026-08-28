@@ -71,8 +71,11 @@ ok(/addUsage\(opts\.u, j\);/.test(SRC), "llmRaw accumulates into the CALLER'S si
 ok(/usage: \{ include: true \},\s*\n\s*reasoning:/.test(SRC),
   "every workhorse call requests OpenRouter's own cost accounting (usage.include)");
 ok(/const stageUsage = newUsage\(\);/.test(SRC), "each runStage call owns a fresh sink");
-ok((SRC.match(/usage: \{ \.\.\.stageUsage \}/g) ?? []).length >= 10,
-  "every stage output snapshots ITS OWN sink (10 stage outputs)");
+ok((SRC.match(/usage: \{ \.\.\.stageUsage \}/g) ?? []).length >= 11,
+  "every stage output snapshots ITS OWN sink (11 stage outputs)");
+ok(/limit_outcomes: lr\.limitOutcomes, usage: \{ \.\.\.stageUsage \}/.test(SRC),
+  "ANALYZE snapshots its sink too — it was the one stage without one, found by the " +
+  "phase-6 e2e cost reconciliation (its model call was invisible in job_stages)");
 ok((SRC.match(/u: stageUsage/g) ?? []).length + (SRC.match(/, stageUsage\)/g) ?? []).length >= 15,
   "the sink is threaded into every model-calling site inside runStage");
 ok(/generateValidated\(prompt: string, maxTokens: number, opts: ContentOpts = \{\}, u\?: Usage\)/.test(SRC),

@@ -393,6 +393,36 @@ over the limit are returned unread. A one-page budget table must be attached.`;
     "a word limit in the guidelines does not make an absent PAGE limit suspicious");
   ok(absenceIsSuspicious("Your answer must fit on 4 pages.", "max_pages") !== null,
     "a stated page limit does");
+
+  // REGRESSION — found live by the phase-6 e2e order on real donor text (the LBF
+  // New Beginnings 2026 guidance, tests/benchmark/grant-lbf-new-beginnings-2026-
+  // guidance.txt). The old numeric regex bridged a year at the end of one
+  // paragraph to a pdftotext "Page N" footer FOUR BLANK LINES later via `\s*`
+  // ("…in 2024\n\n\n\nPage 5"), so a truthful max_pages absence was refused as
+  // absence_contradicted and the order held at gen:narrative with no stated
+  // limit anywhere in the donor's text. The digit run, grouping and unit must
+  // now share one line.
+  ok(absenceIsSuspicious(
+    "Across our programmes in 2024\n\n\n\nPage 5\nWho can apply?", "max_pages") === null,
+    "a year + a page footer on later lines is NOT a stated page limit (live phase-6 defect)");
+  ok(absenceIsSuspicious("Founded in 2024. Page 3 of 9", "max_pages") === null,
+    "a sentence-final year + same-line footer does not bridge the full stop");
+  ok(absenceIsSuspicious("It grew through 2024\n\nwords cannot describe the change.", "max_words") === null,
+    "the same cross-line bridge is closed for the word field");
+  ok(decideLimit(null, "max_pages",
+    "Across our programmes in 2024\n\n\n\nPage 5\nWho can apply?").kind === "absent",
+    "so a truthful absence against footer-bearing text stays ABSENT, not refused");
+  ok(absenceIsSuspicious("Applications must be no longer than 4 pages in total.", "max_pages") !== null &&
+    absenceIsSuspicious("The limit is 1,400 words.", "max_words") !== null &&
+    absenceIsSuspicious("Limite: 1 400 mots.", "max_words") !== null,
+    "real same-line statements (digits, comma and space grouping) still fire");
+  // Argued direction, recorded: a limit statement wrapped across a line break is
+  // now missed, which only returns that text to the pre-check state (the
+  // extractor's null is trusted). It cannot loosen a gate that was ever active.
+  ok(absenceIsSuspicious("no more than\n1,400 words", "max_words") !== null,
+    "a wrap BEFORE the number still fires: the number and unit share a line");
+  ok(absenceIsSuspicious("Your proposal must be at most 1,400\nwords in total.", "max_words") === null,
+    "a wrap BETWEEN number and unit is missed BY DESIGN (documented trade, cannot loosen a gate)");
 }
 
 // ============================================================ 5. the caller's contract

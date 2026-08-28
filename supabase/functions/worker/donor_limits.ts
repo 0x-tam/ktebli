@@ -312,12 +312,23 @@ export function absenceIsSuspicious(guidelines: string, field: LimitField): stri
   const g = (guidelines || "").toLowerCase();
   if (!g.trim()) return null;
   if (/\bno (word|page)?\s*(limit|maximum)\b|\bthere is no limit\b|\bunlimited\b/.test(g)) return null;
+  // The digit run, its grouping separators and the unit must sit on ONE line with
+  // nothing but digit groups between them. The previous `\s*` bridge let a year at
+  // the end of one paragraph reach an unrelated "Page N" footer four blank lines
+  // later ("...in 2024\n\n\n\nPage 5"), and the permissive `[\d,. ]*` run let
+  // "...in 2024. Page 5" bridge a sentence boundary -- both read as a stated page
+  // limit, refusing a truthful absence and holding an order the donor never
+  // constrained. Found live: phase-6 e2e order 1 (LBF New Beginnings guidance,
+  // whose only "page" tokens are pdftotext page footers). A genuinely line-wrapped
+  // limit statement is now missed, which only returns that text to the pre-check
+  // state -- the extractor's null is trusted, exactly as before this helper existed.
+  // Missing a wrap cannot loosen a gate; the false positive was holding paid orders.
   const numeric = field === "max_words"
-    ? /\b\d[\d,.\u0020\u00A0\u202F]*\s*(words?|mots?|palabras?|w[oö]rter)\b/
-    : /\b\d[\d,. ]*\s*(pages?|sides?|seiten|p[aá]ginas?)\b/;
+    ? /\b\d+(?:[,.\u0020\u00A0\u202F]\d+)*[\t\u0020\u00A0\u202F\u2009]{0,3}(words?|mots?|palabras?|w[oö]rter)\b/
+    : /\b\d+(?:[,. ]\d+)*[\t\u0020\u00A0\u202F\u2009]{0,3}(pages?|sides?|seiten|p[aá]ginas?)\b/;
   const phrase = field === "max_words"
-    ? /\bword (limit|count|maximum)\b|\b(must not exceed|no more than|not exceeding|maximum of|up to)\b[^.]{0,40}\bwords?\b/
-    : /\bpage (limit|maximum)\b|\b(must not exceed|no more than|not exceeding|maximum of|up to)\b[^.]{0,40}\bpages?\b/;
+    ? /\bword (limit|count|maximum)\b|\b(must not exceed|no more than|not exceeding|maximum of|up to)\b[^.\n]{0,40}\bwords?\b/
+    : /\bpage (limit|maximum)\b|\b(must not exceed|no more than|not exceeding|maximum of|up to)\b[^.\n]{0,40}\bpages?\b/;
   const m = g.match(numeric) ?? g.match(phrase);
   return m ? m[0].trim().slice(0, 80) : null;
 }

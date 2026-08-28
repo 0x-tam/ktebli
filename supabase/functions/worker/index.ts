@@ -1609,7 +1609,10 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     // non-empty, so an unreadable stated limit stops the order BEFORE the
     // generation spend (WS4a-14/-15; silent-gates §6.4).
     const lr = resolveDonorLimits((a as { format_spec?: unknown }).format_spec ?? null, text);
-    return done({ ...a, limit_unparsed: lr.limitUnparsed, limit_outcomes: lr.limitOutcomes });
+    // usage snapshot: analyze was the ONE stage output without its own cost sink
+    // (phase-6.4 contract: every stage output snapshots its usage) — found by the
+    // phase-6 e2e cost reconciliation, which could not account for the analyze call.
+    return done({ ...a, limit_unparsed: lr.limitUnparsed, limit_outcomes: lr.limitOutcomes, usage: { ...stageUsage } });
   }
 
   if (stage.key === "org") {
