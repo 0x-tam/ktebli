@@ -37,6 +37,7 @@ import { marked } from "npm:marked@18.0.10";
 import { properNounAudit } from "./proper_nouns.ts";
 import { contactAudit } from "./contact_claims.ts";
 import { limitScopeFrom, limitedText, type LimitScope } from "./word_limit.ts";
+import { resolveRegister, numbersIn, RegisterError, type Resolved } from "./numeric_register.ts";
 import { unzipSync, strFromU8 } from "npm:fflate@0.8.2";
 import { safeFetchText, stripHtml } from "./ssrf.ts";
 import {
@@ -238,7 +239,6 @@ function jargonFindings(md: string): string[] {
 // ================= deterministic numeric consistency =================
 // Canonical values come from the Project Design; each document is scanned for
 // contradicting figures on the axes donors actually notice.
-function numbersNear(a: number, b: number): boolean { return a === b; }
 function scanNumbers(md: string, unitRe: RegExp): number[] {
   const out: number[] = [];
   for (const m of md.matchAll(new RegExp(`([0-9][0-9,]{0,8})\\s*(?:${unitRe.source})`, "gi"))) {
@@ -259,11 +259,25 @@ function consistencyFindings(docs: Record<string, string>, dn: DesignNumbers, bu
     if (!md) continue;
     if (dn.participants) {
       const found = scanNumbers(md, /participants|beneficiaries|people (?:reached|served|trained)|individuals/);
+      // BIDIRECTIONAL (adv2 A11 / launch P1.7). The old gate was `n > total * 1.01`
+      // only, so an UNDERSTATEMENT passed — the delivered 200-vs-216 defect, a total
+      // stated LOWER than the design's own components sum to. It also carried a dead
+      // numbersNear (`a === b`) inside a strict inequality that could never change the
+      // outcome. Now a prose figure contradicts the design when it is either above the
+      // total, or is a total-CLAIM (at least half the total) that falls short of it.
+      // A genuinely smaller per-cohort / per-event figure (below half) is legitimate.
+      const overBy = dn.participants * 0.01;                     // 1% rounding tolerance
+      const totalClaimFloor = dn.participants * 0.5;             // below this it is a component
       for (const n of found) {
-        if (n < dn.participants * 0.05) continue; // per-cohort / per-event figures are fine
         if (evidenceNums.has(n)) continue;        // cited ledger statistic, not a target claim
-        if (n > dn.participants * 1.01 && !numbersNear(n, dn.participants)) {
+        if (n > dn.participants + overBy) {
           v.push(`${name}: mentions ${n} participants/beneficiaries but the project design totals ${dn.participants}`);
+          break;
+        }
+        // understatement: n below the design total (n < dn.participants) but still a
+        // total-claim (at least half of it) — the 200-vs-216 direction.
+        if (n >= totalClaimFloor && n < dn.participants - overBy) {
+          v.push(`${name}: states ${n} participants/beneficiaries as the total, but the project design totals ${dn.participants} — the design's own figure, understated`);
           break;
         }
       }
@@ -272,7 +286,7 @@ function consistencyFindings(docs: Record<string, string>, dn: DesignNumbers, bu
       const found = scanNumbers(md, /-?\s*month(?:s)?\b/);
       for (const n of found) {
         if (evidenceNums.has(n)) continue;
-        if (n > dn.duration_months && n <= 60 && !numbersNear(n, dn.duration_months)) {
+        if (n > dn.duration_months && n <= 60) {
           v.push(`${name}: refers to a ${n}-month horizon but the project design is ${dn.duration_months} months`);
           break;
         }
@@ -428,17 +442,85 @@ function orgTokens(raw: string): Set<string> {
       .filter((t) => t.length > 2 && !ORG_GENERIC_WORDS.has(t)),
   );
 }
+// The registrable domain's MAIN LABEL — the one dot-label immediately left of the
+// public suffix — determined conservatively, discard-on-doubt. This is what a
+// single-token org name must EQUAL to admit a site: not a subdomain prefix
+// (shelter.evil.com -> evil), not a hyphen component (shelter-supplies.com ->
+// shelter-supplies), not a substring (shelterlogic.com -> shelterlogic). Splitting on
+// "." ONLY (never "-") is deliberate: a hyphen stays inside its label. The suffix set
+// is a small embedded list; an UNRECOGNISED suffix falls back to the second-to-last
+// label (so a stranger subdomain still resolves to the wrong main label and rejects).
+const PUBLIC_SUFFIX_2 = new Set([
+  "co.uk", "org.uk", "ac.uk", "gov.uk", "me.uk", "net.uk", "sch.uk",
+  "com.au", "org.au", "net.au", "edu.au", "gov.au",
+  "co.nz", "org.nz", "net.nz", "govt.nz",
+  "co.za", "org.za", "com.br", "org.br", "co.in", "org.in", "net.in",
+  "com.lb", "org.lb", "com.eg", "org.eg", "or.ke", "co.ke",
+]);
+const PUBLIC_SUFFIX_1 = new Set([
+  "com", "org", "net", "edu", "gov", "int", "mil", "info", "biz",
+  "io", "co", "ngo", "charity", "foundation", "app", "dev", "me", "us", "uk",
+  "ca", "au", "nz", "za", "de", "fr", "nl", "es", "it", "se", "no", "ch", "ie",
+  "eu", "in", "br", "lb", "eg", "ke", "ng", "ph", "sg", "hk",
+]);
+function registrableMainLabel(domain: string): string | null {
+  const host = String(domain ?? "").toLowerCase().trim().replace(/^https?:\/\//, "").replace(/[\/?#].*$/, "").replace(/\.$/, "");
+  // Reject anything that is not a plain hostname (empty, IP literal, illegal chars).
+  if (!host || /[^a-z0-9.-]/.test(host) || /^\d+(?:\.\d+)+$/.test(host)) return null;
+  const labels = host.split(".");
+  if (labels.length < 2 || labels.some((l) => l === "")) return null; // ambiguous
+  const last2 = labels.slice(-2).join(".");
+  if (labels.length >= 3 && PUBLIC_SUFFIX_2.has(last2)) return labels[labels.length - 3];
+  if (PUBLIC_SUFFIX_1.has(labels[labels.length - 1])) return labels[labels.length - 2];
+  // Unrecognised suffix: discard-on-doubt — take the second-to-last label as the main.
+  return labels[labels.length - 2];
+}
 function orgNameMatchesSite(orgName: string, siteLegalName: unknown, domain: string): boolean {
   const want = orgTokens(orgName);
   if (!want.size) return false; // nothing distinctive to match on: do not admit
   const site = orgTokens(String(siteLegalName ?? ""));
-  for (const t of want) if (site.has(t)) return true;
-  for (const t of site) if (want.has(t)) return true;
-  // A site may never state a legal name. The domain is then the only signal, and
-  // a distinctive token appearing in it is a real one (amel.org would NOT match
-  // "Beit Al-Shabab Community Association", which is the case that matters).
-  const host = domain.toLowerCase().replace(/[^a-z0-9]/g, "");
-  for (const t of want) if (t.length > 3 && host.includes(t)) return true;
+  // A SINGLE shared distinctive token is not a confident match: "Grace Kitchen" and
+  // "W. R. Grace and Company" share only "grace", "Bright Futures Youth Club" and
+  // "Bright Horizons Family Solutions" share only "bright" — one common word is a
+  // coincidence, and admitting on it imports a stranger's history as the applicant's,
+  // the worst outcome invariant 3 has. Confidence requires ONE of:
+  //   (1) TWO or more distinctive tokens agree (an independent second signal), or
+  //   (2) the two distinctive-token sets are IDENTICAL and non-empty (the site's
+  //       stated name IS the applicant, e.g. a single-distinctive-token org whose
+  //       site carries that same one token).
+  let shared = 0;
+  for (const t of want) if (site.has(t)) shared++;
+  // (1) TWO or more distinctive tokens agree — an independent second signal, strong.
+  // A SINGLE shared distinctive token is never a confident legal-name match: it is one
+  // common word ("grace" in Grace Kitchen vs W. R. Grace; "bright" in The Bright
+  // Foundation vs an unrelated "Bright Ltd"), and admitting on it imports a stranger's
+  // history — the worst outcome invariant 3 has. So there is NO single-token name-only
+  // admit: a one-word org must be corroborated by the domain branch below (or rejected).
+  if (shared >= 2) return true;
+
+  // The domain, when it is the only usable signal. A distinctive token appearing as a
+  // bare SUBSTRING of the host, a SUBDOMAIN prefix, or a HYPHEN component is
+  // coincidental — "arts" inside "smartsdata", "shelter" as the subdomain of evil.com,
+  // "shelter" in "shelter-supplies", "mind" in "mind-games".
+  const wantArr = [...want];
+  const host = domain.toLowerCase().replace(/[^a-z0-9]/g, "");             // concatenated
+  if (wantArr.length === 1) {
+    // A single-token org admits ONLY when the token EQUALS the registrable domain's
+    // MAIN LABEL (the label immediately left of the public suffix) — never a subdomain,
+    // a hyphen component, or a substring. shelter.org.uk (main "shelter") admits;
+    // shelter.evil.com (main "evil"), shelter-supplies.com (main "shelter-supplies"),
+    // mind-games.co.uk (main "mind-games") and shelterlogic.com (main "shelterlogic")
+    // do not. On any parse ambiguity registrableMainLabel returns null → reject.
+    const t = wantArr[0];
+    const main = registrableMainLabel(domain);
+    if (t.length > 3 && main !== null && main === t) return true;
+  } else {
+    // Two or more distinctive tokens: a concatenated domain (brightfutures.org) rarely
+    // spells them all by coincidence, so EVERY token must appear in the host and at
+    // least one be of real length. amel.org still does NOT match "Beit Al-Shabab …".
+    if (host && wantArr.every((t) => host.includes(t)) && wantArr.some((t) => t.length > 3)) return true;
+  }
+  // Stays asymmetric: on any doubt the site is discarded, never imported.
   return false;
 }
 
@@ -537,7 +619,30 @@ function toBlocks(md: string): Block[] {
 // over-counted by ~3% on prose and more on table-heavy documents, which made an exact
 // limit check refuse documents that were actually inside the donor's limit.
 function wordCount(md: string): number {
-  return md.replace(/[|#*`>]/g, "").split(/\s+/).filter((w) => /[A-Za-z0-9؀-ۿ]/.test(w)).length;
+  // A donor word limit is checked against the document the donor RECEIVES, so the
+  // count must match what a word processor counts, for every script — not only
+  // Latin / ASCII / Arabic. The old /[A-Za-z0-9؀-ۿ]/ rule let two attacks through:
+  //   * every other script (Cyrillic, Greek, Hebrew, Devanagari, CJK) counted ~0,
+  //     so a document far over the limit in that script never tripped the gate; and
+  //   * zero-width joiners, soft hyphens and pipe-packed table cells GLUED words
+  //     into a single token, collapsing thousands of words to one.
+  // The rule below is deliberately MONOTONIC: for any input it counts >= the old
+  // rule (it only adds word boundaries and widens the accepted token class), so it
+  // can only make the compliance gate stricter, never looser. Kept byte-identical
+  // to gateWordCount() in delivery_gate.ts.
+  const cleaned = md
+    // zero-width space / ZWNJ / ZWJ / soft hyphen / word joiner / BOM are invisible
+    // to a reader and are NOT boundaries to \s; treat each as one so a glued blob
+    // cannot undercount.
+    .replace(/[\u00AD\u200B\u200C\u200D\u2060\uFEFF]/g, " ")
+    // table cell walls glue adjacent cell text when the cells carry no padding.
+    .replace(/\|/g, " ")
+    // heading / emphasis / quote markers are not words (removed, as before).
+    .replace(/[#*`>]/g, "")
+    // scripts written without spaces (CJK) are a single whitespace token however
+    // long; a word processor counts each character, so split them out.
+    .replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu, " $& ");
+  return cleaned.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 }
 
 // ---- CRAWL-STARVATION-BEGIN (tests/adversarial extracts and executes this block verbatim)
@@ -1347,8 +1452,14 @@ async function notifyTerminal(stageId: number, proposalId: string, status: strin
   try {
     const st = (await sel(`job_stages?id=eq.${stageId}&select=notified_at,key,label`))[0];
     if (!st || st.notified_at) return;
-    await patch(`job_stages?id=eq.${stageId}`, { notified_at: new Date().toISOString() });
-
+    // notified_at is set LAST, after every channel has been ATTEMPTED (see the end
+    // of this function). Marking it here — before the two lookups below — was a
+    // silent-swallow hole: sel() throws on any non-2xx (a transient 5xx or replica
+    // lag) and the row may not be visible yet, so a throw or the `!prop`/`!order`
+    // early return left the stage marked "notified" with nobody told, and
+    // notifyUnnotifiedTerminals (which sweeps only notified_at IS NULL) never
+    // retried it. A paid terminal failure swallowed permanently. Now any failure
+    // before the notifications leaves notified_at null for the next tick to retry.
     const prop = (await sel(`order_proposals?id=eq.${proposalId}&select=id,order_id`))[0];
     if (!prop) return;
     const order = (await sel(`orders?id=eq.${prop.order_id}&select=id,email,org_name,tier,order_no`))[0];
@@ -1369,11 +1480,18 @@ async function notifyTerminal(stageId: number, proposalId: string, status: strin
     const support = (await rpc("get_secret", { p_name: "support_email" }).catch(() => null)) ?? "hello@ktebli.com";
     const cw = DRAFT_WORDINGS.customerTerminal(String(order.order_no ?? ""), String(st.label ?? st.key), String(support));
     const sentCustomer = await sendEmail(order.email, cw.subject, cw.html).catch(() => false);
-    await recordNotifyAttempt("notify_customer", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentCustomer });
+    await recordNotifyAttempt("notify_customer", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentCustomer }).catch(() => {});
 
     const ow = DRAFT_WORDINGS.operatorTerminal(String(order.order_no ?? ""), String(st.key), error.slice(0, 200));
-    const sentOperator = await notifyOperator(ow.subject, ow.html);
-    await recordNotifyAttempt("notify_operator", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentOperator });
+    const sentOperator = await notifyOperator(ow.subject, ow.html).catch(() => false);
+    await recordNotifyAttempt("notify_operator", order.id, { kind: status === "held" ? "stage_held" : "stage_failed", stage: st.key, sent: sentOperator }).catch(() => {});
+
+    // Only NOW, after the escalation row and BOTH email channels have been
+    // attempted (each guarded above so a throw here cannot leave a channel
+    // half-attempted then retried), mark the stage notified so the terminal sweep
+    // does not re-notify it. Idempotency, applied at the point the notification is
+    // actually done rather than before it begins.
+    await patch(`job_stages?id=eq.${stageId}`, { notified_at: new Date().toISOString() });
   } catch { /* never let notification failure mask the original failure */ }
 }
 
@@ -1545,6 +1663,55 @@ async function composeDraw(
   axes["cadence_mu"] = 8 + (fnv1a(seedBase + "|cad") % 20);
   axes["weight_profile"] = fnv1a(seedBase + "|wp") % 997;
   return { axes, composition, fingerprint: await sha256Hex(canonicalAxes(axes)) };
+}
+// The style the WRITER receives, built from the WHOLE composition — every axis the
+// fingerprint hashes, not just spine + opening_move. This is invariant 6's real fix:
+// the lock draws a fingerprint across eleven axes, but the pre-fix styleNote fed the
+// generator only two of them, so the reader-visible style space was a finite pool of
+// |spine| x |opening_move| = 182 however astronomically large the fingerprint space
+// was — distinct hash, identical writing. Here every categorical axis contributes its
+// prompt_directive and every integer grid a concrete instruction, so the string the
+// generator receives is injective in the fingerprint: two distinct fingerprints yield
+// two distinct style briefs. The hash is NOT narrowed (that would REINTRODUCE a
+// ceiling); the visible space is widened to MATCH it. adv2_exclusivity imports this
+// exact function as its model of the writer's input, so a collision here would be a
+// real collision in what the writer sees.
+//
+// MECHANISM WIRED + UNIT-TESTED. The PROSE-DISTINCTNESS half — that move_order 5 vs 6
+// (or weight_profile 41 vs 42) actually read differently to a human, not just as
+// different instruction bytes — needs a full pipeline order and is
+// UNPROVEN-WITHOUT-E2E (not run: costs money).
+function composedStyleNote(axes: Record<string, string | number>, composition: Record<string, string>): string {
+  const CATEGORICAL: Array<[string, string]> = [
+    ["Structure (spine)", "spine"],
+    ["Opening move", "opening_move"],
+    ["Argument carrier", "argument_carrier"],
+    ["Paragraph regime", "paragraph_regime"],
+    ["Stance", "stance"],
+    ["Evidence integration", "evidence_integration"],
+    ["Closing move", "closing_move"],
+    ["Tabular policy", "tabular_policy"],
+  ];
+  const lines: string[] = [];
+  for (const [label, ax] of CATEGORICAL) {
+    if (axes[ax] === undefined) continue;
+    const directive = composition[ax] ?? String(axes[ax]);
+    lines.push(`${label} [${axes[ax]}]: ${directive}`);
+  }
+  // The three integer grids, expressed as CONCRETE, perceivable instructions so each
+  // distinct value shapes the writing (cadence is a real sentence-length target; the
+  // other two are fixed non-default orderings/weightings keyed to their value).
+  if (axes["cadence_mu"] !== undefined) {
+    lines.push(`Cadence: hold a mean sentence length near ${axes["cadence_mu"]} words, varying deliberately around it (never a monotone).`);
+  }
+  if (axes["move_order"] !== undefined) {
+    lines.push(`Move order: sequence your supporting moves in the fixed non-default arrangement keyed ${axes["move_order"]} — commit to one order and keep it.`);
+  }
+  if (axes["weight_profile"] !== undefined) {
+    lines.push(`Emphasis weighting: distribute depth unevenly across sections by weighting profile ${axes["weight_profile"]}, not evenly.`);
+  }
+  return "\nHOUSE STYLE — realise EVERY axis below; together they are what make this application unlike any other to this grant, so no two read alike:\n" +
+    lines.join("\n") + "\n";
 }
 // ---- COMPOSER-END
 
@@ -2088,7 +2255,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `"sustainability":{"what_continues":string,"who_owns_it":string,"ongoing_costs":string,"how_paid":string,"capacity_remaining":string},` +
       `"risks":[{"risk":string,"mitigation":string}],` +
       `"indicators":[{"indicator":string,"type":"output"|"outcome","baseline":string,"target":string,"method":string,"frequency":string}],` +
-      `"budget_envelope_usd":number|null,"budget_drivers":[string]},` +
+      `"budget_envelope_usd":number|null,"budget_drivers":[string],` +
+      // NUMERIC REGISTER (invariant 4): every figure the proposal will state, as ONE
+      // derivable graph. A leaf carries its value and a real basis; a total (sum) names
+      // its members and its asserted figure and is RECOMPUTED, never believed. Resolved
+      // deterministically before any document is written — if it does not close, the
+      // design is rejected. ids match [A-Z]{1,2}[0-9]{1,3}.
+      `"numeric_register":[{"id":string,"label":"exact phrase the figure is written as","unit":"people|months|USD|ratio|GBP/person|...","unit_kind":"count"|"money"|"duration"|"ratio"|"rate","kind":"leaf"|"sum"|"product"|"rate","value":"LEAF ONLY:number","of":"DERIVED ONLY:[member ids]","asserted":"DERIVED ONLY:number you claim, will be recomputed","basis":{"kind":"evidence"|"donor"|"estimate"|"capacity"|"arithmetic","detail":"Evidence Ledger id (E-*) for evidence; the derivation otherwise"}}]},` +
       `"assumptions":[{"id":string,"assumption":string,"type":"model_proposed_target"|"estimated_cost"|"design_choice","reason":string,"confidence":"low"|"medium"|"high"}],` +
       `"logic_check":{"chain_holds":boolean,"weaknesses_fixed":[string]}}\n` +
       `Rules (strict):\n` +
@@ -2097,7 +2270,8 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `- Targets: never round-and-impressive by default; each numeric target must be producible by the listed activities inside the timeline and envelope, and must appear in assumptions as model_proposed_target with the reasoning.\n` +
       `- budget_envelope_usd: the natural cost of THIS design, at or under any donor ceiling in the grant intelligence. If the design naturally costs far less than the ceiling, keep it lower — never pad.\n` +
       `- partnerships: status "evidence_based" ONLY if the evidence ledger shows the partnership exists; otherwise "designed" (a partnership the project will build).\n` +
-      `- sustainability: a real mechanism (who owns what, what costs money, how it is paid). If no future funding source is evidenced, say so honestly in ongoing_costs/how_paid — do not invent one.`,
+      `- sustainability: a real mechanism (who owns what, what costs money, how it is paid). If no future funding source is evidenced, say so honestly in ongoing_costs/how_paid — do not invent one.\n` +
+      `- numeric_register: put EVERY figure the proposal will state into it, ONCE. A total is a "sum" node over its parts with an "asserted" value — it will be recomputed and MUST equal the parts (state 216 as N1+N2+N3, never a rounded 200). A share/percentage is a "rate"/"ratio" whose label names the exact denominator. Leaves need a real basis; a figure attributed to evidence must be the figure that Evidence Ledger item states. Do not pad, do not round a fraction into a headcount.`,
       6000, { effort: "high", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
     const project = d.project as Record<string, unknown> | undefined;
     if (!project || !Array.isArray(project.activities) || !(project.activities as unknown[]).length) {
@@ -2109,7 +2283,52 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     if (ceiling && envelope && envelope > ceiling) {
       throw new Error(`design over ceiling: envelope ${envelope} exceeds donor ceiling ${ceiling}`);
     }
-    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, usage: { ...stageUsage } });
+
+    // ---------- NUMERIC REGISTER (invariant 4; launch P1.7) ----------
+    // "Every number is derived once." Until now the register in numeric_register.ts
+    // was imported by nothing: the design emitted bare model scalars and the only
+    // numeric gate (consistencyFindings) checked prose against them. Here the design's
+    // own figure graph resolves THROUGH the register before any document is written —
+    // totals are recomputed from components (SUMMED, not believed), rates must name
+    // their denominator, and every figure is closed against its stated basis. A design
+    // whose own numbers do not close fails HERE, before generation spend, rather than
+    // producing the 200-vs-216 document. The register is opt-in on presence so the
+    // pipeline still runs while the design prompt (which now asks for `numeric_register`)
+    // beds in; the figures it carries then become the single source of truth generation
+    // writes from and the closed totals the consistency gate checks against.
+    //
+    // MECHANISM WIRED + UNIT-TESTED (adv2_numeric A11: imported, called, bidirectional
+    // consistency, live numbersNear gone). The GENERATION-QUALITY half — that a real
+    // narrative's understatement is now caught end-to-end because every section writes
+    // from the resolved register — needs a full pipeline order to prove and is
+    // UNPROVEN-WITHOUT-E2E (not run: costs money; same marking as WS6-core resumable gen).
+    let registerDerivations: Record<string, { value: number; unit: string; label: string; derivation: string }> | null = null;
+    const rawRegister = (project as { numeric_register?: unknown }).numeric_register;
+    if (Array.isArray(rawRegister) && rawRegister.length) {
+      const regEvidence = new Map<string, Set<number>>();
+      for (const e of allowedEvidence) {
+        const eid = String((e as { id?: unknown }).id ?? "");
+        if (eid) regEvidence.set(eid, numbersIn(String((e as { claim?: unknown }).claim ?? "")));
+      }
+      const donorNums = numbersIn(JSON.stringify(analysis ?? {}));
+      let resolved: Map<string, Resolved>;
+      try {
+        resolved = resolveRegister(rawRegister, "USD", regEvidence, donorNums);
+      } catch (e) {
+        if (e instanceof RegisterError) {
+          throw new Error(
+            `project design numbers do not close (${e.code}): ${e.message}. ` +
+            `Every figure must derive once and reconcile before any document is written.`);
+        }
+        throw e;
+      }
+      registerDerivations = {};
+      for (const [id, r] of resolved) {
+        registerDerivations[id] = { value: r.value, unit: r.unit, label: r.label, derivation: r.derivation };
+      }
+    }
+
+    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, numeric_register: rawRegister ?? null, register_derivations: registerDerivations, usage: { ...stageUsage } });
   }
 
   if (stage.key.startsWith("gen:")) {
@@ -2127,7 +2346,17 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     await beat();
     const priorNarrative = kind !== "narrative" ? finalNarrative(c.out) : "";
     const extra = priorNarrative ? `\n\nTHE PROPOSAL NARRATIVE (be consistent with it):\n${priorNarrative.slice(0, 12_000)}` : "";
-    const styleNote = strategy ? `\nStructure style: ${JSON.stringify(strategy.template_style)}. Opening style: ${JSON.stringify(strategy.opening_style)}.` : "";
+    // Route the WHOLE composition to the writer, not just spine + opening_move (the
+    // 182-pool defect, inv6). composedStyleNote expresses every hashed axis as a style
+    // instruction, so the reader-visible style space is as wide as the fingerprint the
+    // lock enforces. strategy.axes / strategy.composition are stored by the strategy
+    // stage for exactly this. (template_style/opening_style remain stored for the DB.)
+    const styleNote = strategy
+      ? composedStyleNote(
+        (strategy.axes ?? {}) as Record<string, string | number>,
+        (strategy.composition ?? {}) as Record<string, string>,
+      )
+      : "";
     // Donor-defined structure overrides everything (contract part 13)
     const appStruct = analysis?.application_structure as { defined_by_donor?: boolean; sections_or_questions?: string[] } | undefined;
     const donorStructure = kind === "narrative" && appStruct?.defined_by_donor && (appStruct.sections_or_questions?.length ?? 0) > 0
@@ -2185,6 +2414,17 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       ? spec.brief.replace("(1500-2500 words)", `(about ${Math.round(fmt.maxWords * 0.94)} words — the donor's hard limit is ${fmt.maxWords} and going over it disqualifies the application)`)
       : spec.brief;
 
+    // The resolved numeric register (invariant 4) is the single source of truth every
+    // section writes from, so the same numbers appear everywhere and a total is its
+    // recomputed sum, never a re-invented round figure. Present when the design carried
+    // a register that closed. (Consumption is the generation-QUALITY half: wired here,
+    // its end-to-end effect on a real narrative is UNPROVEN-WITHOUT-E2E.)
+    const regDerivs = (design?.register_derivations ?? null) as Record<string, { label: string; value: number; unit: string; derivation: string }> | null;
+    const registerNote = regDerivs && Object.keys(regDerivs).length
+      ? "\n\nNUMERIC SINGLE SOURCE OF TRUTH — state each of these figures EXACTLY as resolved; use the same number everywhere it appears; never round a total away from its components:\n" +
+        Object.values(regDerivs).map((r) => `- ${r.label}: ${r.value} ${r.unit} (${r.derivation})`).join("\n")
+      : "";
+
     // ---------- section-by-section path (Competitive/Full, donor-defined structure) ----------
     const plan = kind === "narrative" ? sectionPlan(String(c.order.tier ?? ""), appStruct, fmt.maxWords) : null;
     if (plan) {
@@ -2193,7 +2433,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         if (sectionComplete(progress.sections[sec.key])) continue; // idempotent: persisted and re-checked, not re-paid
         await beat();
         const body = sanitizeMd(await llm(
-          baseCtx() +
+          baseCtx() + registerNote +
           `\n\nTASK: Write ONLY the body of ONE section of the proposal narrative. ` +
           `The donor defines the application structure; this section's heading is added for you afterwards, so do NOT repeat it and do NOT add any other heading.\n` +
           `Section (answer it directly): "${sec.heading}"\n` +
@@ -2228,7 +2468,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       return done({ text, sectioned: true, sections: plan.sections.length, usage: { ...stageUsage } });
     }
 
-    const text = await generateValidated(baseCtx() + extra + `\n\nTASK: ${brief}${donorStructure}${kind === "narrative" ? styleNote + STYLE_RULES : ""}${FORMAT_RULES}`, spec.max, opts, stageUsage);
+    const text = await generateValidated(baseCtx() + extra + registerNote + `\n\nTASK: ${brief}${donorStructure}${kind === "narrative" ? styleNote + STYLE_RULES : ""}${FORMAT_RULES}`, spec.max, opts, stageUsage);
     // Document-level checkpoint for every single-shot gen:* too: a crash
     // between this call and done() costs zero model calls on the retry.
     progress.text = text;

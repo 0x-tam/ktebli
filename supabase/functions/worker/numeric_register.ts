@@ -80,8 +80,21 @@ function unitKindOf(unit: string): UnitKind {
   return "count";
 }
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
-// 0.77 -> 77 without float dust, on the same 1e-6 grid snap() uses for ratios.
-const asPercent = (n: number) => Math.round(n * 100 * 1e6) / 1e6;
+// 77 -> 0.77 without float dust, on the same 1e-6 grid snap() uses for ratios: the
+// fraction a number that WORE a "%" stands for. (The old asPercent(), 0.77 -> 77, is
+// gone: a ratio is now confirmed by its fraction registered from a real "%", never by
+// a bare integer that merely equals its percentage — adv2 A10.)
+const asFraction = (n: number) => Math.round((n / 100) * 1e6) / 1e6;
+// Words that may sit immediately before the denominator's label inside the rate's
+// label without changing which quantity is named: prepositions, articles and the
+// share/rate connectives. A CONTENT word before the denominator label ("total" or
+// "project" before "cost"/"project cost") extends it into a DIFFERENT quantity, and
+// that is the "right about the wrong denominator" escape PATCH 6 must refuse.
+const RATE_LABEL_CONNECTIVES = new Set([
+  "of", "per", "the", "a", "an", "to", "as", "over", "by", "into", "from", "on",
+  "for", "and", "or", "out", "with", "in", "at", "share", "proportion", "percentage",
+  "fraction", "ratio", "rate", "versus", "vs", "each",
+]);
 
 // significant digits of the integer part: 216 -> 3, 200 -> 1, 1250 -> 3
 function sigFigs(n: number): number {
@@ -95,7 +108,17 @@ function numbersIn(s: string): Set<number> {
     const n = Number(m[0].replace(/,/g, ""));
     // PATCH 3. Keep the raw value as well as the rounded one. Rounding first made
     // the evidence check dimensionless: a 0.77 ratio was looked up as "1".
-    if (Number.isFinite(n) && n > 0) { out.add(n); out.add(Math.round(n)); }
+    if (Number.isFinite(n) && n > 0) {
+      out.add(n); out.add(Math.round(n));
+      // PATCH 11 (adv2 A10). %-PROVENANCE. A ratio (0.11) used to be "verified" by any
+      // bare integer equal to asPercent(it): "11 staff" confirmed a 0.11 ratio because
+      // 11 was in the pooled set. A percentage may only be confirmed by a number that
+      // actually WORE a "%". So a number written as a percentage ("29%", "29 per cent")
+      // also stands for its FRACTION (0.29) here — and only such a number does — and the
+      // ratio is checked against that fraction directly, never against a raw headcount.
+      const after = s.slice((m.index ?? 0) + m[0].length);
+      if (/^\s*(%|per\s?cent\b)/i.test(after)) out.add(asFraction(n));
+    }
   }
   return out;
 }
@@ -213,10 +236,33 @@ function resolveRegister(
         throw new RegisterError("ratio_unit_mismatch", n.id,
           `a ratio is a share of one quantity, but ${num.id} is in "${num.unit}" and ${den.id} is in "${den.unit}"`);
       }
-      if (!norm(n.label).includes(norm(den.label))) {
+      // PATCH 6 (revised — adv2 A9). The label must NAME THE DENOMINATOR NODE, not
+      // merely contain its label as a substring. "share of total project cost" divided
+      // by the "cost" node (the grant, £108k) passed the old includes() test because
+      // "cost" is a substring — but the label names a LARGER quantity ("total project
+      // cost", the register's own £120k total, a different node) than the denominator
+      // it divides by, certifying 75% of the grant as 75% of the total. Match by
+      // IDENTITY: the denominator's label must appear as a WHOLE token-run in the rate
+      // label, bounded on BOTH sides by the start/end or a connective. A content word on
+      // either side extends the run into a DIFFERENT quantity and is refused — whether it
+      // sits on the left ("total"/"project" before "cost") or the right ("cost overrun",
+      // "budget shortfall", "cost recovery" all point at a "cost" node yet mean something
+      // else). Left-anchoring alone let the right-extension through.
+      const rateToks = norm(n.label).split(" ").filter(Boolean);
+      const denToks = norm(den.label).split(" ").filter(Boolean);
+      const namesDenominator = denToks.length > 0 && rateToks.some((_, i) => {
+        if (i + denToks.length > rateToks.length) return false;
+        for (let j = 0; j < denToks.length; j++) if (rateToks[i + j] !== denToks[j]) return false;
+        const leftOk = i === 0 || RATE_LABEL_CONNECTIVES.has(rateToks[i - 1]);
+        const end = i + denToks.length;
+        const rightOk = end === rateToks.length || RATE_LABEL_CONNECTIVES.has(rateToks[end]);
+        return leftOk && rightOk;
+      });
+      if (!namesDenominator) {
         throw new RegisterError("rate_denominator_label", n.id,
-          `"${n.label}" is taken over ${den.id} ("${den.label}"), and does not say so. ` +
-          `A rate must name its own denominator, or it is right about the wrong quantity.`);
+          `"${n.label}" is taken over ${den.id} ("${den.label}") but does not name it as its own ` +
+          `denominator — the label is absent, or a content word extends it into a different quantity. ` +
+          `A rate must name the exact quantity it is divided by, or it is right about the wrong one.`);
       }
       value = num.value / den.value;
       derivation = `${members[0]} / ${members[1]} = ${num.value} / ${den.value}`;
@@ -311,12 +357,13 @@ function admissible(
       throw new RegisterError("evidence_basis_unknown_item", r.id,
         `${b.detail} is not an item in this order's Evidence Ledger`);
     }
-    // A ratio may be verified against an item that states it as a percentage.
-    // asPercent() re-snaps onto the same 1e-6 grid the module closes ratios on:
-    // 0.77 * 100 is 77.00000000000001 in binary floating point, and a ledger that
-    // says "77%" must verify it. This is exactness, not tolerance.
-    const pct = r.unit_kind === "ratio" || r.unit_kind === "rate";
-    if (!(item.has(r.value) || (pct && item.has(asPercent(r.value))))) {
+    // A ratio may be verified against an item that states it AS A PERCENTAGE, but
+    // ONLY a percentage. numbersIn() records the fraction (0.29) for a number that
+    // wore a "%" ("29%") and for no other, so item.has(r.value) matches a real "29%"
+    // and rejects a 0.11 ratio that merely collides with a headcount ("11 staff") —
+    // asPercent(0.11)=11 no longer verifies anything (adv2 A10). Exactness, not
+    // tolerance: the fraction is snapped onto the same 1e-6 grid the module closes on.
+    if (!item.has(r.value)) {
       throw new RegisterError("evidence_basis_wrong_item", r.id,
         `${r.value} is attributed to ${id}, but ${id} does not state that figure. ` +
         `Cite the item that does, or drop the claim — do not attach a real id to a number it does not carry.`);
@@ -324,8 +371,10 @@ function admissible(
   }
 
   // (ii) A figure attributed to the donor must appear in the grant intelligence.
-  if (b.kind === "donor" && !donorNums.has(Math.round(r.value)) && !donorNums.has(r.value) &&
-      !((r.unit_kind === "ratio" || r.unit_kind === "rate") && donorNums.has(asPercent(r.value)))) {
+  // Same %-provenance as (i): a donor percentage ("20%") registers its fraction (0.20)
+  // through numbersIn, so a ratio matches r.value directly; a bare "20 sites" in the
+  // grant no longer verifies a 0.20 ratio via asPercent.
+  if (b.kind === "donor" && !donorNums.has(Math.round(r.value)) && !donorNums.has(r.value)) {
     throw new RegisterError("donor_basis_unverified", r.id,
       `${r.value} is attributed to the grant guidelines ("${b.detail}") but no such figure appears in them`);
   }

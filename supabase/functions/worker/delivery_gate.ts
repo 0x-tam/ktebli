@@ -225,7 +225,15 @@ function normaliseDocument(md: string): string {
     .split("\n")
     .map((l) => l.replace(/[ \t]+$/g, ""))
     .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
+    // Collapse EVERY run of newlines to a single one, so the hash and the
+    // change-detector are invariant to blank-line reflow at every boundary. The
+    // earlier \n{3,}->\n\n rule left the 0<->1 blank-line boundary open: toggling a
+    // line break to a paragraph break (1 newline <-> 2) changed the hash, so a
+    // regeneration that only reflowed blank lines dodged the sticky replay and
+    // earned a fresh judge roll — the exact thing the re-judge contract forbids.
+    // A newline is still a token boundary (words never merge across it), so the
+    // word/shingle counts are unaffected.
+    .replace(/\n{2,}/g, "\n")
     .trim();
 }
 
@@ -277,7 +285,30 @@ function criticModelsFor(generatorModel: string, configured?: string[]): { model
 // gate must be unit-testable without any of it. If that function changes, this
 // one changes with it.
 function gateWordCount(md: string): number {
-  return md.replace(/[|#*`>]/g, "").split(/\s+/).filter((w) => /[A-Za-z0-9؀-ۿ]/.test(w)).length;
+  // A donor word limit is checked against the document the donor RECEIVES, so the
+  // count must match what a word processor counts, for every script — not only
+  // Latin / ASCII / Arabic. The old /[A-Za-z0-9؀-ۿ]/ rule let two attacks through:
+  //   * every other script (Cyrillic, Greek, Hebrew, Devanagari, CJK) counted ~0,
+  //     so a document far over the limit in that script never tripped the gate; and
+  //   * zero-width joiners, soft hyphens and pipe-packed table cells GLUED words
+  //     into a single token, collapsing thousands of words to one.
+  // The rule below is deliberately MONOTONIC: for any input it counts >= the old
+  // rule (it only adds word boundaries and widens the accepted token class), so it
+  // can only make the compliance gate stricter, never looser. Kept byte-identical
+  // to wordCount() in index.ts.
+  const cleaned = md
+    // zero-width space / ZWNJ / ZWJ / soft hyphen / word joiner / BOM are invisible
+    // to a reader and are NOT boundaries to \s; treat each as one so a glued blob
+    // cannot undercount.
+    .replace(/[\u00AD\u200B\u200C\u200D\u2060\uFEFF]/g, " ")
+    // table cell walls glue adjacent cell text when the cells carry no padding.
+    .replace(/\|/g, " ")
+    // heading / emphasis / quote markers are not words (removed, as before).
+    .replace(/[#*`>]/g, "")
+    // scripts written without spaces (CJK) are a single whitespace token however
+    // long; a word processor counts each character, so split them out.
+    .replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu, " $& ");
+  return cleaned.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 }
 
 const PLACEHOLDER_RE = /\[(TBD|TODO|INSERT|PLACEHOLDER|XXX?)\]|lorem ipsum|\{\{[^}]*\}\}/i;
@@ -1548,6 +1579,12 @@ interface LoopAttempt {
   hold_class: HoldClass | null;
   score: number | null;
   changed_fraction: number | null;   // against the previous attempt; null on the first
+  // The insertion-robust verdict materialChange() computes for this attempt against
+  // the previous one. `changed_fraction` above is a 5-gram measure the author warned
+  // is insertion-fragile (a filler word every fourth word scores ~1.0 while nothing
+  // changed); `material` folds in word-retention and is what the loop must consult.
+  // null on the first attempt and on replayed DB rows (no previous document in hand).
+  material?: boolean | null;
 }
 
 interface LoopDecision {
@@ -1619,6 +1656,24 @@ function loopAction(attempts: LoopAttempt[], spend: SpendLedger, limits: LoopLim
 
   // The regeneration did not actually rewrite anything. Asking again with the
   // same brief is the loop's favourite failure and it is refused outright.
+  //
+  // TWO ways to be a non-rewrite, and both are refused here:
+  //  1. The insertion-robust verdict says not material. materialChange() folds in
+  //     word-retention specifically to catch the padded/interleaved/reordered copy
+  //     that keeps ~100% of the previous document's words yet scores ~1.0 on the
+  //     5-gram changed_fraction below — that copy passes the fraction floor but is
+  //     not a rewrite, so the loop must stop on `material === false`. (Only when
+  //     material is EXPLICITLY false: null/undefined — a first attempt or a replayed
+  //     DB row with no previous document — is not a non-material verdict.)
+  //  2. The change is below the fraction floor (a cosmetic edit). Kept so the
+  //     low-edit case still refuses even where a material verdict was not computed.
+  if (last.material === false) {
+    return {
+      action: "refund",
+      reason: `the regenerated document retained the previous document's content (materialChange: not material); it was padded or reordered, not rewritten`,
+      event: "gate.no_material_change", hold_class: "QUALITY_HOLD", tell_customer: true, refund: true,
+    };
+  }
   if (last.changed_fraction !== null && last.changed_fraction < limits.minMaterialChange) {
     return {
       action: "refund",
@@ -1838,6 +1893,7 @@ async function runGateLoop(
   const attempts: LoopAttempt[] = [...priorAttempts];
   let narrative = String(input.narrative ?? "");
   let changed: number | null = null;
+  let material: boolean | null = null;   // insertion-robust verdict for the last regen
   let regenerations = 0;
 
   for (;;) {
@@ -1851,7 +1907,7 @@ async function runGateLoop(
     if (!duplicate) {
       attempts.push({
         doc_hash: outcome.doc_hash, decision: outcome.decision, cause: outcome.cause,
-        hold_class: outcome.hold_class, score: outcome.score, changed_fraction: changed,
+        hold_class: outcome.hold_class, score: outcome.score, changed_fraction: changed, material,
       });
     }
     const decision = loopAction(attempts, spend, limits);
@@ -1877,7 +1933,11 @@ async function runGateLoop(
     const previous = narrative;
     narrative = await hooks.regenerate(regenerationBrief(outcome), previous);
     regenerations++;
-    changed = materialChange(previous, narrative).changed_fraction;
+    // Keep the WHOLE verdict, not just the insertion-fragile scalar. `material`
+    // folds in word-retention and is what loopAction stops on for a padded copy.
+    const report = materialChange(previous, narrative);
+    changed = report.changed_fraction;
+    material = report.material;
   }
 }
 

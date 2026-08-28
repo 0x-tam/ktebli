@@ -416,13 +416,18 @@ over the limit are returned unread. A one-page budget table must be attached.`;
     absenceIsSuspicious("The limit is 1,400 words.", "max_words") !== null &&
     absenceIsSuspicious("Limite: 1 400 mots.", "max_words") !== null,
     "real same-line statements (digits, comma and space grouping) still fire");
-  // Argued direction, recorded: a limit statement wrapped across a line break is
-  // now missed, which only returns that text to the pre-check state (the
-  // extractor's null is trusted). It cannot loosen a gate that was ever active.
+  // UPDATED 2026-08-28 (adv2 invariant 5): the earlier trade — missing a wrap
+  // between number and unit to keep the footer false positive closed — is
+  // superseded. The footer FP was a BLANK-LINE / sentence-boundary gap (asserted
+  // still-closed above); the max_words numeric bridge now spans exactly ONE
+  // newline, never a blank line, which catches the wrapped word limit while
+  // leaving that gap unbridged.
   ok(absenceIsSuspicious("no more than\n1,400 words", "max_words") !== null,
     "a wrap BEFORE the number still fires: the number and unit share a line");
-  ok(absenceIsSuspicious("Your proposal must be at most 1,400\nwords in total.", "max_words") === null,
-    "a wrap BETWEEN number and unit is missed BY DESIGN (documented trade, cannot loosen a gate)");
+  ok(absenceIsSuspicious("Your proposal must be at most 1,400\nwords in total.", "max_words") !== null,
+    "a SINGLE-line-break wrap between number and unit is now CAUGHT (adv2 inv5)");
+  ok(absenceIsSuspicious("Your proposal should be 1,400\n\nwords in total.", "max_words") === null,
+    "but a BLANK line between number and unit is still missed — the paragraph gap stays unbridged");
 }
 
 // ============================================================ 5. the caller's contract
