@@ -190,3 +190,14 @@ Next: install postgres + supabase CLI → phase 0.
   budget + design), upload-intake-file follow-up.
 - WS6-core critic spawned: deepest brief of the run (fingerprint re-record audit,
   refusal-matrix replay, hold-class disjointness, marked-block spot checks).
+
+## 2026-08-28 — WS6-core merged; bench wave launched
+
+- WS6-core MERGED (8f13783) after critic PASS; both merge nits applied (assertion count
+  corrected; notifications suite wired into run-all — green). functions serve restarted
+  on the merged worker; stack reset through all 17 migrations, fingerprints 8/8, Vault
+  re-seeded, tick green. Render container healthy on 8790.
+- WS6-bench launched IN the main tree (sole code workstream; needs the live serve):
+  e2e Sufra order through the full chain incl. real crawl, real gemini gate, real
+  render; then the mini-benchmark over the remaining phase-5 ledgers, one shared grant
+  (exercises the real composer), ≤$8 usage-field budget with loud scope degradation.
