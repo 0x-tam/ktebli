@@ -604,8 +604,9 @@ function holdAction(outcome: GateOutcome, regenerationsDone: number, gateAttempt
 
 // The brief handed back to regeneration. It is the critics' own words: what
 // failed, and what to do about it. It never says "score", never says which
-// model said it, and never suggests softening anything.
-function regenerationBrief(outcome: GateOutcome): string {
+// model said it, and never suggests softening anything. It reads ONLY the
+// findings, and the parameter type says so — v1 and v2 outcomes both qualify.
+function regenerationBrief(outcome: Pick<GateOutcome, "findings">): string {
   const lines = outcome.findings.map((f) => f.replace(/^\[[^\]]+\]\s*/, "")).filter(Boolean);
   return (
     `An independent assessment of the finished proposal found it not yet fundable. ` +
@@ -1683,6 +1684,163 @@ function operatorAlert(outcome: JudgeOutcome, ctx: { orderNo: string; orgName: s
   };
 }
 
+// ---------------------------------------------------------------- the DB record bridge
+// record_gate_verdict / gate_verdict_for (migration 20260826170000) predate v2:
+// the table's cause CHECK admits only the four v1 causes, and the row carries no
+// hold_class and no score. These two functions are the ONLY translation between
+// that record and a JudgeOutcome, in both directions, so the mapping cannot be
+// re-derived differently at two call sites.
+//
+// The two v2-only causes are both INFRA and both non-sticky, and a non-sticky
+// row is never replayed as a verdict — it accumulates as evidence. So they are
+// RECORDED under `judgement_unavailable`, which the CHECK admits and which
+// classifies to the same hold class; the true cause survives verbatim in the
+// findings. Nothing widens: stored and true cause land on the same side of the
+// QUALITY/INFRA partition, which dbCauseFor's test asserts for every cause.
+function dbCauseFor(cause: JudgeCause | null): GateCause | null {
+  if (cause === null) return null;
+  if (cause === "cap_exhausted" || cause === "spend_cap_reached") return "judgement_unavailable";
+  return cause;
+}
+
+// A stored row, back into the shape runDeliveryGate validates. Deliberately NOT
+// lenient: a value that is not a record at all returns null ("nothing stored"),
+// but a record with a stale gate_version or an unclassifiable cause is passed
+// THROUGH with the defect intact, so runDeliveryGate's own guards reject it
+// loudly (stored_verdict_stale / stored_verdict_malformed) instead of this
+// function quietly repairing it into something judgeable.
+function verdictFromRecord(row: unknown): JudgeOutcome | null {
+  if (!row || typeof row !== "object" || Array.isArray(row)) return null;
+  const r = row as Record<string, unknown>;
+  if (r.decision !== "pass" && r.decision !== "hold") return null;
+  const decision = r.decision as GateDecision;
+  const cause = (typeof r.cause === "string" ? r.cause : null) as JudgeCause | null;
+  let hold_class: HoldClass | null = null;
+  if (decision === "hold" && cause !== null) {
+    try { hold_class = classifyHold(cause); } catch { hold_class = null; }
+  }
+  const judge = Array.isArray(r.critics) ? (r.critics as JudgeAttempt[]) : [];
+  const okAttempt = judge.find((j) => j && j.ok === true && j.judgement);
+  let score: number | null = null;
+  if (okAttempt?.judgement) {
+    try { score = gateScore(okAttempt.judgement); } catch { score = null; }
+  }
+  return {
+    decision,
+    cause: decision === "pass" ? null : cause,
+    hold_class,
+    gate_version: String(r.gate_version ?? ""),
+    doc_hash: String(r.doc_hash ?? ""),
+    sticky: r.sticky === true,
+    retryable: decision === "hold" && hold_class === "INFRA_HOLD",
+    findings: Array.isArray(r.findings) ? (r.findings as unknown[]).map((f) => String(f)) : [],
+    score,
+    judge,
+    used_fallback: okAttempt != null && judge.length > 0 && okAttempt.slot !== judge[0].slot,
+    preflight: Array.isArray(r.preflight) ? (r.preflight as unknown[]).map((f) => String(f)) : [],
+    from_record: false, // runDeliveryGate sets this when it replays the record
+    model_calls: Number(r.model_calls ?? 0) || 0,
+    spend: newSpend(),
+    alerts: [],
+    headroom: [],
+  };
+}
+
+// One stored row, as one LoopAttempt, so the regeneration budget survives a
+// worker restart: the budget is counted from the record, never from a mutable
+// counter. Rows judged under a different gate version are dropped — a hold
+// against a different bar must not bill this bar's budget — and rows that are
+// not judgements of this kind return null rather than a guessed attempt.
+function loopAttemptFromRecord(row: unknown): LoopAttempt | null {
+  const v = verdictFromRecord(row);
+  if (!v || v.gate_version !== JUDGE_GATE_VERSION) return null;
+  if (v.decision === "hold" && !v.hold_class) return null;
+  return {
+    doc_hash: v.doc_hash, decision: v.decision, cause: v.cause,
+    hold_class: v.hold_class, score: v.score, changed_fraction: null,
+  };
+}
+
+// ---------------------------------------------------------------- the loop, driven
+// index.ts cannot be imported by a test (Deno.serve at module scope), so the
+// whole judge-regenerate-rejudge cycle lives HERE, where it is driven offline.
+// The wiring supplies exactly three effects — how to judge (deps), how to
+// regenerate (hooks.regenerate), how to persist a verdict (hooks.record) — and
+// every DECISION is loopAction's. The judge's verdict ends its turn: the only
+// thing the generator ever receives is regenerationBrief(), which quotes the
+// findings and never opens a dialogue, and the only thing the judge ever sees
+// is the finished document.
+interface GateLoopHooks {
+  /** Rewrite the narrative against the brief. Returns the complete new document. */
+  regenerate(brief: string, previous: string): Promise<string>;
+  /** Persist one FRESH verdict. Never called for a replayed record. */
+  record?(outcome: JudgeOutcome): Promise<void>;
+}
+
+interface GateLoopResult {
+  decision: LoopDecision;
+  outcome: JudgeOutcome;     // the verdict the decision is about
+  narrative: string;         // the document the decision is about
+  attempts: LoopAttempt[];
+  spend: SpendLedger;
+  regenerations: number;     // regenerate() calls made in THIS run
+}
+
+async function runGateLoop(
+  input: GateInput,
+  deps: GateDeps,
+  hooks: GateLoopHooks,
+  priorAttempts: LoopAttempt[] = [],
+  limits: LoopLimits = LOOP_LIMITS,
+): Promise<GateLoopResult> {
+  const spend = deps.spend ?? newSpend();
+  const loopDeps: GateDeps = { ...deps, spend, spendCapUsd: deps.spendCapUsd ?? limits.spendCapUsd };
+  const attempts: LoopAttempt[] = [...priorAttempts];
+  let narrative = String(input.narrative ?? "");
+  let changed: number | null = null;
+  let regenerations = 0;
+
+  for (;;) {
+    const outcome = await runDeliveryGate({ ...input, narrative }, loopDeps);
+    if (!outcome.from_record && hooks.record) await hooks.record(outcome);
+    // A replayed record is the SAME attempt it was when it was first recorded;
+    // pushing it again would bill the customer's regeneration budget for a
+    // retry of the worker rather than of the document.
+    const duplicate = outcome.from_record && attempts.some((a) =>
+      a.doc_hash === outcome.doc_hash && a.decision === outcome.decision && a.cause === outcome.cause);
+    if (!duplicate) {
+      attempts.push({
+        doc_hash: outcome.doc_hash, decision: outcome.decision, cause: outcome.cause,
+        hold_class: outcome.hold_class, score: outcome.score, changed_fraction: changed,
+      });
+    }
+    const decision = loopAction(attempts, spend, limits);
+    if (decision.action !== "regenerate") {
+      return { decision, outcome, narrative, attempts, spend, regenerations };
+    }
+    // loopAction counts QUALITY holds across the whole record; this counts
+    // regenerate() CALLS in this run. They normally agree; where seeded history
+    // makes them disagree, the smaller budget wins — the cap is a maximum,
+    // never an entitlement.
+    if (regenerations >= limits.maxRegenerations) {
+      return {
+        decision: {
+          action: "refund",
+          reason: `${regenerations} regeneration(s) already made in this run against a budget of ${limits.maxRegenerations}`,
+          event: "gate.regeneration_budget_exhausted", hold_class: "QUALITY_HOLD",
+          tell_customer: true, refund: true,
+        },
+        outcome, narrative, attempts, spend, regenerations,
+      };
+    }
+    deps.beat?.();
+    const previous = narrative;
+    narrative = await hooks.regenerate(regenerationBrief(outcome), previous);
+    regenerations++;
+    changed = materialChange(previous, narrative).changed_fraction;
+  }
+}
+
 export {
   GATE_VERSION, DIMENSIONS, DISQUALIFIERS, CRITIC_DISQUALIFIERS, MIN_SCORE, WEIGHTED_MIN,
   DEFAULT_CRITICS, MAX_REGENERATIONS,
@@ -1704,6 +1862,7 @@ export {
   judgeSchema, judgeView, buildJudgePrompt, buildJudgeRequest, parseJudgeReply,
   runJudgeRung, runDeliveryGate,
   LOOP_LIMITS, loopAction, gateEvents, operatorAlert,
+  dbCauseFor, verdictFromRecord, loopAttemptFromRecord, runGateLoop,
 };
 export type {
   Dimension, Disqualifier, Judgement, CriticResult, GateOutcome, GateInput, GateDeps,
@@ -1712,4 +1871,5 @@ export type {
   HeadroomLevel, HeadroomAssessment, SpendLedger, JudgeAttempt, JudgeOutcome, Ladder,
   JsonSchemaFormat, AssertedVerdict, JudgeView, JudgeParse, ChangeReport,
   LoopLimits, LoopAction, LoopAttempt, LoopDecision, EventRow,
+  GateLoopHooks, GateLoopResult,
 };
