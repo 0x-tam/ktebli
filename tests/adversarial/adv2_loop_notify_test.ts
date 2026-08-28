@@ -100,12 +100,14 @@ ok(mc.changed_fraction >= MIN_MATERIAL_CHANGE,
 console.log("\nA2 — loopAction accepts the padded regeneration as material (the break)");
 {
   // Attempt 1: the original draft, held on the merits. Attempt 2: the PADDED copy,
-  // held on the merits, with the REAL changed_fraction the loop would compute for
-  // it (materialChange(prev,next).changed_fraction) and an improving score, so the
-  // score-divergence guard cannot mask the material-change question.
+  // held on the merits, carrying the REAL verdict the loop computes for it —
+  // materialChange(prev,next), i.e. BOTH changed_fraction (~1.0, above the floor)
+  // AND material (false). This is the fixed-target attempt from the report: the loop
+  // must consume the robust verdict, not the fragile scalar. The improving score
+  // ensures the score-divergence guard cannot mask the material-change question.
   const attempts: LoopAttempt[] = [
     q({ score: 30, changed_fraction: null }),
-    q({ score: 40, changed_fraction: mc.changed_fraction }),
+    q({ score: 40, changed_fraction: mc.changed_fraction, material: mc.material }),
   ];
   const d = loopAction(attempts, newSpend());
   console.log(`       loopAction decided: action=${d.action} event=${d.event}`);

@@ -1571,6 +1571,12 @@ interface LoopAttempt {
   hold_class: HoldClass | null;
   score: number | null;
   changed_fraction: number | null;   // against the previous attempt; null on the first
+  // The insertion-robust verdict materialChange() computes for this attempt against
+  // the previous one. `changed_fraction` above is a 5-gram measure the author warned
+  // is insertion-fragile (a filler word every fourth word scores ~1.0 while nothing
+  // changed); `material` folds in word-retention and is what the loop must consult.
+  // null on the first attempt and on replayed DB rows (no previous document in hand).
+  material?: boolean | null;
 }
 
 interface LoopDecision {
@@ -1642,6 +1648,24 @@ function loopAction(attempts: LoopAttempt[], spend: SpendLedger, limits: LoopLim
 
   // The regeneration did not actually rewrite anything. Asking again with the
   // same brief is the loop's favourite failure and it is refused outright.
+  //
+  // TWO ways to be a non-rewrite, and both are refused here:
+  //  1. The insertion-robust verdict says not material. materialChange() folds in
+  //     word-retention specifically to catch the padded/interleaved/reordered copy
+  //     that keeps ~100% of the previous document's words yet scores ~1.0 on the
+  //     5-gram changed_fraction below — that copy passes the fraction floor but is
+  //     not a rewrite, so the loop must stop on `material === false`. (Only when
+  //     material is EXPLICITLY false: null/undefined — a first attempt or a replayed
+  //     DB row with no previous document — is not a non-material verdict.)
+  //  2. The change is below the fraction floor (a cosmetic edit). Kept so the
+  //     low-edit case still refuses even where a material verdict was not computed.
+  if (last.material === false) {
+    return {
+      action: "refund",
+      reason: `the regenerated document retained the previous document's content (materialChange: not material); it was padded or reordered, not rewritten`,
+      event: "gate.no_material_change", hold_class: "QUALITY_HOLD", tell_customer: true, refund: true,
+    };
+  }
   if (last.changed_fraction !== null && last.changed_fraction < limits.minMaterialChange) {
     return {
       action: "refund",
@@ -1861,6 +1885,7 @@ async function runGateLoop(
   const attempts: LoopAttempt[] = [...priorAttempts];
   let narrative = String(input.narrative ?? "");
   let changed: number | null = null;
+  let material: boolean | null = null;   // insertion-robust verdict for the last regen
   let regenerations = 0;
 
   for (;;) {
@@ -1874,7 +1899,7 @@ async function runGateLoop(
     if (!duplicate) {
       attempts.push({
         doc_hash: outcome.doc_hash, decision: outcome.decision, cause: outcome.cause,
-        hold_class: outcome.hold_class, score: outcome.score, changed_fraction: changed,
+        hold_class: outcome.hold_class, score: outcome.score, changed_fraction: changed, material,
       });
     }
     const decision = loopAction(attempts, spend, limits);
@@ -1900,7 +1925,11 @@ async function runGateLoop(
     const previous = narrative;
     narrative = await hooks.regenerate(regenerationBrief(outcome), previous);
     regenerations++;
-    changed = materialChange(previous, narrative).changed_fraction;
+    // Keep the WHOLE verdict, not just the insertion-fragile scalar. `material`
+    // folds in word-retention and is what loopAction stops on for a padded copy.
+    const report = materialChange(previous, narrative);
+    changed = report.changed_fraction;
+    material = report.material;
   }
 }
 
