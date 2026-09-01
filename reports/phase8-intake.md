@@ -76,3 +76,143 @@ one-line scope each, named venues, dated results / beneficiary numbers, partners
 
 The sufficiency gate scores this assembled ledger before checkout and tells the customer precisely
 which facts are still missing; nobody is charged below the bar (invariant 2).
+
+---
+
+## 2. What was built (Phase 8, Task 2)
+
+The gap was never that the store was missing — `orders.intake_answers` (jsonb) and the E-ASK slot
+system already existed. It was that (1) the worker never turned the structured answers into Evidence
+Ledger items, so they grounded nothing; (2) the slots covered particularity only, not the admin and
+named facts the grounding check demands; and (3) there was no field for extra crawl links. All three
+are now closed. No model calls were made building this; the re-run that spends is the orchestrator's.
+
+### 2.1 Worker — intake_answers → Evidence Ledger (the data-starvation fix)
+
+`supabase/functions/worker/intake_ledger.ts` (new) exports `intakeAnswerLedger(intake_answers, opts)`:
+a pure, deterministic mapper from the flat answer shape to E-INTAKE items. Wired into the org stage
+at `worker/index.ts:1943` (import at `:55`), immediately after the three identity items — identity
+reserves ids 1–3, facts start at **E-INTAKE-4**. Every item is
+`{source_type:"user_intake", source_ref:"evidence interview", status:"verified", allowed:true}`, so
+it lands in `allowedEvidence` and the Claim Ledger classifies a matching narrative claim as
+`supported`, not `unsupported`. **A blank field emits nothing; a boolean asserts only when exactly
+`true`** (invariant 3 — no default is ever invented).
+
+Field → ledger item (one clear claim each; objects/arrays expand to one item each):
+
+| intake_answers field | E-INTAKE claim |
+| --- | --- |
+| `site_place` | `Project location: <v>` |
+| `site_venue` / `venue_escape` | `Delivery venue: <v>` — or, if escaped, `Delivery is street-based outreach, not at a fixed venue.` |
+| `site_activity` | `Main activity: <v>` |
+| `last_delivery_what`(+`_when`) / `never_delivered` | `Most recent delivery: <what> (<when>)` — or the stated-absence "…has not yet delivered a project…" |
+| `local_trigger` | `Local trigger for this work: <v>` |
+| `registration_number` | `Registration number: <n>` — **skipped when identity already built E-INTAKE-2** (dedup) |
+| `legal_form` / `annual_income` / `income_band` / `accounts_period` / `lived_experience_governance` | `Legal form: <v>`, `Latest annual income: <v>`, `Annual income band: <v>`, `Latest filed accounts cover the period: <v>`, `People with lived experience are involved in governance: <v>` |
+| `safeguarding_lead_name`(+`_role`,`_training`) | `Designated Safeguarding Lead: <name>, <role>, <training>` (one item) |
+| `safeguarding_policy` / `bank_account_own_name` / `public_liability_insurance` / `board_independent` / `no_conflicting_grant` (booleans) | one certification sentence each, emitted only when `true` |
+| `key_people[{name,role}]` | `Key person: <name> — <role>` (one per entry) |
+| `programmes[{name,what}]` | `Programme: <name> — <what>` (one per entry) |
+| `results[{what,when,figure}]` | `<figure> <what> (<when>)` (one per entry) |
+| `partnerships[string]` | `Partnership: <v>` (one per entry) |
+| `extra_links[url]` | not a ledger item — a crawler hint (§2.2) |
+
+This mapping is proven at unit level in `tests/intake-ledger/intake_ledger_test.ts`: the decisive
+assertion runs the real `properNounAudit` over `[identity items] + intakeAnswerLedger(answers)` and a
+narrative naming the DSL, programmes, venue, chair, partner and dated result — **0 unsourced** — while
+the same narrative against the three-item identity ledger leaves **9 names unsourced** (exactly the
+KT-10001 starvation). This is the load-bearing check: a field the worker did not fold into
+`allowedEvidence` would fail grounding on a live run, and this test would catch it.
+
+### 2.2 Worker — extra-links crawl (`worker/index.ts:1971`–2010, `:2007`, cache guard `:2177`)
+
+In the org stage, each URL in `intake_answers.extra_links` (server-capped at 5, http(s) only) is
+crawled through the **same `crawlSiteObserved` path** as the home domain — same robots/SSRF guards,
+unweakened. Each link's text is gated for attributability with the same asymmetric token test the
+uploads gate and identity gate use (`orgTokens(org)` must appear in the page); a page that does not
+carry the applicant's own name is discarded whole. Attributable pages are folded into the single
+extraction corpus, so their referents reach `E-WEB` through the existing one extraction call (no
+extra model call). A link that fails is recorded in `crawlMeta.extra_links` and skipped — fail-closed
+means fewer referents, never a crash. When extra links contribute, the org_intel cache write is
+skipped (`freshExtraction && !extraLinksContributed`), because the extraction is keyed to this order's
+own link set, not to the domain. **Deferred:** extra links only fold in when a home domain is present
+(the common case — a website is collected); an extra-links-only order is not yet handled, and
+`crawlSiteObserved` does not fetch PDFs, so an extra link to a PDF yields no text today.
+
+### 2.3 Sufficiency gate — core admin facts scored (`worker/sufficiency.ts`)
+
+`SufficiencyInput.facts: IntakeFacts` added (`:333`). `requiredFactGaps(input)` (`:891`) refuses
+checkout when any of the four near-universal core facts is missing, naming each in plain words:
+**registration_number** (read from the identity `registration` first, `factPresent` rejects blanks
+and placeholders like KT-10001's `UNVERIFIED-TEST-0000001`), **income_band** (drives permitted grant
+size), **safeguarding_policy** (must be `true`), **safeguarding_lead_name**. Wired at `:963`
+(`gaps.unshift(...factGaps)`). The existing six particularity slots are untouched, and **ladderStatus
+stays FLAT** — these are presence checks, not a score, so no fundability threshold is invented and the
+"one threshold, one comparison" source-scan (Test 4) still holds (verified: exactly two `score >=`
+comparisons, one `hardFloor`). `canonicalFacts` + `facts:` in `canonicalPayload` (`:1142`) put the
+whole extended shape under the fingerprint, so clear-then-edit of any fact still refuses at the
+webhook (invariant 2). `tests/sufficiency/sufficiency_test.ts` §9 proves each core fact refused-when-
+missing with its field named, the placeholder registration refused, a complete ledger cleared, and
+the fingerprint covering admin, boolean and named-fact edits. Two adversarial "clearing" fixtures
+(`adv2_sufficiency`, `payment_without_clearance`) were given the now-mandatory `intake_facts`.
+
+### 2.4 Persistence & schema (invariant 2 preserved end to end)
+
+- **Migration** `supabase/migrations/20260901120000_intake_evidence_facts.sql` (new file) adds one
+  column `pre_intakes.intake_facts jsonb` — nullable, no default (a blank interview stores null and
+  the gate refuses on the missing core facts). `tests/replay/expected-fingerprint.txt`
+  `columns_nonvector` re-recorded to `2d3e7c1032a16e06354a10cd10295400` in the same commit (the
+  documented update path — only that one category moved; `tests/replay/run.sh` → **REPLAY OK**, with
+  the repo-ahead-of-production `UNDEPLOYED MIGRATIONS` note, as expected).
+- `save-intake/index.ts`: `sanitizeFacts(b.facts)` (`:62`) bounds every field and drops blanks; stored
+  as `intake_facts` (`:188`). `save-intake/clearance.ts` + its byte-identical twin
+  `stripe-webhook/clearance.ts`: `inputFromRow` reads `row.intake_facts` into `SufficiencyInput.facts`
+  (`:70`,`:87`). `stripe-webhook/index.ts:221` spreads the stored facts into the order's
+  `intake_answers` alongside the six slots + escapes, so the worker reads the one flat shape.
+
+### 2.5 Wizard (`index.html`)
+
+Redesigned into the pre-payment evidence interview: 7 steps (package → organisation+income band →
+grant → project specifics → governance & assurances → people/programmes/results/partnerships/links +
+uploads → review). Registration and income band are now required; particularity slots, the
+safeguarding policy + named DSL, the certifications, dynamic repeaters for the list facts, and an
+extra-links field all write **exactly** the `intake_answers` shape (`answers` + `facts`). On review,
+`pay()` POSTs to `save-intake` and renders the gate's own message: **cleared → navigate to Stripe with
+the `checkout_token` as `client_reference_id`** (the blind 2500 ms navigate-without-a-token that
+migration 20260826180000 flagged is gone — invariant 2 held at the front end too); **not cleared →
+show exactly which facts are missing and go no further**. Customer `echo` text is escaped
+(`textContent`), never injected.
+
+**What a browser click-through confirms (spot-checked headless, no network — the `save-intake` fetch
+was never fired):** all new elements resolve; `wiz.collect()` returns the exact shape above (verified
+field-by-field); step validation passes when filled and blocks when not; the review summary renders;
+`renderSuff()` shows named gaps for a refusal, the `ok` state for a clearance, escapes customer HTML,
+and clears on navigation. A real end-to-end click-through (submitting to `save-intake`) is the
+orchestrator's live-order step.
+
+### 2.6 Verification
+
+`sudo env PGBIN=/usr/lib/postgresql/17/bin TMPDIR=/tmp bash tests/run-all.sh` → **ALL SUITES PASSED**
+(includes REPLAY OK, the new `intake answers -> evidence ledger` suite, updated sufficiency §9, and
+the two updated adversarial suites). `deno check` clean on every worker/function file changed.
+
+### 2.7 The intake_answers shape as shipped
+
+```
+{
+  site_place, site_venue, site_activity, last_delivery_what, last_delivery_when, local_trigger,  // strings
+  venue_escape,                                                                                   // "homes"|"street"|"outdoors"|"mobile"|"online"|null
+  never_delivered,                                                                                // boolean
+  registration_number, legal_form, annual_income, income_band, accounts_period,                   // strings (registration_number usually via org_reg instead)
+  safeguarding_lead_name, safeguarding_lead_role, safeguarding_lead_training, lived_experience_governance,  // strings
+  bank_account_own_name, public_liability_insurance, safeguarding_policy, board_independent, no_conflicting_grant,  // booleans
+  key_people:   [{ name, role }],
+  programmes:   [{ name, what }],
+  results:      [{ what, when, figure }],
+  partnerships: [ string ],
+  extra_links:  [ url ]
+}
+```
+The wizard writes it; `save-intake` stores the extended half in `pre_intakes.intake_facts` and the
+slots in their columns; `stripe-webhook` reassembles the one flat object into `orders.intake_answers`;
+the worker reads it. Both ends agree on this shape.
