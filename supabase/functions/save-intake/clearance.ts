@@ -22,6 +22,7 @@
 import {
   fingerprint,
   SLOTS,
+  type IntakeFacts,
   type SlotId,
   type SufficiencyInput,
   type UploadedDoc,
@@ -66,6 +67,9 @@ export function inputFromRow(row: Record<string, unknown>, uploads: UploadedDoc[
   }
   const veRaw = typeof row.venue_escape === "string" ? row.venue_escape : "";
   const tier = String(row.tier ?? "");
+  const facts = (row.intake_facts && typeof row.intake_facts === "object" && !Array.isArray(row.intake_facts))
+    ? row.intake_facts as IntakeFacts
+    : null;
   return {
     tier,
     checkoutAvailable: KNOWN_TIERS.includes(tier),
@@ -80,6 +84,7 @@ export function inputFromRow(row: Record<string, unknown>, uploads: UploadedDoc[
     venueEscape: VENUE_ESCAPES.has(veRaw) ? (veRaw as VenueEscape) : null,
     neverDelivered: row.never_delivered === true,
     uploads,
+    facts,
   };
 }
 

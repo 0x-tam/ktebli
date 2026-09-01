@@ -66,6 +66,16 @@ const FUTURE = new Date("2026-08-26T12:00:00Z");
 
 // The ledger that clears: one small charity, answering the six recall questions
 // the way a fundraiser would answer them from memory.
+// The four core admin facts every UK grant application needs, and every one of
+// which KT-10001 was missing. registration is carried by the identity channel
+// (top-level `registration`); the other three live in `facts`.
+const CORE_FACTS = {
+  income_band: "£100,000–£500,000",
+  safeguarding_policy: true,
+  safeguarding_lead_name: "Amina Yusuf",
+  safeguarding_lead_role: "Deputy Chair",
+};
+
 const CLEARING: SufficiencyInput = {
   tier: "draft",
   checkoutAvailable: true,
@@ -85,11 +95,13 @@ const CLEARING: SufficiencyInput = {
     last_delivery_when: "winter 2024",
     local_trigger: "the youth centre on Syria Street closed in April",
   },
+  facts: { ...CORE_FACTS },
 };
 
-// Today's ledger, exactly as reports/design/ground-evidence.md section 4
-// describes it: organisation name, registration number, website URL, and
-// nothing else in the world.
+// The particularity-starved intake: identity + the core admin facts, but NOTHING
+// specific about the world (empty `answers`). It isolates the particularity
+// failure — the score is 0 — from the compliance floor, which is satisfied here
+// so the only gaps are the six unanswered slots and the score.
 const TODAY: SufficiencyInput = {
   tier: "draft",
   checkoutAvailable: true,
@@ -101,6 +113,7 @@ const TODAY: SufficiencyInput = {
   grantAnalysisOk: true,
   deadline: "2026-11-30",
   answers: {},
+  facts: { ...CORE_FACTS },
 };
 
 // ===========================================================================
@@ -541,6 +554,70 @@ section("8. REFERENT EXTRACTION — form fields are not sentences");
   eq(referentsIn("we run a youth club"), [], "and neither does a sentence of pure category words");
   eq(referentsIn("Bab al-Tabbaneh, Tripoli"), ["Bab al-Tabbaneh", "Tripoli"], "a hyphenated Arabic place name stays one referent");
   eq(referentsIn(""), [], "an empty answer yields nothing");
+}
+
+// ===========================================================================
+section("9. THE CORE ADMIN FACTS — refused when missing, named in plain words");
+// ===========================================================================
+{
+  // The complete ledger clears (all four core facts present).
+  ok(evaluateSufficiency(CLEARING, { now: FUTURE }).cleared, "a complete ledger with all four core admin facts clears");
+
+  // Each core fact, removed one at a time, refuses with its OWN named gap.
+  const noReg = evaluateSufficiency({ ...CLEARING, registration: "" }, { now: FUTURE });
+  ok(!noReg.cleared, "a ledger with no registration number does not clear");
+  ok(gapCodes(noReg).includes("registration_missing"), "and the gap is registration, named");
+  ok(gap(noReg, "registration_missing").ask.toLowerCase().includes("registration number"), "in plain words");
+
+  // A placeholder registration is not an answer — the KT-10001 value literally.
+  const placeholderReg = evaluateSufficiency({ ...CLEARING, registration: "UNVERIFIED-TEST-0000001" }, { now: FUTURE });
+  ok(!placeholderReg.cleared, "a placeholder registration (KT-10001's UNVERIFIED-TEST-0000001) does not clear");
+  ok(gapCodes(placeholderReg).includes("registration_missing"), "it is refused as missing, not accepted as a number");
+
+  const noBand = evaluateSufficiency(
+    { ...CLEARING, facts: { ...CORE_FACTS, income_band: "" } },
+    { now: FUTURE },
+  );
+  ok(!noBand.cleared, "a ledger with no income band does not clear");
+  ok(gapCodes(noBand).includes("income_band_missing"), "and the income band is named");
+  ok(gap(noBand, "income_band_missing").why.includes("income band"), "with why it drives the permitted grant size");
+
+  const noPolicy = evaluateSufficiency(
+    { ...CLEARING, facts: { ...CORE_FACTS, safeguarding_policy: false } },
+    { now: FUTURE },
+  );
+  ok(!noPolicy.cleared, "an un-ticked safeguarding policy does not clear");
+  ok(gapCodes(noPolicy).includes("safeguarding_policy_missing"), "and the safeguarding policy is named");
+
+  const noLead = evaluateSufficiency(
+    { ...CLEARING, facts: { ...CORE_FACTS, safeguarding_lead_name: "" } },
+    { now: FUTURE },
+  );
+  ok(!noLead.cleared, "a missing Designated Safeguarding Lead name does not clear");
+  ok(gapCodes(noLead).includes("safeguarding_lead_missing"), "and the lead is named");
+
+  // All four missing at once: four named gaps, still no "insufficient".
+  const bare = evaluateSufficiency({ ...CLEARING, registration: "", facts: {} }, { now: FUTURE });
+  const codes = gapCodes(bare);
+  for (const c of ["registration_missing", "income_band_missing", "safeguarding_policy_missing", "safeguarding_lead_missing"]) {
+    ok(codes.includes(c), `all four are named together: ${c}`);
+  }
+  const copy = JSON.stringify(bare.message) + gapLines(bare).join("\n");
+  ok(!/insufficient/i.test(copy), "the word 'insufficient' still appears nowhere");
+  ok(!/\bevidence ledger\b/i.test(copy), "and no internal vocabulary leaks");
+
+  // Invariant 2: the fingerprint covers the facts. Clearing on good facts and
+  // then editing one down changes the hash, so the webhook refuses.
+  const f1 = await fingerprint(CLEARING);
+  const f2 = await fingerprint({ ...CLEARING, facts: { ...CORE_FACTS, income_band: "under £10,000" } });
+  ok(f1 !== f2, "editing a scored admin fact after clearance produces a different fingerprint");
+  const fBool = await fingerprint({ ...CLEARING, facts: { ...CORE_FACTS, safeguarding_policy: false } });
+  ok(f1 !== fBool, "and so does flipping a certification the customer had ticked");
+  const namedFactEdit = await fingerprint({
+    ...CLEARING,
+    facts: { ...CORE_FACTS, programmes: [{ name: "OpenARMS", what: "asylum support" }] },
+  });
+  ok(f1 !== namedFactEdit, "adding a named org fact also changes the fingerprint (the whole shape is covered)");
 }
 
 console.log();

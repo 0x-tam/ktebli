@@ -212,13 +212,21 @@ Deno.serve(async (req) => {
 
   const funded = priceOk && emailOk && clearanceOk;
   // The answers travel to the order RAW (20260826180000 §4): the worker rebuilds
-  // the E-ASK ledger through the same function that scored them. Derived state
-  // never crosses the payment boundary.
+  // the E-ASK and E-INTAKE ledger items through the same intake the gate scored.
+  // Derived state never crosses the payment boundary. The six particularity
+  // slots and escapes are their own pre_intakes columns; the extended evidence-
+  // interview facts (admin certifications, named org facts, extra links) are the
+  // stored intake_facts jsonb — spread here so orders.intake_answers carries the
+  // one flat shape the worker reads.
+  const storedFacts = (pi && pi.intake_facts && typeof pi.intake_facts === "object" && !Array.isArray(pi.intake_facts))
+    ? pi.intake_facts as Record<string, unknown>
+    : {};
   const intakeAnswers: Record<string, unknown> | null = clearanceOk
     ? {
       ...Object.fromEntries(SLOTS.map((sl) => [sl.id, (pi![sl.id] as string | null) ?? null])),
       venue_escape: (pi!.venue_escape as string | null) ?? null,
       never_delivered: pi!.never_delivered === true,
+      ...storedFacts,
     }
     : null;
   let order;

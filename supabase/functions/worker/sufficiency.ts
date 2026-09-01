@@ -197,7 +197,16 @@ export type SlotId =
   | "last_delivery_when"
   | "local_trigger";
 
-export type GapScope = SlotId | "uploads" | "score" | "grant" | "organisation" | "deadline" | "tier";
+export type FactScope = "registration" | "income_band" | "safeguarding" | "safeguarding_lead";
+export type GapScope =
+  | SlotId
+  | FactScope
+  | "uploads"
+  | "score"
+  | "grant"
+  | "organisation"
+  | "deadline"
+  | "tier";
 
 interface SlotDef {
   id: SlotId;
@@ -297,6 +306,56 @@ export interface UploadedDoc {
   extracted_text: string | null;
 }
 
+export interface KeyPerson {
+  name?: string | null;
+  role?: string | null;
+}
+export interface Programme {
+  name?: string | null;
+  what?: string | null;
+}
+export interface OrgResult {
+  what?: string | null;
+  when?: string | null;
+  figure?: string | null;
+}
+
+/**
+ * The extended evidence-interview answers, beyond the six particularity slots:
+ * the admin certifications the grounding check demanded of KT-10001 (the
+ * `donor_required_certification` + `missing` set) and the named org facts (the
+ * `unsupported`-claim set). Every field is a RAW applicant assertion. A blank
+ * field is nothing — never a default (invariant 3). Persisted on pre_intakes as
+ * one jsonb blob (20260901120000), carried to `orders.intake_answers`, and
+ * fingerprinted by `canonicalPayload` so editing any of it after clearance
+ * refuses at the webhook (invariant 2).
+ */
+export interface IntakeFacts {
+  // Admin facts (self-certified strings).
+  registration_number?: string | null;
+  legal_form?: string | null;
+  annual_income?: string | null;
+  income_band?: string | null;
+  accounts_period?: string | null;
+  safeguarding_lead_name?: string | null;
+  safeguarding_lead_role?: string | null;
+  safeguarding_lead_training?: string | null;
+  lived_experience_governance?: string | null;
+  // Admin certifications (self-certified booleans; only `true` asserts anything).
+  bank_account_own_name?: boolean;
+  public_liability_insurance?: boolean;
+  safeguarding_policy?: boolean;
+  board_independent?: boolean;
+  no_conflicting_grant?: boolean;
+  // Named org facts.
+  key_people?: KeyPerson[];
+  programmes?: Programme[];
+  results?: OrgResult[];
+  partnerships?: string[];
+  // Crawler hint: pages beyond the home domain, read as the applicant's own.
+  extra_links?: string[];
+}
+
 export interface SufficiencyInput {
   tier: string;
   /** True when a server-side checkout can actually be created for this tier. */
@@ -321,6 +380,9 @@ export interface SufficiencyInput {
   neverDelivered?: boolean;
 
   uploads?: UploadedDoc[];
+
+  /** The extended evidence-interview answers (admin + named facts + extra links). */
+  facts?: IntakeFacts | null;
 }
 
 export interface Referent {
@@ -795,6 +857,90 @@ function assemble(input: SufficiencyInput): Assembly {
 }
 
 // ---------------------------------------------------------------------------
+// Core admin facts — the near-universal UK-grant certifications, and the exact
+// facts the grounding check on KT-10001 found missing (reports/phase8-intake.md
+// section 1). These are PRESENCE checks, not scores: a ledger missing any of
+// them describes an order that cannot be delivered, so the gate refuses and
+// names precisely which fact is missing. No number is compared here — the score
+// arm and its single threshold are untouched, which is why this file still
+// passes its own "one place" source scan.
+//
+// A blank field is nothing, and an obvious placeholder is nothing either: the
+// KT-10001 registration was literally `UNVERIFIED-TEST-0000001`, which is why
+// `factPresent` refuses it. Asymmetric and small — it errs toward asking again,
+// never toward passing junk as an answer.
+// ---------------------------------------------------------------------------
+
+export function factPresent(v: unknown): boolean {
+  const s = String(v ?? "").replace(CTRL, " ").trim();
+  if (s.length < 2) return false;
+  const compact = s.toLowerCase().replace(/[\s\-./]/g, "");
+  if (/(unverified|placeholder|pending|example|sample|dummy)/.test(compact)) return false;
+  if (/^(na|none|nil|tbd|todo|test|testing|unknown|null|xxx+|foo|bar)$/.test(compact)) return false;
+  if (/^0+$/.test(compact)) return false; // all zeros
+  if (/^(\d)\1{5,}$/.test(compact)) return false; // 000000, 1111111, …
+  return true;
+}
+
+/**
+ * The four core mandatory admin facts. Their absence blocks checkout; each gap
+ * names the fact in plain words and shows what a real answer looks like.
+ * Registration is read from the identity channel (`registration` -> org_reg ->
+ * E-INTAKE-2) first, falling back to the intake_facts value.
+ */
+export function requiredFactGaps(input: SufficiencyInput): Gap[] {
+  const f = input.facts ?? {};
+  const out: Gap[] = [];
+
+  if (!factPresent(input.registration) && !factPresent(f.registration_number)) {
+    out.push({
+      scope: "registration",
+      code: "registration_missing",
+      ask: "Your organisation's charity or company registration number.",
+      why: "Funders check the register before they read anything else, and the application asks " +
+        "for the number you are registered under. We put it on the form exactly as you enter it, " +
+        "and we will not invent or approximate it.",
+      example: "e.g. 1187734 (Charity Commission), SC048924 (OSCR), or your Companies House number.",
+    });
+  }
+
+  if (!factPresent(f.income_band)) {
+    out.push({
+      scope: "income_band",
+      code: "income_band_missing",
+      ask: "Your latest annual income band.",
+      why: "Funders size a grant to the organisation, and your income band decides which grant " +
+        "amounts you are eligible for. The application states it, so we need it before we write.",
+      example: "e.g. under £10,000; £10,000–£100,000; £100,000–£500,000; over £500,000.",
+    });
+  }
+
+  if (f.safeguarding_policy !== true) {
+    out.push({
+      scope: "safeguarding",
+      code: "safeguarding_policy_missing",
+      ask: "Confirm your organisation has a safeguarding policy in place.",
+      why: "Almost every UK funder requires a safeguarding policy and asks you to confirm one " +
+        "exists. We will not state that you have one unless you tell us you do.",
+      example: "Tick to confirm your board has adopted a written safeguarding policy.",
+    });
+  }
+
+  if (!factPresent(f.safeguarding_lead_name)) {
+    out.push({
+      scope: "safeguarding_lead",
+      code: "safeguarding_lead_missing",
+      ask: "The name of your Designated Safeguarding Lead.",
+      why: "The person responsible for safeguarding is named in the application. Without the name " +
+        "we can only write \"a designated lead\", which reviewers read as a gap.",
+      example: "e.g. Jane Okafor, Deputy Chair.",
+    });
+  }
+
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // The gate
 // ---------------------------------------------------------------------------
 
@@ -811,6 +957,10 @@ export function evaluateSufficiency(input: SufficiencyInput, opts: EvaluateOptio
 
   const blockers = fulfilmentBlockers(input, now);
   const { ledger, referents, gaps, detail } = assemble(input);
+  // The core admin facts are refused first — they are the compliance floor a
+  // proposal is built on, and every one was missing on KT-10001.
+  const factGaps = requiredFactGaps(input);
+  if (factGaps.length) gaps.unshift(...factGaps);
   const score = scorer.score(referents);
 
   const bar = effectiveThreshold(t);
@@ -917,6 +1067,48 @@ export function gapLines(v: Verdict): string[] {
 // ---------------------------------------------------------------------------
 
 /**
+ * Deterministic normalisation of the extended evidence-interview facts, so the
+ * fingerprint covers them: editing any admin fact, named fact or extra link
+ * after clearance changes the hash and the webhook refuses (invariant 2).
+ * Strings are trimmed, booleans are exactly `true`/`false`, and list items keep
+ * the customer's own order (reordering IS an edit).
+ */
+export function canonicalFacts(facts: IntakeFacts | null | undefined): Record<string, unknown> {
+  const f = facts ?? {};
+  const s = (v: unknown) => String(v ?? "").replace(CTRL, " ").replace(/\s+/g, " ").trim();
+  const key_people = (Array.isArray(f.key_people) ? f.key_people : [])
+    .map((p) => ({ name: s(p?.name), role: s(p?.role) })).filter((p) => p.name || p.role);
+  const programmes = (Array.isArray(f.programmes) ? f.programmes : [])
+    .map((p) => ({ name: s(p?.name), what: s(p?.what) })).filter((p) => p.name || p.what);
+  const results = (Array.isArray(f.results) ? f.results : [])
+    .map((r) => ({ what: s(r?.what), when: s(r?.when), figure: s(r?.figure) }))
+    .filter((r) => r.what || r.when || r.figure);
+  const partnerships = (Array.isArray(f.partnerships) ? f.partnerships : []).map(s).filter(Boolean);
+  const extra_links = (Array.isArray(f.extra_links) ? f.extra_links : []).map(s).filter(Boolean);
+  return {
+    registration_number: s(f.registration_number),
+    legal_form: s(f.legal_form),
+    annual_income: s(f.annual_income),
+    income_band: s(f.income_band),
+    accounts_period: s(f.accounts_period),
+    safeguarding_lead_name: s(f.safeguarding_lead_name),
+    safeguarding_lead_role: s(f.safeguarding_lead_role),
+    safeguarding_lead_training: s(f.safeguarding_lead_training),
+    lived_experience_governance: s(f.lived_experience_governance),
+    bank_account_own_name: f.bank_account_own_name === true,
+    public_liability_insurance: f.public_liability_insurance === true,
+    safeguarding_policy: f.safeguarding_policy === true,
+    board_independent: f.board_independent === true,
+    no_conflicting_grant: f.no_conflicting_grant === true,
+    key_people,
+    programmes,
+    results,
+    partnerships,
+    extra_links,
+  };
+}
+
+/**
  * Canonical serialisation of EXACTLY the fields the score was computed over.
  * `stripe-webhook` recomputes this from the stored intake row and refuses to
  * create an order if it does not hash to the fingerprint recorded with the
@@ -947,6 +1139,7 @@ export function canonicalPayload(input: SufficiencyInput): string {
     venue_escape: input.venueEscape ?? null,
     never_delivered: input.neverDelivered === true,
     uploads,
+    facts: canonicalFacts(input.facts),
   });
 }
 
