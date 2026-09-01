@@ -571,3 +571,18 @@ until it can. Owner-directed phase.
   Critic spawned (re-execution focus: migration/fingerprint, the E-INTAKE grounding-mapping
   completeness the re-run depends on, the invariant-2 sufficiency split, extra-links guards).
   On PASS: merge, re-seed the local stack through the new migration, build 4 orders, run to gate.
+- Task 2 MERGED (e6f7367) after critic PASS-by-re-execution. Stack re-seeded through the
+  new migration (18 migrations, 8/8 fingerprints), render secrets re-seeded.
+- Re-run started. Two issues surfaced immediately:
+  1. BUG (fixed, fdeadd8): analyze crashed inserting grants.deadline — the model extracts
+     the donor's deadline as free text ("5:00pm on the 9th of September 2026 (...)") into a
+     DATE column (22007). Added coerceGrantDeadline() (ISO-or-null, fail-closed); unit-verified
+     (LBF text→2026-09-09, controls null). The benchmark dodged this only by luck of a clean
+     model date.
+  2. INFRA: `supabase functions serve` inline command strings get killed in this session
+     (exit 1/144, no output) — started failing after repeated restart cycles. WORKAROUND:
+     run serve via a script FILE in Bash run_in_background (works cleanly). Serve healthy,
+     worker ticks {"ok":true,...}.
+- Sufra (KT-10001) driving: analyze attempt 1 running clean with the real intake_answers
+  (13 people/7 programmes/7 results ledger). Balance $9.22 (re-run line $6, floor $3).
+  Monitoring stage progress to the delivery gate.
