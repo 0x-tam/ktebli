@@ -2960,12 +2960,22 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         ].slice(0, 14);
         const nextNarr = await generateValidated(
           baseCtx() + `\n\nCURRENT DRAFT:\n${narrative}\n\nFIX EXACTLY THESE FINDINGS:\n- ${fixList.join("\n- ")}\n\n` +
+          // SURGICAL correction (launch P0.3 plateau). Full regeneration reintroduced
+          // fresh ungrounded claims as fast as it removed the flagged ones — KT-10001
+          // plateaued at ~8 blocking across rounds (21->8->8) and never converged. A
+          // correction is not a rewrite: return the draft VERBATIM except for the exact
+          // clauses named in the findings. This is what lets the blocking count actually
+          // fall to zero instead of oscillating.
+          `HOW TO EDIT — surgical only:\n` +
+          `- Return the draft UNCHANGED word-for-word EXCEPT for the specific clauses the findings name.\n` +
+          `- For each finding, do the SMALLEST edit that resolves it: delete the offending clause, or qualify it honestly against the evidence ledger, or recast it as an explicitly future/designed element. Never swap in a different fact.\n` +
+          `- Do NOT rewrite, re-order, restyle, or "improve" any sentence that a finding did not name. Do NOT introduce any new organisation fact, figure, name, partnership or credential — resolving a finding never means adding a claim.\n` +
+          `- Keep every donor-mandated heading exactly as it already stands.\n` +
           (fmt.maxWords
-            ? `LENGTH: the donor's hard limit is ${fmt.maxWords} words and the current draft is ${wordCount(narrative)}. The corrected version must not be longer than the current draft. Fix these findings by REPLACING weaker material, not by adding to it, and reproduce every donor-mandated heading exactly as it already stands.\n`
+            ? `- The corrected version must not be longer than the current draft (${wordCount(narrative)} words; donor limit ${fmt.maxWords}).\n`
             : "") +
-          `ABSOLUTE RULE: a weak section may NEVER be strengthened by adding organisational history, results, partnerships or credentials that are not in the evidence ledger. ` +
-          `You may reorganise existing evidence, qualify honestly, or remove. Evidence integrity outranks evaluator score.\n` +
-          `Return the complete corrected narrative only.${STYLE_RULES}${FORMAT_RULES}`, 7000, narrativeOpts, stageUsage);
+          `ABSOLUTE RULE: a weak section may NEVER be strengthened by adding organisational history, results, partnerships or credentials that are not in the evidence ledger. Evidence integrity outranks evaluator score.\n` +
+          `Return the complete edited narrative only.${STYLE_RULES}${FORMAT_RULES}`, 7000, narrativeOpts, stageUsage);
         await patch(`job_stages?id=eq.${stage.stage_id}`, {
           status: "pending", attempt: 0,
           output: { wip: { narrative: nextNarr, round: round + 1, rounds }, usage: { ...stageUsage } },
