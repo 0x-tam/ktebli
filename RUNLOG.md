@@ -566,3 +566,8 @@ until it can. Owner-directed phase.
   income/safeguarding/bank/insurance = scored-and-REPORTED, not hard blocks (the proposal is
   produced with self-certs surfaced). Aligns invariant 2 (fulfillable=groundable) + the
   pipeline's own cert-is-non-blocking design + the owner's "tell the customer what's missing".
+- Task 2 reconciliation done (1983648): sufficiency hard = registration+floor; income/
+  safeguarding = advisory (named, non-blocking); cleared excludes advisories; suite green.
+  Critic spawned (re-execution focus: migration/fingerprint, the E-INTAKE grounding-mapping
+  completeness the re-run depends on, the invariant-2 sufficiency split, extra-links guards).
+  On PASS: merge, re-seed the local stack through the new migration, build 4 orders, run to gate.
