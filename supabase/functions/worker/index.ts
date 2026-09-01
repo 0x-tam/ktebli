@@ -2496,13 +2496,17 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       // sentences makes the object converge (finish=stop) at ~7200 tokens in ~90s, and the
       // downstream validate/gate — not verbosity here — is what judges quality.
       `SIZE DISCIPLINE (hard): at most 7 activities, 6 outputs, 5 outcomes, 6 phases, 12 numeric_register entries, 6 risks, 8 indicators, 6 assumptions. Every string ONE sentence. Emit ONLY the JSON object, fully closed.`,
-      // effort "medium" (was "high"): high made this specific call run away and never
-      // close; medium converges, stays well under the window, and is ample for structuring
-      // a design against a fully-specified schema and a reserved strategy. maxTokens 12000
-      // (was 6000) so the complete object lands in ONE response — the 4-hop JSON
-      // continuation was fragile (it drifted and still hit the cap) and multiplied the
-      // wall-clock past the window. See reports/phase8-intake.md §3.
-      12000, { effort: "medium", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
+      // effort "low" (was "high"): high made this specific call run away past 20000
+      // output tokens and never close; medium converged (~7200 tok, ~90s) but that sat
+      // right on the edge-runtime isolate wall clock (~150s, matched to hosted) and was
+      // killed under load; low converges to a complete, valid object at ~5500 tokens in
+      // ~68s — comfortable margin under the wall. The design is schema-guided and
+      // strategy-constrained, and its numbers are deterministically re-derived by the
+      // numeric register downstream, so low effort structures it well; quality is judged
+      // at validate and the delivery gate, not by verbosity here. maxTokens 12000 (was
+      // 6000) so the object lands in ONE response — the 4-hop JSON continuation drifted,
+      // still hit the cap, and multiplied the wall-clock. See reports/phase8-intake.md §3.
+      12000, { effort: "low", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
     const project = d.project as Record<string, unknown> | undefined;
     if (!project || !Array.isArray(project.activities) || !(project.activities as unknown[]).length) {
       throw new Error("project design incomplete");
