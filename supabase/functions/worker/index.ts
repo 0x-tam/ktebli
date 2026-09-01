@@ -2786,7 +2786,17 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     const tier = String(c.order.tier ?? "draft");
     const deep = tier === "full";
     const mid = tier === "competitive" || deep;
-    let narrative = finalNarrative(c.out);
+    // RESUMABLE VALIDATE (launch P0.3). A validate round is an audit (claim ledger +
+    // requirement review) plus, when it finds blocking problems, a full narrative
+    // regenerate — ~230s. Running every round in one invocation blew both the 150s Kong
+    // window and the ~400s edge isolate limit, so the stage was killed mid-correction,
+    // orphaned "running", and every retry restarted from the ORIGINAL draft. Now each
+    // invocation runs ONE round and, if it corrects, persists the corrected narrative as
+    // WIP and yields; the next tick resumes at the next round. Same mechanism the gate
+    // and gen:* use (claim_next_stage never clears output).
+    const vwip = (c.stages.find((s: { id: number }) => s.id === stage.stage_id) as
+      { output?: { wip?: { narrative?: string; round?: number; rounds?: Array<Record<string, unknown>> } } } | undefined)?.output?.wip;
+    let narrative = vwip?.narrative ?? finalNarrative(c.out);
     const budget = c.out["gen:budget"] as { json?: { lines?: Array<Record<string, unknown>> }; total_usd?: number } | undefined;
     const docs: Record<string, string> = { narrative };
     for (const k of ["concept_note", "workplan", "logframe", "budget_justification"]) {
@@ -2800,8 +2810,9 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       budget_total: (project.budget_envelope_usd as number | null) ?? null,
     };
     const reqRows = (analysis?.requirements as Array<{ req: string; mandatory?: boolean; source?: string }> | undefined) ?? [];
-    const rounds: Array<Record<string, unknown>> = [];
+    const rounds: Array<Record<string, unknown>> = vwip?.rounds ?? [];
     const maxRounds = deep ? 2 : 1;
+    const startRound = Math.min(vwip?.round ?? 0, maxRounds);
     let claimLedger: Array<Record<string, unknown>> = [];
     let certifications: Array<Record<string, unknown>> = [];
     let coverage: Array<Record<string, unknown>> = [];
@@ -2817,7 +2828,9 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       }
     }
 
-    for (let round = 0; round <= maxRounds; round++) {
+    // ONE round per invocation (resumable; see the WIP note above).
+    {
+      const round = startRound;
       await beat();
       docs.narrative = narrative;
       // ---- deterministic checks (free, always) ----
@@ -2913,47 +2926,47 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         contact_claims: { seen: ctAudit.claims.length, fabricated: ctAudit.fabricated.length },
         missing_mandatory: missingMandatory.length, review_findings: reviewFindings.length, blocking,
       });
-      if (blocking === 0 && (round > 0 || reviewFindings.length === 0 || !mid)) break;
-      if (round === maxRounds) {
-        if (blocking > 0) {
-          // usage snapshot on the FAILURE path too: validate spends several model
-          // calls per round and retries up to 3 times, and without this the cost
-          // of a grounding-blocked order is invisible to per-stage accounting and
-          // to the per-order cap. Found live by the phase-6 e2e: a validate hold
-          // burned three attempts whose spend never reached job_stages.output.usage.
-          await patch(`job_stages?id=eq.${stage.stage_id}`, {
-            output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true, usage: { ...stageUsage } },
-          }).catch(() => {});
-          throw new Error(`validation unresolved after ${maxRounds + 1} rounds: ` +
-            [...groundingProblems.map((g) => "unsupported:" + String(g.claim).slice(0, 60)),
-             ...missingMandatory.map((m) => "missing:" + String(m.req).slice(0, 60)),
-             ...detFindings.slice(0, 3)].join(" | "));
-        }
-        break;
+      const passes = blocking === 0 && (round > 0 || reviewFindings.length === 0 || !mid);
+      if (!passes && round >= maxRounds) {
+        // Rounds exhausted, still blocking -> HOLD. usage snapshot on the failure path
+        // too (a grounding-blocked order still spent several model calls).
+        await patch(`job_stages?id=eq.${stage.stage_id}`, {
+          output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true, usage: { ...stageUsage } },
+        }).catch(() => {});
+        throw new Error(`validation unresolved after ${maxRounds + 1} rounds: ` +
+          [...groundingProblems.map((g) => "unsupported:" + String(g.claim).slice(0, 60)),
+           ...missingMandatory.map((m) => "missing:" + String(m.req).slice(0, 60)),
+           ...detFindings.slice(0, 3)].join(" | "));
       }
-      // ---- Correction: reviews must change the document; never by inventing (parts 36/37) ----
-      await beat();
-      const fixList = [
-        ...groundingProblems.map((g) => `UNGROUNDED (${g.classification}): "${String(g.claim).slice(0, 160)}" — remove it, qualify it honestly, or recast it as a designed future feature. NEVER replace it with a different factual claim.`),
-        ...missingMandatory.map((m) => `MISSING MANDATORY REQUIREMENT: ${m.req} — answer it using the project design and evidence.`),
-        ...detFindings.map((f) =>
-          f.startsWith("FABRICATED CONTACT DETAILS")
-            ? `GROUNDING (BLOCKING): ${f}`
-            : `CONSISTENCY/QUALITY: ${f} — align the document with the project design figures.`),
-        ...(mid ? reviewFindings.slice(0, deep ? 8 : 4).map((f) => `REVIEWER: ${f}`) : []),
-      ].slice(0, 14);
-      narrative = await generateValidated(
-        baseCtx() + `\n\nCURRENT DRAFT:\n${narrative}\n\nFIX EXACTLY THESE FINDINGS:\n- ${fixList.join("\n- ")}\n\n` +
-        // B3 passed generation inside the limit and then failed validate on
-        // over_word_limit: the correction pass answers the findings by adding,
-        // and nothing in this prompt ever told it there was a ceiling.
-        (fmt.maxWords
-          ? `LENGTH: the donor's hard limit is ${fmt.maxWords} words and the current draft is ${wordCount(narrative)}. The corrected version must not be longer than the current draft. Fix these findings by REPLACING weaker material, not by adding to it, and reproduce every donor-mandated heading exactly as it already stands.\n`
-          : "") +
-        `ABSOLUTE RULE: a weak section may NEVER be strengthened by adding organisational history, results, partnerships or credentials that are not in the evidence ledger. ` +
-        `You may reorganise existing evidence, qualify honestly, or remove. Evidence integrity outranks evaluator score.\n` +
-        `Return the complete corrected narrative only.${STYLE_RULES}${FORMAT_RULES}`, 7000, narrativeOpts, stageUsage);
-      corrected = true;
+      if (!passes) {
+        // ---- Correction, then YIELD (resumable): one regenerate, persist the corrected
+        // narrative as WIP, and hand the invocation back so the next tick audits it as
+        // round+1. This is what keeps each validate invocation inside the edge wall clock.
+        await beat();
+        const fixList = [
+          ...groundingProblems.map((g) => `UNGROUNDED (${g.classification}): "${String(g.claim).slice(0, 160)}" — remove it, qualify it honestly, or recast it as a designed future feature. NEVER replace it with a different factual claim.`),
+          ...missingMandatory.map((m) => `MISSING MANDATORY REQUIREMENT: ${m.req} — answer it using the project design and evidence.`),
+          ...detFindings.map((f) =>
+            f.startsWith("FABRICATED CONTACT DETAILS")
+              ? `GROUNDING (BLOCKING): ${f}`
+              : `CONSISTENCY/QUALITY: ${f} — align the document with the project design figures.`),
+          ...(mid ? reviewFindings.slice(0, deep ? 8 : 4).map((f) => `REVIEWER: ${f}`) : []),
+        ].slice(0, 14);
+        const nextNarr = await generateValidated(
+          baseCtx() + `\n\nCURRENT DRAFT:\n${narrative}\n\nFIX EXACTLY THESE FINDINGS:\n- ${fixList.join("\n- ")}\n\n` +
+          (fmt.maxWords
+            ? `LENGTH: the donor's hard limit is ${fmt.maxWords} words and the current draft is ${wordCount(narrative)}. The corrected version must not be longer than the current draft. Fix these findings by REPLACING weaker material, not by adding to it, and reproduce every donor-mandated heading exactly as it already stands.\n`
+            : "") +
+          `ABSOLUTE RULE: a weak section may NEVER be strengthened by adding organisational history, results, partnerships or credentials that are not in the evidence ledger. ` +
+          `You may reorganise existing evidence, qualify honestly, or remove. Evidence integrity outranks evaluator score.\n` +
+          `Return the complete corrected narrative only.${STYLE_RULES}${FORMAT_RULES}`, 7000, narrativeOpts, stageUsage);
+        await patch(`job_stages?id=eq.${stage.stage_id}`, {
+          status: "pending", attempt: 0,
+          output: { wip: { narrative: nextNarr, round: round + 1, rounds }, usage: { ...stageUsage } },
+        }).catch(() => {});
+        return; // yield to the next tick, which resumes at round+1
+      }
+      corrected = startRound > 0;
     }
     return done({
       tier, rounds, corrected, text: corrected ? narrative : undefined,
