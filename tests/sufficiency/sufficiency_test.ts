@@ -557,52 +557,58 @@ section("8. REFERENT EXTRACTION — form fields are not sentences");
 }
 
 // ===========================================================================
-section("9. THE CORE ADMIN FACTS — refused when missing, named in plain words");
+section("9. ADMIN FACTS — registration is HARD, the donor self-certs are REPORTED");
 // ===========================================================================
+// The hard sufficiency bar is FULFILLABILITY (invariant 2 = can we ground a
+// proposal?), not completeness. Registration is hard — a fabricated registration
+// is not groundable (KT-10001). Income band, the safeguarding policy and the
+// named DSL are `donor_required_certification` facts the pipeline surfaces as
+// "[to confirm]"; the gate NAMES them but never refuses a fulfillable order.
 {
-  // The complete ledger clears (all four core facts present).
-  ok(evaluateSufficiency(CLEARING, { now: FUTURE }).cleared, "a complete ledger with all four core admin facts clears");
+  const advCodes = (v: Verdict) => v.advisories.map((a) => a.code).sort();
 
-  // Each core fact, removed one at a time, refuses with its OWN named gap.
-  const noReg = evaluateSufficiency({ ...CLEARING, registration: "" }, { now: FUTURE });
+  // The complete ledger clears with nothing to confirm.
+  const full = evaluateSufficiency(CLEARING, { now: FUTURE });
+  ok(full.cleared, "a complete ledger clears");
+  eq(full.advisories.length, 0, "and carries no advisories when every self-cert is supplied");
+
+  // THE FIX: registration + org facts (the referent floor), but blank income and
+  // safeguarding, still CLEARS — the order is fulfillable — with those three
+  // NAMED as reported-not-gated advisories.
+  const noCerts = evaluateSufficiency({ ...CLEARING, facts: {} }, { now: FUTURE });
+  ok(noCerts.cleared, "registration + org facts but blank income/safeguarding CLEARS (fulfillable)");
+  eq(
+    advCodes(noCerts),
+    ["income_band_missing", "safeguarding_lead_missing", "safeguarding_policy_missing"],
+    "and the three donor self-certs are named as advisories, to confirm before submitting",
+  );
+  ok(
+    !gapCodes(noCerts).some((c) => /income_band|safeguarding/.test(c)),
+    "none of them is a blocking gap — completeness is reported, not gated",
+  );
+  ok(noCerts.message.advisories.length === 3, "the customer message carries the advisories");
+  ok(
+    noCerts.message.intro.toLowerCase().includes("confirm"),
+    "and the cleared message tells the customer they are still worth confirming",
+  );
+
+  // Registration IS hard: missing or placeholder refuses, named as a gap.
+  const noReg = evaluateSufficiency({ ...CLEARING, registration: "", facts: {} }, { now: FUTURE });
   ok(!noReg.cleared, "a ledger with no registration number does not clear");
-  ok(gapCodes(noReg).includes("registration_missing"), "and the gap is registration, named");
+  ok(gapCodes(noReg).includes("registration_missing"), "registration is a blocking gap, named");
   ok(gap(noReg, "registration_missing").ask.toLowerCase().includes("registration number"), "in plain words");
 
-  // A placeholder registration is not an answer — the KT-10001 value literally.
   const placeholderReg = evaluateSufficiency({ ...CLEARING, registration: "UNVERIFIED-TEST-0000001" }, { now: FUTURE });
   ok(!placeholderReg.cleared, "a placeholder registration (KT-10001's UNVERIFIED-TEST-0000001) does not clear");
   ok(gapCodes(placeholderReg).includes("registration_missing"), "it is refused as missing, not accepted as a number");
 
-  const noBand = evaluateSufficiency(
-    { ...CLEARING, facts: { ...CORE_FACTS, income_band: "" } },
-    { now: FUTURE },
-  );
-  ok(!noBand.cleared, "a ledger with no income band does not clear");
-  ok(gapCodes(noBand).includes("income_band_missing"), "and the income band is named");
-  ok(gap(noBand, "income_band_missing").why.includes("income band"), "with why it drives the permitted grant size");
+  // The referent floor is still hard: registration alone, no particularity, refuses.
+  const noReferents = evaluateSufficiency({ ...CLEARING, answers: {}, facts: {} }, { now: FUTURE });
+  ok(!noReferents.cleared, "registration present but below the referent floor still refuses (the org-fact floor is hard)");
+  ok(gapCodes(noReferents).includes("too_thin"), "the score arm names it");
 
-  const noPolicy = evaluateSufficiency(
-    { ...CLEARING, facts: { ...CORE_FACTS, safeguarding_policy: false } },
-    { now: FUTURE },
-  );
-  ok(!noPolicy.cleared, "an un-ticked safeguarding policy does not clear");
-  ok(gapCodes(noPolicy).includes("safeguarding_policy_missing"), "and the safeguarding policy is named");
-
-  const noLead = evaluateSufficiency(
-    { ...CLEARING, facts: { ...CORE_FACTS, safeguarding_lead_name: "" } },
-    { now: FUTURE },
-  );
-  ok(!noLead.cleared, "a missing Designated Safeguarding Lead name does not clear");
-  ok(gapCodes(noLead).includes("safeguarding_lead_missing"), "and the lead is named");
-
-  // All four missing at once: four named gaps, still no "insufficient".
-  const bare = evaluateSufficiency({ ...CLEARING, registration: "", facts: {} }, { now: FUTURE });
-  const codes = gapCodes(bare);
-  for (const c of ["registration_missing", "income_band_missing", "safeguarding_policy_missing", "safeguarding_lead_missing"]) {
-    ok(codes.includes(c), `all four are named together: ${c}`);
-  }
-  const copy = JSON.stringify(bare.message) + gapLines(bare).join("\n");
+  // No "insufficient", no internal vocabulary — gaps AND advisories.
+  const copy = JSON.stringify(noReg.message) + JSON.stringify(noCerts.message) + gapLines(noReg).join("\n");
   ok(!/insufficient/i.test(copy), "the word 'insufficient' still appears nowhere");
   ok(!/\bevidence ledger\b/i.test(copy), "and no internal vocabulary leaks");
 

@@ -139,22 +139,33 @@ own link set, not to the domain. **Deferred:** extra links only fold in when a h
 (the common case — a website is collected); an extra-links-only order is not yet handled, and
 `crawlSiteObserved` does not fetch PDFs, so an extra link to a PDF yields no text today.
 
-### 2.3 Sufficiency gate — core admin facts scored (`worker/sufficiency.ts`)
+### 2.3 Sufficiency gate — the hard bar is fulfillability, admin self-certs are reported (`worker/sufficiency.ts`)
 
-`SufficiencyInput.facts: IntakeFacts` added (`:333`). `requiredFactGaps(input)` (`:891`) refuses
-checkout when any of the four near-universal core facts is missing, naming each in plain words:
-**registration_number** (read from the identity `registration` first, `factPresent` rejects blanks
-and placeholders like KT-10001's `UNVERIFIED-TEST-0000001`), **income_band** (drives permitted grant
-size), **safeguarding_policy** (must be `true`), **safeguarding_lead_name**. Wired at `:963`
-(`gaps.unshift(...factGaps)`). The existing six particularity slots are untouched, and **ladderStatus
-stays FLAT** — these are presence checks, not a score, so no fundability threshold is invented and the
-"one threshold, one comparison" source-scan (Test 4) still holds (verified: exactly two `score >=`
-comparisons, one `hardFloor`). `canonicalFacts` + `facts:` in `canonicalPayload` (`:1142`) put the
-whole extended shape under the fingerprint, so clear-then-edit of any fact still refuses at the
-webhook (invariant 2). `tests/sufficiency/sufficiency_test.ts` §9 proves each core fact refused-when-
-missing with its field named, the placeholder registration refused, a complete ledger cleared, and
-the fingerprint covering admin, boolean and named-fact edits. Two adversarial "clearing" fixtures
-(`adv2_sufficiency`, `payment_without_clearance`) were given the now-mandatory `intake_facts`.
+`SufficiencyInput.facts: IntakeFacts` added. The gate distinguishes two tiers, and the distinction is
+an invariant-2 correctness point: the **HARD** bar (below which nobody is charged) is *fulfillability*
+— can the pipeline ground and deliver a proposal? — **not** *completeness* (has the customer supplied
+every donor self-cert?). The pipeline itself treats `donor_required_certification` claims as
+NON-BLOCKING at grounding and surfaces them as "[to confirm]", so an order missing them is still
+fulfillable.
+
+- **HARD (`requiredFactGaps`, refuses checkout):** the **registration number** — a fabricated or
+  absent registration is not groundable (the KT-10001 defect); `factPresent` rejects blanks and the
+  literal `UNVERIFIED-TEST-0000001` placeholder — **plus the existing referent / particularity floor**
+  (the six slots + the score arm), all unchanged.
+- **REPORTED (`advisoryFactGaps`, named but never refuses):** **income_band**, **safeguarding_policy**,
+  **safeguarding_lead_name**. These land in a new `verdict.advisories` and `message.advisories` list;
+  `cleared` is derived from `blockers`/`gaps`/`score` **only** — advisories are deliberately excluded,
+  and `assertVerdictConsistent` never references them. The gate NAMES each missing one in the
+  customer's "to confirm before you submit" list.
+
+**ladderStatus stays FLAT**; both functions are presence checks, no number compared, so the "one
+threshold, one comparison" source-scan (Test 4) still holds. `canonicalFacts` + `facts:` in
+`canonicalPayload` put the whole extended shape under the fingerprint, so clear-then-edit of any fact
+still refuses at the webhook (invariant 2). `sufficiency_test.ts` §9 proves: registration + org facts
+but blank income/safeguarding **CLEARS** with the three named as advisories (not gaps); registration
+missing/placeholder **REFUSES**; below the referent floor **REFUSES**. `save-intake` records
+advisories in the stored verdict and the events row (invariant 9). The wizard shows them under "To
+confirm before you submit (we will write it either way)" and does not hold checkout on them.
 
 ### 2.4 Persistence & schema (invariant 2 preserved end to end)
 
@@ -174,7 +185,8 @@ the fingerprint covering admin, boolean and named-fact edits. Two adversarial "c
 
 Redesigned into the pre-payment evidence interview: 7 steps (package → organisation+income band →
 grant → project specifics → governance & assurances → people/programmes/results/partnerships/links +
-uploads → review). Registration and income band are now required; particularity slots, the
+uploads → review). Registration is required (the hard bar); income band, the safeguarding policy and
+the named DSL are collected but reported-not-gated. Particularity slots, the
 safeguarding policy + named DSL, the certifications, dynamic repeaters for the list facts, and an
 extra-links field all write **exactly** the `intake_answers` shape (`answers` + `facts`). On review,
 `pay()` POSTs to `save-intake` and renders the gate's own message: **cleared → navigate to Stripe with

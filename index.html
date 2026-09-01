@@ -664,7 +664,7 @@ footer a:hover{color:var(--coral)}
           <div class="field"><label>Website</label><input type="text" id="w-web" placeholder="www.yourorganisation.org — optional"></div>
         </div>
         <div class="two">
-          <div class="field"><label>Latest annual income band <span class="rq">*</span><span class="hint">It decides the grant sizes you are eligible for.</span></label>
+          <div class="field"><label>Latest annual income band<span class="hint">It decides the grant sizes you are eligible for. You can confirm this before you submit.</span></label>
             <select id="w-income-band">
               <option value="">Choose…</option>
               <option>under £10,000</option>
@@ -723,9 +723,9 @@ footer a:hover{color:var(--coral)}
       <div class="wiz-step" data-step="4">
         <h3>Governance &amp; assurances</h3>
         <p class="ws-sub">The compliance facts nearly every funder asks you to confirm. We only state what you tick — never a default.</p>
-        <div class="checkrow"><input type="checkbox" id="w-sg-policy"><label for="w-sg-policy"><b>We have a written safeguarding policy in place. <span class="rq">*</span></b></label></div>
+        <div class="checkrow"><input type="checkbox" id="w-sg-policy"><label for="w-sg-policy"><b>We have a written safeguarding policy in place.</b></label></div>
         <div class="two">
-          <div class="field"><label>Designated Safeguarding Lead — name <span class="rq">*</span></label><input type="text" id="w-dsl-name" placeholder="e.g. Amina Yusuf"></div>
+          <div class="field"><label>Designated Safeguarding Lead — name</label><input type="text" id="w-dsl-name" placeholder="e.g. Amina Yusuf"></div>
           <div class="field"><label>Their role <span class="pill">optional</span></label><input type="text" id="w-dsl-role" placeholder="e.g. Deputy Chair"></div>
         </div>
         <div class="field"><label>Their safeguarding training <span class="pill">optional</span></label><input type="text" id="w-dsl-training" placeholder="e.g. Level 3 safeguarding"></div>
@@ -865,7 +865,7 @@ function renderSuff(j) {
   var box = document.getElementById('suff-result');
   if (!box) return;
   if (!j) { box.innerHTML = ''; return; }
-  var m = j.message || {}, items = m.items || [], blockers = m.blockers || [], cleared = j.cleared === true;
+  var m = j.message || {}, items = m.items || [], blockers = m.blockers || [], advisories = m.advisories || [], cleared = j.cleared === true;
   var h = '<div class="suff' + (cleared ? ' ok' : '') + '">';
   h += '<h4>' + esch(m.headline || (cleared ? 'We have what we need.' : 'A few things are missing.')) + '</h4>';
   if (m.intro) h += '<div class="sf-intro">' + esch(m.intro) + '</div>';
@@ -874,6 +874,14 @@ function renderSuff(j) {
     h += '<div class="sf-i"><b>' + esch(g.ask) + '</b><span>' + esch(g.why) + '</span>' +
       (g.echo ? '<span> — you wrote: “' + esch(g.echo) + '”</span>' : '') + '</div>';
   });
+  // Reported-but-non-blocking donor self-certs: named so the customer can
+  // complete them before submitting, but they never hold the order.
+  if (advisories.length) {
+    h += '<div class="sf-intro" style="margin-top:10px;font-weight:700;color:var(--ink)">To confirm before you submit (we will write it either way):</div>';
+    advisories.forEach(function (g) {
+      h += '<div class="sf-i"><b>' + esch(g.ask) + '</b><span>' + esch(g.why) + '</span></div>';
+    });
+  }
   if (!cleared && m.reassurance) h += '<div class="sf-intro" style="margin-top:8px">' + esch(m.reassurance) + '</div>';
   h += '</div>';
   box.innerHTML = h;
@@ -901,7 +909,7 @@ function goToPayment(email, token) {
 
 var wiz = {
   el: document.getElementById('wiz'),
-  step: 0, last: 6, tier: 'competitive', files: [], intakeId: null,
+  step: 0, last: 6, tier: 'competitive', files: [], intakeId: null, pendingToken: null, pendingEmail: null,
   open: function (tier) {
     this.tier = tier || 'competitive';
     // A specific package was clicked: skip choosing it again and start the interview.
@@ -919,7 +927,7 @@ var wiz = {
   val: function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; },
   validate: function () {
     if (this.step === 1) {
-      var need = [['w-org','the organisation name'],['w-reg','your registration number'],['w-name','your name'],['w-email','your email'],['w-income-band','your income band']];
+      var need = [['w-org','the organisation name'],['w-reg','your registration number'],['w-name','your name'],['w-email','your email']];
       for (var i=0;i<need.length;i++){ if (!this.val(need[i][0])) return focusAlert(need[i][0], 'Please add ' + need[i][1] + '.'); }
       if (!/.+@.+\..+/.test(this.val('w-email'))) return focusAlert('w-email', 'That email does not look right.');
     }
@@ -932,10 +940,10 @@ var wiz = {
       if (!this.val('w-last-when') && !cb('w-never')) return focusAlert('w-last-when', 'Roughly when was that?');
       if (!this.val('w-trigger')) return focusAlert('w-trigger', 'Tell us what happened locally that made this needed.');
     }
-    if (this.step === 4) {
-      if (!cb('w-sg-policy')) { alert('Please confirm you have a safeguarding policy in place — nearly every funder requires it.'); return false; }
-      if (!this.val('w-dsl-name')) return focusAlert('w-dsl-name', 'Please name your Designated Safeguarding Lead.');
-    }
+    // Step 4 (governance & assurances) is NOT gated here: income band, the
+    // safeguarding policy and the named DSL are donor self-certs the gate reports
+    // as "to confirm", never blocks. Blocking navigation on them would re-create
+    // the over-blocking the server gate deliberately avoids.
     return true;
   },
   // The exact intake_answers shape (answers + facts), plus the top-level identity
@@ -993,6 +1001,7 @@ var wiz = {
     document.getElementById('wiz-back').textContent = this.step === 1 ? 'Change package' : 'Back';
     document.getElementById('wiz-title').textContent = 'START YOUR PROPOSAL · ' + NAMES[this.tier].toUpperCase() + ' ' + PRICES[this.tier];
     renderSuff(null); // a stale gate result never lingers across navigation
+    this.pendingToken = null; // any navigation invalidates a held clearance -> re-check
     var next = document.getElementById('wiz-next');
     if (this.step === this.last) {
       this.summary();
@@ -1029,6 +1038,9 @@ var wiz = {
     pn.textContent = note;
   },
   pay: function () {
+    // Second click after a clearance that carried "to confirm" self-certs: the
+    // customer has seen the list, proceed straight to the gated checkout.
+    if (this.pendingToken) { goToPayment(this.pendingEmail, this.pendingToken); return; }
     var data = this.collect();
     var self = this;
     var btn = document.getElementById('wiz-next');
@@ -1038,9 +1050,19 @@ var wiz = {
       .then(function (j) {
         if (j && j.id) self.intakeId = j.id;
         if (j && j.cleared && j.checkout_token) {
-          renderSuff({ cleared: true, message: (j.message || { headline: 'We have what we need.', items: [] }) });
-          btn.textContent = 'Opening secure checkout…';
-          goToPayment(data.email, j.checkout_token);
+          renderSuff({ cleared: true, message: (j.message || { headline: 'We have what we need.', items: [], advisories: [] }) });
+          var adv = (j.message && j.message.advisories) || [];
+          if (adv.length) {
+            // Cleared, but donor self-certs remain to confirm: show them and let
+            // the customer read before the checkout redirect (one more click).
+            self.pendingToken = j.checkout_token; self.pendingEmail = data.email;
+            btn.disabled = false;
+            btn.textContent = 'Looks good — pay ' + PRICES[self.tier] + ' and continue';
+            document.getElementById('suff-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            btn.textContent = 'Opening secure checkout…';
+            goToPayment(data.email, j.checkout_token);
+          }
         } else {
           btn.disabled = false;
           btn.textContent = 'Check again — Ktebli gets to work';

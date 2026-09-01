@@ -443,6 +443,8 @@ export interface CustomerMessage {
   intro: string;
   items: Gap[];
   blockers: Blocker[];
+  /** Reported donor self-certs to confirm before submitting — NON-blocking. */
+  advisories: Gap[];
   reassurance: string;
 }
 
@@ -458,6 +460,8 @@ export interface Verdict {
   ladder_note: string;
   blockers: Blocker[];
   gaps: Gap[];
+  /** Reported-but-non-blocking donor self-certs. Never part of `cleared`. */
+  advisories: Gap[];
   ledger: LedgerItem[];
   referents: Referent[];
   detail: Record<string, unknown>;
@@ -857,18 +861,31 @@ function assemble(input: SufficiencyInput): Assembly {
 }
 
 // ---------------------------------------------------------------------------
-// Core admin facts — the near-universal UK-grant certifications, and the exact
-// facts the grounding check on KT-10001 found missing (reports/phase8-intake.md
-// section 1). These are PRESENCE checks, not scores: a ledger missing any of
-// them describes an order that cannot be delivered, so the gate refuses and
-// names precisely which fact is missing. No number is compared here — the score
-// arm and its single threshold are untouched, which is why this file still
-// passes its own "one place" source scan.
+// Admin facts — two tiers, and the tiers matter.
 //
-// A blank field is nothing, and an obvious placeholder is nothing either: the
-// KT-10001 registration was literally `UNVERIFIED-TEST-0000001`, which is why
-// `factPresent` refuses it. Asymmetric and small — it errs toward asking again,
-// never toward passing junk as an answer.
+// The HARD sufficiency bar is FULFILLABILITY: below it nobody is charged
+// (invariant 2). Fulfillability means "can the pipeline ground and deliver a
+// proposal?", NOT "has the customer supplied every donor self-certification?".
+// The pipeline treats `donor_required_certification` claims as NON-BLOCKING at
+// grounding (worker/index.ts filters them out of groundingProblems and surfaces
+// them to the customer as "[to confirm]"), so an order missing them is still a
+// fulfillable order — it produces a grounded, compliant proposal with those
+// self-certs flagged for the customer to complete before they submit.
+//
+//   HARD (refuses checkout): the registration number — a fabricated or absent
+//   registration is the KT-10001 defect and NOT groundable — PLUS the existing
+//   referent / particularity floor (the six slots and the score arm below).
+//   `factPresent` still rejects the literal `UNVERIFIED-TEST-0000001` placeholder.
+//
+//   REPORTED (scored-and-named, never refuses): income band, safeguarding
+//   policy, and the named Designated Safeguarding Lead. These are exactly the
+//   internal self-certs the pipeline surfaces as "to confirm". The gate NAMES
+//   each missing one in the customer's "still to confirm before you submit"
+//   list, but their absence does not hold a fulfillable order.
+//
+// Completeness is reported; fulfillability is gated. No number is compared in
+// either function — the score arm and its single threshold are untouched, which
+// is why this file still passes its own "one place" source scan.
 // ---------------------------------------------------------------------------
 
 export function factPresent(v: unknown): boolean {
@@ -883,15 +900,14 @@ export function factPresent(v: unknown): boolean {
 }
 
 /**
- * The four core mandatory admin facts. Their absence blocks checkout; each gap
- * names the fact in plain words and shows what a real answer looks like.
- * Registration is read from the identity channel (`registration` -> org_reg ->
+ * The HARD admin fact: the registration number. Its absence (or a placeholder)
+ * refuses checkout, because a proposal cannot be grounded on a fabricated
+ * registration. Read from the identity channel (`registration` -> org_reg ->
  * E-INTAKE-2) first, falling back to the intake_facts value.
  */
 export function requiredFactGaps(input: SufficiencyInput): Gap[] {
   const f = input.facts ?? {};
   const out: Gap[] = [];
-
   if (!factPresent(input.registration) && !factPresent(f.registration_number)) {
     out.push({
       scope: "registration",
@@ -903,6 +919,18 @@ export function requiredFactGaps(input: SufficiencyInput): Gap[] {
       example: "e.g. 1187734 (Charity Commission), SC048924 (OSCR), or your Companies House number.",
     });
   }
+  return out;
+}
+
+/**
+ * The REPORTED admin facts: internal donor self-certifications the pipeline
+ * surfaces as "[to confirm]". Named for the customer but NON-BLOCKING — their
+ * absence never refuses a fulfillable order. The proposal is produced with each
+ * one flagged for the customer to complete before they submit.
+ */
+export function advisoryFactGaps(input: SufficiencyInput): Gap[] {
+  const f = input.facts ?? {};
+  const out: Gap[] = [];
 
   if (!factPresent(f.income_band)) {
     out.push({
@@ -910,7 +938,8 @@ export function requiredFactGaps(input: SufficiencyInput): Gap[] {
       code: "income_band_missing",
       ask: "Your latest annual income band.",
       why: "Funders size a grant to the organisation, and your income band decides which grant " +
-        "amounts you are eligible for. The application states it, so we need it before we write.",
+        "amounts you are eligible for. We will write the proposal and flag this for you to confirm " +
+        "before you submit.",
       example: "e.g. under £10,000; £10,000–£100,000; £100,000–£500,000; over £500,000.",
     });
   }
@@ -920,8 +949,9 @@ export function requiredFactGaps(input: SufficiencyInput): Gap[] {
       scope: "safeguarding",
       code: "safeguarding_policy_missing",
       ask: "Confirm your organisation has a safeguarding policy in place.",
-      why: "Almost every UK funder requires a safeguarding policy and asks you to confirm one " +
-        "exists. We will not state that you have one unless you tell us you do.",
+      why: "Almost every UK funder asks you to confirm a safeguarding policy exists. We will not " +
+        "state that you have one unless you tell us you do, so we flag it for you to confirm " +
+        "before you submit.",
       example: "Tick to confirm your board has adopted a written safeguarding policy.",
     });
   }
@@ -932,7 +962,7 @@ export function requiredFactGaps(input: SufficiencyInput): Gap[] {
       code: "safeguarding_lead_missing",
       ask: "The name of your Designated Safeguarding Lead.",
       why: "The person responsible for safeguarding is named in the application. Without the name " +
-        "we can only write \"a designated lead\", which reviewers read as a gap.",
+        "we write \"a designated lead\" and flag it for you to complete before you submit.",
       example: "e.g. Jane Okafor, Deputy Chair.",
     });
   }
@@ -957,10 +987,13 @@ export function evaluateSufficiency(input: SufficiencyInput, opts: EvaluateOptio
 
   const blockers = fulfilmentBlockers(input, now);
   const { ledger, referents, gaps, detail } = assemble(input);
-  // The core admin facts are refused first — they are the compliance floor a
-  // proposal is built on, and every one was missing on KT-10001.
+  // The HARD admin fact (registration) is refused first — a proposal cannot be
+  // grounded on a fabricated or absent registration (the KT-10001 defect).
   const factGaps = requiredFactGaps(input);
   if (factGaps.length) gaps.unshift(...factGaps);
+  // The REPORTED admin facts (donor self-certs) are named but never block: they
+  // are non-blocking at grounding, so an order missing them is still fulfillable.
+  const advisories = advisoryFactGaps(input);
   const score = scorer.score(referents);
 
   const bar = effectiveThreshold(t);
@@ -982,7 +1015,8 @@ export function evaluateSufficiency(input: SufficiencyInput, opts: EvaluateOptio
   }
 
   // Refusal by default. `cleared` is derived here and nowhere else; nothing
-  // upstream can assert it.
+  // upstream can assert it. Advisories are DELIBERATELY absent from this
+  // derivation: they are reported, not gated (invariant 2 = fulfillable).
   const cleared = blockers.length === 0 && gaps.length === 0 && scoreOk;
 
   const verdict: Verdict = {
@@ -997,10 +1031,11 @@ export function evaluateSufficiency(input: SufficiencyInput, opts: EvaluateOptio
     ladder_note: ladderVerdictNote(t),
     blockers,
     gaps,
+    advisories,
     ledger,
     referents: score.referents,
     detail: { ...detail, score_detail: score.detail, scorer_describe: scorer.describe },
-    message: buildMessage(cleared, blockers, gaps),
+    message: buildMessage(cleared, blockers, gaps, advisories),
     canonical: canonicalPayload(input),
   };
   assertVerdictConsistent(verdict);
@@ -1028,13 +1063,17 @@ export function assertVerdictConsistent(v: Verdict): void {
 // good answer looks like.
 // ---------------------------------------------------------------------------
 
-function buildMessage(cleared: boolean, blockers: Blocker[], gaps: Gap[]): CustomerMessage {
+function buildMessage(cleared: boolean, blockers: Blocker[], gaps: Gap[], advisories: Gap[]): CustomerMessage {
   if (cleared) {
     return {
       headline: "We have what we need.",
-      intro: "Everything checks out. Payment next, and the writing starts the moment it clears.",
+      intro: advisories.length
+        ? "Everything we need to write your proposal is here. A few donor self-certifications are " +
+          "still worth confirming before you submit — we will write it either way and flag these for you:"
+        : "Everything checks out. Payment next, and the writing starts the moment it clears.",
       items: [],
       blockers: [],
+      advisories,
       reassurance: "",
     };
   }
@@ -1049,6 +1088,7 @@ function buildMessage(cleared: boolean, blockers: Blocker[], gaps: Gap[]): Custo
         "rather ask now than send you a document full of \"the local community\":",
     items: gaps,
     blockers,
+    advisories,
     reassurance: "Your answers are saved. Fix these and the payment button opens — no card " +
       "details have been touched.",
   };

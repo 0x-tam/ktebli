@@ -68,14 +68,6 @@ const goodRow: Record<string, unknown> = {
   local_trigger: "the council closed the Ashfield youth centre in April",
   venue_escape: null,
   never_delivered: false,
-  // The core admin facts every UK grant application needs (phase 8): without
-  // these the gate now refuses regardless of particularity.
-  intake_facts: {
-    income_band: "£10,000–£100,000",
-    safeguarding_policy: true,
-    safeguarding_lead_name: "Ruth Adeyemi",
-    safeguarding_lead_role: "Trustee",
-  },
 };
 
 // ---------------------------------------------------------------------------
@@ -123,12 +115,6 @@ const minWithEscapes = inputFromRow({
   local_trigger: "the only youth centre in the quarter shut in March",
   venue_escape: "street",
   never_delivered: true,
-  intake_facts: {
-    income_band: "under £10,000",
-    safeguarding_policy: true,
-    safeguarding_lead_name: "Layla Haddad",
-    safeguarding_lead_role: "Chair",
-  },
 }, []);
 const minVerdict = evaluateSufficiency(minWithEscapes);
 ok(minVerdict.cleared,

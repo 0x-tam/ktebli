@@ -85,13 +85,6 @@ const goodRow: Record<string, unknown> = {
   local_trigger: "the council closed the Ashfield youth centre in April",
   venue_escape: null,
   never_delivered: false,
-  // The core admin facts every UK grant application needs (phase 8).
-  intake_facts: {
-    income_band: "£10,000–£100,000",
-    safeguarding_policy: true,
-    safeguarding_lead_name: "Ruth Adeyemi",
-    safeguarding_lead_role: "Trustee",
-  },
 };
 const goodVerdict = evaluateSufficiency(inputFromRow(goodRow, []));
 ok(goodVerdict.cleared, "a fully answered intake clears the hard floor");
