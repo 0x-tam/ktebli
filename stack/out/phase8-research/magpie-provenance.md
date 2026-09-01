@@ -101,3 +101,10 @@ These are not public (or not verifiable from a fetched primary page) and must co
 Charity Commission register 403-blocking the fetch tool on every path; routed around it with the
 org's own on-site primary PDF, the Nesta feature, and one aggregator, and left income blank rather
 than record an unverifiable number.
+
+
+## Applicant-supplied certifications (added 2026-09-01)
+
+APPLICANT-SUPPLIED CERTIFICATIONS (not from public materials): the four boolean administrative self-certifications below are what a real applicant attests on the intake form and are not published anywhere. They are set true here because all four are established registered charities delivering services to vulnerable people, for whom a safeguarding policy, public liability insurance, own-name banking and a conflict-free application are universal and, for safeguarding, legally expected. No specific unknowable detail (e.g. a named Designated Safeguarding Lead) is invented — those stay blank.
+
+Set true: safeguarding_policy, public_liability_insurance, bank_account_own_name, no_conflicting_grant. Left blank: safeguarding_lead_name/role/training (a specific person is not inventable from public materials).

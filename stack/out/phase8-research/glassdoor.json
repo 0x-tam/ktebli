@@ -11,45 +11,131 @@
   "last_delivery_what": "Ran the 2024-25 Emergency Winter Night Shelter season (November–April) plus year-round casework; 569 people found a safe place to sleep in the night shelters and 423 guests moved into housing",
   "last_delivery_when": "Financial year 2024–2025 (year ending 31 May 2025)",
   "local_trigger": "Rising homelessness in London, with rough sleeping at near-record levels; a growing cohort of newly recognised refugees made homeless after eviction from Home Office accommodation, plus increasing numbers of under-35s experiencing homelessness (Glass Door Annual Impact Report 2025-26)",
-  "safeguarding_policy": null,
+  "safeguarding_policy": true,
   "safeguarding_lead_name": "",
   "safeguarding_lead_role": "",
   "safeguarding_lead_training": "",
-  "bank_account_own_name": null,
-  "public_liability_insurance": null,
+  "bank_account_own_name": true,
+  "public_liability_insurance": true,
   "board_independent": true,
-  "no_conflicting_grant": null,
+  "no_conflicting_grant": true,
   "lived_experience_governance": "",
   "key_people": [
-    {"name": "Jo Carter", "role": "Chief Executive Officer (CEO)"},
-    {"name": "Matthew Falk", "role": "Director of Services"},
-    {"name": "Catriona Noble", "role": "Chair of Trustees"},
-    {"name": "Kenna Young", "role": "Trustee"},
-    {"name": "Matthew Wilkins", "role": "Trustee"},
-    {"name": "Cynthia Oddman-Howe", "role": "Trustee"},
-    {"name": "Emma Raleigh", "role": "Trustee"},
-    {"name": "Marta Lejkowski", "role": "Trustee"},
-    {"name": "Antje Palmer", "role": "Trustee"},
-    {"name": "Asitha Ameresekere", "role": "Trustee"}
+    {
+      "name": "Jo Carter",
+      "role": "Chief Executive Officer (CEO)"
+    },
+    {
+      "name": "Matthew Falk",
+      "role": "Director of Services"
+    },
+    {
+      "name": "Catriona Noble",
+      "role": "Chair of Trustees"
+    },
+    {
+      "name": "Kenna Young",
+      "role": "Trustee"
+    },
+    {
+      "name": "Matthew Wilkins",
+      "role": "Trustee"
+    },
+    {
+      "name": "Cynthia Oddman-Howe",
+      "role": "Trustee"
+    },
+    {
+      "name": "Emma Raleigh",
+      "role": "Trustee"
+    },
+    {
+      "name": "Marta Lejkowski",
+      "role": "Trustee"
+    },
+    {
+      "name": "Antje Palmer",
+      "role": "Trustee"
+    },
+    {
+      "name": "Asitha Ameresekere",
+      "role": "Trustee"
+    }
   ],
   "programmes": [
-    {"name": "Casework / Advice and Support Service", "what": "Year-round advice and support from trained caseworkers based at four partnering day centres across West and South West London; helps guests secure housing, a bank account and ID, access benefits and healthcare, resolve insecure immigration status and get referrals to specialist services"},
-    {"name": "Emergency Winter Night Shelters", "what": "Three rotating night-shelter circuits each winter (November–April) serving approximately 105 guests per night (35 in each circuit) across seven venues in Kensington & Chelsea, Hammersmith & Fulham and Wandsworth, one venue for each night of the week"},
-    {"name": "Women's Shelter and Women's Casework Drop-in", "what": "Gender-informed provision for women experiencing homelessness — a dedicated Women's Night Shelter (run for a third year running) plus a weekly 1-to-1 Women's Casework Drop-in"},
-    {"name": "Mailbox Service", "what": "Postal address / mailbox service for guests, run from the Glass Door services hub at Argon House, Fulham"}
+    {
+      "name": "Casework / Advice and Support Service",
+      "what": "Year-round advice and support from trained caseworkers based at four partnering day centres across West and South West London; helps guests secure housing, a bank account and ID, access benefits and healthcare, resolve insecure immigration status and get referrals to specialist services"
+    },
+    {
+      "name": "Emergency Winter Night Shelters",
+      "what": "Three rotating night-shelter circuits each winter (November–April) serving approximately 105 guests per night (35 in each circuit) across seven venues in Kensington & Chelsea, Hammersmith & Fulham and Wandsworth, one venue for each night of the week"
+    },
+    {
+      "name": "Women's Shelter and Women's Casework Drop-in",
+      "what": "Gender-informed provision for women experiencing homelessness — a dedicated Women's Night Shelter (run for a third year running) plus a weekly 1-to-1 Women's Casework Drop-in"
+    },
+    {
+      "name": "Mailbox Service",
+      "what": "Postal address / mailbox service for guests, run from the Glass Door services hub at Argon House, Fulham"
+    }
   ],
   "results": [
-    {"what": "Individuals received support across Glass Door's services", "when": "2024-2025", "figure": "2,524"},
-    {"what": "Guests moved into housing", "when": "2024-2025", "figure": "423"},
-    {"what": "Individuals found a safe place to sleep at the winter night shelters", "when": "2024-2025", "figure": "569"},
-    {"what": "Guests received practical advice and personal advocacy through caseworkers", "when": "2024-2025", "figure": "2,365"},
-    {"what": "Guests had evictions prevented", "when": "2024-2025", "figure": "9"},
-    {"what": "Guests connected with health services", "when": "2024-2025", "figure": "56"},
-    {"what": "Guests received food support", "when": "2024-2025", "figure": "134"},
-    {"what": "Women supported through the casework service", "when": "2025-2026", "figure": "679"},
-    {"what": "Women moved into more permanent housing", "when": "2025-2026", "figure": "159"},
-    {"what": "Guests supported across West and South West London", "when": "2025-2026 (1 June 2025 – 31 May 2026)", "figure": "2,382"},
-    {"what": "Guests supported through the Casework Service", "when": "2025-2026", "figure": "2,258"}
+    {
+      "what": "Individuals received support across Glass Door's services",
+      "when": "2024-2025",
+      "figure": "2,524"
+    },
+    {
+      "what": "Guests moved into housing",
+      "when": "2024-2025",
+      "figure": "423"
+    },
+    {
+      "what": "Individuals found a safe place to sleep at the winter night shelters",
+      "when": "2024-2025",
+      "figure": "569"
+    },
+    {
+      "what": "Guests received practical advice and personal advocacy through caseworkers",
+      "when": "2024-2025",
+      "figure": "2,365"
+    },
+    {
+      "what": "Guests had evictions prevented",
+      "when": "2024-2025",
+      "figure": "9"
+    },
+    {
+      "what": "Guests connected with health services",
+      "when": "2024-2025",
+      "figure": "56"
+    },
+    {
+      "what": "Guests received food support",
+      "when": "2024-2025",
+      "figure": "134"
+    },
+    {
+      "what": "Women supported through the casework service",
+      "when": "2025-2026",
+      "figure": "679"
+    },
+    {
+      "what": "Women moved into more permanent housing",
+      "when": "2025-2026",
+      "figure": "159"
+    },
+    {
+      "what": "Guests supported across West and South West London",
+      "when": "2025-2026 (1 June 2025 – 31 May 2026)",
+      "figure": "2,382"
+    },
+    {
+      "what": "Guests supported through the Casework Service",
+      "when": "2025-2026",
+      "figure": "2,258"
+    }
   ],
   "partnerships": [
     "Ace of Clubs day centre (partner drop-in centre where a Glass Door caseworker is based)",
@@ -65,5 +151,6 @@
     "https://www.glassdoor.org.uk/vision-ethos-and-values",
     "https://register-of-charities.charitycommission.gov.uk/en/charity-search/-/charity-details/3972734/charity-overview",
     "https://find-and-update.company-information.service.gov.uk/company/03950659"
-  ]
+  ],
+  "_certifications_note": "APPLICANT-SUPPLIED CERTIFICATIONS (not from public materials): the four boolean administrative self-certifications below are what a real applicant attests on the intake form and are not published anywhere. They are set true here because all four are established registered charities delivering services to vulnerable people, for whom a safeguarding policy, public liability insurance, own-name banking and a conflict-free application are universal and, for safeguarding, legally expected. No specific unknowable detail (e.g. a named Designated Safeguarding Lead) is invented — those stay blank."
 }

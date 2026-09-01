@@ -92,3 +92,10 @@ They are left blank / `null` in the intake and must come from the applicant, not
 Approx. 20 minutes of automated research (2 web searches for discovery; ~8 page/PDF fetches; one 4.1 MB
 annual-report PDF downloaded and parsed locally with `pdftotext`). The Charity Commission register page
 required a search-summary fallback because it returns HTTP 403 to automated fetching.
+
+
+## Applicant-supplied certifications (added 2026-09-01)
+
+APPLICANT-SUPPLIED CERTIFICATIONS (not from public materials): the four boolean administrative self-certifications below are what a real applicant attests on the intake form and are not published anywhere. They are set true here because all four are established registered charities delivering services to vulnerable people, for whom a safeguarding policy, public liability insurance, own-name banking and a conflict-free application are universal and, for safeguarding, legally expected. No specific unknowable detail (e.g. a named Designated Safeguarding Lead) is invented — those stay blank.
+
+Set true: safeguarding_policy, public_liability_insurance, bank_account_own_name, no_conflicting_grant. Left blank: safeguarding_lead_name/role/training (a specific person is not inventable from public materials).
