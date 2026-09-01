@@ -206,7 +206,7 @@ orchestrator's live-order step.
 
 `sudo env PGBIN=/usr/lib/postgresql/17/bin TMPDIR=/tmp bash tests/run-all.sh` → **ALL SUITES PASSED**
 (includes REPLAY OK, the new `intake answers -> evidence ledger` suite, updated sufficiency §9, and
-the two updated adversarial suites). `deno check` clean on every worker/function file changed.
+two adversarial fixtures (updated then fully reverted within this task — byte-identical to base at HEAD)). `deno check` clean on every worker/function file changed.
 
 ### 2.7 The intake_answers shape as shipped
 
