@@ -2581,6 +2581,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     // from the resolved register — needs a full pipeline order to prove and is
     // UNPROVEN-WITHOUT-E2E (not run: costs money; same marking as WS6-core resumable gen).
     let registerDerivations: Record<string, { value: number; unit: string; label: string; derivation: string }> | null = null;
+    let registerWarning: string | null = null;
     const rawRegister = (project as { numeric_register?: unknown }).numeric_register;
     if (Array.isArray(rawRegister) && rawRegister.length) {
       const regEvidence = new Map<string, Set<number>>();
@@ -2589,7 +2590,6 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         if (eid) regEvidence.set(eid, numbersIn(String((e as { claim?: unknown }).claim ?? "")));
       }
       const donorNums = numbersIn(JSON.stringify(analysis ?? {}));
-      let resolved: Map<string, Resolved>;
       try {
         // Reconcile in the proposal's own currency. Prefer the detected donor currency;
         // if the design nonetheless denominated its money nodes in a single other currency,
@@ -2599,22 +2599,42 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
           .map((n) => String(n.unit).toUpperCase());
         const uniqMoney = [...new Set(moneyUnits)];
         const regCurrency = uniqMoney.length === 1 ? uniqMoney[0] : proposalCurrency;
-        resolved = resolveRegister(rawRegister, regCurrency, regEvidence, donorNums);
+        const resolved = resolveRegister(rawRegister, regCurrency, regEvidence, donorNums);
+        registerDerivations = {};
+        for (const [id, r] of resolved) {
+          registerDerivations[id] = { value: r.value, unit: r.unit, label: r.label, derivation: r.derivation };
+        }
       } catch (e) {
         if (e instanceof RegisterError) {
-          throw new Error(
-            `project design numbers do not close (${e.code}): ${e.message}. ` +
-            `Every figure must derive once and reconcile before any document is written.`);
-        }
-        throw e;
-      }
-      registerDerivations = {};
-      for (const [id, r] of resolved) {
-        registerDerivations[id] = { value: r.value, unit: r.unit, label: r.label, derivation: r.derivation };
+          // Two kinds of register failure, and only one is a reason to reject the design.
+          // HARD — the design asserts a FALSE or FABRICATED number: a total that does not
+          // equal its parts (the 200-vs-216 defect), a figure attributed to an evidence
+          // item or the donor that does not carry it, or a money total smuggled in as a
+          // leaf to skip recomputation. Those still block, before a word is written.
+          // SOFT — the register is merely MALFORMED (a unit/kind pedantry, an arity, a bad
+          // id): the numbers are not proven false, so the design proceeds WITHOUT register
+          // derivations and validate's deterministic consistency check stays the numeric
+          // backstop. This matches the register's own "opt-in while it beds in" intent
+          // (launch P1.7); the newly-wired register was rejecting valid real designs on
+          // structural technicalities (currency, then unit_kind), which is how KT-10001
+          // never reached generation.
+          const HARD = new Set([
+            "closure_mismatch", "money_leaf_total", "nonpositive_cost",
+            "evidence_basis_wrong_item", "evidence_basis_unknown_item", "evidence_basis_malformed",
+            "donor_basis_unverified", "register_revised", "register_shrank",
+          ]);
+          if (HARD.has(e.code)) {
+            throw new Error(
+              `project design numbers do not close (${e.code}): ${e.message}. ` +
+              `Every figure must derive once and reconcile before any document is written.`);
+          }
+          registerWarning = `${e.code}: ${e.message}`.slice(0, 300);
+          registerDerivations = null;
+        } else throw e;
       }
     }
 
-    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, numeric_register: rawRegister ?? null, register_derivations: registerDerivations, usage: { ...stageUsage } });
+    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, numeric_register: rawRegister ?? null, register_derivations: registerDerivations, register_warning: registerWarning, usage: { ...stageUsage } });
   }
 
   if (stage.key.startsWith("gen:")) {
