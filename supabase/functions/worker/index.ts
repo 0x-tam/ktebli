@@ -2443,8 +2443,22 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `- budget_envelope_usd: the natural cost of THIS design, at or under any donor ceiling in the grant intelligence. If the design naturally costs far less than the ceiling, keep it lower — never pad.\n` +
       `- partnerships: status "evidence_based" ONLY if the evidence ledger shows the partnership exists; otherwise "designed" (a partnership the project will build).\n` +
       `- sustainability: a real mechanism (who owns what, what costs money, how it is paid). If no future funding source is evidenced, say so honestly in ongoing_costs/how_paid — do not invent one.\n` +
-      `- numeric_register: put EVERY figure the proposal will state into it, ONCE. A total is a "sum" node over its parts with an "asserted" value — it will be recomputed and MUST equal the parts (state 216 as N1+N2+N3, never a rounded 200). A share/percentage is a "rate"/"ratio" whose label names the exact denominator. Leaves need a real basis; a figure attributed to evidence must be the figure that Evidence Ledger item states. Do not pad, do not round a fraction into a headcount.`,
-      6000, { effort: "high", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
+      `- numeric_register: put EVERY figure the proposal will state into it, ONCE. A total is a "sum" node over its parts with an "asserted" value — it will be recomputed and MUST equal the parts (state 216 as N1+N2+N3, never a rounded 200). A share/percentage is a "rate"/"ratio" whose label names the exact denominator. Leaves need a real basis; a figure attributed to evidence must be the figure that Evidence Ledger item states. Do not pad, do not round a fraction into a headcount.\n` +
+      // SIZE DISCIPLINE (launch P0.3): this is a design SKELETON, not prose. Without an
+      // explicit bound, opus-5 at effort:"high" over-elaborated this object past 20000
+      // output tokens WITHOUT ever closing the JSON — 294s and a hard "generation
+      // incomplete" every time, so the stage could never finish inside the 150s edge
+      // invocation window (Kong read_timeout, matched to hosted). Bounding the arrays and
+      // sentences makes the object converge (finish=stop) at ~7200 tokens in ~90s, and the
+      // downstream validate/gate — not verbosity here — is what judges quality.
+      `SIZE DISCIPLINE (hard): at most 7 activities, 6 outputs, 5 outcomes, 6 phases, 12 numeric_register entries, 6 risks, 8 indicators, 6 assumptions. Every string ONE sentence. Emit ONLY the JSON object, fully closed.`,
+      // effort "medium" (was "high"): high made this specific call run away and never
+      // close; medium converges, stays well under the window, and is ample for structuring
+      // a design against a fully-specified schema and a reserved strategy. maxTokens 12000
+      // (was 6000) so the complete object lands in ONE response — the 4-hop JSON
+      // continuation was fragile (it drifted and still hit the cap) and multiplied the
+      // wall-clock past the window. See reports/phase8-intake.md §3.
+      12000, { effort: "medium", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
     const project = d.project as Record<string, unknown> | undefined;
     if (!project || !Array.isArray(project.activities) || !(project.activities as unknown[]).length) {
       throw new Error("project design incomplete");
