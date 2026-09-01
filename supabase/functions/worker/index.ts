@@ -2817,7 +2817,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     // their own window, so the draft budget rises from 1 correction to 3. Still bounded:
     // if it has not closed after maxRounds+1 audits it holds on grounding, which is the
     // safe direction.
-    const maxRounds = deep ? 6 : 5;
+    const maxRounds = deep ? 8 : 8;
     const startRound = Math.min(vwip?.round ?? 0, maxRounds);
     let claimLedger: Array<Record<string, unknown>> = [];
     let certifications: Array<Record<string, unknown>> = [];
