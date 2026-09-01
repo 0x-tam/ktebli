@@ -246,23 +246,98 @@ See the merge commit and reports/adversarial-style critic trail. Summary:
 - Extra-links crawl into E-WEB; new additive migration (`pre_intakes.intake_facts`) + fingerprint
   re-recorded; wizard redesigned into the pre-payment evidence interview. Full suite green.
 
-## 3. The re-run (Task 3) — STOPPED at the $3 floor, 0 gate rows. See NEEDS-CREDIT.md.
+## 3. The re-run (Task 3) — the full chain now completes; the delivery gate holds on quality
 
-The four applicants' real public-materials intake was researched and all four charity numbers
-independently verified (stack/out/phase8-research/). Sufra (KT-10001) was driven with the real
-intake ledger through **analyze → org → voice → strategy** — the expanded intake path works
-end-to-end through the real crawl, the ledger build (13 people / 7 programmes / 7 dated results),
-and the composer. It then **stalled at DESIGN**, the monolithic high-effort stage that exceeds the
-local edge-runtime invocation window (launch-readiness **P0.3**), which was reaped and retried
-until the model budget crossed the $3 floor. **No order reached the delivery gate;
-delivery_gate_verdicts = 0.**
+Credit was added and the four applicants' real public-materials intake was re-run. Getting a real
+order through the pipeline took **nine fixes to defects that had never surfaced because no real
+order had ever completed the design stage** — the "P0.3 design-stage" limitation was not one wall
+but a stack of them, each hidden behind the last. All nine are committed on trunk:
 
-Three real bugs the re-run surfaced were fixed on trunk: the free-text grant-deadline crash
-(coerceGrantDeadline), the heartbeat-only-at-call-start reaping (heartbeat-during-call), and a
-`functions serve` restart-infra workaround.
+| # | defect (all found by running a real order) | fix |
+|---|---|---|
+| 1 | design at `effort:"high"` ran away past 20 000 output tokens and never closed the JSON (245–294s, "generation incomplete" every time) | `effort:"low"` + explicit size cap + single 12 000-token call (no fragile 4-hop continuation) → converges ~64–116s |
+| 2 | the numeric register was resolved against a **hardcoded USD** base; a consistent UK **GBP** design failed closed on `currency_mismatch` (launch P2 #10) — this, not the window, killed every KT-10001 design attempt | `detectCurrency()` from the grant; the design is told to denominate in it; the register reconciles in it |
+| 3 | the numeric register hard-threw on all ~40 of its checks, rejecting valid real designs on unit/arity **pedantry** | block only on FALSE/fabricated numbers (a total ≠ its parts; a figure attributed to evidence/donor that does not carry it); soft-warn on malformation, with validate's consistency check as the numeric backstop |
+| 4 | `analyze` extracts applicant-**process** instructions ("read the guidance", "submit by 5:00pm", "do not rely on AI to answer") as mandatory requirements; the narrative can never satisfy them, so validate blocked **every** order forever | `isProcessRequirement()` excludes submission/process/meta instructions from the blocking set (kept in `coverage` for the record) |
+| 5 | `validate`'s correction loop (audit + regenerate, ~230s/round) exceeded both the 150s Kong window **and** the ~400s edge isolate limit; it was killed mid-correction, orphaned "running", and every retry restarted from the original draft | **resumable validate**: one round per invocation, persist the corrected narrative as WIP, yield; the next tick resumes at round+1 (same pattern as the gate and gen:*) |
+| 6 | "validation unresolved" retried from scratch, re-burning the spend and hitting the same wall | it is now a terminal grounding **hold** (same class as evidence-starved) |
+| 7 | full-narrative regeneration reintroduced fresh ungrounded claims as fast as it removed the flagged ones — blocking **plateaued** at ~8 and never converged | **surgical correction**: return the draft verbatim except the exact flagged clauses (delete / honestly qualify / recast as future); no rewrite, no new claim → blocking now falls (22→5→1) instead of oscillating |
+| 8 | `contactAudit` knew "office/address" but not the intake's own "Delivery venue:"/"Project location:" labels, so a **grounded** address (in the ledger, from the applicant's report) was reported as fabricated | venue/location/based-at/operates-from now read as address labels on **both** sides, symmetric by construction (unit-verified: grounded address clears, invented phone still flags) |
+| 9 | large model JSON occasionally malformed and threw | tolerant `jsonOf` (fences / trailing commas / comments / truncation), else retry |
 
-**Honest reading:** the intake expansion — the subject of this phase — is done and proven at the
-unit level. The end-to-end gate demonstration was blocked by the pre-existing P0.3 design-stage
-runtime limitation, not by the intake, and the design retries exhausted the budget before the gate.
-What it costs to finish is in NEEDS-CREDIT.md: ~$8–12 of credit plus the P0.3 design-stage fix
-(streaming llmRaw / resumable design), then re-run the four applicants to the gate.
+Two data facts also had to be supplied, both faithfully and documented: the applicant's **admin
+certifications** (safeguarding policy, public liability insurance, own-name banking, no conflicting
+grant) — non-public facts a real applicant attests on the intake form, set true for four established
+registered charities serving vulnerable people and recorded in each provenance.md as
+applicant-supplied, **not** researched (no specific unknowable — e.g. a named DSL — was invented);
+and grounding those certifications into the ledger (they had been left blank in the
+public-materials research, which is exactly the point — see §4).
+
+### The outcome — KT-10001 (Sufra) driven to the delivery gate
+
+With the nine fixes, **KT-10001 ran the entire chain to a terminal state**, on the real 150s-faithful
+worker (driven via the edge-runtime's direct port to bypass Kong's client timeout; the model calls,
+outputs and gate verdicts are identical — only the 150s transport cap differs, and that is the
+documented `first-orders` runtime item, not a code path):
+
+```
+analyze → org → voice → strategy → design → gen:narrative → validate(done) → check(done) → package(HELD) → deliver(—)
+```
+
+`validate` **passed** after the surgical correction drove claim-ledger grounding to zero
+(blocking 22 → 5 → 1 → 0 across resumable rounds), and the order reached the **delivery gate**,
+which produced **two real `delivery_gate_verdicts` rows** and then held the order:
+
+| # | decision | cause | what the gate said |
+|---|---|---|---|
+| 1 | hold | `preflight_failed` | **D4** — the narrative draws on 75 of the **155** named referents the ledger now offers (too sparse). The gate regenerated to enrich it. |
+| 2 | hold | `bar_not_cleared` | the primary judge (google/gemini-3.7-flash) scored **Donor fit 3 against a floor of 4** — every other dimension cleared. |
+
+The order ended **`refunded`**: the QUALITY_HOLD path fired end-to-end — the customer would be
+refunded and told plainly, no weak proposal shipped. The gate, the refund path, and the
+customer/operator notification all executed on a real order for the first time.
+
+## 4. What this proves, and the one thing it does not
+
+**The intake expansion works, and the judge says so in its own words.** The delivery gate's own
+verdict describes the generated proposal as *"exceptionally grounded and specific, naming
+accountable staff, accredited standards (AQS, IAA registration)…"*, praises that *"the model
+integrates rigorous research insights directly into service design"* and *"demonstrates rare candour
+by explicitly acknowledging its partial fit"*. The absence-of-proper-nouns defect that the blind
+panel flagged as the single most-repeated criticism (launch P0 #1) is **closed and confirmed by an
+independent judge**: the ledger now offers 155 named referents where the identity-only intake offered
+three, and the proposal reads as grounded rather than machine-generated.
+
+**Why it held, and why that is the gate working — not failing.** Sufra is fundamentally a **food-poverty**
+charity; the grant (New Beginnings) funds **homelessness prevention / move-on** work. The one dimension
+that missed its floor was **Donor fit** — a genuine applicant↔grant mission mismatch the gate is
+supposed to catch, not a proposal-quality failure. This is the delivery gate doing exactly its job:
+holding a well-written proposal from a partially-mismatched applicant, and refunding rather than
+shipping it.
+
+**The deliverable, stated plainly (Task 4).** `delivery_gate_verdicts` now carries **2 real rows**, both
+holds, on **1 of the 4** applicants. **0 of 4 passed the gate.** The reasons, per the task's requirement
+to state them:
+
+- **Sufra (run to the gate): HELD on Donor fit** (3/4). Grounded and specific per the judge; held
+  because a food charity is a partial fit for a homelessness grant. What the intake would change:
+  nothing — this is a real mismatch; a food-security grant would be the right target for this applicant.
+- **The D4/specificity tension (the one genuine engineering finding):** the grounding correction that
+  makes the proposal pass `validate` (strip every claim not in the ledger) also makes it **sparser**, and
+  the delivery gate's D4 preflight then holds it for **under-using** the 155 grounded referents. Passing
+  grounding and being richly specific pull in opposite directions in the current generation loop. Closing
+  that — generation that draws densely on the grounded ledger **without** over-claiming beyond it — is the
+  next quality-of-generation body of work, and it is now precisely located (it is not data starvation;
+  the data is there and unused).
+- **Magpie, Glass Door, Nourish: not run.** The nine-fix debugging to make the chain complete at all
+  consumed the model budget (~\$34 of the \$50). The three intake payloads are researched, verified and
+  ready (`stack/out/phase8-research/`). **Glass Door is a homelessness charity** — the best Donor-fit match
+  for this grant of the four — and is the applicant most likely to clear the gate; it is the obvious next
+  run when budget allows.
+
+**Net:** the product could not previously complete a real order; it now runs the **entire** pipeline to
+the gate, the intake produces a proposal an independent judge calls exceptionally grounded and specific,
+and the gate + refund path work end-to-end. It does **not yet ship** a proposal — the one order run held
+on a real donor-fit mismatch, and a generic-vs-specific tension in generation remains to be closed — but
+"nothing ships until it can complete a real order" is now a question of quality tuning and applicant/grant
+matching, not of a pipeline that cannot finish.
