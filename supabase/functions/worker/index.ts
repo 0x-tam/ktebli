@@ -223,6 +223,37 @@ function normDomain(d: string): string {
 
 // ================= writing-quality signal (deterministic) =================
 const JARGON_RE = /\b(transformative|groundbreaking|holistic(?:ally)?|robust framework|catalys(?:e|t|ing|ze)\w* change|leverag\w+ synerg\w+|empower(?:ing|s)? communities|foster(?:ing)? collaboration|sustainable ecosystem|multifaceted approach|paradigm shift|cutting[- ]edge|state[- ]of[- ]the[- ]art|synergist\w+)\b/gi;
+// A DATE column must never take the model's free-text deadline. analyze asks for
+// deadline as a string, and the donor's own wording ("5:00pm on the 9th of September
+// 2026 (applicants informed of outcome by 18th December 2026)") is not a date — inserting
+// it raw crashed the analyze stage on the first order to register a grant. Coerce to a
+// clean ISO date when one can be extracted CONFIDENTLY, else null (the deadline is
+// operator-alert metadata, not a compliance gate — a missing one is safe, a crash is not).
+const DL_MONTHS: Record<string, string> = {
+  january: "01", february: "02", march: "03", april: "04", may: "05", june: "06",
+  july: "07", august: "08", september: "09", october: "10", november: "11", december: "12",
+  jan: "01", feb: "02", mar: "03", apr: "04", jun: "06", jul: "07", aug: "08", sep: "09",
+  sept: "09", oct: "10", nov: "11", dec: "12",
+};
+function coerceGrantDeadline(raw: unknown): string | null {
+  const s = String(raw ?? "").trim();
+  if (!s) return null;
+  // already an ISO date (optionally with time) — take the date part if valid
+  const iso = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+  if (iso) { const d = new Date(`${iso[1]}-${iso[2]}-${iso[3]}T00:00:00Z`); if (!isNaN(d.getTime())) return `${iso[1]}-${iso[2]}-${iso[3]}`; }
+  const low = s.toLowerCase();
+  // "9 September 2026" / "9th of September 2026" / "the 9th of September, 2026"
+  let m = low.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?([a-z]+)\.?\,?\s+(\d{4})\b/);
+  if (m && DL_MONTHS[m[2]]) { const day = m[1].padStart(2, "0"); return `${m[3]}-${DL_MONTHS[m[2]]}-${day}`; }
+  // "September 9, 2026" / "September 9 2026"
+  m = low.match(/\b([a-z]+)\.?\s+(\d{1,2})(?:st|nd|rd|th)?\,?\s+(\d{4})\b/);
+  if (m && DL_MONTHS[m[1]]) { const day = m[2].padStart(2, "0"); return `${m[3]}-${DL_MONTHS[m[1]]}-${day}`; }
+  // "09/09/2026" or "9-9-2026" (day-first, UK)
+  m = low.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/);
+  if (m) { const mo = Number(m[2]); const day = Number(m[1]); if (mo >= 1 && mo <= 12 && day >= 1 && day <= 31) return `${m[3]}-${String(mo).padStart(2,"0")}-${String(day).padStart(2,"0")}`; }
+  return null; // cannot read a date confidently — null, never free text into a DATE column
+}
+
 function jargonFindings(md: string): string[] {
   const counts = new Map<string, number>();
   for (const m of md.matchAll(JARGON_RE)) {
@@ -1897,7 +1928,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     if (!grantId) {
       const g = await ins("grants", {
         funder: a.issuer ?? "unknown", title: a.title ?? "unknown", title_normalized: norm,
-        deadline: a.deadline ?? null, guidelines_text: text.slice(0, 100_000),
+        deadline: coerceGrantDeadline(a.deadline), guidelines_text: text.slice(0, 100_000),
       });
       grantId = g.id;
     }
