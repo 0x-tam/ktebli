@@ -331,6 +331,26 @@ function isProcessRequirement(req: string): boolean {
   );
 }
 
+// The proposal's currency. The design schema names its field `budget_envelope_usd`
+// and the numeric_register example lists "USD" first, so the model drifts to USD even
+// for a UK grant whose donor caps and whose evidence figures are all in GBP. The
+// register then fails closed on currency_mismatch (a consistent £ design rejected
+// against a USD base — launch P2 #10, which blocked every KT-10001 design attempt).
+// Detect the donor's own currency from the grant intelligence and denominate the whole
+// design in it. Deterministic, signal-counted, defaults to USD only when nothing points
+// elsewhere.
+function detectCurrency(analysis: unknown, order: { org_website?: unknown } | undefined): string {
+  const hay = JSON.stringify(analysis ?? {}) + " " + String(order?.org_website ?? "");
+  const score: Record<string, number> = { GBP: 0, EUR: 0, USD: 0 };
+  score.GBP += (hay.match(/£|\bGBP\b|\bpounds?\b|\bsterling\b/gi) || []).length;
+  score.EUR += (hay.match(/€|\bEUR\b|\beuros?\b/gi) || []).length;
+  score.USD += (hay.match(/\bUSD\b|\bUS\$|\bdollars?\b/g) || []).length;
+  // .uk / .org.uk domain is a strong GBP signal when currency marks are sparse.
+  if (/\.uk\b/i.test(String(order?.org_website ?? ""))) score.GBP += 2;
+  const best = (Object.entries(score).sort((a, b) => b[1] - a[1])[0]);
+  return best && best[1] > 0 ? best[0] : "USD";
+}
+
 function jargonFindings(md: string): string[] {
   const counts = new Map<string, number>();
   for (const m of md.matchAll(JARGON_RE)) {
@@ -2478,6 +2498,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   if (stage.key === "design") {
     if (!analysis || !strategy) throw new Error("analysis/strategy missing");
     await beat();
+    const proposalCurrency = detectCurrency(analysis, c.order);
     // Project Design Object + Assumption Register: the backbone every document
     // derives from (contract parts 21-25). One high-effort call that must also
     // CHALLENGE its own design before returning it.
@@ -2510,6 +2531,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `- partnerships: status "evidence_based" ONLY if the evidence ledger shows the partnership exists; otherwise "designed" (a partnership the project will build).\n` +
       `- sustainability: a real mechanism (who owns what, what costs money, how it is paid). If no future funding source is evidenced, say so honestly in ongoing_costs/how_paid — do not invent one.\n` +
       `- numeric_register: put EVERY figure the proposal will state into it, ONCE. A total is a "sum" node over its parts with an "asserted" value — it will be recomputed and MUST equal the parts (state 216 as N1+N2+N3, never a rounded 200). A share/percentage is a "rate"/"ratio" whose label names the exact denominator. Leaves need a real basis; a figure attributed to evidence must be the figure that Evidence Ledger item states. Do not pad, do not round a fraction into a headcount.\n` +
+      `- CURRENCY: this donor and this applicant work in ${proposalCurrency}. Every money figure — budget_envelope, every money leaf, every money sum — MUST use unit "${proposalCurrency}". Never mix currencies and never use USD unless ${proposalCurrency} IS USD. budget_envelope_usd carries the ${proposalCurrency} amount regardless of the field's legacy name.\n` +
       // SIZE DISCIPLINE (launch P0.3): this is a design SKELETON, not prose. Without an
       // explicit bound, opus-5 at effort:"high" over-elaborated this object past 20000
       // output tokens WITHOUT ever closing the JSON — 294s and a hard "generation
@@ -2569,7 +2591,15 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       const donorNums = numbersIn(JSON.stringify(analysis ?? {}));
       let resolved: Map<string, Resolved>;
       try {
-        resolved = resolveRegister(rawRegister, "USD", regEvidence, donorNums);
+        // Reconcile in the proposal's own currency. Prefer the detected donor currency;
+        // if the design nonetheless denominated its money nodes in a single other currency,
+        // honour that (the model's consistent choice) rather than false-rejecting it.
+        const moneyUnits = (rawRegister as Array<{ unit_kind?: string; unit?: string }>)
+          .filter((n) => n?.unit_kind === "money" && typeof n?.unit === "string")
+          .map((n) => String(n.unit).toUpperCase());
+        const uniqMoney = [...new Set(moneyUnits)];
+        const regCurrency = uniqMoney.length === 1 ? uniqMoney[0] : proposalCurrency;
+        resolved = resolveRegister(rawRegister, regCurrency, regEvidence, donorNums);
       } catch (e) {
         if (e instanceof RegisterError) {
           throw new Error(
