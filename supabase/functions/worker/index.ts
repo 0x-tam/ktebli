@@ -2811,7 +2811,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     };
     const reqRows = (analysis?.requirements as Array<{ req: string; mandatory?: boolean; source?: string }> | undefined) ?? [];
     const rounds: Array<Record<string, unknown>> = vwip?.rounds ?? [];
-    const maxRounds = deep ? 2 : 1;
+    // With certifications grounded the correction now CONVERGES (KT-10001 fell 24->10
+    // blocking in a single round), it just needs more than one pass to reach zero. That
+    // was unaffordable when every round shared one invocation; resumable rounds each get
+    // their own window, so the draft budget rises from 1 correction to 3. Still bounded:
+    // if it has not closed after maxRounds+1 audits it holds on grounding, which is the
+    // safe direction.
+    const maxRounds = deep ? 4 : 3;
     const startRound = Math.min(vwip?.round ?? 0, maxRounds);
     let claimLedger: Array<Record<string, unknown>> = [];
     let certifications: Array<Record<string, unknown>> = [];
@@ -3425,11 +3431,15 @@ Deno.serve(async (req) => {
         // retry cannot grow the evidence ledger, so the order parks as held
         // and notifyTerminal tells the customer and the operator now rather
         // than after three identical failures.
-        const final = st.attempt >= 3 || msg.includes("claim blocked") || msg.includes("similarity gate") ||
-          msg.includes("evidence starved");
-        const status = final
-          ? (msg.includes("similarity gate") || msg.includes("claim blocked") || msg.includes("evidence starved") ? "held" : "failed")
-          : "pending";
+        // "validation unresolved" is a terminal grounding HOLD, not a retryable error:
+        // validate already spent its full resumable round budget correcting, and a fresh
+        // attempt would restart from the original draft and reach the same wall while
+        // burning the spend again. Hold it, tell the customer (the grounding gate did its
+        // job), and stop — same class as evidence-starved and the similarity gate.
+        const isHold = msg.includes("claim blocked") || msg.includes("similarity gate") ||
+          msg.includes("evidence starved") || msg.includes("validation unresolved");
+        const final = st.attempt >= 3 || isHold;
+        const status = final ? (isHold ? "held" : "failed") : "pending";
         await patch(`job_stages?id=eq.${st.stage_id}`, { status, error: msg }).catch(() => {});
         // A non-final failure is retried on the next tick and is not worth an email.
         // A final one is the end of the road for a paid order, so somebody is told.
