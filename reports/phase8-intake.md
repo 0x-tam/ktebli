@@ -228,3 +228,41 @@ two adversarial fixtures (updated then fully reverted within this task — byte-
 The wizard writes it; `save-intake` stores the extended half in `pre_intakes.intake_facts` and the
 slots in their columns; `stripe-webhook` reassembles the one flat object into `orders.intake_answers`;
 the worker reads it. Both ends agree on this shape.
+
+---
+
+## 2. The redesign (Task 2) — built, critic-passed, merged
+
+See the merge commit and reports/adversarial-style critic trail. Summary:
+- **Grounding fix:** `worker/intake_ledger.ts::intakeAnswerLedger()` folds every non-empty
+  `intake_answers` field into an E-INTAKE-4+ ledger item, wired into the org stage. Proven: the
+  real `properNounAudit` returns **0 unsourced** over identity + mapped ledger vs **9** on the
+  three-item ledger — the KT-10001 starvation, closed. A separate critic reproduced it at 11→0
+  with different names.
+- **Sufficiency (invariant 2):** hard bar = fulfillability (registration_number + the referent/
+  org-fact floor); income_band, safeguarding_policy, safeguarding_lead_name are REPORTED to the
+  customer as advisories, never blocking (they are donor_required_certification — non-blocking at
+  grounding, produced with the self-cert surfaced). Placeholder registration numbers rejected.
+- Extra-links crawl into E-WEB; new additive migration (`pre_intakes.intake_facts`) + fingerprint
+  re-recorded; wizard redesigned into the pre-payment evidence interview. Full suite green.
+
+## 3. The re-run (Task 3) — STOPPED at the $3 floor, 0 gate rows. See NEEDS-CREDIT.md.
+
+The four applicants' real public-materials intake was researched and all four charity numbers
+independently verified (stack/out/phase8-research/). Sufra (KT-10001) was driven with the real
+intake ledger through **analyze → org → voice → strategy** — the expanded intake path works
+end-to-end through the real crawl, the ledger build (13 people / 7 programmes / 7 dated results),
+and the composer. It then **stalled at DESIGN**, the monolithic high-effort stage that exceeds the
+local edge-runtime invocation window (launch-readiness **P0.3**), which was reaped and retried
+until the model budget crossed the $3 floor. **No order reached the delivery gate;
+delivery_gate_verdicts = 0.**
+
+Three real bugs the re-run surfaced were fixed on trunk: the free-text grant-deadline crash
+(coerceGrantDeadline), the heartbeat-only-at-call-start reaping (heartbeat-during-call), and a
+`functions serve` restart-infra workaround.
+
+**Honest reading:** the intake expansion — the subject of this phase — is done and proven at the
+unit level. The end-to-end gate demonstration was blocked by the pre-existing P0.3 design-stage
+runtime limitation, not by the intake, and the design retries exhausted the budget before the gate.
+What it costs to finish is in NEEDS-CREDIT.md: ~$8–12 of credit plus the P0.3 design-stage fix
+(streaming llmRaw / resumable design), then re-run the four applicants to the gate.
