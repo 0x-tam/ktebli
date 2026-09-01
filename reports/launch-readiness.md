@@ -2,8 +2,19 @@
 
 **Date:** 2026-08-28 · **Prepared by:** the autonomous gauntlet run (see RUNLOG.md, git log).
 
-**Recommendation: READY for a controlled first-orders launch once the seven-item OPERATOR list
-below is cleared.** All eight phases are done, the full test suite is green, and all nine
+**Recommendation: NOT READY to charge real customers yet — one product gap and one runtime
+gap remain, both now precisely diagnosed.** Phase 8 (intake expansion) was opened because the
+system could not complete a real order (KT-10001 held at grounding on data starvation). The
+intake redesign that fixes that is built, critic-passed, and merged — the worker now grounds a
+customer's structured evidence-interview answers (proper-noun starvation 9→0), so the data
+cause is closed. But the end-to-end proof (four real orders to the delivery gate) is NOT yet
+in hand: the four applicants' real intake was researched and verified and one order ran through
+crawl→ledger→strategy on real facts, then stalled at the DESIGN stage — a monolithic high-effort
+model call that exceeds the local edge-runtime invocation window (the P0.3 runtime limitation),
+which also burned the re-run budget below its floor (NEEDS-CREDIT.md). So: the safety invariants
+all hold (adversarial round), the data-starvation cause is fixed, but no real order has yet been
+carried to a delivery-gate verdict. Clear the OPERATOR list, land the P0.3 design-stage fix, and
+re-run the four applicants to the gate (needs credit) before charging anyone.** All eight phases are done, the full test suite is green, and all nine
 unbreakable invariants are held or closed with every adversarial break re-attacked to a written
 concession. Two things temper this into *controlled* rather than *open* launch, and both are
 already on the lists below: the quality gate is hold-biased with known low agreement (it errs
@@ -29,6 +40,7 @@ Launch is the operator pressing go after clearing the OPERATOR list below. Not t
 | 5 — six crawls | Six real buyer-shaped sites, every outcome explicit: 1 truthful FETCH_FAILED (cross-domain redirect, target named), 5×OK with furniture-free referents. 9 silent-failure classes fixed with canned regressions. Seven ledgers kept as the phase-6 applicants. | $0 |
 | 6 — engineering | THREE P0s fixed: (a) escalations kind-check regression that made every refund unrecordable; (b) the strategy stage was still on the pre-composer schema — every order died at strategy with a PostgREST 400 before any claim (found by the e2e, proven by the critic); (c) invariant-2 clearance now enforced both sides (DB-atomic single-use). Plus F1/F3/F5 fail-closed, hold-class notifications with DRAFT wordings, strand release, crawl-starvation hold, per-stage cost accounting, resumable generation (unproven on deployed runtime). | $0 |
 | 6 — benchmark | One real Draft order (Sufra) driven full-chain on the live stack → a **correct grounding HOLD at validate** (identity-only intake + own-domain crawl cannot supply mandatory admin facts — launch P0 #1 data-starvation demonstrated live, gate working, not fabricating). Real render verified (200, 6 pages). Mini-benchmark: 4 real applicants on one grant → **4 distinct composed fingerprints, no collision**; live crawl reproduced phase-5 counts (178/152/90/117). | $5.56 measured (≈$7.96 true incl. debugging iterations; the $8 line overran on the meter — see RUNLOG) |
+| 8 — intake expansion | Opened because no real order completed (KT-10001 held on data starvation). Spec from the grounding failure; intake redesigned so structured answers ground the proposal (proper-noun starvation 9→0), critic-passed and merged; four applicants' real intake researched + verified. Re-run to the gate STOPPED at the design-stage P0.3 runtime wall and the $3 model floor — **0 delivery-gate rows** (NEEDS-CREDIT.md). Three real bugs fixed en route. | ~$8.7 (crossed the $6 line and $3 floor — see NEEDS-CREDIT) |
 | 6.5 — adversarial | 9 invariants, one focused adversary each, every break re-attacked until the attacker **conceded in writing**. **4 held** (1 delivery-gate, 2 sufficiency — conceded with live proof; 7 no-human, 9 observability — orchestrator-audited). **5 broken then closed** (3, 4, 5, 6, 8). The two hardest (3 identity-matching, 4 numeric-denominators) took six re-attack rounds each — the attacker found a genuinely distinct reachable class each round, all now closed and re-attack-proven, with the final residuals documented as deterministic-irreducibility boundaries. Root cause below. | $0 |
 
 Every phase committed; `git log` is the audit trail. `BLOCKED.md` records the one genuine
