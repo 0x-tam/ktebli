@@ -557,3 +557,12 @@ until it can. Owner-directed phase.
   FULFILLABILITY (registration + org-fact floor), not over-block on non-public admin facts
   (safeguarding/bank/insurance are donor_required_certification = non-blocking at grounding,
   surfaced to the customer); build 4 orders; run to gate.
+- Task 2 (intake redesign) COMPLETE: intakeAnswerLedger() folds intake_answers → E-INTAKE-4+
+  (proven: properNounAudit 9→0 unsourced); extra-links crawl; new migration
+  20260901120000 (pre_intakes.intake_facts) + fingerprint re-recorded; wizard redesigned;
+  full suite green. BUT sufficiency hard-required safeguarding_lead_name + income_band —
+  which are non-public admin facts (donor_required_certification, NON-blocking at grounding).
+  Sent back: hard-bar = FULFILLABILITY (registration_number + referent/org-fact floor) only;
+  income/safeguarding/bank/insurance = scored-and-REPORTED, not hard blocks (the proposal is
+  produced with self-certs surfaced). Aligns invariant 2 (fulfillable=groundable) + the
+  pipeline's own cert-is-non-blocking design + the owner's "tell the customer what's missing".
