@@ -215,8 +215,52 @@ async function llm(prompt: string, maxTokens = 4000, opts: LlmOpts = {}): Promis
   throw new Error("generation incomplete: output cap still reached after continuation budget");
 }
 
+// Tolerant JSON extraction. A large design/analysis object from the model is
+// ~95% valid; the residual slips (a code fence, a trailing comma, a // note, an
+// unbalanced tail when the model stops a hair early) used to throw and burn the
+// whole stage. Try strict first, then a small ladder of deterministic repairs.
+// Anything a repair cannot salvage (e.g. an unescaped quote mid-string) still
+// throws — and the stage retries on a fresh generation, each retry inside its own
+// invocation window, so this never widens the wall-clock. (launch P0.3)
+function extractBalanced(s: string): string | null {
+  const start = s.indexOf("{");
+  if (start < 0) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < s.length; i++) {
+    const c = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') inStr = true;
+    else if (c === "{") depth++;
+    else if (c === "}") { depth--; if (depth === 0) return s.slice(start, i + 1); }
+  }
+  // Truncated before closing: auto-close the open braces (best effort).
+  if (depth > 0) return s.slice(start) + "}".repeat(depth);
+  return null;
+}
 function jsonOf(s: string): Record<string, unknown> {
-  return JSON.parse(s.slice(s.indexOf("{"), s.lastIndexOf("}") + 1));
+  let body = s.replace(/```(?:json)?/gi, "");
+  const naive = body.slice(body.indexOf("{"), body.lastIndexOf("}") + 1);
+  try { return JSON.parse(naive); } catch { /* fall through to repairs */ }
+  const balanced = extractBalanced(body) ?? naive;
+  const attempts = [
+    balanced,
+    // strip // line comments and /* */ block comments
+    balanced.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"])\/\/[^\n]*/g, "$1"),
+    // strip trailing commas before } or ]
+    balanced.replace(/,\s*([}\]])/g, "$1"),
+    // both
+    balanced.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"])\/\/[^\n]*/g, "$1").replace(/,\s*([}\]])/g, "$1"),
+  ];
+  let lastErr: unknown = null;
+  for (const a of attempts) {
+    try { return JSON.parse(a); } catch (e) { lastErr = e; }
+  }
+  throw lastErr ?? new Error("jsonOf: unparseable model output");
 }
 
 // ================= website intelligence =================
