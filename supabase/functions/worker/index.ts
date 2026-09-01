@@ -175,21 +175,32 @@ type ChatContent = string | any[];
 type ChatMsg = { role: string; content: ChatContent };
 async function llmRaw(messages: ChatMsg[], maxTokens: number, opts: LlmOpts = {}): Promise<{ text: string; finish: string }> {
   beatAll();
-  const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${API_KEY}`, "HTTP-Referer": "https://ktebli.com", "X-Title": "Ktebli" },
-    body: JSON.stringify({
-      model: opts.model || MODEL,
-      max_tokens: maxTokens,
-      usage: { include: true },
-      reasoning: { effort: opts.effort ?? "low" },
-      messages: [{ role: "system", content: SYSTEM_GUARD }, ...messages],
-    }),
-  });
-  if (!r.ok) throw new Error(`llm ${r.status}`);
-  const j = await r.json();
-  addUsage(opts.u, j);
-  return { text: j.choices?.[0]?.message?.content ?? "", finish: j.choices?.[0]?.finish_reason ?? "stop" };
+  // This is a SINGLE blocking request — not a stream — and a reasoning model can think
+  // for minutes before it returns a token. beatAll() above fires once, at the start; the
+  // reaper kills a stage after 3 minutes without a heartbeat (launch-readiness P0.3: one
+  // call outran the window, was reaped as "[timeout]", and every retry hit the same wall).
+  // Beat every 20s WHILE the call is in flight so a slow-to-respond call keeps its stage
+  // alive. The interval is always cleared, so it cannot outlive the call.
+  const beater = setInterval(() => { lastBeatAll = 0; beatAll(); }, 20_000);
+  try {
+    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${API_KEY}`, "HTTP-Referer": "https://ktebli.com", "X-Title": "Ktebli" },
+      body: JSON.stringify({
+        model: opts.model || MODEL,
+        max_tokens: maxTokens,
+        usage: { include: true },
+        reasoning: { effort: opts.effort ?? "low" },
+        messages: [{ role: "system", content: SYSTEM_GUARD }, ...messages],
+      }),
+    });
+    if (!r.ok) throw new Error(`llm ${r.status}`);
+    const j = await r.json();
+    addUsage(opts.u, j);
+    return { text: j.choices?.[0]?.message?.content ?? "", finish: j.choices?.[0]?.finish_reason ?? "stop" };
+  } finally {
+    clearInterval(beater);
+  }
 }
 async function llm(prompt: string, maxTokens = 4000, opts: LlmOpts = {}): Promise<string> {
   const messages: ChatMsg[] = [{ role: "user", content: prompt }];
