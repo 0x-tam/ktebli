@@ -540,3 +540,9 @@ until it can. Owner-directed phase.
 - Next: Task 2 critic+merge; verify research (spot-check reg numbers etc.); build 4 orders'
   intake_answers; run full chain to delivery; capture >=4 delivery_gate_verdicts; report + update
   launch-readiness.
+- Research landing: Sufra (reg 1151911, income £1.68m, 13 people/7 programmes/7 results) and
+  Nourish (reg 1154716, income £303,659, 13 people/4 programmes/10 results) done — both richly
+  sourced, honest about the Charity Commission 403 (corroborated via org annual-report PDFs they
+  downloaded+parsed). Orchestrator spot-verified BOTH reg numbers independently via Charity
+  Commission search — confirmed. Admin booleans (safeguarding lead, insurance) correctly left null
+  (not public → applicant-supplied). Magpie + Glass Door still running.
