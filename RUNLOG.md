@@ -591,3 +591,10 @@ until it can. Owner-directed phase.
   SCOPE per the rules: finish Sufra, run as many more as headroom allows (stop ~$4 balance to
   clear the floor), report the rest honestly with what their intake would collect. Likely
   2-3 real gate rows, not 4 — the owner anticipated <4 ("say so plainly").
+- BUG (fixed, a9f027d): design failed 3x with "[timeout]" — llmRaw makes a BLOCKING fetch
+  and beatAll() fired only at the call's START; opus-5 (high effort, big design prompt)
+  thinks for minutes before responding, so no heartbeat fired during the wait and the reaper
+  killed the stage at 3min — the exact launch P0.3 pattern. Fix: a 20s setInterval beats the
+  in-flight stage during the call, always cleared in finally. Reset design-onward (kept
+  analyze/org/strategy done), restarted serve, re-running. This is the third real bug the
+  re-run surfaced (deadline coercion, serve-infra, now heartbeat-during-call).
