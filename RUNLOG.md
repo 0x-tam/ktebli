@@ -586,3 +586,8 @@ until it can. Owner-directed phase.
 - Sufra (KT-10001) driving: analyze attempt 1 running clean with the real intake_answers
   (13 people/7 programmes/7 results ledger). Balance $9.22 (re-run line $6, floor $3).
   Monitoring stage progress to the delivery gate.
+- BUDGET REALITY: Sufra alone trending ~$2.5-3 to the gate (gen:narrative + 2-round validate
+  are the costs). 4 full orders ≈ $12, 2x the $6 line. Balance $8.03, floor $3. DEGRADING
+  SCOPE per the rules: finish Sufra, run as many more as headroom allows (stop ~$4 balance to
+  clear the floor), report the rest honestly with what their intake would collect. Likely
+  2-3 real gate rows, not 4 — the owner anticipated <4 ("say so plainly").
