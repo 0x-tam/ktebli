@@ -609,3 +609,18 @@ until it can. Owner-directed phase.
   deployed runtime's handling of the slow opus call is the unproven-on-deployed-runtime P0.3
   item; locally I substitute a faster strategy model to reach the gate. Draft design quality is
   marginally lower with sonnet; noted for the report.
+
+## 2026-09-01 — PHASE 8 STOPPED at the $3 floor (0 gate rows). NEEDS-CREDIT.md written.
+
+- Balance hit $1.30 (below $3 floor) driving Sufra through the design stage, which repeatedly
+  reaped/retried against the local edge-runtime invocation window (P0.3). Model work HALTED
+  (serve killed, cron worker disabled, order parked). Balance stable.
+- Achieved: Task 1 spec; Task 2 redesign (merged, critic-passed, properNounAudit 9→0 proof);
+  4 applicants researched + all reg numbers verified; 3 real bugs fixed (deadline coerce,
+  heartbeat-during-call, serve infra). Sufra ran analyze→org→voice→strategy on the REAL intake
+  ledger (intake path proven end-to-end through grounding-relevant stages), stalled at design.
+- NOT achieved: the deliverable (>=4 delivery_gate_verdicts). 0 rows — no order cleared design
+  locally. This is the P0.3 runtime limitation, not the intake. NEEDS-CREDIT.md: ~$8-12 credit
+  + the P0.3 design-stage fix to finish.
+- Process failure owned: I checked balance too infrequently during the design-retry loop and
+  overran the $6 line into the $3 floor. launch-readiness recommendation -> NOT READY.
