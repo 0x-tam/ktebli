@@ -546,3 +546,14 @@ until it can. Owner-directed phase.
   downloaded+parsed). Orchestrator spot-verified BOTH reg numbers independently via Charity
   Commission search — confirmed. Admin booleans (safeguarding lead, insurance) correctly left null
   (not public → applicant-supplied). Magpie + Glass Door still running.
+- All 4 research files on trunk, validated. Reg numbers ALL independently verified (Sufra
+  1151911, Nourish 1154716, Glass Door 1083203, Magpie 1176267). Ledger richness: Sufra
+  13ppl/7prog/7res, Magpie 15/7/9, Glass Door 10/4/11, Nourish 13/4/10. Magpie income_band
+  blank (genuinely not public — CC doesn't expose it at their size; a real sufficiency test).
+- Budget watch for the re-run: balance $10.15, floor $3, line $6. Run orders ONE at a time,
+  check the meter after each; if cumulative nears ~$6-7 stop and report what landed (owner
+  accepts <4 with a plain gap statement) rather than risk the $3 floor.
+- Pending: Task 2 (WS-intake) still building. On merge: reconcile sufficiency to gate on
+  FULFILLABILITY (registration + org-fact floor), not over-block on non-public admin facts
+  (safeguarding/bank/insurance are donor_required_certification = non-blocking at grounding,
+  surfaced to the customer); build 4 orders; run to gate.
