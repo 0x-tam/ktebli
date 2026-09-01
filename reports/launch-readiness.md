@@ -27,20 +27,24 @@ charging anyone.**
 
 The safety work behind that recommendation is done and holds: all nine unbreakable invariants are
 held or closed with every adversarial break re-attacked to a written concession, and the full test
-suite is green. What is NOT done is the one thing that matters for taking money — carrying a real
-order end-to-end to a delivery-gate verdict. The intake redesign that was the missing piece is
-built and merged; the last mile is a runtime fix (the design stage must survive the deployed
-invocation window) plus credit to re-run. Once those two gaps close, two further cautions still
-apply and are on the lists below: the quality gate is hold-biased with known low agreement (it errs
-toward holding, the safe direction), and three properties of Supabase's deployed runtime
-(invocation timeouts, cold starts, heartbeats under load) could not be reproduced on this machine
-and must be watched on the first Competitive and Full orders. The one genuine ceiling found —
-proposal prose quality is data-bound, not architecture-bound (phase 1/2) — is recorded in
-`BLOCKED.md`; it caps how good a Draft reads, not whether the system is safe to run.
+suite is green. The thing that matters for taking money — carrying a real order end-to-end to a
+delivery-gate verdict — is now **done at least once**: KT-10001 ran the whole chain to the gate,
+which recorded two verdicts and refunded the order (reports/phase8-intake.md §3–4). What is NOT done
+is producing a proposal the gate will *pass*: the one order run held on a real donor-fit mismatch,
+and a generic-vs-specific tension in generation (grounding-correction makes the draft sparser; the
+gate's D4 check then holds it for under-using the grounded evidence) is the next quality-of-generation
+work — now precisely located, and not data starvation. Beyond that, two cautions on the lists below:
+the quality gate is hold-biased with known low agreement (it errs toward holding, the safe
+direction), and three properties of Supabase's deployed runtime (invocation timeouts, cold starts,
+heartbeats under load) could not be reproduced on this machine and must be watched on the first
+Competitive and Full orders. The one ceiling recorded in phases 1/2 — proposal prose quality is
+data-bound — is the very thing phase 8 moved: the intake now feeds 155 named referents where it fed
+three, and the gate's own judge calls the output "exceptionally grounded and specific".
 
-Launch is the operator pressing go after (a) clearing the OPERATOR list below, (b) landing the
-design-stage runtime fix, and (c) seeing at least one real order reach a delivery-gate verdict.
-Not the machine, and not yet.
+Launch is the operator pressing go after (a) clearing the OPERATOR list below, (b) closing the
+generation generic-vs-specific tension so a well-matched applicant clears the gate, and (c) running
+the remaining applicants — **Glass Door (a homelessness charity) first**, as the best donor-fit match
+for the trial grant. Not the machine, and not yet.
 
 ---
 
