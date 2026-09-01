@@ -2817,7 +2817,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     // their own window, so the draft budget rises from 1 correction to 3. Still bounded:
     // if it has not closed after maxRounds+1 audits it holds on grounding, which is the
     // safe direction.
-    const maxRounds = deep ? 4 : 3;
+    const maxRounds = deep ? 6 : 5;
     const startRound = Math.min(vwip?.round ?? 0, maxRounds);
     let claimLedger: Array<Record<string, unknown>> = [];
     let certifications: Array<Record<string, unknown>> = [];
@@ -2937,7 +2937,11 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         // Rounds exhausted, still blocking -> HOLD. usage snapshot on the failure path
         // too (a grounding-blocked order still spent several model calls).
         await patch(`job_stages?id=eq.${stage.stage_id}`, {
-          output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true, usage: { ...stageUsage } },
+          // Persist the fully-corrected narrative alongside the hold record: the order held
+          // one or two claims short of clean, and saving the draft makes a wider round
+          // budget resumable (drop the last claim, one more round) instead of re-running
+          // the whole correction ladder from the original draft.
+          output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true, held_narrative: narrative, usage: { ...stageUsage } },
         }).catch(() => {});
         throw new Error(`validation unresolved after ${maxRounds + 1} rounds: ` +
           [...groundingProblems.map((g) => "unsupported:" + String(g.claim).slice(0, 60)),
