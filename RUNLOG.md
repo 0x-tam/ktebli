@@ -511,3 +511,32 @@ ceiling (phase-2 prose quality is data-bound). Balance $10.15, never near the $3
 touched production; egress guard up throughout; Stripe/Resend stayed stubbed. git log is the
 audit trail (164 commits ahead of origin/main; push was denied by the session permission layer,
 so the operator pushes). The gauntlet is complete.
+
+## 2026-09-01 — PHASE 8: intake expansion (pre-launch)
+
+The product can't complete a real order (KT-10001 held at validate on grounding). Nothing ships
+until it can. Owner-directed phase.
+
+- Task 1 DONE: reports/phase8-intake.md §1 — the spec, from KT-10001's grounding failure in check
+  order. validate runs deterministic (numbers/jargon/proper-nouns[advisory]/contact[blocking]) →
+  Claim Ledger (7 material UNSUPPORTED claims blocked: safeguarding policy+DSL, Deputy Chair DSL
+  role, OpenARMS/Advice Service/Community Wellbeing programmes, refugee-contact framing, cash-first
+  practice) → requirement coverage (2 MISSING mandatory: charity reg number, deadline). Plus 6
+  donor_required_certification self-certs (reg, bank, insurance, accounts+income band, independence,
+  no-live-grant) and 24-26 unsourced proper nouns. → intake must carry: structured admin facts,
+  named org facts, an uploaded doc (E-DOC), and extra links (E-WEB).
+- Architecture gap found: orders.intake_answers (jsonb) + the sufficiency E-ASK slots EXIST, but
+  the worker NEVER folds intake_answers into the Evidence Ledger used by generation/grounding (it
+  only reads them for the starvation refcount at index.ts:2097). And the slots cover particularity,
+  not the admin/named facts.
+- Task 2 LAUNCHED (worktree WS-intake): fold intake_answers → E-INTAKE-4+ ledger items; crawl
+  extra_links → E-WEB; sufficiency scores mandatory admin facts (reg, income band, safeguarding
+  policy+lead) pre-payment; save-intake + index.html wizard collect the full shape. $0 model.
+- Task 3 research LAUNCHED (4 worktree agents, one per phase-5 applicant: Sufra, Magpie, Glass
+  Door, Nourish): gather PUBLIC-MATERIALS-only intake (Charity Commission register, annual reports,
+  press), every fact cited to a fetched URL, nothing invented, blanks where not public, + a list of
+  what the real applicant would have to supply + research time.
+- Budget: $6 of $10.15 for the re-run (Task 3, orchestrator-owned). Balance $10.15 now.
+- Next: Task 2 critic+merge; verify research (spot-check reg numbers etc.); build 4 orders'
+  intake_answers; run full chain to delivery; capture >=4 delivery_gate_verdicts; report + update
+  launch-readiness.
