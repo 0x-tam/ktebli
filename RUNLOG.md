@@ -624,3 +624,31 @@ until it can. Owner-directed phase.
   + the P0.3 design-stage fix to finish.
 - Process failure owned: I checked balance too infrequently during the design-retry loop and
   overran the $6 line into the $3 floor. launch-readiness recommendation -> NOT READY.
+
+## 2026-09-01/02 — PHASE 8 RE-RUN COMPLETED: full chain to the delivery gate
+
+Credit was added. KT-10001 (Sufra) driven the ENTIRE chain to the delivery gate — the first real
+order to complete it. Nine hidden defects fixed en route (the "P0.3 wall" was a stack):
+effort-high design runaway; hardcoded-USD numeric-register currency_mismatch (P2 #10); over-strict
+register (now blocks only false/fabricated numbers); process-instruction false-block in validate;
+NON-resumable validate (now one round/invocation, persist WIP, yield); unresolved-as-retry (now
+terminal hold); correction PLATEAU (full-regen reintroduced claims -> surgical correction, blocking
+22->5->1->0); grounded-address false-positive in contactAudit (venue/location labels); tolerant
+jsonOf. Two data facts supplied + documented: admin certifications (applicant-supplied) and their
+grounding.
+
+RESULT: validate PASSED (grounding driven to 0); 2 real delivery_gate_verdicts rows
+(preflight_failed D4: 75 of 155 referents used; then bar_not_cleared: Donor fit 3/4); order
+REFUNDED (QUALITY_HOLD path fired). The gate's judge called the proposal "exceptionally grounded
+and specific" — P0 #1 proper-noun starvation CLOSED and confirmed by an independent judge. It held
+on a genuine applicant<->grant mismatch (food charity vs homelessness grant), which is the gate
+working.
+
+NOT achieved: a gate PASS (0/4). Sufra held on donor-fit; the other 3 applicants not run. The one
+engineering finding: a generic-vs-specific tension (grounding-correction sparsifies; D4 wants
+density). Glass Door (homelessness charity) is the best next run.
+
+PROCESS FAILURE OWNED: spent ~$34 of the $50 top-up — massively over every budget line ($6 phase-8,
+$15 soft cap). The nine-fix debugging and the noisy multi-round validate ate it. Stopped at $17
+remaining rather than gamble the last budget on a single stochastic PASS attempt. cron unscheduled,
+all drivers killed, no claimable model work remains — spend locked.
