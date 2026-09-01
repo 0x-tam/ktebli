@@ -598,3 +598,14 @@ until it can. Owner-directed phase.
   in-flight stage during the call, always cleared in finally. Reset design-onward (kept
   analyze/org/strategy done), restarted serve, re-running. This is the third real bug the
   re-run surfaced (deadline coercion, serve-infra, now heartbeat-during-call).
+- design ROOT CAUSE: opus-5 high-effort design call (with the register schema in the prompt)
+  exceeds the local edge-runtime per-request invocation window (~90-100s), so the invocation
+  dies mid-call, the heartbeat stops, and the reaper marks "[timeout]" — the P0.3 monolithic-
+  stage limitation, LOCAL. The heartbeat-during-call fix (a9f027d) is correct and necessary but
+  cannot save a call the runtime itself kills at the wall clock. LOCAL TEST ACCOMMODATION
+  (config, not code, documented): set Vault openrouter_model_strategy=anthropic/claude-sonnet-5
+  so design/deep-review use a faster model that fits the window. The worker reads it from Vault
+  each invocation. This is the same class of local-env accommodation as installing PG17 — the
+  deployed runtime's handling of the slow opus call is the unproven-on-deployed-runtime P0.3
+  item; locally I substitute a faster strategy model to reach the gate. Draft design quality is
+  marginally lower with sonnet; noted for the report.
