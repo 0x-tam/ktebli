@@ -309,6 +309,28 @@ function coerceGrantDeadline(raw: unknown): string | null {
   return null; // cannot read a date confidently — null, never free text into a DATE column
 }
 
+// A donor requirement that belongs to the applicant's SUBMISSION WORKFLOW, not to the
+// proposal narrative. These are extracted into the requirement matrix (correctly — they
+// are material obligations) but the document under audit cannot satisfy them, so they
+// must never count as a "missing" narrative requirement. Kept deliberately TIGHT: only
+// submission mechanics, stated deadlines, and explicit process/meta instructions match —
+// anything describing what the proposal must ARGUE or CONTAIN is left to block normally.
+function isProcessRequirement(req: string): boolean {
+  const r = req.toLowerCase();
+  return (
+    /\bsubmit(ted|ting|ssion)?\b.*\b(application|form|proposal|portal|online|by \d|deadline|before)\b/.test(r) ||
+    /\bapplication\b.*\bdeadline\b|\bclosing date\b/.test(r) ||
+    /\bapplication (must |should )?(be )?(submitted|received|in|complete)\b/.test(r) ||
+    /(submit|received|due|apply|application).{0,30}\bby \d{1,2}(:\d{2})?\s*(am|pm)\b|(submit|received|due|apply|application).{0,40}\bby \d{1,2}(st|nd|rd|th)?\s+\w+\s+\d{4}\b/.test(r) ||
+    /read (the |through )?(the )?guidance|guidance (document|notes)\b/.test(r) ||
+    /\b(do not|don't|never) (rely on|use|depend on)\b.*\b(ai|artificial intelligence|chatgpt|language model)\b/.test(r) ||
+    /\bcomplete (the|your) (online )?(form|application|portal)\b|\bapply (online|through the portal)\b/.test(r) ||
+    /\bsign(ed)?\b.*\bdeclaration\b|\bdeclaration\b.*\bsign/.test(r) ||
+    /\bcreate an account\b|\bregister (on|for) the portal\b|\blog ?in to\b/.test(r) ||
+    /\bcontact (us|the team|the foundation)\b.*\bbefore\b/.test(r)
+  );
+}
+
 function jargonFindings(md: string): string[] {
   const counts = new Map<string, number>();
   for (const m of md.matchAll(JARGON_RE)) {
@@ -2813,7 +2835,18 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         }
       }
       reviewFindings = (Array.isArray(revOut.findings) ? revOut.findings : []).map((f: unknown) => String(f).slice(0, 300));
-      const missingMandatory = coverage.filter((r) => r.mandatory !== false && r.status === "missing");
+      // A "missing mandatory requirement" only blocks when it is something the PROPOSAL
+      // NARRATIVE can carry. analyze extracts every material donor line into the matrix,
+      // and that correctly includes applicant-process and submission obligations —
+      // "read the guidance", "submit by 5:00pm on 9 September", "do not rely on AI to
+      // answer the questions". The narrative can never satisfy those, so the coverage
+      // check marked them "missing" and blocked forever: on KT-10001 these three false
+      // positives were the residual that no correction round could clear (grounding fell
+      // 17->4 across a round while missing_mandatory rose 2->3). They belong to the
+      // applicant's submission workflow, not the document under audit, so they are
+      // excluded from the blocking set here. They remain in `coverage` for the record.
+      const missingMandatory = coverage.filter((r) =>
+        r.mandatory !== false && r.status === "missing" && !isProcessRequirement(String(r.req ?? "")));
 
       // Advisory findings drive a rewrite but must never block delivery. The two
       // proper-noun findings are advisory for a specific reason: naming your own
