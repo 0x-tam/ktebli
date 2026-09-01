@@ -63,6 +63,14 @@ const LABEL_ALT =
   String.raw`|registration\s+(?:number|no\.?)|registered\s+(?:number|no\.?)|vat\s+(?:registration|number|no\.?)|tax\s+(?:id|identification\s+number)` +
   String.raw`|post\s?code|postal\s+code|zip(?:\s+code)?|p\.?\s?o\.?\s+box` +
   String.raw`|(?:registered\s+)?(?:office|address)|street\s+address|physical\s+address` +
+  // The Evidence Ledger records an applicant's premises under the intake's own field
+  // names — "Delivery venue: 160 Pitfield Way ...", "Project location: ...". Those are
+  // the SAME place literal the narrative prints under an "Address:" heading, so they must
+  // extract to the same address claim or the ledger cannot support the document and a
+  // GROUNDED address is reported as fabricated (KT-10001's last residual: grounding hit 0
+  // and this one asymmetry still held the order). Symmetric by construction — the ledger
+  // item and the narrative line now read through the identical extractor.
+  String.raw`|(?:delivery\s+)?venue|(?:project\s+|delivery\s+)?location|based\s+(?:at|in)|operat(?:es?|ing)\s+(?:at|from)` +
   String.raw`|date\s+of\s+incorporation|incorporated\s+on|date\s+of\s+registration|established\s+(?:in|on)`;
 
 // The SEPARATOR must not decide whether a field is checked. A generator writes the same
@@ -131,7 +139,7 @@ function labelKind(label: string): ContactKind {
   if (/iban/.test(l)) return "iban";
   if (/account|sort|routing|swift|bic/.test(l)) return "account";
   if (/post\s?code|postal|zip/.test(l)) return "postcode";
-  if (/office|address|box/.test(l)) return "address";
+  if (/office|address|box|venue|location|based|operat/.test(l)) return "address";
   // Dates first: "date of registration" is a date, and the registration test below
   // would otherwise swallow it.
   if (/incorporat|established|date\s+of/.test(l)) return "date";
