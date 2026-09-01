@@ -1,0 +1,70 @@
+{
+  "org_name": "Sufra NW London",
+  "registration_number": "1151911",
+  "legal_form": "Charitable Incorporated Organisation (CIO), Companies House / CIO ref CE000394",
+  "annual_income": "£1,675,877",
+  "income_band": "£1m–£2m",
+  "accounts_period": "Financial year ending 31 March 2024",
+  "site_place": "St Raphael's Estate, Stonebridge, London Borough of Brent, NW10 0PW",
+  "site_venue": "160 Pitfield Way, Stonebridge, London NW10 0PW",
+  "site_activity": "A network of food banks and community kitchens plus a community shop and café, acting as a gateway to welfare advice, asylum/refugee support (OpenARMS) and an award-winning community garden.",
+  "last_delivery_what": "Supported 14,335 people to access nutritious food (more than 48,000 instances of crisis support) across food bank, community kitchen, welfare advice and refugee services",
+  "last_delivery_when": "April 2024 – March 2025 (Impact Report published November 2025)",
+  "local_trigger": "Sufra is based on St Raphael's Estate, described as the London Borough of Brent's most disadvantaged neighbourhood, and works to address rising food poverty and cost-of-living pressure locally.",
+  "safeguarding_policy": null,
+  "safeguarding_lead_name": "",
+  "safeguarding_lead_role": "",
+  "safeguarding_lead_training": "",
+  "bank_account_own_name": null,
+  "public_liability_insurance": null,
+  "board_independent": true,
+  "no_conflicting_grant": null,
+  "lived_experience_governance": "Lived experience runs through the volunteer base and advocacy: many of Sufra's volunteers were previously guests, and the 2024-25 Impact Report states the charity 'championed the voices of those with lived experience' in its campaigning. No public evidence was found of lived-experience representation specifically at trustee/board level (applicant to confirm).",
+  "key_people": [
+    {"name": "Rajesh Makwana BEM", "role": "Executive Director"},
+    {"name": "Gill Carter", "role": "Deputy Director"},
+    {"name": "Fahim Dahya", "role": "Logistics and Partnerships Senior Manager"},
+    {"name": "Nina Parmar", "role": "Food Aid Manager"},
+    {"name": "Shai Jacobs", "role": "Head of Advice"},
+    {"name": "Shakira Henry", "role": "Community Programmes Manager"},
+    {"name": "Ashraf Mohammed", "role": "Trustee (Chair)"},
+    {"name": "Helena Krawitz", "role": "Trustee (Deputy Chair)"},
+    {"name": "Asad Bhojani", "role": "Trustee (Treasurer)"},
+    {"name": "Rozia Hussain", "role": "Trustee"},
+    {"name": "Sanya Syed", "role": "Trustee"},
+    {"name": "Zemira Braganza", "role": "Trustee"},
+    {"name": "Lucy Bannister", "role": "Trustee"}
+  ],
+  "programmes": [
+    {"name": "Emergency Aid / Food Bank", "what": "Emergency food parcels, clothing drives and essential support; also delivers NHS food parcels to GPs and hospital departments and a Fresh Meals service."},
+    {"name": "Community Kitchen", "what": "Year-round freshly cooked meals distributed to guests, including via community kitchens and Fresh Meals."},
+    {"name": "Welfare Advice Service", "what": "Impartial welfare advice helping guests address the problems that lead them to the food bank; Advice Quality Standard (AQS) accredited."},
+    {"name": "OpenARMS (Asylum Seeker, Refugee & Migrant Support)", "what": "Support for asylum seekers, refugees and migrants, including E-Visa drop-ins; registered with the Immigration Advice Authority (IAA)."},
+    {"name": "Community Wellbeing Project / Service", "what": "Hot meals, a welcoming space and activities to build resilience and wellbeing."},
+    {"name": "St Raphael's Edible Garden (Community Garden)", "what": "Award-winning community garden where volunteers and guests grow fresh produce and support wellbeing, learning and connection."},
+    {"name": "Volunteering & Community Engagement / Advocacy", "what": "Volunteering pathways (guests often become volunteers), community engagement events and campaigning for fairer policies."}
+  ],
+  "results": [
+    {"what": "People supported to access nutritious food", "when": "April 2024 – March 2025", "figure": "14,335 people (more than 48,000 instances of support)"},
+    {"what": "People reached by the food banks alone", "when": "April 2024 – March 2025", "figure": "4,471 people (almost 20,000 when family members are included)"},
+    {"what": "Freshly cooked meals distributed via Community Kitchens and Fresh Meals", "when": "April 2024 – March 2025", "figure": "25,514 meals"},
+    {"what": "People who benefitted from Advice Services / OpenARMS", "when": "April 2024 – March 2025", "figure": "1,144 people"},
+    {"what": "Additional income gained for guests through advice work", "when": "April 2024 – March 2025", "figure": "£145,108"},
+    {"what": "Volunteers and volunteer hours given", "when": "April 2024 – March 2025", "figure": "258 volunteers gave over 16,000 hours"},
+    {"what": "Christmas Day dinner", "when": "December 2024", "figure": "210 guests, served by 41 volunteers and 6 staff"}
+  ],
+  "partnerships": [
+    "Independent Food Aid Network (IFAN) — active member",
+    "Feeding Britain — active member",
+    "Brent Food Aid Network — active member",
+    "University of Liverpool — research collaboration on food-parcel choice (2024-25)",
+    "NHS (GPs and hospital departments) — delivers NHS food parcels"
+  ],
+  "extra_links": [
+    "https://www.sufra-nwlondon.org.uk/about/about-us/",
+    "https://www.sufra-nwlondon.org.uk/about/meet-the-team/",
+    "https://www.sufra-nwlondon.org.uk/wp-content/uploads/2025/11/Sufra-Impact-Report-2024-25.pdf",
+    "https://www.sufra-nwlondon.org.uk/wp-content/uploads/2025/01/Sufra-Impact-Report-2023-24-WEB.pdf",
+    "https://www.sufra-nwlondon.org.uk/news/news-events/"
+  ]
+}
