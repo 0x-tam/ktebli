@@ -2817,7 +2817,15 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     // their own window, so the draft budget rises from 1 correction to 3. Still bounded:
     // if it has not closed after maxRounds+1 audits it holds on grounding, which is the
     // safe direction.
-    const maxRounds = deep ? 8 : 8;
+    // Round budget is a cost/completion tradeoff, not a free dial. Surgical correction
+    // drives blocking down fast (KT-10001: 22->5->1) but the claim-ledger audit is
+    // nondeterministic and the generator keeps introducing ~1-3 fresh borderline claims,
+    // so the tail bounces rather than landing cleanly on 0 — reaching exactly 0 took 8
+    // rounds once and held at 1 other times. The durable fix is generation discipline
+    // (fewer ungrounded specifics up front), not more rounds; 4/5 is a sane default that
+    // clears the common case and holds the rest, which is the safe direction. See
+    // reports/phase8-intake.md §4.
+    const maxRounds = deep ? 5 : 4;
     const startRound = Math.min(vwip?.round ?? 0, maxRounds);
     let claimLedger: Array<Record<string, unknown>> = [];
     let certifications: Array<Record<string, unknown>> = [];
