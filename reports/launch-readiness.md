@@ -14,17 +14,24 @@ model call that exceeds the local edge-runtime invocation window (the P0.3 runti
 which also burned the re-run budget below its floor (NEEDS-CREDIT.md). So: the safety invariants
 all hold (adversarial round), the data-starvation cause is fixed, but no real order has yet been
 carried to a delivery-gate verdict. Clear the OPERATOR list, land the P0.3 design-stage fix, and
-re-run the four applicants to the gate (needs credit) before charging anyone.** All eight phases are done, the full test suite is green, and all nine
-unbreakable invariants are held or closed with every adversarial break re-attacked to a written
-concession. Two things temper this into *controlled* rather than *open* launch, and both are
-already on the lists below: the quality gate is hold-biased with known low agreement (it errs
+re-run the four applicants to the gate (needs credit) before charging anyone.**
+
+The safety work behind that recommendation is done and holds: all nine unbreakable invariants are
+held or closed with every adversarial break re-attacked to a written concession, and the full test
+suite is green. What is NOT done is the one thing that matters for taking money — carrying a real
+order end-to-end to a delivery-gate verdict. The intake redesign that was the missing piece is
+built and merged; the last mile is a runtime fix (the design stage must survive the deployed
+invocation window) plus credit to re-run. Once those two gaps close, two further cautions still
+apply and are on the lists below: the quality gate is hold-biased with known low agreement (it errs
 toward holding, the safe direction), and three properties of Supabase's deployed runtime
 (invocation timeouts, cold starts, heartbeats under load) could not be reproduced on this machine
 and must be watched on the first Competitive and Full orders. The one genuine ceiling found —
 proposal prose quality is data-bound, not architecture-bound (phase 1/2) — is recorded in
 `BLOCKED.md`; it caps how good a Draft reads, not whether the system is safe to run.
 
-Launch is the operator pressing go after clearing the OPERATOR list below. Not the machine.
+Launch is the operator pressing go after (a) clearing the OPERATOR list below, (b) landing the
+design-stage runtime fix, and (c) seeing at least one real order reach a delivery-gate verdict.
+Not the machine, and not yet.
 
 ---
 
