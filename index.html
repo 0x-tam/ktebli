@@ -259,6 +259,29 @@ footer a:hover{color:var(--coral)}
 .gpreview .gp-k{color:var(--grey);flex:0 0 92px}
 .gpreview .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:8px}
 @keyframes sp{to{transform:rotate(360deg)}}
+/* evidence-interview controls */
+.checkrow{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.checkrow input{width:auto;margin-top:3px;flex:0 0 auto}
+.checkrow label{margin:0;font-weight:400;font-size:14.5px;cursor:pointer}
+.checkrow label b{font-weight:700}
+.rep{margin-bottom:6px}
+.rep-row{display:grid;gap:8px;margin-bottom:9px;align-items:center;grid-template-columns:1fr auto}
+.rep-fields{display:grid;gap:8px}
+.rep-fields.two-col{grid-template-columns:1fr 1fr}
+.rep-fields.three-col{grid-template-columns:1fr 1fr 1fr}
+.rep-add{background:none;border:2px dashed var(--line);border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px;color:var(--forest);cursor:pointer;font-family:inherit;width:100%}
+.rep-add:hover{border-color:var(--green)}
+.rep-x{background:none;border:none;color:var(--grey);cursor:pointer;font-size:22px;padding:0 4px;line-height:1;align-self:center}
+.rep-x:hover{color:var(--coral)}
+.suff{background:#fff;border:2px solid var(--coral);border-radius:12px;padding:16px 18px;margin:0 0 16px}
+.suff.ok{border-color:var(--green)}
+.suff h4{font-size:16px;margin-bottom:6px;font-family:'Fraunces',serif}
+.suff .sf-intro{font-size:14px;color:var(--grey);margin-bottom:10px}
+.suff .sf-i{padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.suff .sf-i:last-child{border-bottom:none}
+.suff .sf-i b{display:block;margin-bottom:2px}
+.suff .sf-i span{color:var(--grey)}
+@media(max-width:700px){.rep-fields.two-col,.rep-fields.three-col{grid-template-columns:1fr}}
 @media(max-width:700px){
   .wiz-overlay{padding:12px 8px}
   .trialstrip{padding:18px}
@@ -627,10 +650,10 @@ footer a:hover{color:var(--coral)}
 
       <div class="wiz-step" data-step="1">
         <h3>Your organisation</h3>
-        <p class="ws-sub">Who is applying, and who we talk to.</p>
+        <p class="ws-sub">Who is applying, and who we talk to. Funders check the register first, so we ask for it up front.</p>
         <div class="two">
           <div class="field"><label>Organisation <span class="rq">*</span></label><input type="text" id="w-org" placeholder="Registered name"></div>
-          <div class="field"><label>Registration no.</label><input type="text" id="w-reg" placeholder="If your organisation has one — optional"></div>
+          <div class="field"><label>Registration no. <span class="rq">*</span><span class="hint">Charity Commission, OSCR, or Companies House number.</span></label><input type="text" id="w-reg" placeholder="e.g. 1187734"></div>
         </div>
         <div class="two">
           <div class="field"><label>Your name <span class="rq">*</span></label><input type="text" id="w-name" placeholder="Who we reply to"></div>
@@ -639,6 +662,29 @@ footer a:hover{color:var(--coral)}
         <div class="two">
           <div class="field"><label>WhatsApp</label><input type="text" id="w-wa" placeholder="Phone number"></div>
           <div class="field"><label>Website</label><input type="text" id="w-web" placeholder="www.yourorganisation.org — optional"></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Latest annual income band <span class="rq">*</span><span class="hint">It decides the grant sizes you are eligible for.</span></label>
+            <select id="w-income-band">
+              <option value="">Choose…</option>
+              <option>under £10,000</option>
+              <option>£10,000–£100,000</option>
+              <option>£100,000–£500,000</option>
+              <option>£500,000–£1m</option>
+              <option>over £1m</option>
+            </select>
+          </div>
+          <div class="field"><label>Legal form <span class="pill">optional</span></label>
+            <select id="w-legal">
+              <option value="">Choose…</option>
+              <option>Charitable Incorporated Organisation (CIO)</option>
+              <option>Charitable company (limited by guarantee)</option>
+              <option>Unincorporated association</option>
+              <option>Community Interest Company (CIC)</option>
+              <option>Trust</option>
+              <option>Other</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -651,27 +697,92 @@ footer a:hover{color:var(--coral)}
       </div>
 
       <div class="wiz-step" data-step="3">
-        <h3>How should we write it?</h3>
-        <p class="ws-sub">Everything on this page is optional. Skip it entirely and your order still works.</p>
+        <h3>Your project — the specifics</h3>
+        <p class="ws-sub">This is what turns a template into a proposal only you could have written. Real names, please — we write exactly what you tell us and invent nothing.</p>
+        <div class="field"><label>Which town, city or neighbourhood will this work in? <span class="rq">*</span></label><input type="text" id="w-place" placeholder="e.g. Harlesden, Brent — or Bab al-Tabbaneh, Tripoli"></div>
+        <div class="field"><label>Where does it actually happen? <span class="rq">*</span><span class="hint">A named building is the single most load-bearing detail in a delivery plan.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
+          <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
+            <select id="w-venue-escape">
+              <option value="">There is a fixed venue (named above)</option>
+              <option value="homes">We work in people's own homes</option>
+              <option value="street">We do street-based outreach</option>
+              <option value="outdoors">We work outdoors</option>
+              <option value="mobile">We work from a vehicle</option>
+              <option value="online">We work online</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>What happens there, in one line? <span class="rq">*</span></label><input type="text" id="w-activity" placeholder="e.g. a Thursday evening drop-in with hot food and a homework hour"></div>
+        <div class="field"><label>The last thing your organisation delivered — what was it called? <span class="rq">*</span></label><input type="text" id="w-last-what" placeholder="e.g. the Qobbe school-bag distribution">
+          <div class="checkrow" style="margin-top:8px"><input type="checkbox" id="w-never"><label for="w-never">We have not delivered a project yet — write it as our first, with no track record.</label></div>
+        </div>
+        <div class="field"><label>Roughly when was that? <span class="rq">*</span></label><input type="text" id="w-last-when" placeholder="e.g. winter 2024; since March 2023"></div>
+        <div class="field"><label>What happened locally that made this needed? <span class="rq">*</span><span class="hint">The one thing no website can tell us. It stops your opening paragraph being interchangeable.</span></label><textarea id="w-trigger" placeholder="e.g. the council closed the Stonebridge advice service in April, and the nearest alternative is now four miles away."></textarea></div>
+      </div>
+
+      <div class="wiz-step" data-step="4">
+        <h3>Governance &amp; assurances</h3>
+        <p class="ws-sub">The compliance facts nearly every funder asks you to confirm. We only state what you tick — never a default.</p>
+        <div class="checkrow"><input type="checkbox" id="w-sg-policy"><label for="w-sg-policy"><b>We have a written safeguarding policy in place. <span class="rq">*</span></b></label></div>
+        <div class="two">
+          <div class="field"><label>Designated Safeguarding Lead — name <span class="rq">*</span></label><input type="text" id="w-dsl-name" placeholder="e.g. Amina Yusuf"></div>
+          <div class="field"><label>Their role <span class="pill">optional</span></label><input type="text" id="w-dsl-role" placeholder="e.g. Deputy Chair"></div>
+        </div>
+        <div class="field"><label>Their safeguarding training <span class="pill">optional</span></label><input type="text" id="w-dsl-training" placeholder="e.g. Level 3 safeguarding"></div>
+        <div class="checkrow"><input type="checkbox" id="w-bank"><label for="w-bank">We hold a bank account in the organisation's own name, with unrelated signatories.</label></div>
+        <div class="checkrow"><input type="checkbox" id="w-pli"><label for="w-pli">We hold Public Liability Insurance.</label></div>
+        <div class="checkrow"><input type="checkbox" id="w-board"><label for="w-board">We are an independent organisation, with our Board in full control.</label></div>
+        <div class="checkrow"><input type="checkbox" id="w-noconflict"><label for="w-noconflict">We have no conflicting live grant running with this funder.</label></div>
+        <div class="two">
+          <div class="field"><label>Latest annual income <span class="pill">optional</span></label><input type="text" id="w-annual-income" placeholder="e.g. £240,000"></div>
+          <div class="field"><label>Latest filed accounts cover <span class="pill">optional</span></label><input type="text" id="w-accounts" placeholder="e.g. year ending 31 March 2025"></div>
+        </div>
+        <div class="field"><label>People with lived experience in your governance <span class="pill">optional</span></label><input type="text" id="w-lived" placeholder="e.g. three trustees are former service users"></div>
+      </div>
+
+      <div class="wiz-step" data-step="5">
+        <h3>Your people, programmes &amp; track record</h3>
+        <p class="ws-sub">The named facts that let us write about your organisation without inventing anyone. Add as many as are true — leave the rest blank.</p>
+        <div class="field"><label>Key people <span class="pill">optional</span><span class="hint">Chair, coordinators, project leads — the people your proposal can name.</span></label>
+          <div class="rep" id="rep-people"></div>
+          <button type="button" class="rep-add" id="add-people">+ Add a person</button>
+        </div>
+        <div class="field"><label>Programmes or services <span class="pill">optional</span><span class="hint">Each named service, with a one-line scope.</span></label>
+          <div class="rep" id="rep-programmes"></div>
+          <button type="button" class="rep-add" id="add-programmes">+ Add a programme</button>
+        </div>
+        <div class="field"><label>Results you can point to <span class="pill">optional</span><span class="hint">A figure, what it counts, and when. Only what you can stand behind.</span></label>
+          <div class="rep" id="rep-results"></div>
+          <button type="button" class="rep-add" id="add-results">+ Add a result</button>
+        </div>
+        <div class="field"><label>Partnerships <span class="pill">optional</span></label>
+          <div class="rep" id="rep-partners"></div>
+          <button type="button" class="rep-add" id="add-partners">+ Add a partner</button>
+        </div>
+        <div class="field"><label>Extra links on your own site <span class="pill">optional</span><span class="hint">Annual report, trustees page, project pages — we read your own domain, nothing third-party.</span></label>
+          <div class="rep" id="rep-links"></div>
+          <button type="button" class="rep-add" id="add-links">+ Add a link</button>
+        </div>
         <div class="field">
-          <label>Anything you'd like us to emphasise or avoid? <span class="pill">optional</span>
-            <span class="hint">e.g. highlight a strength, focus on a certain approach, avoid mentioning something, keep the tone more formal.</span>
+          <label>Anything to emphasise or avoid? <span class="pill">optional</span>
+            <span class="hint">e.g. highlight a strength, avoid mentioning something, keep the tone more formal.</span>
           </label>
           <textarea id="w-directions" placeholder="Your directions, in your own words."></textarea>
         </div>
         <div class="field">
-          <label>Old proposals, up to three <span class="pill">optional</span>
-            <span class="hint">They help us match how your organisation writes, but they are not required.</span>
+          <label>Past proposals or annual reports, up to three <span class="pill">optional</span>
+            <span class="hint">We read .docx, .txt and .md today and pull the facts and voice from them.</span>
           </label>
           <div class="filebox" id="filebox">Click to choose files (.pdf, .doc, .docx) — or skip this</div>
-          <input type="file" id="w-files" multiple accept=".pdf,.doc,.docx" style="display:none">
+          <input type="file" id="w-files" multiple accept=".pdf,.doc,.docx,.txt,.md" style="display:none">
           <div class="filelist" id="filelist"></div>
         </div>
       </div>
 
-      <div class="wiz-step" data-step="4">
+      <div class="wiz-step" data-step="6">
         <h3>Ready when you are</h3>
-        <p class="ws-sub">Check it over, then pay and Ktebli gets to work.</p>
+        <p class="ws-sub">Check it over. We confirm we have what we need before anything is charged.</p>
+        <div id="suff-result"></div>
         <div class="sumbox" id="summary"></div>
       </div>
 
@@ -699,14 +810,104 @@ var PRICES = { trial: "$1", draft: "$149", competitive: "$299", full: "$449" };
 var FN = "https://uocauqflcqefgdixbzpf.supabase.co/functions/v1";
 var NAMES  = { trial: "Trial", draft: "Draft", competitive: "Competitive", full: "Full" };
 
+// ---- small helpers (function declarations: hoisted, usable inside wiz) ------
+function cb(id) { var e = document.getElementById(id); return !!(e && e.checked); }
+function esch(s) { var d = document.createElement('div'); d.textContent = (s == null ? '' : String(s)); return d.innerHTML; }
+function focusAlert(id, msg) { var e = document.getElementById(id); if (e) e.focus(); alert(msg); return false; }
+
+// Repeaters for the list-shaped named facts. Each row is plain inputs tagged
+// with data-k; collectRep reads them back into the intake_answers shape.
+var REP = {
+  people:     { c: 'rep-people',     fields: [['name', 'Name — e.g. Grace Mbeki'], ['role', 'Role — e.g. Chair']], cls: 'two-col' },
+  programmes: { c: 'rep-programmes', fields: [['name', 'Programme — e.g. OpenARMS'], ['what', 'What it does, in a few words']], cls: 'two-col' },
+  results:    { c: 'rep-results',    fields: [['figure', 'Figure — e.g. 412'], ['what', 'What — e.g. people supported'], ['when', 'When — e.g. 2024']], cls: 'three-col' },
+  partners:   { c: 'rep-partners',   fields: [['v', 'Partner organisation you actually work with']], cls: '' },
+  links:      { c: 'rep-links',      fields: [['v', 'https://your-site.org/annual-report']], cls: '' }
+};
+function repRow(kind) {
+  var cfg = REP[kind];
+  var row = document.createElement('div'); row.className = 'rep-row';
+  var fields = document.createElement('div'); fields.className = 'rep-fields' + (cfg.cls ? (' ' + cfg.cls) : '');
+  cfg.fields.forEach(function (f) {
+    var inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = f[1]; inp.setAttribute('data-k', f[0]);
+    fields.appendChild(inp);
+  });
+  var x = document.createElement('button'); x.type = 'button'; x.className = 'rep-x'; x.setAttribute('aria-label', 'Remove'); x.innerHTML = '&times;';
+  x.addEventListener('click', function () { if (row.parentNode) row.parentNode.removeChild(row); });
+  row.appendChild(fields); row.appendChild(x);
+  return row;
+}
+function addRep(kind) { var c = document.getElementById(REP[kind].c); if (c) c.appendChild(repRow(kind)); }
+function collectRep(kind) {
+  var cfg = REP[kind], out = [];
+  document.querySelectorAll('#' + cfg.c + ' .rep-row').forEach(function (r) {
+    var o = {}, any = false;
+    r.querySelectorAll('[data-k]').forEach(function (inp) {
+      var v = inp.value.trim(); o[inp.getAttribute('data-k')] = v; if (v) any = true;
+    });
+    if (!any) return;
+    if (cfg.fields.length === 1 && cfg.fields[0][0] === 'v') out.push(o.v);
+    else out.push(o);
+  });
+  return out;
+}
+function seedRepeaters() {
+  Object.keys(REP).forEach(function (k) {
+    var c = document.getElementById(REP[k].c);
+    if (c && !c.children.length) addRep(k);
+  });
+}
+
+// The sufficiency result: rendered ONLY after save-intake answers, so the
+// customer sees exactly which facts are still missing before any charge. All
+// inserted text is escaped — the gaps carry the customer's own words verbatim.
+function renderSuff(j) {
+  var box = document.getElementById('suff-result');
+  if (!box) return;
+  if (!j) { box.innerHTML = ''; return; }
+  var m = j.message || {}, items = m.items || [], blockers = m.blockers || [], cleared = j.cleared === true;
+  var h = '<div class="suff' + (cleared ? ' ok' : '') + '">';
+  h += '<h4>' + esch(m.headline || (cleared ? 'We have what we need.' : 'A few things are missing.')) + '</h4>';
+  if (m.intro) h += '<div class="sf-intro">' + esch(m.intro) + '</div>';
+  blockers.forEach(function (b) { h += '<div class="sf-i"><b>' + esch(b.message) + '</b></div>'; });
+  items.forEach(function (g) {
+    h += '<div class="sf-i"><b>' + esch(g.ask) + '</b><span>' + esch(g.why) + '</span>' +
+      (g.echo ? '<span> — you wrote: “' + esch(g.echo) + '”</span>' : '') + '</div>';
+  });
+  if (!cleared && m.reassurance) h += '<div class="sf-intro" style="margin-top:8px">' + esch(m.reassurance) + '</div>';
+  h += '</div>';
+  box.innerHTML = h;
+}
+
+// Payment happens ONLY with a gate-issued checkout_token (invariant 2): there is
+// no blind timeout that navigates to Stripe without one.
+function goToPayment(email, token) {
+  var link = PAYLINKS[wiz.tier];
+  var btn = document.getElementById('wiz-next');
+  if (link) {
+    window.location.href = link + '?prefilled_email=' + encodeURIComponent(email) +
+      '&client_reference_id=' + encodeURIComponent(token);
+    return;
+  }
+  // Tier cleared but no Stripe link configured yet: never navigate to an ungated
+  // path — tell the customer and hand them a way to finish.
+  renderSuff({ cleared: false, message: {
+    headline: 'This package is not open for online checkout yet.',
+    intro: 'Your answers are saved and they cleared. Email hello@ktebli.com and we will send you a secure link.',
+    items: [], blockers: [], reassurance: 'Nothing has been charged.'
+  } });
+  if (btn) { btn.disabled = false; btn.textContent = 'Pay ' + PRICES[wiz.tier] + ' — Ktebli gets to work'; }
+}
+
 var wiz = {
   el: document.getElementById('wiz'),
-  step: 0, last: 4, tier: 'competitive', files: [],
+  step: 0, last: 6, tier: 'competitive', files: [], intakeId: null,
   open: function (tier) {
     this.tier = tier || 'competitive';
-    // A specific package was clicked: skip choosing it again and start the assessment.
+    // A specific package was clicked: skip choosing it again and start the interview.
     // Back from the first question still returns to the package step if they want to switch.
     this.step = tier ? 1 : 0;
+    seedRepeaters();
     this.el.classList.add('open');
     document.body.style.overflow = 'hidden';
     this.render();
@@ -718,16 +919,68 @@ var wiz = {
   val: function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; },
   validate: function () {
     if (this.step === 1) {
-      var need = [['w-org','organisation'],['w-name','your name'],['w-email','email']];
-      for (var i=0;i<need.length;i++){
-        if (!this.val(need[i][0])) { document.getElementById(need[i][0]).focus(); alert('Please add your ' + need[i][1] + '.'); return false; }
-      }
-      if (!/.+@.+\..+/.test(this.val('w-email'))) { document.getElementById('w-email').focus(); alert('That email does not look right.'); return false; }
+      var need = [['w-org','the organisation name'],['w-reg','your registration number'],['w-name','your name'],['w-email','your email'],['w-income-band','your income band']];
+      for (var i=0;i<need.length;i++){ if (!this.val(need[i][0])) return focusAlert(need[i][0], 'Please add ' + need[i][1] + '.'); }
+      if (!/.+@.+\..+/.test(this.val('w-email'))) return focusAlert('w-email', 'That email does not look right.');
     }
-    if (this.step === 2 && !this.val('w-grant')) {
-      document.getElementById('w-grant').focus(); alert('Please paste the grant link or its guidelines.'); return false;
+    if (this.step === 2 && !this.val('w-grant')) return focusAlert('w-grant', 'Please paste the grant link or its guidelines.');
+    if (this.step === 3) {
+      if (!this.val('w-place')) return focusAlert('w-place', 'Please name the town, city or neighbourhood.');
+      if (!this.val('w-venue') && !this.val('w-venue-escape')) return focusAlert('w-venue', 'Name the place it happens — or choose one of the “no fixed venue” options.');
+      if (!this.val('w-activity')) return focusAlert('w-activity', 'Tell us what happens there, in one line.');
+      if (!this.val('w-last-what') && !cb('w-never')) return focusAlert('w-last-what', 'Name your last delivery — or tick “we have not delivered a project yet”.');
+      if (!this.val('w-last-when') && !cb('w-never')) return focusAlert('w-last-when', 'Roughly when was that?');
+      if (!this.val('w-trigger')) return focusAlert('w-trigger', 'Tell us what happened locally that made this needed.');
+    }
+    if (this.step === 4) {
+      if (!cb('w-sg-policy')) { alert('Please confirm you have a safeguarding policy in place — nearly every funder requires it.'); return false; }
+      if (!this.val('w-dsl-name')) return focusAlert('w-dsl-name', 'Please name your Designated Safeguarding Lead.');
     }
     return true;
+  },
+  // The exact intake_answers shape (answers + facts), plus the top-level identity
+  // and grant fields save-intake reads. Both ends agree on this object.
+  collect: function () {
+    var esc = this.val('w-venue-escape');
+    var never = cb('w-never');
+    return {
+      tier: this.tier, price: PRICES[this.tier],
+      org: this.val('w-org'), registration: this.val('w-reg'), website: this.val('w-web'),
+      name: this.val('w-name'), email: this.val('w-email'), whatsapp: this.val('w-wa'),
+      grant: this.val('w-grant'), deadline: analyzedDeadline || this.val('w-deadline'),
+      directions: this.val('w-directions'), files: this.files,
+      answers: {
+        site_place: this.val('w-place'),
+        site_venue: esc ? '' : this.val('w-venue'),
+        site_activity: this.val('w-activity'),
+        last_delivery_what: never ? '' : this.val('w-last-what'),
+        last_delivery_when: never ? '' : this.val('w-last-when'),
+        local_trigger: this.val('w-trigger')
+      },
+      venue_escape: esc || null,
+      never_delivered: never,
+      facts: {
+        legal_form: this.val('w-legal'),
+        annual_income: this.val('w-annual-income'),
+        income_band: this.val('w-income-band'),
+        accounts_period: this.val('w-accounts'),
+        safeguarding_lead_name: this.val('w-dsl-name'),
+        safeguarding_lead_role: this.val('w-dsl-role'),
+        safeguarding_lead_training: this.val('w-dsl-training'),
+        lived_experience_governance: this.val('w-lived'),
+        bank_account_own_name: cb('w-bank'),
+        public_liability_insurance: cb('w-pli'),
+        safeguarding_policy: cb('w-sg-policy'),
+        board_independent: cb('w-board'),
+        no_conflicting_grant: cb('w-noconflict'),
+        key_people: collectRep('people'),
+        programmes: collectRep('programmes'),
+        results: collectRep('results'),
+        partnerships: collectRep('partners'),
+        extra_links: collectRep('links')
+      },
+      intake_id: this.intakeId || undefined
+    };
   },
   render: function () {
     var steps = this.el.querySelectorAll('.wiz-step');
@@ -739,6 +992,7 @@ var wiz = {
     document.getElementById('wiz-back').style.visibility = this.step === 0 ? 'hidden' : 'visible';
     document.getElementById('wiz-back').textContent = this.step === 1 ? 'Change package' : 'Back';
     document.getElementById('wiz-title').textContent = 'START YOUR PROPOSAL · ' + NAMES[this.tier].toUpperCase() + ' ' + PRICES[this.tier];
+    renderSuff(null); // a stale gate result never lingers across navigation
     var next = document.getElementById('wiz-next');
     if (this.step === this.last) {
       this.summary();
@@ -748,57 +1002,57 @@ var wiz = {
     }
   },
   summary: function () {
+    var esc2 = this.val('w-venue-escape');
+    var venMap = { homes: "in people's homes", street: 'street outreach', outdoors: 'outdoors', mobile: 'from a vehicle', online: 'online' };
+    var venue = esc2 ? venMap[esc2] : this.val('w-venue');
+    var np = collectRep('people').length, npr = collectRep('programmes').length, nr = collectRep('results').length, nl = collectRep('links').length;
+    var named = [np ? np + ' people' : '', npr ? npr + ' programmes' : '', nr ? nr + ' results' : ''].filter(Boolean).join(', ');
     var rows = [
       ['Package', NAMES[this.tier] + ', ' + PRICES[this.tier]],
-      ['Organisation', this.val('w-org')],
-      ['Registration no.', this.val('w-reg')],
-      ['Website', this.val('w-web')],
+      ['Organisation', this.val('w-org') + (this.val('w-reg') ? ' · ' + this.val('w-reg') : '')],
+      ['Income band', this.val('w-income-band')],
       ['Contact', this.val('w-name') + ' · ' + this.val('w-email')],
-      ['Grant', this.val('w-grant').slice(0, 90) + (this.val('w-grant').length > 90 ? '…' : '')],
+      ['Grant', this.val('w-grant').slice(0, 80) + (this.val('w-grant').length > 80 ? '…' : '')],
       ['Deadline', (analyzedDeadline || this.val('w-deadline')) || '—'],
-      ['Directions', this.val('w-directions') ? 'Noted' : '—'],
-      ['Old proposals', this.files.length ? this.files.length + ' file(s) chosen' : 'None']
+      ['Where', [this.val('w-place'), venue].filter(Boolean).join(' · ')],
+      ['Safeguarding lead', this.val('w-dsl-name') || '—'],
+      ['Named facts', named || '—'],
+      ['Extra links', nl ? nl + ' link(s)' : '—'],
+      ['Uploads', this.files.length ? this.files.length + ' file(s)' : 'None']
     ];
     var h = '';
-    rows.forEach(function (r) { h += '<div class="sumrow"><span class="sk">' + r[0] + '</span><span class="sv">' + (r[1] || '—') + '</span></div>'; });
+    rows.forEach(function (r) { h += '<div class="sumrow"><span class="sk">' + esch(r[0]) + '</span><span class="sv">' + esch(r[1] || '—') + '</span></div>'; });
     document.getElementById('summary').innerHTML = h;
-    var note = this.files.length
-      ? 'Payment is a secure Stripe checkout. Your uploaded proposals are already with us, and the writing starts the moment payment clears — most proposals are ready within 5–30 minutes, depending on complexity.'
-      : 'Payment is a secure Stripe checkout. The writing starts the moment payment clears — most proposals are ready within 5–30 minutes, depending on complexity.';
-    document.getElementById('summary').insertAdjacentHTML('afterend', '');
+    var note = 'Payment is a secure Stripe checkout, opened only once we confirm the answers can be delivered. The writing starts the moment payment clears — most proposals are ready within 5–30 minutes.';
     var pn = this.el.querySelector('.paynote');
     if (!pn) { pn = document.createElement('p'); pn.className = 'paynote'; document.getElementById('summary').parentNode.appendChild(pn); }
     pn.textContent = note;
   },
   pay: function () {
-    var data = {
-      tier: this.tier, price: PRICES[this.tier],
-      org: this.val('w-org'), registration: this.val('w-reg'), website: this.val('w-web'),
-      name: this.val('w-name'), email: this.val('w-email'), whatsapp: this.val('w-wa'),
-      grant: this.val('w-grant'), deadline: analyzedDeadline || this.val('w-deadline'),
-      directions: this.val('w-directions'), files: this.files
-    };
-    var link = PAYLINKS[this.tier];
-    function go(refId) {
-      if (link) {
-        var url = link + '?prefilled_email=' + encodeURIComponent(data.email);
-        if (refId) url += '&client_reference_id=' + encodeURIComponent(refId);
-        window.location.href = url;
-      } else {
-        window.location.href = 'mailto:hello@ktebli.com?subject=' +
-          encodeURIComponent('Proposal request (' + NAMES[wiz.tier] + '), ' + data.org) + '&body=' +
-          encodeURIComponent(Object.keys(data).map(function (k) { return k + ': ' + data[k]; }).join('\n'));
-      }
-    }
+    var data = this.collect();
+    var self = this;
     var btn = document.getElementById('wiz-next');
-    btn.disabled = true; btn.textContent = 'Opening secure checkout…';
-    var doneNav = false;
-    var fallback = setTimeout(function () { if (!doneNav) { doneNav = true; go(null); } }, 2500);
-    fetch(FN + '/save-intake', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data) })
+    btn.disabled = true; btn.textContent = 'Checking your answers…';
+    fetch(FN + '/save-intake', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) })
       .then(function (r) { return r.json(); })
-      .then(function (j) { if (!doneNav) { doneNav = true; clearTimeout(fallback); go(j && j.id ? j.id : null); } })
-      .catch(function () { if (!doneNav) { doneNav = true; clearTimeout(fallback); go(null); } });
+      .then(function (j) {
+        if (j && j.id) self.intakeId = j.id;
+        if (j && j.cleared && j.checkout_token) {
+          renderSuff({ cleared: true, message: (j.message || { headline: 'We have what we need.', items: [] }) });
+          btn.textContent = 'Opening secure checkout…';
+          goToPayment(data.email, j.checkout_token);
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Check again — Ktebli gets to work';
+          renderSuff(j || { cleared: false, message: { headline: 'We could not read that back.', intro: 'Please try again.', items: [] } });
+          document.getElementById('suff-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Pay ' + PRICES[wiz.tier] + ' — Ktebli gets to work';
+        renderSuff({ cleared: false, message: { headline: 'We could not reach the checkout just now.', intro: 'Nothing has been charged. Please check your connection and try again.', items: [], reassurance: '' } });
+      });
   }
 };
 
@@ -898,6 +1152,12 @@ document.getElementById('wiz-next').addEventListener('click', function(){
 });
 document.querySelectorAll('.pkg label').forEach(function (l) {
   l.addEventListener('click', function(){ wiz.tier = l.getAttribute('data-tier'); wiz.render(); });
+});
+
+// repeater "add" buttons for the list-shaped named facts
+[['add-people','people'],['add-programmes','programmes'],['add-results','results'],['add-partners','partners'],['add-links','links']].forEach(function (p) {
+  var b = document.getElementById(p[0]);
+  if (b) b.addEventListener('click', function () { addRep(p[1]); });
 });
 
 // old proposals: uploaded and read immediately, so the voice analysis is real
