@@ -197,7 +197,16 @@ export type SlotId =
   | "last_delivery_when"
   | "local_trigger";
 
-export type GapScope = SlotId | "uploads" | "score" | "grant" | "organisation" | "deadline" | "tier";
+export type FactScope = "registration" | "income_band" | "safeguarding" | "safeguarding_lead";
+export type GapScope =
+  | SlotId
+  | FactScope
+  | "uploads"
+  | "score"
+  | "grant"
+  | "organisation"
+  | "deadline"
+  | "tier";
 
 interface SlotDef {
   id: SlotId;
@@ -297,6 +306,56 @@ export interface UploadedDoc {
   extracted_text: string | null;
 }
 
+export interface KeyPerson {
+  name?: string | null;
+  role?: string | null;
+}
+export interface Programme {
+  name?: string | null;
+  what?: string | null;
+}
+export interface OrgResult {
+  what?: string | null;
+  when?: string | null;
+  figure?: string | null;
+}
+
+/**
+ * The extended evidence-interview answers, beyond the six particularity slots:
+ * the admin certifications the grounding check demanded of KT-10001 (the
+ * `donor_required_certification` + `missing` set) and the named org facts (the
+ * `unsupported`-claim set). Every field is a RAW applicant assertion. A blank
+ * field is nothing — never a default (invariant 3). Persisted on pre_intakes as
+ * one jsonb blob (20260901120000), carried to `orders.intake_answers`, and
+ * fingerprinted by `canonicalPayload` so editing any of it after clearance
+ * refuses at the webhook (invariant 2).
+ */
+export interface IntakeFacts {
+  // Admin facts (self-certified strings).
+  registration_number?: string | null;
+  legal_form?: string | null;
+  annual_income?: string | null;
+  income_band?: string | null;
+  accounts_period?: string | null;
+  safeguarding_lead_name?: string | null;
+  safeguarding_lead_role?: string | null;
+  safeguarding_lead_training?: string | null;
+  lived_experience_governance?: string | null;
+  // Admin certifications (self-certified booleans; only `true` asserts anything).
+  bank_account_own_name?: boolean;
+  public_liability_insurance?: boolean;
+  safeguarding_policy?: boolean;
+  board_independent?: boolean;
+  no_conflicting_grant?: boolean;
+  // Named org facts.
+  key_people?: KeyPerson[];
+  programmes?: Programme[];
+  results?: OrgResult[];
+  partnerships?: string[];
+  // Crawler hint: pages beyond the home domain, read as the applicant's own.
+  extra_links?: string[];
+}
+
 export interface SufficiencyInput {
   tier: string;
   /** True when a server-side checkout can actually be created for this tier. */
@@ -321,6 +380,9 @@ export interface SufficiencyInput {
   neverDelivered?: boolean;
 
   uploads?: UploadedDoc[];
+
+  /** The extended evidence-interview answers (admin + named facts + extra links). */
+  facts?: IntakeFacts | null;
 }
 
 export interface Referent {
@@ -381,6 +443,8 @@ export interface CustomerMessage {
   intro: string;
   items: Gap[];
   blockers: Blocker[];
+  /** Reported donor self-certs to confirm before submitting — NON-blocking. */
+  advisories: Gap[];
   reassurance: string;
 }
 
@@ -396,6 +460,8 @@ export interface Verdict {
   ladder_note: string;
   blockers: Blocker[];
   gaps: Gap[];
+  /** Reported-but-non-blocking donor self-certs. Never part of `cleared`. */
+  advisories: Gap[];
   ledger: LedgerItem[];
   referents: Referent[];
   detail: Record<string, unknown>;
@@ -795,6 +861,116 @@ function assemble(input: SufficiencyInput): Assembly {
 }
 
 // ---------------------------------------------------------------------------
+// Admin facts — two tiers, and the tiers matter.
+//
+// The HARD sufficiency bar is FULFILLABILITY: below it nobody is charged
+// (invariant 2). Fulfillability means "can the pipeline ground and deliver a
+// proposal?", NOT "has the customer supplied every donor self-certification?".
+// The pipeline treats `donor_required_certification` claims as NON-BLOCKING at
+// grounding (worker/index.ts filters them out of groundingProblems and surfaces
+// them to the customer as "[to confirm]"), so an order missing them is still a
+// fulfillable order — it produces a grounded, compliant proposal with those
+// self-certs flagged for the customer to complete before they submit.
+//
+//   HARD (refuses checkout): the registration number — a fabricated or absent
+//   registration is the KT-10001 defect and NOT groundable — PLUS the existing
+//   referent / particularity floor (the six slots and the score arm below).
+//   `factPresent` still rejects the literal `UNVERIFIED-TEST-0000001` placeholder.
+//
+//   REPORTED (scored-and-named, never refuses): income band, safeguarding
+//   policy, and the named Designated Safeguarding Lead. These are exactly the
+//   internal self-certs the pipeline surfaces as "to confirm". The gate NAMES
+//   each missing one in the customer's "still to confirm before you submit"
+//   list, but their absence does not hold a fulfillable order.
+//
+// Completeness is reported; fulfillability is gated. No number is compared in
+// either function — the score arm and its single threshold are untouched, which
+// is why this file still passes its own "one place" source scan.
+// ---------------------------------------------------------------------------
+
+export function factPresent(v: unknown): boolean {
+  const s = String(v ?? "").replace(CTRL, " ").trim();
+  if (s.length < 2) return false;
+  const compact = s.toLowerCase().replace(/[\s\-./]/g, "");
+  if (/(unverified|placeholder|pending|example|sample|dummy)/.test(compact)) return false;
+  if (/^(na|none|nil|tbd|todo|test|testing|unknown|null|xxx+|foo|bar)$/.test(compact)) return false;
+  if (/^0+$/.test(compact)) return false; // all zeros
+  if (/^(\d)\1{5,}$/.test(compact)) return false; // 000000, 1111111, …
+  return true;
+}
+
+/**
+ * The HARD admin fact: the registration number. Its absence (or a placeholder)
+ * refuses checkout, because a proposal cannot be grounded on a fabricated
+ * registration. Read from the identity channel (`registration` -> org_reg ->
+ * E-INTAKE-2) first, falling back to the intake_facts value.
+ */
+export function requiredFactGaps(input: SufficiencyInput): Gap[] {
+  const f = input.facts ?? {};
+  const out: Gap[] = [];
+  if (!factPresent(input.registration) && !factPresent(f.registration_number)) {
+    out.push({
+      scope: "registration",
+      code: "registration_missing",
+      ask: "Your organisation's charity or company registration number.",
+      why: "Funders check the register before they read anything else, and the application asks " +
+        "for the number you are registered under. We put it on the form exactly as you enter it, " +
+        "and we will not invent or approximate it.",
+      example: "e.g. 1187734 (Charity Commission), SC048924 (OSCR), or your Companies House number.",
+    });
+  }
+  return out;
+}
+
+/**
+ * The REPORTED admin facts: internal donor self-certifications the pipeline
+ * surfaces as "[to confirm]". Named for the customer but NON-BLOCKING — their
+ * absence never refuses a fulfillable order. The proposal is produced with each
+ * one flagged for the customer to complete before they submit.
+ */
+export function advisoryFactGaps(input: SufficiencyInput): Gap[] {
+  const f = input.facts ?? {};
+  const out: Gap[] = [];
+
+  if (!factPresent(f.income_band)) {
+    out.push({
+      scope: "income_band",
+      code: "income_band_missing",
+      ask: "Your latest annual income band.",
+      why: "Funders size a grant to the organisation, and your income band decides which grant " +
+        "amounts you are eligible for. We will write the proposal and flag this for you to confirm " +
+        "before you submit.",
+      example: "e.g. under £10,000; £10,000–£100,000; £100,000–£500,000; over £500,000.",
+    });
+  }
+
+  if (f.safeguarding_policy !== true) {
+    out.push({
+      scope: "safeguarding",
+      code: "safeguarding_policy_missing",
+      ask: "Confirm your organisation has a safeguarding policy in place.",
+      why: "Almost every UK funder asks you to confirm a safeguarding policy exists. We will not " +
+        "state that you have one unless you tell us you do, so we flag it for you to confirm " +
+        "before you submit.",
+      example: "Tick to confirm your board has adopted a written safeguarding policy.",
+    });
+  }
+
+  if (!factPresent(f.safeguarding_lead_name)) {
+    out.push({
+      scope: "safeguarding_lead",
+      code: "safeguarding_lead_missing",
+      ask: "The name of your Designated Safeguarding Lead.",
+      why: "The person responsible for safeguarding is named in the application. Without the name " +
+        "we write \"a designated lead\" and flag it for you to complete before you submit.",
+      example: "e.g. Jane Okafor, Deputy Chair.",
+    });
+  }
+
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // The gate
 // ---------------------------------------------------------------------------
 
@@ -811,6 +987,13 @@ export function evaluateSufficiency(input: SufficiencyInput, opts: EvaluateOptio
 
   const blockers = fulfilmentBlockers(input, now);
   const { ledger, referents, gaps, detail } = assemble(input);
+  // The HARD admin fact (registration) is refused first — a proposal cannot be
+  // grounded on a fabricated or absent registration (the KT-10001 defect).
+  const factGaps = requiredFactGaps(input);
+  if (factGaps.length) gaps.unshift(...factGaps);
+  // The REPORTED admin facts (donor self-certs) are named but never block: they
+  // are non-blocking at grounding, so an order missing them is still fulfillable.
+  const advisories = advisoryFactGaps(input);
   const score = scorer.score(referents);
 
   const bar = effectiveThreshold(t);
@@ -832,7 +1015,8 @@ export function evaluateSufficiency(input: SufficiencyInput, opts: EvaluateOptio
   }
 
   // Refusal by default. `cleared` is derived here and nowhere else; nothing
-  // upstream can assert it.
+  // upstream can assert it. Advisories are DELIBERATELY absent from this
+  // derivation: they are reported, not gated (invariant 2 = fulfillable).
   const cleared = blockers.length === 0 && gaps.length === 0 && scoreOk;
 
   const verdict: Verdict = {
@@ -847,10 +1031,11 @@ export function evaluateSufficiency(input: SufficiencyInput, opts: EvaluateOptio
     ladder_note: ladderVerdictNote(t),
     blockers,
     gaps,
+    advisories,
     ledger,
     referents: score.referents,
     detail: { ...detail, score_detail: score.detail, scorer_describe: scorer.describe },
-    message: buildMessage(cleared, blockers, gaps),
+    message: buildMessage(cleared, blockers, gaps, advisories),
     canonical: canonicalPayload(input),
   };
   assertVerdictConsistent(verdict);
@@ -878,13 +1063,17 @@ export function assertVerdictConsistent(v: Verdict): void {
 // good answer looks like.
 // ---------------------------------------------------------------------------
 
-function buildMessage(cleared: boolean, blockers: Blocker[], gaps: Gap[]): CustomerMessage {
+function buildMessage(cleared: boolean, blockers: Blocker[], gaps: Gap[], advisories: Gap[]): CustomerMessage {
   if (cleared) {
     return {
       headline: "We have what we need.",
-      intro: "Everything checks out. Payment next, and the writing starts the moment it clears.",
+      intro: advisories.length
+        ? "Everything we need to write your proposal is here. A few donor self-certifications are " +
+          "still worth confirming before you submit — we will write it either way and flag these for you:"
+        : "Everything checks out. Payment next, and the writing starts the moment it clears.",
       items: [],
       blockers: [],
+      advisories,
       reassurance: "",
     };
   }
@@ -899,6 +1088,7 @@ function buildMessage(cleared: boolean, blockers: Blocker[], gaps: Gap[]): Custo
         "rather ask now than send you a document full of \"the local community\":",
     items: gaps,
     blockers,
+    advisories,
     reassurance: "Your answers are saved. Fix these and the payment button opens — no card " +
       "details have been touched.",
   };
@@ -915,6 +1105,48 @@ export function gapLines(v: Verdict): string[] {
 // ---------------------------------------------------------------------------
 // Binding the charge to the thing that was scored
 // ---------------------------------------------------------------------------
+
+/**
+ * Deterministic normalisation of the extended evidence-interview facts, so the
+ * fingerprint covers them: editing any admin fact, named fact or extra link
+ * after clearance changes the hash and the webhook refuses (invariant 2).
+ * Strings are trimmed, booleans are exactly `true`/`false`, and list items keep
+ * the customer's own order (reordering IS an edit).
+ */
+export function canonicalFacts(facts: IntakeFacts | null | undefined): Record<string, unknown> {
+  const f = facts ?? {};
+  const s = (v: unknown) => String(v ?? "").replace(CTRL, " ").replace(/\s+/g, " ").trim();
+  const key_people = (Array.isArray(f.key_people) ? f.key_people : [])
+    .map((p) => ({ name: s(p?.name), role: s(p?.role) })).filter((p) => p.name || p.role);
+  const programmes = (Array.isArray(f.programmes) ? f.programmes : [])
+    .map((p) => ({ name: s(p?.name), what: s(p?.what) })).filter((p) => p.name || p.what);
+  const results = (Array.isArray(f.results) ? f.results : [])
+    .map((r) => ({ what: s(r?.what), when: s(r?.when), figure: s(r?.figure) }))
+    .filter((r) => r.what || r.when || r.figure);
+  const partnerships = (Array.isArray(f.partnerships) ? f.partnerships : []).map(s).filter(Boolean);
+  const extra_links = (Array.isArray(f.extra_links) ? f.extra_links : []).map(s).filter(Boolean);
+  return {
+    registration_number: s(f.registration_number),
+    legal_form: s(f.legal_form),
+    annual_income: s(f.annual_income),
+    income_band: s(f.income_band),
+    accounts_period: s(f.accounts_period),
+    safeguarding_lead_name: s(f.safeguarding_lead_name),
+    safeguarding_lead_role: s(f.safeguarding_lead_role),
+    safeguarding_lead_training: s(f.safeguarding_lead_training),
+    lived_experience_governance: s(f.lived_experience_governance),
+    bank_account_own_name: f.bank_account_own_name === true,
+    public_liability_insurance: f.public_liability_insurance === true,
+    safeguarding_policy: f.safeguarding_policy === true,
+    board_independent: f.board_independent === true,
+    no_conflicting_grant: f.no_conflicting_grant === true,
+    key_people,
+    programmes,
+    results,
+    partnerships,
+    extra_links,
+  };
+}
 
 /**
  * Canonical serialisation of EXACTLY the fields the score was computed over.
@@ -947,6 +1179,7 @@ export function canonicalPayload(input: SufficiencyInput): string {
     venue_escape: input.venueEscape ?? null,
     never_delivered: input.neverDelivered === true,
     uploads,
+    facts: canonicalFacts(input.facts),
   });
 }
 

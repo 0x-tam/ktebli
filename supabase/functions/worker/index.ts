@@ -52,6 +52,7 @@ import {
 } from "./delivery_gate.ts";
 import { resolveDonorLimits, type LimitField, type LimitOutcome } from "./donor_limits.ts";
 import { effectiveThreshold, referentsIn, SUFFICIENCY_THRESHOLD } from "./sufficiency.ts";
+import { intakeAnswerLedger } from "./intake_ledger.ts";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -1934,6 +1935,14 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     if (identity.orgOk) intakeEvidence.push({ id: "E-INTAKE-1", claim: `Organisation name: ${identity.org}`, source_type: "user_intake", source_ref: "order form", status: "verified", allowed: true });
     if (identity.reg) intakeEvidence.push({ id: "E-INTAKE-2", claim: `Registration number: ${identity.reg}`, source_type: "user_intake", source_ref: "order form", status: "verified", allowed: true });
     if (identity.website) intakeEvidence.push({ id: "E-INTAKE-3", claim: `Website: ${identity.website}`, source_type: "user_intake", source_ref: "order form", status: "verified", allowed: true });
+    // E-INTAKE-4+ : the structured evidence-interview answers the customer gave
+    // before payment (orders.intake_answers), rebuilt into one factual claim per
+    // non-empty field. This is the data starvation fix — without it a customer's
+    // named DSL, programmes, venue and dated results ground NOTHING and grounding
+    // holds the order (KT-10001). Identity reserves ids 1-3; facts start at 4.
+    for (const it of intakeAnswerLedger(c.order.intake_answers, { startAt: 3, haveRegistration: !!identity.reg })) {
+      intakeEvidence.push(it as unknown as Record<string, unknown>);
+    }
 
     let profile: Record<string, unknown> = {};
     let webEvidence: Array<Record<string, unknown>> = [];
@@ -1942,6 +1951,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     let crawlMeta: Record<string, unknown> = { skipped: domain ? "cache_fresh" : "no_website" };
     let identityMismatch: Record<string, unknown> | null = null;
     let freshExtraction = false;
+    let extraLinksContributed = false;
     let crawlHash: string | null = null;
     // What crawl_outcome.ts needs to classify this run: the live observations
     // (fresh crawl) or the previously recorded report (cache hit), plus the
@@ -1959,23 +1969,67 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       await beat();
       const crawl = await crawlSiteObserved(identity.website!);
       crawlObserved = crawl;
-      crawlRefs = siteReferents(crawlCorpus(crawl.pages), String(c.order.org_name ?? ""));
+      // Extra links: pages beyond the home domain the customer named as their own
+      // evidence (intake_answers.extra_links). Crawled through the SAME
+      // SSRF-hardened, robots-respecting path as the home domain, then gated for
+      // attributability with the same asymmetric token test the uploads and the
+      // identity gate use — a page that does not carry the applicant's own
+      // distinctive name is discarded whole (invariant 3). A link that fails is
+      // recorded and skipped: fail-closed means fewer referents, never a crash.
+      const extraPages: Array<{ url: string; text: string }> = [];
+      const extraLinksMeta: Array<Record<string, unknown>> = [];
+      const wantTokens = orgTokens(String(c.order.org_name ?? ""));
+      const orderExtraLinks = (() => {
+        const ia = c.order.intake_answers as Record<string, unknown> | null;
+        const raw = ia && typeof ia === "object" && !Array.isArray(ia) ? ia.extra_links : null;
+        return Array.isArray(raw) ? raw.map((u) => String(u ?? "").trim()).filter((u) => /^https?:\/\//i.test(u)).slice(0, 5) : [];
+      })();
+      for (const link of orderExtraLinks) {
+        try {
+          await beat();
+          const ec = await crawlSiteObserved(link);
+          const etext = crawlCorpus(ec.pages);
+          const flat = ` ${etext.toLowerCase().replace(/[^a-z0-9]+/g, " ")} `;
+          const attributable = wantTokens.size > 0 && [...wantTokens].some((t) => flat.includes(` ${t} `));
+          if (ec.pages.length && attributable) {
+            for (const pg of ec.pages) extraPages.push(pg);
+            extraLinksMeta.push({ link: link.slice(0, 200), pages: ec.pages.length, attributable: true });
+          } else {
+            extraLinksMeta.push({
+              link: link.slice(0, 200), pages: ec.pages.length, attributable,
+              skipped: ec.pages.length ? "not_attributable" : "no_admissible_content",
+            });
+          }
+        } catch (e) {
+          extraLinksMeta.push({ link: link.slice(0, 200), error: String((e as Error).message ?? e).slice(0, 120) });
+        }
+      }
+      extraLinksContributed = extraPages.length > 0;
+      // Combined corpus: the home domain plus every attributable extra-link page,
+      // treated as more pages of the applicant's own evidence. The identity gate
+      // below still runs on the home domain; folding here means the extra pages'
+      // referents reach E-WEB through the SAME single extraction call.
+      const sitePages = extraPages.length ? [...crawl.pages, ...extraPages] : crawl.pages;
+      crawlRefs = siteReferents(crawlCorpus(sitePages), String(c.order.org_name ?? ""));
       const o = crawl.observations;
       crawlMeta = {
         domain: o.domain, discovered: o.discovered, fetched: o.pages.length,
         kept: crawl.pages.length, ms: o.elapsed_ms, cache: cached ? "stale_refresh" : "miss",
+        ...(extraLinksMeta.length ? { extra_links: extraLinksMeta, extra_pages: extraPages.length } : {}),
       };
       crawlHash = crawl.hash || null;
-      if (cached && cached.content_hash === crawl.hash && crawl.hash) {
+      // Extra links change the effective corpus, so a home-domain cache hit is no
+      // longer sufficient: re-extract when they contributed.
+      if (cached && cached.content_hash === crawl.hash && crawl.hash && !extraPages.length) {
         // site unchanged: reuse extraction, refresh timestamp only
         profile = cached.profile ?? {};
         webEvidence = Array.isArray(cached.evidence) ? cached.evidence : [];
         voiceGuide = cached.voice ?? {};
         gaps = Array.isArray(cached.gaps) ? cached.gaps : [];
         crawlMeta = { ...crawlMeta, cache: "content_unchanged" };
-      } else if (crawl.pages.length) {
+      } else if (sitePages.length) {
         await beat();
-        const corpus = crawl.pages.map((p, i) => `--- PAGE ${i + 1}: ${p.url} ---\n${p.text}`).join("\n\n");
+        const corpus = sitePages.map((p, i) => `--- PAGE ${i + 1}: ${p.url} ---\n${p.text}`).join("\n\n");
         const x = jsonOf(await llm(
           `This is deduplicated public text from ONE organisation's own website. Build a structured understanding of the organisation. Reply strict JSON only:\n` +
           `{"profile":{"legal_name":string|null,"mission":string|null,"sector":[string],"geographic_focus":[string],"target_populations":[string],"programmes":[{"name":string,"what":string}],"capabilities":[string],"methodologies":[string],"partnerships_stated":[string],"team_notes":string|null,"strategic_priorities":[string]},` +
@@ -2115,8 +2169,10 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         throw new Error(`evidence starved: crawl ${crawlReport.outcome} and the evidence ledger is below the sufficiency floor (${refCount} referent(s), need ${floor})`);
       }
     }
-    // Only a clean, freshly extracted site is worth caching.
-    if (freshExtraction && !identityMismatch && c.order.organisation_id) {
+    // Only a clean, freshly extracted HOME site is worth caching. An extraction
+    // that folded in extra-link pages is keyed to this order's own link set, not
+    // to the domain, so it is never written to the shared org_intel cache.
+    if (freshExtraction && !extraLinksContributed && !identityMismatch && c.order.organisation_id) {
       const row = {
         organisation_id: c.order.organisation_id, domain, profile, evidence: webEvidence, voice: voiceGuide,
         gaps, crawl: crawlMeta, content_hash: crawlHash, crawled_at: new Date().toISOString(), updated_at: new Date().toISOString(),

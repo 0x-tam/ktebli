@@ -66,6 +66,16 @@ const FUTURE = new Date("2026-08-26T12:00:00Z");
 
 // The ledger that clears: one small charity, answering the six recall questions
 // the way a fundraiser would answer them from memory.
+// The four core admin facts every UK grant application needs, and every one of
+// which KT-10001 was missing. registration is carried by the identity channel
+// (top-level `registration`); the other three live in `facts`.
+const CORE_FACTS = {
+  income_band: "£100,000–£500,000",
+  safeguarding_policy: true,
+  safeguarding_lead_name: "Amina Yusuf",
+  safeguarding_lead_role: "Deputy Chair",
+};
+
 const CLEARING: SufficiencyInput = {
   tier: "draft",
   checkoutAvailable: true,
@@ -85,11 +95,13 @@ const CLEARING: SufficiencyInput = {
     last_delivery_when: "winter 2024",
     local_trigger: "the youth centre on Syria Street closed in April",
   },
+  facts: { ...CORE_FACTS },
 };
 
-// Today's ledger, exactly as reports/design/ground-evidence.md section 4
-// describes it: organisation name, registration number, website URL, and
-// nothing else in the world.
+// The particularity-starved intake: identity + the core admin facts, but NOTHING
+// specific about the world (empty `answers`). It isolates the particularity
+// failure — the score is 0 — from the compliance floor, which is satisfied here
+// so the only gaps are the six unanswered slots and the score.
 const TODAY: SufficiencyInput = {
   tier: "draft",
   checkoutAvailable: true,
@@ -101,6 +113,7 @@ const TODAY: SufficiencyInput = {
   grantAnalysisOk: true,
   deadline: "2026-11-30",
   answers: {},
+  facts: { ...CORE_FACTS },
 };
 
 // ===========================================================================
@@ -541,6 +554,76 @@ section("8. REFERENT EXTRACTION — form fields are not sentences");
   eq(referentsIn("we run a youth club"), [], "and neither does a sentence of pure category words");
   eq(referentsIn("Bab al-Tabbaneh, Tripoli"), ["Bab al-Tabbaneh", "Tripoli"], "a hyphenated Arabic place name stays one referent");
   eq(referentsIn(""), [], "an empty answer yields nothing");
+}
+
+// ===========================================================================
+section("9. ADMIN FACTS — registration is HARD, the donor self-certs are REPORTED");
+// ===========================================================================
+// The hard sufficiency bar is FULFILLABILITY (invariant 2 = can we ground a
+// proposal?), not completeness. Registration is hard — a fabricated registration
+// is not groundable (KT-10001). Income band, the safeguarding policy and the
+// named DSL are `donor_required_certification` facts the pipeline surfaces as
+// "[to confirm]"; the gate NAMES them but never refuses a fulfillable order.
+{
+  const advCodes = (v: Verdict) => v.advisories.map((a) => a.code).sort();
+
+  // The complete ledger clears with nothing to confirm.
+  const full = evaluateSufficiency(CLEARING, { now: FUTURE });
+  ok(full.cleared, "a complete ledger clears");
+  eq(full.advisories.length, 0, "and carries no advisories when every self-cert is supplied");
+
+  // THE FIX: registration + org facts (the referent floor), but blank income and
+  // safeguarding, still CLEARS — the order is fulfillable — with those three
+  // NAMED as reported-not-gated advisories.
+  const noCerts = evaluateSufficiency({ ...CLEARING, facts: {} }, { now: FUTURE });
+  ok(noCerts.cleared, "registration + org facts but blank income/safeguarding CLEARS (fulfillable)");
+  eq(
+    advCodes(noCerts),
+    ["income_band_missing", "safeguarding_lead_missing", "safeguarding_policy_missing"],
+    "and the three donor self-certs are named as advisories, to confirm before submitting",
+  );
+  ok(
+    !gapCodes(noCerts).some((c) => /income_band|safeguarding/.test(c)),
+    "none of them is a blocking gap — completeness is reported, not gated",
+  );
+  ok(noCerts.message.advisories.length === 3, "the customer message carries the advisories");
+  ok(
+    noCerts.message.intro.toLowerCase().includes("confirm"),
+    "and the cleared message tells the customer they are still worth confirming",
+  );
+
+  // Registration IS hard: missing or placeholder refuses, named as a gap.
+  const noReg = evaluateSufficiency({ ...CLEARING, registration: "", facts: {} }, { now: FUTURE });
+  ok(!noReg.cleared, "a ledger with no registration number does not clear");
+  ok(gapCodes(noReg).includes("registration_missing"), "registration is a blocking gap, named");
+  ok(gap(noReg, "registration_missing").ask.toLowerCase().includes("registration number"), "in plain words");
+
+  const placeholderReg = evaluateSufficiency({ ...CLEARING, registration: "UNVERIFIED-TEST-0000001" }, { now: FUTURE });
+  ok(!placeholderReg.cleared, "a placeholder registration (KT-10001's UNVERIFIED-TEST-0000001) does not clear");
+  ok(gapCodes(placeholderReg).includes("registration_missing"), "it is refused as missing, not accepted as a number");
+
+  // The referent floor is still hard: registration alone, no particularity, refuses.
+  const noReferents = evaluateSufficiency({ ...CLEARING, answers: {}, facts: {} }, { now: FUTURE });
+  ok(!noReferents.cleared, "registration present but below the referent floor still refuses (the org-fact floor is hard)");
+  ok(gapCodes(noReferents).includes("too_thin"), "the score arm names it");
+
+  // No "insufficient", no internal vocabulary — gaps AND advisories.
+  const copy = JSON.stringify(noReg.message) + JSON.stringify(noCerts.message) + gapLines(noReg).join("\n");
+  ok(!/insufficient/i.test(copy), "the word 'insufficient' still appears nowhere");
+  ok(!/\bevidence ledger\b/i.test(copy), "and no internal vocabulary leaks");
+
+  // Invariant 2: the fingerprint covers the facts. Clearing on good facts and
+  // then editing one down changes the hash, so the webhook refuses.
+  const f1 = await fingerprint(CLEARING);
+  const f2 = await fingerprint({ ...CLEARING, facts: { ...CORE_FACTS, income_band: "under £10,000" } });
+  ok(f1 !== f2, "editing a scored admin fact after clearance produces a different fingerprint");
+  const fBool = await fingerprint({ ...CLEARING, facts: { ...CORE_FACTS, safeguarding_policy: false } });
+  ok(f1 !== fBool, "and so does flipping a certification the customer had ticked");
+  const namedFactEdit = await fingerprint({
+    ...CLEARING,
+    facts: { ...CORE_FACTS, programmes: [{ name: "OpenARMS", what: "asylum support" }] },
+  });
+  ok(f1 !== namedFactEdit, "adding a named org fact also changes the fingerprint (the whole shape is covered)");
 }
 
 console.log();

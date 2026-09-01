@@ -49,6 +49,67 @@ async function sel(path: string) {
   return await r.json();
 }
 
+// The extended evidence-interview facts, sanitised server-side: bounded lengths,
+// bounded list sizes, booleans coerced to exactly true. A blank field is dropped
+// (never stored as a default), so the stored blob is only what the customer
+// actually asserted. The SAME shape the worker reads out of orders.intake_answers
+// and the sufficiency gate fingerprints — the pre-payment authority.
+// deno-lint-ignore no-control-regex
+const CTRL = /[\u0000-\u001f\u007f]+/g;
+function str(v: unknown, max: number): string {
+  return String(v ?? "").replace(CTRL, " ").replace(/\s+/g, " ").trim().slice(0, max);
+}
+function sanitizeFacts(raw: unknown): Record<string, unknown> {
+  const f = (raw && typeof raw === "object" && !Array.isArray(raw)) ? raw as Record<string, unknown> : {};
+  const out: Record<string, unknown> = {};
+  const put = (k: string, v: string) => { if (v) out[k] = v; };
+  put("registration_number", str(f.registration_number, 100));
+  put("legal_form", str(f.legal_form, 120));
+  put("annual_income", str(f.annual_income, 60));
+  put("income_band", str(f.income_band, 60));
+  put("accounts_period", str(f.accounts_period, 80));
+  put("safeguarding_lead_name", str(f.safeguarding_lead_name, 120));
+  put("safeguarding_lead_role", str(f.safeguarding_lead_role, 120));
+  put("safeguarding_lead_training", str(f.safeguarding_lead_training, 120));
+  put("lived_experience_governance", str(f.lived_experience_governance, 400));
+  for (const k of ["bank_account_own_name", "public_liability_insurance", "safeguarding_policy", "board_independent", "no_conflicting_grant"]) {
+    if (f[k] === true) out[k] = true;
+  }
+  const arr = (v: unknown): unknown[] => Array.isArray(v) ? v : [];
+  const key_people = arr(f.key_people).slice(0, 12).map((p) => {
+    const o = (p ?? {}) as Record<string, unknown>;
+    return { name: str(o.name, 120), role: str(o.role, 120) };
+  }).filter((p) => p.name || p.role);
+  if (key_people.length) out.key_people = key_people;
+  const programmes = arr(f.programmes).slice(0, 12).map((p) => {
+    const o = (p ?? {}) as Record<string, unknown>;
+    return { name: str(o.name, 120), what: str(o.what, 300) };
+  }).filter((p) => p.name || p.what);
+  if (programmes.length) out.programmes = programmes;
+  const results = arr(f.results).slice(0, 12).map((r) => {
+    const o = (r ?? {}) as Record<string, unknown>;
+    return { what: str(o.what, 200), when: str(o.when, 60), figure: str(o.figure, 60) };
+  }).filter((r) => r.what || r.when || r.figure);
+  if (results.length) out.results = results;
+  const partnerships = arr(f.partnerships).slice(0, 12).map((p) => str(p, 160)).filter(Boolean);
+  if (partnerships.length) out.partnerships = partnerships;
+  // Extra links: bounded, http(s) only, deduplicated. The worker crawls these
+  // through the same SSRF-hardened path as the home domain; a bad one there is
+  // recorded and skipped, so light validation is enough here.
+  const seen = new Set<string>();
+  const extra_links: string[] = [];
+  for (const l of arr(f.extra_links).slice(0, 8)) {
+    const u = str(l, 400);
+    if (/^https?:\/\/[^\s]+$/i.test(u) && !seen.has(u.toLowerCase())) {
+      seen.add(u.toLowerCase());
+      extra_links.push(u);
+    }
+    if (extra_links.length >= 5) break;
+  }
+  if (extra_links.length) out.extra_links = extra_links;
+  return out;
+}
+
 Deno.serve(async (req) => {
   const CORS = corsHeaders(req, "POST, OPTIONS");
   const json = (o: unknown, s = 200) =>
@@ -104,6 +165,11 @@ Deno.serve(async (req) => {
   const venueEscape = VENUE_ESCAPES.has(veRaw) ? veRaw : null;
   const neverDelivered = b.never_delivered === true;
 
+  // The extended evidence-interview facts (admin certifications, named org
+  // facts, extra crawl links). Sanitised, then stored as one jsonb blob the
+  // gate fingerprints and the worker rebuilds into the Evidence Ledger.
+  const facts = sanitizeFacts(b.facts);
+
   // The row is built FIRST; the gate scores exactly what will be stored.
   const row: Record<string, unknown> = {
     email,
@@ -119,6 +185,7 @@ Deno.serve(async (req) => {
     ...slotColumns,
     venue_escape: venueEscape,
     never_delivered: neverDelivered,
+    intake_facts: Object.keys(facts).length ? facts : null,
   };
 
   // The uploaded-file set the fingerprint covers — the same query the webhook
@@ -149,6 +216,7 @@ Deno.serve(async (req) => {
       scorer: verdict.scorer,
       blockers: verdict.blockers,
       gaps: verdict.gaps.map((g) => ({ scope: g.scope, code: g.code })),
+      advisories: verdict.advisories.map((g) => ({ scope: g.scope, code: g.code })),
       referents: verdict.referents.length,
       contract: verdict.contract_version,
     },
@@ -212,6 +280,7 @@ Deno.serve(async (req) => {
         threshold: verdict.threshold,
         blockers: verdict.blockers.map((x) => x.code),
         gaps: verdict.gaps.map((g) => g.code),
+        advisories: verdict.advisories.map((g) => g.code),
         fingerprint: fp,
       },
     }),
