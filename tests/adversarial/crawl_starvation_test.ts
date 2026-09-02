@@ -74,7 +74,12 @@ ok(/throw new Error\(`evidence starved/.test(orgBlock), "and then a loud throw, 
 ok(/msg\.includes\("evidence starved"\)/.test(SRC.slice(SRC.indexOf("Deno.serve"))),
   "the tick handler makes it TERMINAL on first occurrence (held, notifyTerminal -> customer + operator)");
 const servePart = SRC.slice(SRC.indexOf("Deno.serve"));
-const finalLine = servePart.slice(servePart.indexOf("const final"), servePart.indexOf("const status"));
+// Widened from "const final" to "const isHold" (launch spend-cap wiring, 2026-09):
+// "evidence starved" moved into a named isHold predicate declared just before
+// const final, rather than sitting inline inside it — same runtime classification,
+// refactored for reuse (isHold now also gates the status computation and the
+// spend-cap branch below it). The window still captures the whole predicate chain.
+const finalLine = servePart.slice(servePart.indexOf("const isHold"), servePart.indexOf("const status"));
 ok(/evidence starved/.test(finalLine), "  ...final on the first pass (a retry cannot grow the ledger)");
 
 console.log(`\n${bad === 0 ? "ALL HELD" : `${bad} ASSERTION(S) FAILED`}`);

@@ -103,6 +103,27 @@ you have several projects linked and want to be explicit.
     this project's own history is JSON-malformation rates, a design-stage runaway, and a
     currency default that are all model-specific and were only found by driving real
     orders end to end (reports/phase8-intake.md). Setting the secret is not validation.
+  - **Target model config (decided 2026-09-02, not yet validated in a real order):**
+    `openrouter_model_draft = anthropic/claude-sonnet-5`,
+    `openrouter_model_competitive = anthropic/claude-opus-5` (the one proven model this
+    whole pipeline has been tuned against — safe as the always-on fallback for every
+    tier until its replacement is proven),
+    `openrouter_model_full = anthropic/claude-fable-5.1` (2x Opus 5's price on
+    OpenRouter; zero real orders through it as of this note). **Do not set Draft or
+    Full live for paying customers until each has cleared one real order end to end** —
+    Competitive can go live immediately since it stays on the proven model.
+  - **Spend caps (the runaway backstop).** Three secrets, dollars, checked BEFORE every
+    stage — a proposal at or over its tier's cap is refused further model work and
+    raises a `spend_cap` escalation (immediate priority) rather than spending another
+    cent: `spend_cap_draft_usd` (default 6), `spend_cap_competitive_usd` (default 10),
+    `spend_cap_full_usd` (default 20). Defaults are generous headroom over the
+    estimated per-order cost, not a budget target — they exist to catch a BUG (a retry
+    or resumable-stage loop that never converges), the exact failure this project's own
+    phase-8 re-run hit with no code-level backstop. Also `openrouter_balance_floor_usd`
+    (default 3) — a SEPARATE, account-wide check: before claiming any stage at all, the
+    worker reads the real live OpenRouter balance and refuses to claim ANYTHING this
+    tick if it is at or under the floor. Non-destructive — stages are simply not
+    claimed, not failed; the next tick resumes normally once credit is added.
 - A pg_cron job `ktebli-worker-tick` runs every minute and POSTs to the `worker`
   function with the `x-worker-secret` header. It lives in the database, not in this
   repo — see `db/schema.sql` section 7. Redeploying `worker` does not disturb it.

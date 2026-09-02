@@ -148,6 +148,33 @@ let MODEL_FULL = "";
 // tuned without a deploy.
 let MODEL_FULL_POOL = "";
 
+// ================= per-tier spend cap =================
+// Hard ceilings, in dollars, per PROPOSAL (not per order — a revision or a retried
+// proposal gets its own budget rather than draining a shared one). Real generous
+// headroom above the estimated cost ranges (Draft ~$1.5-3, Competitive ~$2.5-5, Full
+// ~$4-8 at Opus 5; Fable 5.1 roughly doubles the Full-tier estimate) — this is a
+// backstop against a BUG (a retry loop, a resumable stage that never converges), not a
+// budget-management tool. Configurable via secrets so a bad default doesn't need a
+// deploy to fix; these numbers are the fallback when the secret is unset or unparseable.
+let SPEND_CAP_DRAFT = 6;
+let SPEND_CAP_COMPETITIVE = 10;
+let SPEND_CAP_FULL = 20;
+// The account-wide backstop, layered UNDER the per-proposal caps above: even if every
+// single proposal stays inside its own cap, enough of them in flight at once can still
+// drain the account, and a badly-set cap is a config mistake away from doing real
+// damage. Before claiming ANY work this invocation, check the REAL live OpenRouter
+// balance (one free GET, no model cost) and refuse ALL stage-claiming for this tick if
+// it is at or under the floor — the exact discipline this project's own history shows
+// was previously enforced by a human remembering to check, which already failed once.
+// $3 is this project's own established floor (see NEEDS-CREDIT.md / RUNLOG.md).
+// Non-destructive: stages are simply not claimed this tick, not failed or held — the
+// next tick (after credit is added) picks up exactly where this one stopped.
+let BALANCE_FLOOR_USD = 3;
+function parseCap(raw: string | null, fallback: number): number {
+  const n = Number(raw);
+  return raw && Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 interface FullPoolEntry { match: string; model: string }
 function resolveTierModel(tier: string, analysis: Record<string, unknown> | undefined): string {
   if (tier === "full") {
@@ -185,6 +212,14 @@ function resolveTierModel(tier: string, analysis: Record<string, unknown> | unde
 // beat is a database write and a hop can return in a second.
 const ACTIVE_BEATS = new Set<() => void>();
 let lastBeatAll = 0;
+// Keyed by stage_id, NOT a single shared total — PARALLEL runs up to 3 concurrent
+// stages from potentially different proposals in one invocation, and a single mutable
+// running total would cross-contaminate between them (the exact class of bug launch
+// P2 #9 already found in per-stage cost accounting). Each stage writes only its own
+// key; the outer loop reads and deletes its own key when the stage settles, success or
+// failure. This is the spend-cap backstop's live half — record_spend() (SQL, atomic)
+// is the persistent half.
+const STAGE_USAGE_BY_ID = new Map<number, Usage>();
 function beatAll(): void {
   const now = Date.now();
   if (now - lastBeatAll < 20_000) return;
@@ -1965,10 +2000,38 @@ function composedStyleNote(axes: Record<string, string | number>, composition: R
 
 async function runStage(stage: { stage_id: number; proposal_id: string; key: string; attempt?: number }) {
   const stageUsage = newUsage();
+  STAGE_USAGE_BY_ID.set(stage.stage_id, stageUsage);
   const beat = () => patch(`job_stages?id=eq.${stage.stage_id}`, { heartbeat_at: new Date().toISOString() }).catch(() => {});
   const c = await ctx(stage.proposal_id);
   const done = (output: unknown) =>
     patch(`job_stages?id=eq.${stage.stage_id}`, { status: "done", finished_at: new Date().toISOString(), output });
+  // ================= per-tier spend cap =================
+  // Checked BEFORE any model call this invocation — a free, zero-cost read. Resumable
+  // stages (validate, gen:*, the gate) re-enter runStage on every tick, so this catches
+  // exactly the failure pattern that actually happened this project's own history: not
+  // one runaway call, but a stage retried or resumed many times, each time spending a
+  // little more, with nothing stopping it. spend_usd is monotonic (never reset by a
+  // retry) — see the migration. A proposal already at or over its tier's cap gets
+  // refused HERE, before it can spend another cent.
+  const tierForCap = String(c.order.tier ?? "draft");
+  const spendCap = tierForCap === "full" ? SPEND_CAP_FULL : tierForCap === "competitive" ? SPEND_CAP_COMPETITIVE : SPEND_CAP_DRAFT;
+  const spentSoFar = Number(c.prop.spend_usd ?? 0);
+  if (spentSoFar >= spendCap) {
+    // mark_spend_capped() flips spend_capped_at from NULL exactly once (atomic SQL
+    // UPDATE...RETURNING) — only the caller that wins raises the escalation, so a
+    // proposal retried against an already-capped state does not spam a second alert
+    // for the same event. This is an infra/cost event, distinct from a quality hold,
+    // so it gets its own kind rather than folding into gate_hold or order_stalled.
+    const firstTime = (await rpc("mark_spend_capped", { p_proposal_id: stage.proposal_id }).catch(() => null)) === true;
+    if (firstTime) {
+      await ins("escalations", {
+        kind: "spend_cap", order_id: c.order.id, order_proposal_id: stage.proposal_id,
+        priority: "immediate",
+        detail: { tier: tierForCap, spent_usd: spentSoFar, cap_usd: spendCap, stage: stage.key },
+      }).catch(() => {});
+    }
+    throw new Error(`spend cap reached: $${spentSoFar.toFixed(2)} of $${spendCap.toFixed(2)} for tier ${tierForCap}`);
+  }
   const analysis = c.out["analyze"] as Record<string, unknown> | undefined;
   // Resolved ONCE per stage invocation, scoped to this call — never a shared mutable
   // global. PARALLEL runs up to 3 stages concurrently inside one edge invocation, and
@@ -1976,7 +2039,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   // per-stage the way MODEL/MODEL_STRATEGY are set at invocation start would race
   // between them (the exact class of bug launch P2 #9 already found once, in the
   // per-stage cost accounting). This stays a local.
-  const tierModel = resolveTierModel(String(c.order.tier ?? "draft"), analysis);
+  const tierModel = resolveTierModel(tierForCap, analysis);
   const org = c.out["org"] as { profile?: unknown; evidence?: Array<Record<string, unknown>>; voice_guide?: unknown; gaps?: unknown[] } | undefined;
   const strategy = c.out["strategy"] as Record<string, unknown> | undefined;
   const design = c.out["design"] as Record<string, unknown> | undefined;
@@ -3009,7 +3072,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
           // one or two claims short of clean, and saving the draft makes a wider round
           // budget resumable (drop the last claim, one more round) instead of re-running
           // the whole correction ladder from the original draft.
-          output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true, held_narrative: narrative, usage: { ...stageUsage } },
+          output: { rounds, claim_ledger_tail: claimLedger.slice(0, 30), coverage, unresolved: true, usage: { ...stageUsage }, held_narrative: narrative },
         }).catch(() => {});
         throw new Error(`validation unresolved after ${maxRounds + 1} rounds: ` +
           [...groundingProblems.map((g) => "unsupported:" + String(g.claim).slice(0, 60)),
@@ -3498,7 +3561,28 @@ Deno.serve(async (req) => {
   MODEL_COMPETITIVE = (await rpc("get_secret", { p_name: "openrouter_model_competitive" })) ?? "";
   MODEL_FULL = (await rpc("get_secret", { p_name: "openrouter_model_full" })) ?? "";
   MODEL_FULL_POOL = (await rpc("get_secret", { p_name: "openrouter_model_full_pool" })) ?? "";
+  SPEND_CAP_DRAFT = parseCap(await rpc("get_secret", { p_name: "spend_cap_draft_usd" }).catch(() => null), SPEND_CAP_DRAFT);
+  SPEND_CAP_COMPETITIVE = parseCap(await rpc("get_secret", { p_name: "spend_cap_competitive_usd" }).catch(() => null), SPEND_CAP_COMPETITIVE);
+  SPEND_CAP_FULL = parseCap(await rpc("get_secret", { p_name: "spend_cap_full_usd" }).catch(() => null), SPEND_CAP_FULL);
+  BALANCE_FLOOR_USD = parseCap(await rpc("get_secret", { p_name: "openrouter_balance_floor_usd" }).catch(() => null), BALANCE_FLOOR_USD);
   if (!API_KEY) return new Response(JSON.stringify({ ok: false, reason: "openrouter key not configured; jobs held" }), { status: 200 });
+
+  // Account-wide floor: one free balance check, before touching any stage. Failing
+  // OPEN here (a network hiccup on the credits endpoint does not itself stop the
+  // account processing real work) but failing CLOSED on a confirmed low balance.
+  try {
+    const cr = await fetch("https://openrouter.ai/api/v1/credits", { headers: { authorization: `Bearer ${API_KEY}` } });
+    if (cr.ok) {
+      const cj = await cr.json();
+      const remaining = Number(cj?.data?.total_credits ?? 0) - Number(cj?.data?.total_usage ?? 0);
+      if (Number.isFinite(remaining) && remaining <= BALANCE_FLOOR_USD) {
+        return new Response(JSON.stringify({
+          ok: true, processed: 0, ms: 0,
+          reason: `balance floor reached: $${remaining.toFixed(2)} remaining, floor $${BALANCE_FLOOR_USD.toFixed(2)} — no stages claimed this tick`,
+        }), { status: 200 });
+      }
+    }
+  } catch { /* fail open: proceed to the per-proposal caps, the real backstop */ }
 
   const start = Date.now();
   let processed = 0;
@@ -3531,15 +3615,31 @@ Deno.serve(async (req) => {
         // attempt would restart from the original draft and reach the same wall while
         // burning the spend again. Hold it, tell the customer (the grounding gate did its
         // job), and stop — same class as evidence-starved and the similarity gate.
+        // "spend cap reached" is the same shape: retrying would immediately re-check the
+        // same cap and fail again, so there is nothing a retry buys — hold, notify the
+        // operator (this is an infrastructure/cost event, not a quality one), and stop.
+        const isSpendCap = msg.includes("spend cap reached");
         const isHold = msg.includes("claim blocked") || msg.includes("similarity gate") ||
-          msg.includes("evidence starved") || msg.includes("validation unresolved");
+          msg.includes("evidence starved") || msg.includes("validation unresolved") || isSpendCap;
         const final = st.attempt >= 3 || isHold;
         const status = final ? (isHold ? "held" : "failed") : "pending";
         await patch(`job_stages?id=eq.${st.stage_id}`, { status, error: msg }).catch(() => {});
+        // The spend_cap escalation itself is raised inside runStage(), at the cap
+        // check — that scope has c.order.id and can de-duplicate atomically via
+        // mark_spend_capped(); this outer scope has neither. isSpendCap only affects
+        // classification (isHold) here.
         // A non-final failure is retried on the next tick and is not worth an email.
         // A final one is the end of the road for a paid order, so somebody is told.
         if (final) await notifyTerminal(st.stage_id, st.proposal_id, status, msg);
       } finally {
+        // Persist THIS invocation's real spend, whatever the outcome — success, a
+        // quality hold, a spend-cap hold, or a plain retryable failure all cost money if
+        // any model call was made before the outcome was known. Monotonic: a stage that
+        // never got past its own spend-cap check (thrown before any call) records $0,
+        // a harmless no-op.
+        const u = STAGE_USAGE_BY_ID.get(st.stage_id);
+        STAGE_USAGE_BY_ID.delete(st.stage_id);
+        if (u && u.usd > 0) await rpc("record_spend", { p_proposal_id: st.proposal_id, p_amount: u.usd }).catch(() => {});
         ACTIVE_BEATS.delete(stBeat);
       }
     }));
