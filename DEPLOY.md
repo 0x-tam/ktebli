@@ -86,11 +86,23 @@ you have several projects linked and want to be explicit.
   are functionally the same; both are preserved as deployed.
 - **Secrets are not in this repo.** Functions read them at runtime through the
   `public.get_secret(text)` RPC, which reads Supabase Vault. Names in use:
-  `openrouter_api_key`, `openrouter_model`, `resend_api_key`, `email_from`,
-  `stripe_webhook_secret`, `site_url`, `support_email`, `worker_secret`. Manage them in
-  the dashboard's Vault, not via `supabase secrets set` — the code does not read
-  `Deno.env` for these. The only env vars the functions read directly are
+  `openrouter_api_key`, `openrouter_model`, `openrouter_model_strategy`, `resend_api_key`,
+  `email_from`, `stripe_webhook_secret`, `site_url`, `support_email`, `worker_secret`.
+  Manage them in the dashboard's Vault, not via `supabase secrets set` — the code does
+  not read `Deno.env` for these. The only env vars the functions read directly are
   `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, which the platform injects.
+  - **Per-tier model selection (phase 8 follow-on).** Four more, all optional and all
+    defaulting to unset (falls straight through to `openrouter_model`, so setting none
+    of these changes nothing): `openrouter_model_draft`, `openrouter_model_competitive`,
+    `openrouter_model_full` (the model Full uses when no pool entry matches), and
+    `openrouter_model_full_pool` — a JSON array picking Full's model by the grant itself:
+    `[{"match":"research|scientific|clinical","model":"provider/model-id"},{"match":"community|grassroots","model":"provider/model-id"}]`.
+    `match` is a case-insensitive regex tested against the grant's issuer/programme/
+    summary/priorities; first match wins, no match falls back to `openrouter_model_full`.
+    **Do not point a tier at a model that has not been run through a real order first** —
+    this project's own history is JSON-malformation rates, a design-stage runaway, and a
+    currency default that are all model-specific and were only found by driving real
+    orders end to end (reports/phase8-intake.md). Setting the secret is not validation.
 - A pg_cron job `ktebli-worker-tick` runs every minute and POSTs to the `worker`
   function with the `x-worker-secret` header. It lives in the database, not in this
   repo — see `db/schema.sql` section 7. Redeploying `worker` does not disturb it.
