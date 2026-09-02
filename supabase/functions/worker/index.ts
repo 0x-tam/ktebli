@@ -1967,10 +1967,18 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   if (fmt.requiredSections.length) fmtLines.push(`Required sections (each must appear as a heading): ${fmt.requiredSections.join("; ")}.`);
   // Evidence available for use in prose: only allowed items reach generation.
   const allowedEvidence = (org?.evidence ?? []).filter((e) => e.allowed !== false);
+  // DENSITY, not just permission (launch P0.3 follow-on: the delivery gate's own D4
+  // check disqualifies a document that draws on under half of what the ledger offers —
+  // KT-10001's first real gate verdict held for exactly this, at 75 of 155 available
+  // referents, after validate's necessarily-minimal surgical corrections had stripped
+  // ungrounded claims without anything telling generation to backfill with grounded
+  // ones. The ledger existing is not the same as the ledger being used: say so up front,
+  // at the point every generation call reads the ledger, not only after a hold.
   const EVIDENCE_NOTE =
     "\n\nEVIDENCE LEDGER — the ONLY permissible source of facts about this organisation's past and present. " +
     "Each item shows its source and status. Items marked stale/historical must be framed in their own time (\"in its 2022 programme…\"), never as current. " +
-    "If a fact is not in this ledger, it does not exist for this proposal: write around it or present it as a designed future feature. Never present a hypothetical as a real event, and never open with an invented anecdote:\n" +
+    "If a fact is not in this ledger, it does not exist for this proposal: write around it or present it as a designed future feature. Never present a hypothetical as a real event, and never open with an invented anecdote. " +
+    "USE MOST OF WHAT IS HERE: an independent fundability check disqualifies a document that draws on under half of the ledger's named referents. A generic proposal that merely avoids contradicting the ledger is not the goal — naming the real places, partners, staff, dates and prior results IS the goal, spread through the argument wherever they genuinely support a point, never forced in or listed for their own sake:\n" +
     JSON.stringify(allowedEvidence);
   const baseCtx = () =>
     `GRANT INTELLIGENCE (the controlling specification — cover every requirement row; respect the donor's own structure and limits):\n${JSON.stringify(analysis)}\n\n${applicantLine}` +

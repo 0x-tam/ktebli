@@ -352,9 +352,17 @@ function preflight(input: GateInput): PreflightResult {
   // index.ts:1715: a legitimately named new project reads as unsourced.
   const pn = properNounAudit(md, input.evidence ?? [], input.applicantName ?? "");
   if (pn.ledger_offers >= 3 && pn.used * 2 < pn.ledger_offers) {
+    // Hand the regeneration the ACTUAL unused names, not just a count. The first real
+    // order to reach the gate (KT-10001) held here, regenerated, and the document came
+    // back "padded or reordered, not rewritten" (materialChange: not material) — a vague
+    // count gives the model nothing concrete to act on. A named list does.
     failures.push(
       `D4 (${DISQUALIFIERS[3].text}): the evidence ledger offers ${pn.ledger_offers} named referents ` +
-      `and the narrative uses ${pn.used}`,
+      `and the narrative uses ${pn.used}. Unused and available: ${pn.unused.slice(0, 20).join("; ")}` +
+      (pn.unused.length > 20 ? ` (+${pn.unused.length - 20} more)` : "") +
+      `. Work a meaningful number of these into the argument by name — where they genuinely support a ` +
+      `point (a place the work happens, a partner it happens with, a person accountable for it, a prior ` +
+      `result that grounds a target) — spread through the body, not appended as a list.`,
     );
   }
 

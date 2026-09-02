@@ -185,6 +185,7 @@ function pnContains(docKey: Set<string>, ledgerKey: Set<string>): boolean {
 interface PNAudit {
   ledger_offers: number;      // distinct proper nouns the ledger could supply
   used: number;               // of those, how many the narrative actually uses
+  unused: string[];           // ledger-carried proper nouns the narrative did NOT use (capped 40)
   unsourced: string[];        // proper nouns in the narrative that no ledger item supports
   findings: string[];
 }
@@ -280,6 +281,16 @@ function properNounAudit(
 
   const offers = ledgerNouns.size;
   const findings: string[] = [];
+  // Which ledger-carried names went unused — the ACTUAL list, not just a count. A
+  // regeneration brief that says "you used 75 of 155" gives the model nothing to act
+  // on and it responds by padding or reordering (materialChange: not material, the
+  // exact failure the D4 hold produced on the first real order this reached the
+  // gate). Handing over the names themselves is what makes a fix concrete. Capped —
+  // a full 150-item list would dominate the prompt over the findings it belongs to.
+  const unused = ledgerKeys
+    .filter(([k]) => !used.has(k))
+    .map(([k]) => ledgerNouns.get(k) ?? k)
+    .slice(0, 40);
 
   if (unsourced.length) {
     findings.push(
@@ -294,11 +305,13 @@ function properNounAudit(
   if (offers >= 3 && used.size * 2 < offers) {
     findings.push(
       `SPECIFICITY: the evidence ledger offers ${offers} concrete named referents and the narrative uses only ${used.size}. ` +
-      `Name the places, partners, people and prior results the ledger already supports, in the body of the argument rather than in a list.`,
+      `Unused and available: ${unused.slice(0, 20).join("; ")}` +
+      (unused.length > 20 ? ` (+${unused.length - 20} more)` : "") +
+      `. Name the places, partners, people and prior results the ledger already supports, in the body of the argument rather than in a list.`,
     );
   }
 
-  return { ledger_offers: offers, used: used.size, unsourced, findings };
+  return { ledger_offers: offers, used: used.size, unused, unsourced, findings };
 }
 
 export { properNounAudit, properNounRuns, properNouns, normPN };
