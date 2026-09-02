@@ -170,6 +170,8 @@
   created_at                   timestamp with time zone         NOT NULL DEFAULT now()
   revisions_used               smallint                         NOT NULL DEFAULT 0
   revisions_cap                smallint                         NOT NULL DEFAULT 1
+  spend_usd                    numeric                          NOT NULL DEFAULT 0
+  spend_capped_at              timestamp with time zone         NULL
 
 -- table: orders   (RLS enabled)
   id                           uuid                             NOT NULL DEFAULT gen_random_uuid()
@@ -551,6 +553,19 @@ AS $function$
      where status = 'running' and heartbeat_at < now() - interval '3 minutes'
     returning id
   ) select count(*)::int from reaped;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.record_spend(p_proposal_id uuid, p_amount numeric)
+ RETURNS numeric
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  update public.order_proposals
+     set spend_usd = spend_usd + greatest(p_amount, 0)
+   where id = p_proposal_id
+  returning spend_usd;
 $function$
 ;
 
