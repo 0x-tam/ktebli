@@ -126,7 +126,52 @@ let API_KEY: string | null = null;
 // Two cases is not decisive. It is cheap and probably right, which is enough to make it the
 // default. The Vault secret openrouter_model still overrides this at runtime.
 let MODEL = "anthropic/claude-opus-5";           // workhorse: extraction, drafting, checks
-let MODEL_STRATEGY = "";                          // strategy/design/deep review (defaults to MODEL)
+let MODEL_STRATEGY = "";                          // strategy/design/deep review (defaults to the tier model)
+// ================= per-tier model selection =================
+// The marketing line is real: Draft gets a good model to kickstart things,
+// Competitive a very good model, Full auto-selects the best model FOR THE GRANT. All
+// four secrets default to "" (unset), and an unset tier falls straight through to the
+// flat MODEL — so behaviour is IDENTICAL to before this existed until an operator
+// deliberately configures a tier. That default is deliberate: swapping in an unproven
+// model changes failure modes this session spent real budget discovering and closing
+// for opus-5 specifically (JSON malformation rate, design-stage runaway, currency
+// drift). A new model needs the same validation before it is trusted with a paid
+// tier — configuring the secret is not enough on its own; see reports/phase8-intake.md.
+let MODEL_DRAFT = "";
+let MODEL_COMPETITIVE = "";
+let MODEL_FULL = "";
+// Optional JSON array for Full's grant-aware auto-select:
+//   [{"match":"research|scientific|clinical","model":"..."},{"match":"community|grassroots","model":"..."}]
+// `match` is a case-insensitive regex tested against the grant's issuer/programme/
+// summary/priorities. First match wins; no match (or unset/unparseable) falls back to
+// MODEL_FULL, then MODEL. Kept data-driven rather than hardcoded so the mapping can be
+// tuned without a deploy.
+let MODEL_FULL_POOL = "";
+
+interface FullPoolEntry { match: string; model: string }
+function resolveTierModel(tier: string, analysis: Record<string, unknown> | undefined): string {
+  if (tier === "full") {
+    if (MODEL_FULL_POOL) {
+      try {
+        const pool = JSON.parse(MODEL_FULL_POOL) as FullPoolEntry[];
+        if (Array.isArray(pool) && pool.length) {
+          const hay = [
+            (analysis as { issuer?: unknown })?.issuer, (analysis as { programme?: unknown })?.programme,
+            (analysis as { summary?: unknown })?.summary, (analysis as { priorities?: unknown })?.priorities,
+          ].map((x) => (Array.isArray(x) ? x.join(" ") : String(x ?? ""))).join(" ");
+          for (const entry of pool) {
+            if (entry?.match && entry?.model) {
+              try { if (new RegExp(entry.match, "i").test(hay)) return entry.model; } catch { /* bad pattern: skip */ }
+            }
+          }
+        }
+      } catch { /* unparseable pool: fall through */ }
+    }
+    return MODEL_FULL || MODEL;
+  }
+  if (tier === "competitive") return MODEL_COMPETITIVE || MODEL;
+  return MODEL_DRAFT || MODEL; // draft and any unrecognised tier
+}
 
 // The reaper marks a stage timed out after 3 minutes without a heartbeat. A
 // single generation can make up to twelve model calls (three validated attempts
@@ -904,7 +949,7 @@ function requiredSectionFindings(headingPlain: string[], required: string[]): st
 // ---- HEADING-GATE-END
 
 const BOX_RE = /[┌┐└┘├┤┬┴┼│═-╬]|─{3,}/;
-interface ContentOpts { requiredSections?: string[]; maxWords?: number | null; minWords?: number | null; signoff?: boolean; limitScope?: LimitScope; donorHeadings?: string[]; attachments?: string[] }
+interface ContentOpts { requiredSections?: string[]; maxWords?: number | null; minWords?: number | null; signoff?: boolean; limitScope?: LimitScope; donorHeadings?: string[]; attachments?: string[]; model?: string }
 function contentViolations(md: string, blocks: Block[], opts: ContentOpts = {}): string[] {
   const v: string[] = [];
   if (BOX_RE.test(md)) v.push("box_drawing_characters");
@@ -981,7 +1026,7 @@ function sanitizeMd(md: string): string {
 }
 
 async function generateValidated(prompt: string, maxTokens: number, opts: ContentOpts = {}, u?: Usage): Promise<string> {
-  let text = sanitizeMd(await llm(prompt, maxTokens, { u }));
+  let text = sanitizeMd(await llm(prompt, maxTokens, { u, model: opts.model }));
   let v = contentViolations(text, toBlocks(text), opts);
   if (!v.length) return text;
   // A model cannot count its own words, so restating the same target after an
@@ -1008,7 +1053,7 @@ async function generateValidated(prompt: string, maxTokens: number, opts: Conten
     `The following document draft violates these content rules: ${v.join(", ")}.` + lengthDetail(text, v, 1) + `\n` +
     `Rules recap:${FORMAT_RULES}${constraintsAt(1)}\n\nRewrite the COMPLETE document fixing every violation. Keep all substantive content unless shortening is required. ` +
     `Convert any diagram-like material into a numbered sequence, bullet list, or well-formed markdown table. ` +
-    `Return the complete corrected document only.\n\nDRAFT:\n${text}`, maxTokens, { u }));
+    `Return the complete corrected document only.\n\nDRAFT:\n${text}`, maxTokens, { u, model: opts.model }));
   v = contentViolations(repaired, toBlocks(repaired), opts);
   if (!v.length) return repaired;
   // When length is the ONLY thing wrong, regenerating from the original prompt
@@ -1024,7 +1069,7 @@ async function generateValidated(prompt: string, maxTokens: number, opts: Conten
         `Cut only by tightening sentences, removing repetition, and deleting the least load-bearing detail. Do not summarise and do not drop a section.\n` +
         `Return the complete shortened document only.${FORMAT_RULES}\n\nDOCUMENT:\n${repaired}`
       : prompt + `\n\nIMPORTANT: your previous attempt violated: ${v.join(", ")}.` + lengthDetail(repaired, v, 2) + ` Do not repeat those mistakes.${constraintsAt(2)}`,
-    maxTokens, { u }));
+    maxTokens, { u, model: opts.model }));
   v = contentViolations(text, toBlocks(text), opts);
   if (!v.length) return text;
   throw new Error("content validation failed: " + v.join(","));
@@ -1925,6 +1970,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
   const done = (output: unknown) =>
     patch(`job_stages?id=eq.${stage.stage_id}`, { status: "done", finished_at: new Date().toISOString(), output });
   const analysis = c.out["analyze"] as Record<string, unknown> | undefined;
+  // Resolved ONCE per stage invocation, scoped to this call — never a shared mutable
+  // global. PARALLEL runs up to 3 stages concurrently inside one edge invocation, and
+  // those stages can belong to DIFFERENT orders on DIFFERENT tiers; mutating a global
+  // per-stage the way MODEL/MODEL_STRATEGY are set at invocation start would race
+  // between them (the exact class of bug launch P2 #9 already found once, in the
+  // per-stage cost accounting). This stays a local.
+  const tierModel = resolveTierModel(String(c.order.tier ?? "draft"), analysis);
   const org = c.out["org"] as { profile?: unknown; evidence?: Array<Record<string, unknown>>; voice_guide?: unknown; gaps?: unknown[] } | undefined;
   const strategy = c.out["strategy"] as Record<string, unknown> | undefined;
   const design = c.out["design"] as Record<string, unknown> | undefined;
@@ -1954,7 +2006,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     ?.attachments_required ?? []) as unknown[]).map(String);
   const narrativeOpts: ContentOpts = {
     requiredSections: fmt.requiredSections, maxWords: fmt.maxWords, minWords: 450, limitScope,
-    donorHeadings, attachments: donorAttachments,
+    donorHeadings, attachments: donorAttachments, model: tierModel,
   };
   const applicantLine = `APPLICANT: ${c.order.org_name}` +
     (c.order.org_reg ? ` · registration no. ${c.order.org_reg}` : "") +
@@ -2026,7 +2078,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `- criteria: the donor's OWN published evaluation/scoring criteria only; empty array if none are stated. Never invent a rubric.\n` +
       `- funding floor/ceiling: numeric USD only when the text states amounts; otherwise null.\n` +
       `- format_spec: ONLY what the donor explicitly states; every unstated field null (or empty array). Never guess.\n\n` +
-      `GRANT PAGE TEXT:\n${U_OPEN}${text.slice(0, 40_000)}${U_CLOSE}`, 4000, { u: stageUsage }));
+      `GRANT PAGE TEXT:\n${U_OPEN}${text.slice(0, 40_000)}${U_CLOSE}`, 4000, { model: tierModel, u: stageUsage }));
     const norm = String(a.title ?? "unknown").toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
     const gsel = await sel(`grants?title_normalized=eq.${encodeURIComponent(norm)}&funder=eq.${encodeURIComponent(String(a.issuer ?? "unknown"))}&select=id`);
     let grantId = gsel[0]?.id;
@@ -2177,7 +2229,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
           `- profile: descriptive synthesis is fine, but every named programme/capability must actually appear in the text.\n` +
           `- gaps: information a grant application would want that the site does NOT provide (e.g. no results published, no team page).\n` +
           `- Vague mission language ("we empower young people") is voice material, NOT evidence of scale or results.\n\n` +
-          `${U_OPEN}${corpus}${U_CLOSE}`, 5000, { u: stageUsage }));
+          `${U_OPEN}${corpus}${U_CLOSE}`, 5000, { model: tierModel, u: stageUsage }));
         profile = (x.profile as Record<string, unknown>) ?? {};
         voiceGuide = (x.voice_guide as Record<string, unknown>) ?? {};
         webEvidence = (Array.isArray(x.evidence) ? x.evidence as Array<Record<string, unknown>> : []).map((e, i) => ({
@@ -2345,7 +2397,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `- knowledge: concrete organisational facts these documents assert (mission, past projects with years, results, locations, beneficiary groups, capabilities, team). Copy faithfully; never strengthen or total up. date_context: the year/period the document ties the fact to, if any. stale_risk true when the fact is time-bound (staff counts, "currently", in-progress projects) and the document may be old.\n` +
       `- do_not_copy: project-specific details that must never be reused in a new proposal.\n` +
       `- profile is about HOW they write, not facts.\n\n` +
-      `${U_OPEN}${samples}${U_CLOSE}`, 3000, { u: stageUsage }));
+      `${U_OPEN}${samples}${U_CLOSE}`, 3000, { model: tierModel, u: stageUsage }));
     const profile = (x.profile as Record<string, unknown>) ?? {};
     const knowledge = (Array.isArray(x.knowledge) ? x.knowledge as Array<Record<string, unknown>> : []).map((k, i) => ({
       id: `E-PROP-${i + 1}`, claim: String(k.claim ?? "").slice(0, 300), source_type: "previous_proposal",
@@ -2409,7 +2461,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       `- When the evidence ledger is empty or thin, that is NOT proof the organisation cannot execute: assume a small, competent community organisation and score feasibility for MODEST, low-complexity strategies accordingly (a simple strategy well matched to the grant should score 60+). Reserve low scores for strategies that would require scale, infrastructure or specialist capacity nothing suggests. An evidence-poor applicant gets a modest credible strategy, never a refusal.\n` +
       `- distinctness: "same" if a reserved approach is functionally the same project under different words (same core argument + same solution + same target handled the same way). Judge substance across problem framing, intervention, activities, beneficiary handling, sustainability and thesis — renaming is NOT distinctness.\n` +
       `- ranking: candidate indexes (0-based) best-first, preferring credible AND clearly distinct. Never rank a "same" candidate above a feasible "clear" one.`,
-      4500, { effort: "high", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
+      4500, { effort: "high", model: MODEL_STRATEGY || tierModel, u: stageUsage }));
     const candidates = (Array.isArray(s.candidates) ? s.candidates as Array<Record<string, unknown>> : []);
     if (!candidates.length) throw new Error("strategy generation returned no candidates");
     // WS4a-18 (P2): a non-array ranking ("1,2") used to become identity order
@@ -2558,7 +2610,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       // at validate and the delivery gate, not by verbosity here. maxTokens 12000 (was
       // 6000) so the object lands in ONE response — the 4-hop JSON continuation drifted,
       // still hit the cap, and multiplied the wall-clock. See reports/phase8-intake.md §3.
-      12000, { effort: "low", model: MODEL_STRATEGY || MODEL, u: stageUsage }));
+      12000, { effort: "low", model: MODEL_STRATEGY || tierModel, u: stageUsage }));
     const project = d.project as Record<string, unknown> | undefined;
     if (!project || !Array.isArray(project.activities) || !(project.activities as unknown[]).length) {
       throw new Error("project design incomplete");
@@ -2642,7 +2694,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       }
     }
 
-    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, numeric_register: rawRegister ?? null, register_derivations: registerDerivations, register_warning: registerWarning, usage: { ...stageUsage } });
+    return done({ project, assumptions: d.assumptions ?? [], logic_check: d.logic_check ?? null, numeric_register: rawRegister ?? null, register_derivations: registerDerivations, register_warning: registerWarning, model_used: tierModel, usage: { ...stageUsage } });
   }
 
   if (stage.key.startsWith("gen:")) {
@@ -2682,7 +2734,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         `Every line must trace to a design activity, staffing need or budget driver — no filler lines to reach a ceiling, no missing costs for listed activities. ` +
         `Unit costs are PLANNING ESTIMATES (do not present them as researched market prices). ` +
         `Reply ONLY strict JSON: {"currency":"USD","lines":[{"category":string,"item":string,"activity_ref":number|null,"qty":number,"unit":string,"unit_cost":number}]} with 10-25 lines. No prose.`;
-      let bj = jsonOf(await llm(baseCtx() + extra + `\n\nTASK: ${brief}`, spec.max, { u: stageUsage }));
+      let bj = jsonOf(await llm(baseCtx() + extra + `\n\nTASK: ${brief}`, spec.max, { model: tierModel, u: stageUsage }));
       const total = (lines: Array<{ qty?: number; unit_cost?: number }>) =>
         Math.round(lines.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.unit_cost) || 0), 0));
       const ceiling = (analysis?.funding_ceiling_usd as number | null) ?? null;
@@ -2692,13 +2744,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
       if (Number.isFinite(cap) && total(lines) > cap) {
         bj = jsonOf(await llm(baseCtx() + extra +
           `\n\nTASK: ${brief}\n\nYOUR PREVIOUS BUDGET TOTALLED USD ${total(lines)}, above the allowed USD ${Math.round(cap as number)}. ` +
-          `Rework it by scaling the DESIGN sensibly (fewer units, leaner staffing) — not by deleting costs the activities require. Return the corrected JSON only.`, spec.max, { u: stageUsage }));
+          `Rework it by scaling the DESIGN sensibly (fewer units, leaner staffing) — not by deleting costs the activities require. Return the corrected JSON only.`, spec.max, { model: tierModel, u: stageUsage }));
         lines = (bj.lines as Array<{ qty?: number; unit_cost?: number }>) ?? [];
         if (total(lines) > cap) throw new Error(`budget over limit: ${total(lines)} > ${Math.round(cap as number)}`);
       }
       return done({ json: bj, total_usd: total(lines), ceiling_usd: ceiling, envelope_usd: envelope, usage: { ...stageUsage } });
     }
-    const opts: ContentOpts = kind === "narrative" ? narrativeOpts : (kind === "cover_email" ? { signoff: true } : {});
+    const opts: ContentOpts = kind === "narrative" ? narrativeOpts : (kind === "cover_email" ? { signoff: true, model: tierModel } : { model: tierModel });
 
     // ---------- resumable progress (phase 6.5; see RESUMABLE-GEN above) ----------
     // The running stage's own prior output carries any persisted progress; a
@@ -2757,7 +2809,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
             plan.sections.filter((p) => sectionComplete(progress.sections![p.key])).map((p) => `## ${p.heading}\n${String(progress.sections![p.key]).slice(0, 1200)}`).join("\n\n").slice(0, 8000)
           }` +
           styleNote + STYLE_RULES + FORMAT_RULES,
-          2500, { u: stageUsage }));
+          2500, { model: tierModel, u: stageUsage }));
         if (!sectionComplete(body)) throw new Error(`section generation incomplete: ${sec.heading.slice(0, 40)}`);
         progress.sections[sec.key] = body;
         await saveProgress(); // a re-invoked worker resumes exactly here
@@ -2880,7 +2932,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         `It is NOT an escape hatch. Anything about what the organisation has DONE or ACHIEVED, or any claim used to make the applicant look more capable, stays "unsupported" even if the donor asks about capacity.\n` +
         `Reply strict JSON only: {"claims":[{"claim":string,"classification":string,"evidence_id":string|null,"material":boolean,"note":string}]}\n\n` +
         `DONOR REQUIREMENTS (for judging (a) above):\n${JSON.stringify(reqRows).slice(0, 6000)}\n\n` +
-        `EVIDENCE LEDGER:\n${JSON.stringify(allowedEvidence)}\n\nNARRATIVE:\n${narrative.slice(0, 28_000)}`, 3000, { u: stageUsage }));
+        `EVIDENCE LEDGER:\n${JSON.stringify(allowedEvidence)}\n\nNARRATIVE:\n${narrative.slice(0, 28_000)}`, 3000, { model: tierModel, u: stageUsage }));
       // WS4a-2/-3 (F3): unparsed ledger throws; classifications normalised,
       // out-of-enum values block. See normalizeClaims above.
       claimLedger = normalizeClaims(ledgerOut.claims);
@@ -2906,7 +2958,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         (rubric.length ? `DONOR CRITERIA:\n${JSON.stringify(rubric)}\n` : "") +
         `\nPROJECT DESIGN (what the documents are supposed to express):\n${JSON.stringify(project).slice(0, 8000)}\n\nDRAFT NARRATIVE:\n${narrative.slice(0, 28_000)}` +
         (docs.concept_note ? `\n\nCONCEPT NOTE:\n${docs.concept_note.slice(0, 6000)}` : ""),
-        3500, { effort: deep ? "high" : "low", model: deep ? (MODEL_STRATEGY || MODEL) : MODEL, u: stageUsage }));
+        3500, { effort: deep ? "high" : "low", model: deep ? (MODEL_STRATEGY || tierModel) : tierModel, u: stageUsage }));
       // WS4a-4: non-array coverage used to become [] and the requirement gate
       // passed vacuously; an EMPTY array against a non-empty requirement
       // matrix is the same defeat one shape later. Either is a failed audit.
@@ -3031,7 +3083,7 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
     const ledgerOut = jsonOf(await llm(
       `Audit FACTUAL GROUNDING. Extract material claims this narrative makes about the organisation's PAST or PRESENT and classify each against the evidence ledger: "supported"|"qualified"|"model_proposed_future"|"stale"|"conflicting"|"unsupported".\n` +
       `Reply strict JSON only: {"claims":[{"claim":string,"classification":string,"material":boolean}]}\n\n` +
-      `EVIDENCE LEDGER:\n${JSON.stringify(allowedEvidence)}\n\nNARRATIVE:\n${text.slice(0, 28_000)}`, 2500, { u: stageUsage }));
+      `EVIDENCE LEDGER:\n${JSON.stringify(allowedEvidence)}\n\nNARRATIVE:\n${text.slice(0, 28_000)}`, 2500, { model: tierModel, u: stageUsage }));
     // Same F3 shape as validate (WS4a-2/-3): unparsed ledger throws, and an
     // out-of-enum classification is already "unsupported" after normalisation.
     const bad = normalizeClaims(ledgerOut.claims)
@@ -3142,7 +3194,13 @@ async function runStage(stage: { stage_id: number; proposal_id: string; key: str
         // disagree with the renderer on the same document.
         fmt: { maxWords: limitScope === "whole" ? fmt.maxWords : null },
         evidence: allowedEvidence,
-        generatorModel: MODEL,
+        // MUST be the model that actually wrote this document, not the flat global —
+        // criticModelsFor() uses this to refuse a same-family judge (the generator
+        // never grades its own work). Once a tier is configured to a non-default
+        // model, generatorModel: MODEL would silently report the WRONG family and
+        // could let a same-family judge through unnoticed. tierModel is what
+        // generation actually used for this order (see narrativeOpts / opts above).
+        generatorModel: tierModel,
       };
       const gate = await runGateLoop(gateInput, gateDeps, {
         regenerate: async (brief, previous) => {
@@ -3432,7 +3490,14 @@ Deno.serve(async (req) => {
   if (!secret || req.headers.get("x-worker-secret") !== secret) return new Response("forbidden", { status: 403 });
   API_KEY = await rpc("get_secret", { p_name: "openrouter_api_key" });
   MODEL = (await rpc("get_secret", { p_name: "openrouter_model" })) ?? MODEL;
-  MODEL_STRATEGY = (await rpc("get_secret", { p_name: "openrouter_model_strategy" })) ?? MODEL;
+  // Defaults to "" (unset), NOT MODEL: an unset strategy override must fall through to
+  // the tier-resolved model (resolveTierModel), not short-circuit past it back to the
+  // flat global. Same for the three tier secrets below.
+  MODEL_STRATEGY = (await rpc("get_secret", { p_name: "openrouter_model_strategy" })) ?? "";
+  MODEL_DRAFT = (await rpc("get_secret", { p_name: "openrouter_model_draft" })) ?? "";
+  MODEL_COMPETITIVE = (await rpc("get_secret", { p_name: "openrouter_model_competitive" })) ?? "";
+  MODEL_FULL = (await rpc("get_secret", { p_name: "openrouter_model_full" })) ?? "";
+  MODEL_FULL_POOL = (await rpc("get_secret", { p_name: "openrouter_model_full_pool" })) ?? "";
   if (!API_KEY) return new Response(JSON.stringify({ ok: false, reason: "openrouter key not configured; jobs held" }), { status: 200 });
 
   const start = Date.now();
