@@ -150,15 +150,21 @@ let MODEL_FULL_POOL = "";
 
 // ================= per-tier spend cap =================
 // Hard ceilings, in dollars, per PROPOSAL (not per order — a revision or a retried
-// proposal gets its own budget rather than draining a shared one). Real generous
-// headroom above the estimated cost ranges (Draft ~$1.5-3, Competitive ~$2.5-5, Full
-// ~$4-8 at Opus 5; Fable 5.1 roughly doubles the Full-tier estimate) — this is a
-// backstop against a BUG (a retry loop, a resumable stage that never converges), not a
-// budget-management tool. Configurable via secrets so a bad default doesn't need a
+// proposal gets its own budget rather than draining a shared one). This is a backstop
+// against a BUG (a retry loop, a resumable stage that never converges), never a
+// budget-management tool — a real customer's legitimate order must never fail because
+// the ceiling was set to save a few dollars, so headroom is deliberately generous over
+// the worst-case-but-LEGITIMATE cost per tier's ACTUAL target model:
+//   Draft (Sonnet 5): ~$1.10 worst-case legit -> $8 cap (~7x)
+//   Competitive (Opus 5): ~$3.20 worst-case legit -> $14 cap (~4x)
+//   Full (Fable 5.1): ~$8.50 worst-case legit -> $40 cap (~4.7x)
+// Full carries the least certainty (the most tier work — up to 5 documents, 6 validate
+// rounds — on the one model with zero real orders through it), so it gets the most
+// headroom, not the least. Configurable via secrets so a bad default doesn't need a
 // deploy to fix; these numbers are the fallback when the secret is unset or unparseable.
-let SPEND_CAP_DRAFT = 6;
-let SPEND_CAP_COMPETITIVE = 10;
-let SPEND_CAP_FULL = 20;
+let SPEND_CAP_DRAFT = 8;
+let SPEND_CAP_COMPETITIVE = 14;
+let SPEND_CAP_FULL = 40;
 // The account-wide backstop, layered UNDER the per-proposal caps above: even if every
 // single proposal stays inside its own cap, enough of them in flight at once can still
 // drain the account, and a badly-set cap is a config mistake away from doing real
