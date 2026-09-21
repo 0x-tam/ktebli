@@ -1,0 +1,393 @@
+{
+  "site": "https://www.themagpieproject.org",
+  "org": "The Magpie Project",
+  "stated_name": "Cart",
+  "report": {
+    "outcome": "succeeded",
+    "reason": "themagpieproject.org: 10 page(s) fetched, 8 parsed, 90 referent(s) extracted, 90 surviving the identity gate",
+    "pages_fetched": 10,
+    "pages_parsed": 8,
+    "referents_extracted": 90,
+    "referents_surviving": 90,
+    "domain": "themagpieproject.org",
+    "detail": {
+      "contract": "1.3.0",
+      "robots": {
+        "fetched": true,
+        "status": 200,
+        "allowed": true,
+        "rule": null,
+        "error": null
+      },
+      "statuses": [
+        {
+          "url": "https://www.themagpieproject.org/robots.txt",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://www.themagpieproject.org/",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://www.themagpieproject.org/sitemap.xml",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/about",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/mums-stories",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/latest-news",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/cart",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/home-2",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/our-work-our-plans",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/our-funders-and-supporters",
+          "status": 200,
+          "error": null
+        },
+        {
+          "url": "https://themagpieproject.org/something-went-wrong-i-want-to-complain",
+          "status": 200,
+          "error": null
+        }
+      ],
+      "discovered": 58,
+      "kept_chars": 28575,
+      "text_chars": 255023,
+      "fetch_budget_exhausted": false,
+      "prose_pages": 8,
+      "identity_gate": "cleared",
+      "elapsed_ms": 14356
+    }
+  },
+  "referents": [
+    "Grassroots Resouce Centre",
+    "Please",
+    "Need Help Now",
+    "Supporting",
+    "Newham",
+    "Magpie Mums",
+    "High",
+    "ATMs",
+    "National Insurance",
+    "British",
+    "Wi-Fi",
+    "Magpie7",
+    "Money Advice Service",
+    "Use Money Helper’s",
+    "PINs",
+    "WiFi Always",
+    "Scammers",
+    "Contacted",
+    "Forward",
+    "Action Fraud",
+    "Money Helper’s Beginner’s Guide",
+    "FCA’s",
+    "Saves",
+    "Watch",
+    "Homeless Link",
+    "Home Office",
+    "Despite",
+    "Krystal",
+    "Krystal’s",
+    "Anxiety",
+    "Nobody",
+    "Ade’s",
+    "Museum of Homelessness",
+    "Fazeela",
+    "Romford Road",
+    "Two",
+    "Grace",
+    "Newham Council",
+    "Whether",
+    "Hope",
+    "Hold",
+    "Emerging SEND Needs",
+    "NRPF Families",
+    "London",
+    "Child Poverty Strategy",
+    "Rights Experience Advocacy Change",
+    "Hundreds",
+    "Magpie Project Rights",
+    "Change",
+    "Clapton Community Football Club",
+    "Fundraiser",
+    "No Child",
+    "Home Without",
+    "Clapton",
+    "Helen",
+    "JustIdeas",
+    "London Marathon",
+    "That’s",
+    "MPs Stephen Timms",
+    "Uma Kumaran",
+    "Articles",
+    "Guardian",
+    "Metro",
+    "Inside Housing",
+    "Iftar",
+    "Batata Vada",
+    "Magpie Project Watch",
+    "Chantalle",
+    "Shelter",
+    "Kay Rowe Nursery",
+    "Children’s Centre",
+    "Ensuring",
+    "Praxis",
+    "Alternatives Trust East London",
+    "Compost London",
+    "Discover Story",
+    "Story Sandwich",
+    "London Black Women’s",
+    "Hackney Migrant Centre",
+    "Newham Children’s Services",
+    "Queens’ Nursing Institute",
+    "Journal of Health Visiting",
+    "Bethany William",
+    "Financial Conduct Authority",
+    "Digital",
+    "Creche",
+    "Magpie Project At The Magpie",
+    "Chat",
+    "We’ll",
+    "Charity Commission"
+  ],
+  "pages": [
+    {
+      "url": "https://www.themagpieproject.org",
+      "chars": 9000
+    },
+    {
+      "url": "https://themagpieproject.org/about",
+      "chars": 290
+    },
+    {
+      "url": "https://themagpieproject.org/mums-stories",
+      "chars": 7967
+    },
+    {
+      "url": "https://themagpieproject.org/latest-news",
+      "chars": 1745
+    },
+    {
+      "url": "https://themagpieproject.org/home-2",
+      "chars": 2457
+    },
+    {
+      "url": "https://themagpieproject.org/our-work-our-plans",
+      "chars": 4980
+    },
+    {
+      "url": "https://themagpieproject.org/our-funders-and-supporters",
+      "chars": 1171
+    },
+    {
+      "url": "https://themagpieproject.org/something-went-wrong-i-want-to-complain",
+      "chars": 965
+    }
+  ],
+  "observations": {
+    "website": "https://www.themagpieproject.org",
+    "domain": "themagpieproject.org",
+    "bad_url": false,
+    "robots": {
+      "fetched": true,
+      "status": 200,
+      "allowed": true,
+      "rule": null,
+      "error": null
+    },
+    "pages": [
+      {
+        "url": "https://www.themagpieproject.org/robots.txt",
+        "role": "robots",
+        "status": 200,
+        "error": null,
+        "content_type": "text/plain; charset=utf-8",
+        "html_chars": 0,
+        "text_chars": 0,
+        "kept_chars": 0,
+        "script_chars": 0,
+        "prose": false,
+        "body_sample": ""
+      },
+      {
+        "url": "https://www.themagpieproject.org/",
+        "role": "home",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 204645,
+        "text_chars": 23095,
+        "kept_chars": 9000,
+        "script_chars": 36295,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>Cart &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large, noindex, follow' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fcart%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fcart%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-44213baa11135cb6e179676eed7dd8e2' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787853511' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-1faae7fb7ef8a466732c9194fb725f9f' href='https://themagpieproject.org/_static/??-eJx1jsEKwjAQRH/IdQlS2ov4KZJuQo1NsqG7aejfW5TqyevMvOG1AsRZfVZMFUqsU8iCrRAneeDTa7E031efHS9oq3"
+      },
+      {
+        "url": "https://www.themagpieproject.org/sitemap.xml",
+        "role": "sitemap",
+        "status": 200,
+        "error": null,
+        "content_type": "text/xml; charset=UTF-8",
+        "html_chars": 0,
+        "text_chars": 0,
+        "kept_chars": 0,
+        "script_chars": 0,
+        "prose": false,
+        "body_sample": ""
+      },
+      {
+        "url": "https://themagpieproject.org/about",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 221335,
+        "text_chars": 24023,
+        "kept_chars": 290,
+        "script_chars": 34245,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>What we do &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fabout%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fabout%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-44213baa11135cb6e179676eed7dd8e2' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787853511' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-1faae7fb7ef8a466732c9194fb725f9f' href='https://themagpieproject.org/_static/??-eJx1jsEKwjAQRH/IdQlS2ov4KZJuQo1NsqG7aejfW5TqyevMvOG1AsRZfVZMFUqsU8iCrRAneeDTa7E031efHS9oq3KyqoGOBnb"
+      },
+      {
+        "url": "https://themagpieproject.org/mums-stories",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 236003,
+        "text_chars": 32280,
+        "kept_chars": 7967,
+        "script_chars": 34198,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>Our mums&#8217; stories &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fmums-stories%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fmums-stories%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-44213baa11135cb6e179676eed7dd8e2' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787853511' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-1faae7fb7ef8a466732c9194fb725f9f' href='https://themagpieproject.org/_static/??-eJx1jsEKwjAQRH/IdQlS2ov4KZJuQo1NsqG7aejfW5TqyevMvOG1AsRZfVZMFUqsU8iCrRAn"
+      },
+      {
+        "url": "https://themagpieproject.org/latest-news",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 227211,
+        "text_chars": 25180,
+        "kept_chars": 1745,
+        "script_chars": 33498,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>Latest news &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Flatest-news%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Flatest-news%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-44213baa11135cb6e179676eed7dd8e2' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787853511' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-1faae7fb7ef8a466732c9194fb725f9f' href='https://themagpieproject.org/_static/??-eJx1jsEKwjAQRH/IdQlS2ov4KZJuQo1NsqG7aejfW5TqyevMvOG1AsRZfVZMFUqsU8iCrRAneeDTa7E031efHS"
+      },
+      {
+        "url": "https://themagpieproject.org/cart",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 204720,
+        "text_chars": 23095,
+        "kept_chars": 0,
+        "script_chars": 36295,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>Cart &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large, noindex, follow' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fcart%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fcart%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-44213baa11135cb6e179676eed7dd8e2' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787853511' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-1faae7fb7ef8a466732c9194fb725f9f' href='https://themagpieproject.org/_static/??-eJx1jsEKwjAQRH/IdQlS2ov4KZJuQo1NsqG7aejfW5TqyevMvOG1AsRZfVZMFUqsU8iCrRAneeDTa7E031efHS9oq3"
+      },
+      {
+        "url": "https://themagpieproject.org",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 204645,
+        "text_chars": 23095,
+        "kept_chars": 0,
+        "script_chars": 36295,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>Cart &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large, noindex, follow' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fcart%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fcart%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-44213baa11135cb6e179676eed7dd8e2' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787853511' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-1faae7fb7ef8a466732c9194fb725f9f' href='https://themagpieproject.org/_static/??-eJx1jsEKwjAQRH/IdQlS2ov4KZJuQo1NsqG7aejfW5TqyevMvOG1AsRZfVZMFUqsU8iCrRAneeDTa7E031efHS9oq3"
+      },
+      {
+        "url": "https://themagpieproject.org/home-2",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 297743,
+        "text_chars": 26328,
+        "kept_chars": 2457,
+        "script_chars": 38366,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>The Magpie Project &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fhome-2%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fhome-2%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-44213baa11135cb6e179676eed7dd8e2' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787853511' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-1faae7fb7ef8a466732c9194fb725f9f' href='https://themagpieproject.org/_static/??-eJx1jsEKwjAQRH/IdQlS2ov4KZJuQo1NsqG7aejfW5TqyevMvOG1AsRZfVZMFUqsU8iCrRAneeDTa7E031efHS9oq"
+      },
+      {
+        "url": "https://themagpieproject.org/our-work-our-plans",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 226436,
+        "text_chars": 29026,
+        "kept_chars": 4980,
+        "script_chars": 34201,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>Our professional partners &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Four-work-our-plans%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Four-work-our-plans%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-aa230d1874b84ce97c7aba020215b193' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787837584' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-553c6df5756ed30d79fe475b32a621fd' href='https://themagpieproject.org/_static/??-eJx1jsEOwiAQRH/IdWPUwMX4KYYupGKBJd1F0r+30VRPXmfmTV6vQFw0FM"
+      },
+      {
+        "url": "https://themagpieproject.org/our-funders-and-supporters",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 220993,
+        "text_chars": 24420,
+        "kept_chars": 1171,
+        "script_chars": 34215,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>Our funders and supporters &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Four-funders-and-supporters%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Four-funders-and-supporters%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-aa230d1874b84ce97c7aba020215b193' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787837584' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-553c6df5756ed30d79fe475b32a621fd' href='https://themagpieproject.org/_static/??-eJx1jsEOwiAQRH/IdWPUwMX4KYYupGKBJd1F0r+30"
+      },
+      {
+        "url": "https://themagpieproject.org/something-went-wrong-i-want-to-complain",
+        "role": "page",
+        "status": 200,
+        "error": null,
+        "content_type": "text/html; charset=UTF-8",
+        "html_chars": 219345,
+        "text_chars": 24481,
+        "kept_chars": 965,
+        "script_chars": 34228,
+        "prose": true,
+        "body_sample": "<!DOCTYPE html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\n<title>I have a complaint &#8211; what should I do? &#8211; The Magpie Project</title>\n<meta name='robots' content='max-image-preview:large' />\n<link rel='dns-prefetch' href='//secure.gravatar.com' />\n<link rel='dns-prefetch' href='//fonts-api.wp.com' />\n<link rel='dns-prefetch' href='//widgets.wp.com' />\n<link rel='dns-prefetch' href='//jetpack.wordpress.com' />\n<link rel='dns-prefetch' href='//s0.wp.com' />\n<link rel='dns-prefetch' href='//public-api.wordpress.com' />\n<link rel='dns-prefetch' href='//0.gravatar.com' />\n<link rel='dns-prefetch' href='//1.gravatar.com' />\n<link rel='dns-prefetch' href='//2.gravatar.com' />\n<link rel='preconnect' href='//i0.wp.com' />\n<link rel='preconnect' href='//c0.wp.com' />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Feed\" href=\"https://themagpieproject.org/feed/\" />\n<link rel=\"alternate\" type=\"application/rss+xml\" title=\"The Magpie Project &raquo; Comments Feed\" href=\"https://themagpieproject.org/comments/feed/\" />\n<link rel=\"alternate\" title=\"oEmbed (JSON)\" type=\"application/json+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fsomething-went-wrong-i-want-to-complain%2F\" />\n<link rel=\"alternate\" title=\"oEmbed (XML)\" type=\"text/xml+oembed\" href=\"https://themagpieproject.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fthemagpieproject.org%2Fsomething-went-wrong-i-want-to-complain%2F&#038;format=xml\" />\n<style id=\"wp-img-auto-sizes-contain-inline-css\">\nimg:is([sizes=auto i],[sizes^=\"auto,\" i]){contain-intrinsic-size:3000px 1500px}\n/*# sourceURL=wp-img-auto-sizes-contain-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-1ec9b184cc128ce63f9a91f29b2b23c5' href='https://themagpieproject.org/_static/??-eJyNjdsNwjAMABcitSoojw+ExASskKZOiWrHVewSsT3pBvyedHd1dUGyYTZYaZtTVgibmrCzmsywuIg4KXwwT1JA2et79EQiGWLxjFXKAi8fFj+jwpMkLC2hCjo6JORWltI1cKh/rnY5WHRqX0LtOOVdf/C9v1zPx9upH4YfR+9Ecw==' type='text/css' media='all' />\n<style id=\"wp-emoji-styles-inline-css\">\n\n\timg.wp-smiley, img.emoji {\n\t\tdisplay: inline !important;\n\t\tborder: none !important;\n\t\tbox-shadow: none !important;\n\t\theight: 1em !important;\n\t\twidth: 1em !important;\n\t\tmargin: 0 0.07em !important;\n\t\tvertical-align: -0.1em !important;\n\t\tbackground: none !important;\n\t\tpadding: 0 !important;\n\t}\n/*# sourceURL=wp-emoji-styles-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-ba6b530029e7fd8784887f706951492b' href='https://themagpieproject.org/wp-content/plugins/gutenberg/build/styles/block-library/style.min.css?m=1787137702' type='text/css' media='all' />\n<style id=\"wp-block-library-inline-css\">\n.has-text-align-justify{text-align:justify;}\n/*# sourceURL=wp-block-library-inline-css */\n</style>\n<link rel='stylesheet' id='all-css-aa230d1874b84ce97c7aba020215b193' href='https://themagpieproject.org/wp-content/mu-plugins/wpcomsh/jetpack_vendor/automattic/jetpack-podcast/dist/blocks/podcast-episode/style.css?m=1787837584' type='text/css' media='all' />\n<link rel='stylesheet' id='jetpack-forms-layout-css' href='https://themagpieproject.org/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/src/../dist/contact-form/css/jetpack-forms-layout.css?ver=16.2-a.3' media='all' />\n<link rel='stylesheet' id='all-css-414ea0f1b1fa1f9906fa348accd5ee55' href='https://themagpieproject.org/wp-content/plugins/document/build/style-index.css?m=1661113848' type='text/css' media='all' />\n<style id=\"embed-pdf-viewer-pdf-style-inline-css\">\n.embed-pdf-viewer{border-style:none;display:block;margin:0 auto}@media only screen and (max-device-width:768px){.embed-pdf-viewer{max-height:500px;width:100%}}\n\n/*# sourceURL=https://themagpieproject.org/wp-content/plugins/embed-pdf-viewer/blocks/build/style-index.css */\n</style>\n<link rel='stylesheet' id='all-css-553c6df5756ed30d79fe475b32a621fd' href='https://themagpieproject.org/_static/"
+      }
+    ],
+    "fetch_budget_exhausted": false,
+    "discovered": 58,
+    "elapsed_ms": 14356
+  },
+  "wall_ms": 14387
+}

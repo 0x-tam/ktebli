@@ -75,6 +75,39 @@ export interface SafeFetchResult {
   body: string;
 }
 
+/**
+ * The refusal reason when a response's content-type is not readable. The status
+ * is part of the finding: a 403 that also carries a non-text (or missing)
+ * content-type is a REFUSAL, not a transport failure, and the crawler must be
+ * able to classify it as one. Discarding the status here would recreate, one
+ * layer down, exactly the defect crawl_outcome.ts exists to fix — the
+ * thefelixproject.org silent failure was a discarded status.
+ */
+export function ctRefusalReason(status: number): string {
+  return status >= 200 && status < 300 ? "bad_content_type" : `bad_content_type_http_${status}`;
+}
+
+/**
+ * Decode a body honouring its declared charset: the content-type header first,
+ * then a <meta charset> in the first bytes, else UTF-8. Tiny-charity sites are
+ * disproportionately windows-1252/iso-8859-1, and decoding those as UTF-8 turns
+ * readable prose into replacement-character junk that the prose detector then
+ * (correctly) refuses — a false extraction_failed. An unknown label falls back
+ * to UTF-8 rather than failing.
+ */
+export function decodeBody(buf: Uint8Array, contentType: string): string {
+  let label = /charset=["']?([\w.-]+)/i.exec(contentType ?? "")?.[1] ?? null;
+  if (!label) {
+    const head = new TextDecoder().decode(buf.subarray(0, 1024));
+    label = /<meta[^>]+charset=["']?([\w.-]+)/i.exec(head)?.[1] ??
+      /content=["'][^"']*charset=([\w.-]+)/i.exec(head)?.[1] ?? null;
+  }
+  if (label && !/^utf-?8$/i.test(label)) {
+    try { return new TextDecoder(label.toLowerCase()).decode(buf); } catch { /* unknown label */ }
+  }
+  return new TextDecoder().decode(buf);
+}
+
 export async function safeFetchText(
   rawUrl: string,
   opts: SafeFetchOpts = {},
@@ -113,7 +146,7 @@ export async function safeFetchText(
       }
 
       const ct = resp.headers.get("content-type") ?? "";
-      if (!allow.test(ct)) { try { await resp.body?.cancel(); } catch { /* noop */ } throw new SsrfError("bad_content_type"); }
+      if (!allow.test(ct)) { try { await resp.body?.cancel(); } catch { /* noop */ } throw new SsrfError(ctRefusalReason(resp.status)); }
 
       const reader = resp.body?.getReader();
       if (!reader) return { finalUrl: u.toString(), status: resp.status, contentType: ct, body: "" };
@@ -131,7 +164,7 @@ export async function safeFetchText(
       const buf = new Uint8Array(Math.min(total, maxBytes));
       let off = 0;
       for (const c of chunks) { if (off + c.length > buf.length) { buf.set(c.subarray(0, buf.length - off), off); break; } buf.set(c, off); off += c.length; }
-      return { finalUrl: u.toString(), status: resp.status, contentType: ct, body: new TextDecoder().decode(buf) };
+      return { finalUrl: u.toString(), status: resp.status, contentType: ct, body: decodeBody(buf, ct) };
     }
     throw new SsrfError("too_many_redirects");
   } finally {
@@ -139,12 +172,70 @@ export async function safeFetchText(
   }
 }
 
+// The common named entities, decoded to their characters. Everything else named
+// still strips to a space, exactly as before. Numeric entities used to survive
+// stripping as literal text ("St Aidan&#8217;s"), which both polluted referents
+// and dragged a page's letter ratio down toward a false extraction_failed.
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ",
+  rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“",
+  ndash: "–", mdash: "—", hellip: "…", middot: "·",
+  pound: "£", euro: "€", cent: "¢", copy: "©", reg: "®", trade: "™", deg: "°",
+  eacute: "é", egrave: "è", ecirc: "ê", agrave: "à", acirc: "â", aacute: "á",
+  ccedil: "ç", ouml: "ö", oacute: "ó", ocirc: "ô", uuml: "ü", uacute: "ú",
+  auml: "ä", iacute: "í", ntilde: "ñ", szlig: "ß",
+};
+
+function entityChar(cp: number): string {
+  if (!Number.isFinite(cp) || cp < 32 || (cp >= 127 && cp < 160) || cp > 0x10ffff) return " ";
+  try { return String.fromCodePoint(cp); } catch { return " "; }
+}
+
+export function decodeEntities(s: string): string {
+  return s
+    .replace(/&#(\d{1,7});/g, (_, d) => entityChar(Number(d)))
+    .replace(/&#x([0-9a-f]{1,6});/gi, (_, h) => entityChar(parseInt(h, 16)))
+    .replace(/&([a-z]+);/gi, (_, name: string) => NAMED_ENTITIES[name.toLowerCase()] ?? " ");
+}
+
+// Elements whose CONTENT is site furniture, not the organisation's prose. A nav
+// menu stripped to bare words reads as "Volunteer Donate Get Help Menu Home
+// About" — a run of capitalised words that the proper-noun counter (correctly,
+// for narrative text) reads as one giant name. The phase-5 live run showed
+// two-thirds of "referents" on real charity sites were exactly this. Removing
+// the elements is the honest fix: the words were never the applicant's prose.
+// <header>, <footer> and <form> are deliberately KEPT — real sites put
+// straplines, addresses and charity numbers there — and the paragraph filter
+// (crawl_outcome.keepParagraphs) handles the link lists they also carry.
+const BOILERPLATE_RE =
+  /<(nav|aside|menu|select|button|iframe|svg|noscript)\b[\s\S]*?<\/\1>/gi;
+
+// Closing a block element ends a run of text. Without a real boundary here, a
+// menu's last label glues onto the first word of the article ("About We run a
+// pantry…") and a card grid's labels glue to each other. The sentinel becomes a
+// newline AFTER source whitespace is collapsed, so the line structure of the
+// OUTPUT reflects the block structure of the page, never the pretty-printing of
+// its HTML.
+const BLOCK_BOUNDARY_RE =
+  /<\/?(p|div|li|ul|ol|dl|dt|dd|h[1-6]|tr|td|th|table|thead|tbody|section|article|main|header|footer|form|blockquote|figure|figcaption|pre|address)\b[^>]*>|<(br|hr)\b[^>]*\/?>/gi;
+
 export function stripHtml(raw: string, cap = 60_000): string {
-  return raw
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&\w+;/g, " ")
+  // Block boundaries become a NUL sentinel, which survives the whitespace
+  // collapse (NUL is not \s) and then becomes a real line break — so the line
+  // structure of the OUTPUT reflects the block structure of the page, never the
+  // pretty-printing of its HTML source.
+  const S = "\u0000";
+  return decodeEntities(
+    raw
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(BOILERPLATE_RE, " ")
+      .replace(BLOCK_BOUNDARY_RE, S)
+      .replace(/<[^>]+>/g, " "),
+  )
     .replace(/\s+/g, " ")
+    .replace(/ ?\u0000[\s\u0000]*/g, "\n")
+    .replace(/^\n+|\n+$/g, "")
     .slice(0, cap);
-  }
+}

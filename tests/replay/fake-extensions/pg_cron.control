@@ -1,0 +1,4 @@
+comment = 'REPLAY SHIM: records cron.schedule calls instead of scheduling them'
+default_version = '0.0.0-shim'
+relocatable = false
+schema = cron

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "E-META-0",
+    "source": "fixture-meta",
+    "fact": "synthetic fixture, ledger 'n06thin'. halewater commons trust does not exist and nothing in this file is a fact about any real organisation. named referents in this ledger: 6. arm: specificity axis, THIN arm - same six names as n06, every date, number and place removed. this item is metadata, not evidence - filter on source == 'fixture-meta' before building any prompt packet. counting method is in fixture-readme.md.",
+    "referent_kind": "meta"
+  },
+  {
+    "id": "E-INTAKE-1",
+    "source": "intake",
+    "fact": "The applicant is Halewater Commons Trust (synthetic fixture; the organisation does not exist and no statement in this ledger is a fact about any real body).",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-INTAKE-2",
+    "source": "intake",
+    "fact": "Legal form: charitable incorporated organisation, constituted 2016. Registered charity number: deliberately not instantiated in this fixture, because any realistic-looking number could collide with a real entry on a real register. Treat registration as confirmed for eligibility purposes.",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-INTAKE-3",
+    "source": "intake",
+    "fact": "Website supplied on the order form: halewatercommons.org.uk (synthetic; the domain is part of the fixture and must not be crawled).",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-INTAKE-4",
+    "source": "intake",
+    "fact": "The applicant is based in Kelverton, a post-industrial town of about 41,000 people in northern England, in the United Kingdom. The town of Kelverton is itself synthetic.",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-INTAKE-5",
+    "source": "intake",
+    "fact": "Staffing: six paid staff (4.2 full-time equivalent) and about 25 regular volunteers.",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-INTAKE-6",
+    "source": "intake",
+    "fact": "What the organisation does, in its own words on the order form: 'we run open-access youth sessions for 11 to 19 year olds, a weekly supper club, and a small advice desk for families, on the east side of town.'",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-INTAKE-7",
+    "source": "intake",
+    "fact": "Total expenditure in the last filed financial year was GBP 214,000, and two years of accounts are filed.",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-INTAKE-8",
+    "source": "intake",
+    "fact": "Customer directions supplied with the order: none. The applicant pasted the call and left the project field blank.",
+    "referent_kind": "none"
+  },
+  {
+    "id": "E-WEB-1",
+    "source": "web",
+    "fact": "The organisation works in Marlpit.",
+    "referent_kind": "sub_city_place"
+  },
+  {
+    "id": "E-WEB-2",
+    "source": "web",
+    "fact": "The organisation has a relationship with Dunmore Sixth Form College.",
+    "referent_kind": "partner_org"
+  },
+  {
+    "id": "E-WEB-3",
+    "source": "web",
+    "fact": "The organisation has run a programme called Second Chances.",
+    "referent_kind": "dated_result"
+  },
+  {
+    "id": "E-WEB-4",
+    "source": "web",
+    "fact": "The organisation has used St Aidan's Parish Hall.",
+    "referent_kind": "venue"
+  },
+  {
+    "id": "E-WEB-5",
+    "source": "web",
+    "fact": "One of the people involved is Priya Raval.",
+    "referent_kind": "person_with_role"
+  },
+  {
+    "id": "E-WEB-6",
+    "source": "web",
+    "fact": "The organisation has used a supplier called Northgate Minibus Hire.",
+    "referent_kind": "vendor"
+  }
+]

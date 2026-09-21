@@ -1,0 +1,34 @@
+-- ===========================================================================
+-- Phase 8 — the pre-payment evidence interview (intake expansion)
+--
+-- KT-10001, the one full end-to-end run, held at `validate` on grounding: the
+-- narrative asserted seven material org facts (a safeguarding policy and a named
+-- Designated Safeguarding Lead, named programmes and services, a named venue)
+-- that NO ledger item carried, because the intake collected identity only. The
+-- fix is the intake, not the architecture: collect those facts, structured, and
+-- BEFORE payment, so the evidence ledger can carry them and grounding has
+-- something to trace to.
+--
+-- 20260826180000 added the six particularity slots as their own columns. The
+-- admin facts (registration, income band, safeguarding policy + named lead,
+-- the donor_required_certification set) and the named org facts (key people,
+-- programmes, results, partnerships) are open-ended — some are lists — so they
+-- travel as ONE jsonb blob rather than a column each. `orders.intake_answers`
+-- already exists (same migration, §4) and carries the assembled shape to the
+-- worker; this is its pre-payment counterpart.
+--
+--   intake_facts   the extended evidence-interview answers, exactly as the
+--                  wizard wrote them: the admin certifications, the named org
+--                  facts, and the extra crawl links. Raw applicant assertions —
+--                  nothing here is verified state, and canonicalPayload() in
+--                  worker/sufficiency.ts fingerprints over it so a customer who
+--                  clears on good answers and then edits them down fails the
+--                  webhook's fingerprint recompute (invariant 2, unchanged).
+--
+-- No default and nullable: a customer who answers nothing stores null and the
+-- sufficiency gate refuses on the missing core facts, which is the point. A
+-- blank field is never a plausible default — it contributes nothing (invariant
+-- 3), on both sides of the payment boundary.
+-- ===========================================================================
+
+alter table public.pre_intakes add column if not exists intake_facts jsonb;

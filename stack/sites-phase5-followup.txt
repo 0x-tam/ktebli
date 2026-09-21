@@ -1,0 +1,5 @@
+# Follow-up probe: the redirect target of thefelixproject.org.
+# The original domain now 301s offsite to felix.org (the charity rebranded);
+# the crawler correctly refused to follow a cross-domain redirect. This probes
+# what the org would get by supplying its current domain.
+https://felix.org | The Felix Project

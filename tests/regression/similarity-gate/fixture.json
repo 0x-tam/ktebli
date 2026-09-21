@@ -1,0 +1,92 @@
+{
+  "id": "similarity-gate-shared-run-26",
+  "title": "Similarity gate holds a revision at a 26-word shared run",
+  "source": {
+    "captured_from": "production order KT-10005 (test-orgb), 2026-08-22",
+    "captured_on": "2026-08-23",
+    "note": "The originating order was synthetic test scaffolding and was deleted from production. This fixture is the durable replacement; it needs nothing from that order to run."
+  },
+  "what_it_reproduces": "A revision whose regenerated narrative drifts toward another applicant's proposal on the SAME grant. The check stage's similarity gate recomputes after each automated rewrite; when the longest shared word-run still exceeds the cap after the rewrite budget is spent, the stage is HELD rather than failed, and the order lands in 'attention'.",
+  "mechanism_under_test": {
+    "stage": "check",
+    "worker_source": "supabase/functions/worker/index.ts:1751",
+    "rule": "if (worst > 25) throw new Error(`similarity gate: shared run of ${worst} words after ${rewrites} automated rewrites`)",
+    "cap_words": 25,
+    "fail_condition": "longest shared run > 25 words",
+    "classification_source": "supabase/functions/worker/index.ts:1917-1919",
+    "classification_rule": "a message containing 'similarity gate' is terminal and maps to stage status 'held', NOT 'failed'"
+  },
+  "grant": {
+    "funder": "Meridian Foundation",
+    "title": "Community Resilience Fund 2027",
+    "deadline": "2027-03-31",
+    "synthetic": true,
+    "guidelines_text": "Funding Opportunity Title: \"Community Resilience Fund 2027\"\nIssuing Donor: Meridian Foundation\nProgramme: Community Resilience Fund\nDeadline for submissions: 31 March 2027, 17:00 GMT.\n\n1. PURPOSE. Meridian Foundation invites proposals from registered non-profit organisations for community-level projects that strengthen the economic and social resilience of vulnerable populations. Grants of between USD 30,000 and USD 60,000 will be awarded for projects of no more than 12 months duration.\n\n2. ELIGIBILITY (mandatory criteria). Applicants must: (a) be a legally registered non-profit organisation and provide their registration number; (b) propose a project of 12 months or less; (c) request no less than USD 30,000 and no more than USD 60,000; (d) work directly with communities in their country of operation. Applications from consortia are not eligible. Construction of permanent structures and the purchase of vehicles are prohibited activities and will disqualify the application.\n\n3. APPLICATION FORMAT. The narrative application must answer the following five questions, in this order, using each question as a section heading. The complete narrative must not exceed 1,800 words.\n   Question 1: What specific problem will this project address, and what evidence do you have that it matters to the communities you serve?\n   Question 2: What exactly will you do? Describe your activities and delivery approach.\n   Question 3: Who will benefit, how many people, and how will they be selected?\n   Question 4: How will you know the project worked? Describe your monitoring approach and no more than five indicators.\n   Question 5: What happens when the grant ends? Describe concretely what continues and who pays for it.\n\n4. BUDGET RULES. Budgets must be submitted in USD. Indirect/administrative costs may not exceed 10% of the total budget. Salary costs must be pro-rated to actual project time. All costs must be reasonable, allowable and directly attributable to project activities.\n\n5. EVALUATION. Applications are scored against the following published criteria: Understanding of the problem and community evidence - 25 points. Quality and realism of the delivery approach - 30 points. Value for money - 20 points. Sustainability of results after the grant - 15 points. Quality of the monitoring plan - 10 points.\n\n6. SUBMISSION REQUIREMENTS. Submit the narrative (answering the five questions above), a detailed budget, and a copy of your registration certificate. Late submissions are not reviewed."
+  },
+  "applicant": {
+    "name": "Horizon Development Foundation",
+    "registration_number": "HDF-2201",
+    "sanctions_status": "cleared",
+    "synthetic": true,
+    "tier": "draft"
+  },
+  "claim": {
+    "voice_kind": "custom",
+    "structural_template_id": 3,
+    "opening_device_id": 3,
+    "intervention_type": "community_savings_and_climate_resilient_kitchen_gardening",
+    "delivery_method": "community_based_cohort_training_and_savings_groups",
+    "beneficiary": "low_income_female_headed_households",
+    "geography_bucket": "peri_urban_agricultural_settlements",
+    "signature_mechanic": "Establishment of autonomous Village Savings and Loan Associations (VSLAs) coupled with modular micro-drip home kitchen gardening starter packs and indigenous drought-tolerant seed kits."
+  },
+  "strategy": {
+    "problem_frame": "Vulnerable rural and peri-urban female-headed households face compounding food price inflation and seasonal income deficits, driving reliance on negative coping mechanisms such as meal skipping and predatory informal debt.",
+    "narrative_thesis": "True household resilience requires addressing food security and financial vulnerability simultaneously; integrating micro-savings with decentralized household food production creates an immediate buffer against price shocks and builds long-term economic autonomy.",
+    "partnership_model": "direct_implementation_with_local_village_development_committees",
+    "measurement_philosophy": "Tracking Household Dietary Diversity Score (HDDS) improvements, reduction in emergency borrowing frequency, and cumulative community group capital accumulated across 12 months.",
+    "sustainability_mechanism": "VSLA groups self-manage weekly capital accumulation and loan disbursal indefinitely, while household seed-saving preserves agricultural inputs for continuous seasonal harvest without external funding.",
+    "distinctness": {
+      "vs_reserved": "clear",
+      "why": "Distinct from the reserved urban MHPSS/mobile livelihood approach; focuses on peri-urban female-headed households through a dual VSLA and household bio-intensive food production model."
+    },
+    "feasibility": {
+      "score": 88
+    }
+  },
+  "baseline_pass": {
+    "note": "The FIRST check on the original narrative passed. Use this as the negative control: the gate must not fire here.",
+    "passed": true,
+    "cap": 25,
+    "longest_shared_run": 16,
+    "compared": 3,
+    "auto_rewrites": 2,
+    "donor_mandated_lines_excluded": 10
+  },
+  "trigger": {
+    "how": "A revision was requested with a seeded drift payload (the production record labelled it 'seeded drift test'). The regenerated narrative converged on the problem framing, delivery model and budget structure of a DIFFERENT applicant holding a claim on the same grant.",
+    "reserved_approach_collided_with": "urban MHPSS + mobile-livelihood approach (abstract descriptor only)",
+    "content_note": "The colliding narrative concerned a real, identifiable NGO and is deliberately NOT reproduced here. Only the abstract strategy descriptors are retained, which is what the exclusivity architecture is designed to compare on. To re-run this test, seed drift with any second applicant on the same grant whose narrative shares a >25-word verbatim run."
+  },
+  "expected": {
+    "stage_key": "check",
+    "stage_status": "held",
+    "order_status": "attention",
+    "error_message": "Error: similarity gate: shared run of 26 words after 2 automated rewrites",
+    "longest_shared_run": 26,
+    "auto_rewrites_before_giving_up": 2,
+    "terminal": true,
+    "downstream_stages_blocked": [
+      "package"
+    ],
+    "why_held_not_failed": "claim_next_stage only advances past a predecessor whose status is 'done'; 'held' therefore parks the chain for human review instead of consuming retry budget."
+  },
+  "regression_assertions": [
+    "A shared run of exactly 26 words must FAIL the gate (cap is 25, comparison is strictly greater-than).",
+    "A shared run of 25 words or fewer must PASS.",
+    "Donor-mandated lines must be excluded from the comparison before measuring the run (10 were excluded in the passing baseline).",
+    "The gate must re-measure after each automated rewrite, and give up after the rewrite budget (2) is exhausted.",
+    "On failure the stage status must be 'held', never 'failed', and the order must roll up to 'attention'.",
+    "The failure must be terminal: it must not be retried until max_attempts."
+  ]
+}

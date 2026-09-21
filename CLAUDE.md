@@ -14,7 +14,10 @@ Models via OpenRouter. Email via Resend. Payments via Stripe.
 ```
 supabase/functions/    all 8 edge functions, as deployed
 db/schema.sql          reference dump: tables, indexes, functions, triggers, RLS, cron
-site/                  Vercel front end (index.html = landing + wizard, order.html = order page)
+index.html             Vercel front end: landing + intake wizard
+order.html             order page
+tests/replay/          replays every migration into a throwaway Postgres and asserts parity
+tests/exclusivity/     probes the real per-grant ceiling by calling claim_approach() directly
 render-service/        docx render + page-count service (Dockerfile + server.mjs) — NOT YET DEPLOYED
 reports/               engineering and launch-readiness reports
 DEPLOY.md              CLI commands to deploy each function
@@ -23,7 +26,11 @@ BLUEPRINT.md           long-form product and architecture history
 
 ## Source-of-truth warning
 
-`supabase/functions/worker/` was verified **byte-identical to deployed v26** (sha256 on both files).
+`supabase/functions/worker/` was verified byte-identical to deployed v26, and **no longer is** —
+it carries undeployed changes (stranded-claim release, terminal-failure notification, two
+typing-only assertions). Deployed is still v26. `supabase/migrations/` is likewise ahead of
+production by `20260826150000`. `tests/replay/run.sh` reports exactly which schema categories
+are undeployed; there is no equivalent check for the functions, so diff before deploying.
 
 The other seven functions were transcribed from API output and have **not** been byte-verified.
 Before touching any of them, re-pull the authoritative copy:
@@ -45,7 +52,9 @@ fine. The byte comparison caught it; nothing else would have.
 With the Supabase CLI this is much easier than it was through the MCP API — the CLI uploads from
 disk, so the corruption class that produced v25 cannot occur. Still diff after deploying.
 
-All eight functions run with `verify_jwt = false`, so every deploy needs `--no-verify-jwt`.
+All eight functions run with `verify_jwt = false`. That is encoded per function in
+`supabase/config.toml`, so a normal deploy preserves it; `--no-verify-jwt` is kept on the
+documented commands as redundancy rather than as the only safeguard.
 See DEPLOY.md.
 
 ## Architecture in one pass
@@ -79,9 +88,19 @@ paid launch. Summary of what is open:
 
 **P0**
 1. Blind evaluation by two model families rated pipeline output no better than a single well-crafted
-   prompt to the same model. 8/8 judgements said "reads machine-generated".
-2. Hard ceiling of **8 proposals per grant** (8 structural templates x 8 opening devices, both
-   locked). The 9th customer pays, lands in `attention`, and is never emailed.
+   prompt to the same model. 8/8 judgements said "reads machine-generated". The most-repeated
+   criticism was the **absence of proper nouns**, and the cause is now established: the intake
+   collects identity only, so the evidence ledger is three items — organisation name, registration
+   number, website URL (`worker/index.ts:1221-1223`). There is no ledger-backed source of place
+   names, staff, partners, vendors or dated results, and grounding correctly forbids inventing
+   them. This is data starvation, not a prompt fault. See "Decisions taken" below.
+2. Hard ceiling of **8 proposals per grant**, and the effective ceiling is *lower and falling*.
+   Proven by `tests/exclusivity/run.sh`: 40 applicants on one grant → 8 served, 32 refused,
+   first refusal at applicant 9, `blocked_by=structural_template`. Two further findings:
+   `release_claim()` works, is granted to `service_role`, and is called by nothing — so every
+   order that reaches `strategy` and then dies burns a slot permanently; and
+   `claims_house_voice_lock` indexes **zero rows**, because the worker hardcodes
+   `voice_kind:"custom"`. Voice uniqueness is a ceiling on paper and is not enforced at all.
 3. Competitive and Full tiers do not reliably complete — a single edge-function invocation cannot
    finish a large narrative that needs more than one generation attempt. One stage heartbeated for
    807s before being lost.
@@ -92,6 +111,10 @@ paid launch. Summary of what is open:
    retry is blocked by `existing_claim_same_org`. Release the claim by hand.
 6. The crawler returns zero evidence on some real sites with no error (thefelixproject.org).
 7. The deterministic consistency checker misses internal arithmetic errors that blind critics catch.
+   It never sums anything and is one-directional (`n > target * 1.01`), so an understatement —
+   exactly the delivered 200-vs-216 defect — passes by construction. `numbersNear()` is dead code.
+   The design object is pasted into prompts as prose, so "single source of truth" is an instruction
+   to a model, not a mechanism, and every section re-invents its own numbers.
 8. No quality-drift monitoring — and validator-based monitoring would be blind to it, because every
    failing proposal passed every internal validator.
 
@@ -100,10 +123,37 @@ paid launch. Summary of what is open:
    per-stage costs are cross-contaminated. Use OpenRouter's own accounting for cost work.
 10. Currency defaults to USD regardless of the applicant's country.
 
+## Decisions taken (2026-08-26)
+
+On the root cause of proposal quality, the owner decided:
+
+1. **Expand the intake form** into an automated evidence interview asked *before* payment, so the
+   ledger can carry messy local nouns. Still fully automated — no human in the customer workflow.
+2. **Crawl the applicant's own domain fully, including PDFs** (annual reports, accounts, trustee
+   pages). **No third-party sources** — no news, no partner sites, no regulator filings — so the
+   asymmetric identity gate stays meaningful.
+
+The non-negotiables around those: no human in the loop; grounding holds and nothing is invented;
+compliance holds; the Claim Ledger holds; exclusivity is unbounded and nobody ever waits; the
+architecture and service list are fixed; and cost is measured per variant rather than assumed.
+
 ## Testing conventions
 
-- `bench_cases` table holds benchmark cases (code, tier, org, guidelines, order_id, proposal_id).
-  B1–B10 are archetypes; R1–R3 use real organisations with real websites.
+- `bench_cases` **no longer exists** — dropped 2026-08-23 with the 13 synthetic orders it
+  indexed, to stop benchmark rows distorting production metrics. B1–B10 were archetypes;
+  R1–R3 used real organisations with real websites. The four `test-org*` orders were removed
+  in the same pass. **Production now contains only the two $1 trial orders** (KT-10001,
+  KT-10002). Any future benchmark run needs its own manifest and must not create orders in
+  the production project.
+- The one live similarity-gate failure is preserved as a regression fixture at
+  `tests/regression/similarity-gate/`, so that case survives without a fake order in
+  production.
+- `tests/replay/run.sh` replays all 11 migrations into a throwaway Postgres and asserts the schema
+  fingerprint against production's recorded values, that no cron target references the production
+  project, that nothing leaves the machine, and that no migration carries a literal secret.
+  Run it after any migration change. Never edit `expected-fingerprint.txt` to make it pass.
+- `tests/exclusivity/run.sh` is a **deliberately failing** test: it exits non-zero while any
+  per-grant ceiling exists, and turns green only when one grant can serve any number of applicants.
 - Quality is judged **blind** by a different model family from the generator — the generator never
   grades its own work. Evaluator sees only the grant text, the applicant identity, and the narrative.
 - Language models cannot count words. Two critics wrongly claimed a 596-word document exceeded a

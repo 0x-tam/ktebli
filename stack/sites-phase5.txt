@@ -1,0 +1,22 @@
+# Phase 5 — six real buyer-shaped nonprofit sites.
+#
+# Selection criteria (workstream WS5): small community organisations of the kind
+# that would buy a $149 draft; thin sites on ordinary CMSs; at least one
+# JS-rendered candidate; at least one known crawler-blocker. Organisation names
+# are the real registered/working names, never derived from the domain — the
+# identity gate matches against them and deriving them would make it pass by
+# construction.
+#
+# thefelixproject.org is the documented prior silent-failure case (CLAUDE.md
+# P1.6: "returns zero evidence on some real sites with no error"). It is the
+# blocks-crawlers candidate.
+# watsi.org is the JS-rendered candidate (historically a client-side React app);
+# if it now ships server-rendered HTML the run will say so and the report
+# records the criterion as missed, not massaged.
+
+https://thefelixproject.org                    | The Felix Project
+https://www.sufra-nwlondon.org.uk              | Sufra NW London
+https://www.themagpieproject.org               | The Magpie Project
+https://www.glassdoor.org.uk                   | Glass Door Homeless Charity
+https://www.nourishcommunityfoodbank.org.uk    | Nourish Community Foodbank
+https://watsi.org                              | Watsi

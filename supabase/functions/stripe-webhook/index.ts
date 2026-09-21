@@ -1,12 +1,30 @@
-// Stripe webhook v9: payment -> order + stages.
-// v9 change ONLY: the stage list matches the worker v12 intelligence pipeline
-// (org intelligence, strategy, project design, validate) with honest customer
-// labels — every listed stage actually runs; nothing is fake progress.
-// Carries the v7/v8 base: org-identity fields + security hardening (constant-
+// Stripe webhook v10: payment -> order + stages, gated by sufficiency clearance.
+// v10 change (invariant 2, WS3's phase-3 exit blocker): this function REFUSES
+// order-with-work creation unless the session carries a valid, single-use,
+// fingerprint-matched clearance minted by save-intake:
+//
+//   * client_reference_id must be a checkout_token minted by the gate;
+//   * the pre_intakes row it names is re-canonicalised through the SAME code
+//     that scored it (clearance.ts / worker/sufficiency.ts) and the recomputed
+//     fingerprint is handed to consume_checkout_token(), which re-checks the
+//     stored clearance, the fingerprint, single-use and TTL atomically and
+//     refuses by default;
+//   * the cleared tier must equal the PAID tier — a clearance earned for one
+//     tier does not authorise a charge for another;
+//   * a charge with no valid clearance parks the order as `attention` with a
+//     `payment_ungated` escalation at priority `immediate` (money moved, no
+//     work queued, no worker woken — 20260826180000's design). The 48-hour
+//     any-intake-with-this-email fallback is GONE: it was hole #2 in that
+//     migration's header.
+//
+// Carries the v9 base: honest stage labels; v7/v8 security hardening (constant-
 // time signature comparison with 300s tolerance, event-id idempotency via
 // stripe_event_seen(), graceful duplicate handling, server-side price/tier
-// authority — a tier/amount mismatch parks the order with NO work queued).
+// authority — a tier/amount/currency mismatch parks the order with NO work
+// queued; a missing customer email parks likewise).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { intakeFilesQuery, uploadsFromFiles, fingerprintOfRow } from "./clearance.ts";
+import { SLOTS } from "../worker/sufficiency.ts";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -121,23 +139,49 @@ Deno.serve(async (req) => {
   const tier = String(s.metadata?.tier ?? "draft");
   const paidUsd = (s.amount_total ?? 0) / 100;
   const expectedUsd = PRICES_USD[tier];
-  const priceOk = typeof expectedUsd === "number" && Math.abs(paidUsd - expectedUsd) < 0.01;
+  // WS4a 2026-08-28: the price check read amount_total without reading the
+  // currency, so 149.00 in ANY currency satisfied the USD 149 tier (proven,
+  // reports/phase4-compliance.md §A7). A non-USD session now parks exactly like
+  // a price mismatch: NO paid work on an amount the check cannot value.
+  const currency = String(s.currency ?? "usd").toLowerCase();
+  const priceOk = currency === "usd" &&
+    typeof expectedUsd === "number" && Math.abs(paidUsd - expectedUsd) < 0.01;
+  // An order with no reachable email would complete unpaid-for work with no way
+  // to deliver a link or a failure notice. Park it for the operator instead of
+  // silently accepting an undeliverable order.
+  const emailOk = email.includes("@");
 
-  // primary source of truth: the wizard's saved intake
+  // ---- invariant 2: the clearance, or nothing --------------------------------
+  // The ONLY source of intake truth is the pre_intakes row named by a valid
+  // checkout token. No token, unknown token, tier mismatch, fingerprint
+  // mismatch, reuse or expiry -> pi stays null and the charge parks below.
   let pi: Record<string, unknown> | null = null;
-  const ref = s.client_reference_id ?? "";
-  if (/^[0-9a-f-]{36}$/.test(ref)) {
-    const found = await sel(`pre_intakes?id=eq.${ref}&select=*`);
-    if (found.length) pi = found[0];
+  let clearanceFp: string | null = null;
+  let clearanceWhy = "token_absent";
+  const token = String(s.client_reference_id ?? "");
+  if (token.length >= 32 && /^[0-9a-f]+$/.test(token)) {
+    const found = await sel(`pre_intakes?checkout_token=eq.${encodeURIComponent(token)}&select=*`);
+    if (!found.length) {
+      clearanceWhy = "token_unknown";
+    } else if (String(found[0].tier ?? "") !== tier) {
+      clearanceWhy = "tier_mismatch";
+    } else {
+      // Recompute the fingerprint from the row's own current answers plus the
+      // same uploaded-file set the clearance covered; the SQL gate compares it
+      // to the recorded one and refuses on any difference, atomically.
+      const uploads = uploadsFromFiles(await sel(intakeFilesQuery(String(found[0].email ?? ""))));
+      clearanceFp = await fingerprintOfRow(found[0], uploads);
+      const consumed = await rpc("consume_checkout_token", {
+        p_token: token, p_session: s.id, p_fingerprint: clearanceFp,
+      });
+      if (consumed) { pi = consumed as Record<string, unknown>; clearanceWhy = ""; }
+      else clearanceWhy = "refused_by_gate"; // the exact reason is the gate's own checkout_refused events row
+    }
   }
-  if (!pi && email) {
-    const cutoff = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
-    const found = await sel(
-      `pre_intakes?email=eq.${encodeURIComponent(email)}&created_at=gte.${encodeURIComponent(cutoff)}&order=created_at.desc&limit=1`);
-    if (found.length) pi = found[0];
-  }
+  const clearanceOk = pi !== null;
 
-  // legacy custom fields, if a link still carries them
+  // legacy custom fields, if a link still carries them (parked-path labelling
+  // only — they can never substitute for a clearance)
   const cf: Record<string, string> = {};
   for (const f of s.custom_fields ?? []) cf[f.key] = f.text?.value ?? "";
 
@@ -166,6 +210,25 @@ Deno.serve(async (req) => {
     orgId = org.id;
   }
 
+  const funded = priceOk && emailOk && clearanceOk;
+  // The answers travel to the order RAW (20260826180000 §4): the worker rebuilds
+  // the E-ASK and E-INTAKE ledger items through the same intake the gate scored.
+  // Derived state never crosses the payment boundary. The six particularity
+  // slots and escapes are their own pre_intakes columns; the extended evidence-
+  // interview facts (admin certifications, named org facts, extra links) are the
+  // stored intake_facts jsonb — spread here so orders.intake_answers carries the
+  // one flat shape the worker reads.
+  const storedFacts = (pi && pi.intake_facts && typeof pi.intake_facts === "object" && !Array.isArray(pi.intake_facts))
+    ? pi.intake_facts as Record<string, unknown>
+    : {};
+  const intakeAnswers: Record<string, unknown> | null = clearanceOk
+    ? {
+      ...Object.fromEntries(SLOTS.map((sl) => [sl.id, (pi![sl.id] as string | null) ?? null])),
+      venue_escape: (pi!.venue_escape as string | null) ?? null,
+      never_delivered: pi!.never_delivered === true,
+      ...storedFacts,
+    }
+    : null;
   let order;
   try {
     order = await ins("orders", {
@@ -173,22 +236,47 @@ Deno.serve(async (req) => {
       org_name: orgName, org_reg: regNo, org_website: website, whatsapp: phone, tier,
       amount_usd: paidUsd, grant_input: grantInput,
       directions, deadline, uploads_expected: uploadsExpected,
-      ...(priceOk ? {} : { status: "attention" }),
+      // The order remembers its licence (or records that it has none).
+      pre_intake_id: clearanceOk ? pi!.id : null,
+      sufficiency_fingerprint: clearanceOk ? clearanceFp : null,
+      intake_answers: intakeAnswers,
+      ...(funded ? {} : { status: "attention" }),
     });
   } catch (e) {
     if (String(e).toLowerCase().includes("duplicate")) return new Response("duplicate", { status: 200 });
     throw e;
   }
 
-  if (!priceOk) {
-    // Charged amount does not match the claimed tier: park the order, audit it,
-    // queue NO paid work and wake NO worker. A human resolves it.
+  if (!funded) {
+    // The charge cannot be honoured as an order: the amount does not match the
+    // tier, or the currency is not USD, or there is no reachable customer
+    // email, or — invariant 2 — no valid sufficiency clearance authorised the
+    // checkout. Park the order, audit it, queue NO paid work and wake NO
+    // worker. Money moved, so the operator is alerted either way; the ungated
+    // case alerts at priority immediate because the documented remedy is a
+    // refund (20260826180000 §5) and this codebase has no Stripe refund
+    // plumbing (a deliberate phase-3 decision, reports/phase3-gate.md §7.1).
+    const why = !priceOk ? "price_mismatch" : !emailOk ? "email_missing" : "payment_ungated";
     await ins("events", {
-      actor: "stripe-webhook", action: "price_mismatch", entity: "order", entity_id: order.id,
-      detail: { tier, paid_usd: paidUsd, expected_usd: expectedUsd ?? null, session: s.id },
+      actor: "stripe-webhook", action: why, entity: "order", entity_id: order.id,
+      detail: {
+        tier, paid: paidUsd, currency, expected_usd: expectedUsd ?? null,
+        email_ok: emailOk, clearance_ok: clearanceOk, clearance_why: clearanceWhy || null, session: s.id,
+      },
     }, false).catch(() => {});
+    // NOTE (WS4a): on the schema at migration head these inserts write rows
+    // (kinds allowed and due_at defaulted — 20260826150000/20260828120000). On
+    // the PRODUCTION schema they still violate the kind CHECK and the due_at
+    // NOT NULL, write zero rows, and are swallowed here — proven in
+    // reports/phase4-compliance.md §F13. Deploy the migrations with this.
     await ins("escalations", {
-      kind: "price_mismatch", detail: `Order ${order.order_no}: tier ${tier} paid $${paidUsd}, expected $${expectedUsd ?? "?"}`,
+      kind: !priceOk || !emailOk ? "price_mismatch" : "payment_ungated",
+      ...(!priceOk || !emailOk ? {} : { priority: "immediate" }),
+      detail: {
+        order_no: order.order_no, why, tier, paid: paidUsd, currency,
+        expected_usd: expectedUsd ?? null, email_ok: emailOk,
+        clearance_why: clearanceWhy || null, session: s.id,
+      },
     }, false).catch(() => {});
     return new Response(JSON.stringify({ ok: true, parked: true }), { status: 200 });
   }

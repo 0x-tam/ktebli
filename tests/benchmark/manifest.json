@@ -1,0 +1,84 @@
+{
+  "manifest": "phase-6 e2e + mini-benchmark (ws6-bench)",
+  "date": "2026-08-28",
+  "environment": "LOCAL Supabase stack only (127.0.0.1:54321/54322); production blackholed in /etc/hosts; Stripe and Resend absent by design",
+  "checkout_bypass": "orders inserted directly via service role with status='paid', pre_intake_id=null, sufficiency_fingerprint=null, intake_answers=null. The invariant-2 gates (save-intake clearance -> checkout_token -> stripe-webhook consume) protect the real checkout and are NOT exercised or forged here.",
+  "intake_policy": "identity-only: org name, explicitly-unverified test registration string, real website URL. No fabricated intake answers; the live crawl of the applicant's own site is the sole applicant-evidence source.",
+  "grant": {
+    "source": "Lloyds Bank Foundation for England and Wales — Good Place to Live: New Beginnings Fund, application guidance 2026 (real, publicly published call; open at run time, deadline 2026-09-09 17:00 UK)",
+    "fetched": "2026-08-28 from https://www.lloydsbankfoundation.org.uk/media/rgxdenkw/gptl-guidance-2026-final.pdf",
+    "grant_input": "verbatim pdftotext of the guidance PDF: tests/benchmark/grant-lbf-new-beginnings-2026-guidance.txt",
+    "note": "the donor's per-question word limits live in the separate example application form (tests/benchmark/grant-lbf-new-beginnings-2026-example-form.txt), kept for reference; the guidance document itself states no whole-document word or page limit (both resolve 'absent' after the donor_limits footer fix)"
+  },
+  "orders": [
+    {
+      "slug": "sufra",
+      "purpose": "task 1: end-to-end order (full pipeline)",
+      "org_name": "Sufra NW London",
+      "org_reg": "UNVERIFIED-TEST-0000001",
+      "org_website": "https://www.sufra-nwlondon.org.uk",
+      "tier": "draft",
+      "order_no": "KT-10001 (LOCAL sequence)",
+      "proposal_id": "3ce03ea6-aa99-41d9-b470-82c02cd84c0a",
+      "outcome": "validate HELD on merits (data starvation P0 #1); crawl OK(178), composed fingerprint d08dae91, real render 6 pages verified",
+      "captured_usd": 1.7605,
+      "estimated_true_usd": 4.2
+    },
+    {
+      "slug": "glassdoor",
+      "purpose": "task 2: mini-benchmark (driven to strategy)",
+      "org_name": "Glass Door Homeless Charity",
+      "org_reg": "UNVERIFIED-TEST-0000002",
+      "org_website": "https://www.glassdoor.org.uk",
+      "tier": "draft",
+      "order_no": "KT-10002",
+      "proposal_id": "8777673a-10fc-4c83-97bf-f2d9b73d0e1a",
+      "outcome": "strategy done; crawl OK(152); composed fingerprint f853cde5",
+      "captured_usd": 1.115
+    },
+    {
+      "slug": "magpie",
+      "purpose": "task 2: mini-benchmark (driven to strategy)",
+      "org_name": "The Magpie Project",
+      "org_reg": "UNVERIFIED-TEST-0000003",
+      "org_website": "https://www.themagpieproject.org",
+      "tier": "draft",
+      "order_no": "KT-10003",
+      "proposal_id": "957ab8d0-7c64-47ba-b5d5-45da6b8bd23f",
+      "outcome": "strategy done (2 attempts); crawl OK(90); composed fingerprint fa56740c",
+      "captured_usd": 1.1233
+    },
+    {
+      "slug": "nourish",
+      "purpose": "task 2: mini-benchmark (driven to strategy)",
+      "org_name": "Nourish Community Foodbank",
+      "org_reg": "UNVERIFIED-TEST-0000004",
+      "org_website": "https://www.nourishcommunityfoodbank.org.uk",
+      "tier": "draft",
+      "order_no": "KT-10004",
+      "proposal_id": "f3575049-56c5-4f7b-991a-1577f599e90b",
+      "outcome": "strategy done (2 attempts); crawl OK(117); composed fingerprint 4dd90edd",
+      "captured_usd": 1.5591
+    }
+  ],
+  "dropped_for_budget": [
+    {"slug": "watsi", "site": "https://watsi.org", "reason": "true spend reached ~$7.96 of the $8.00 hard cap after nourish"},
+    {"slug": "felix", "site": "https://felix.org", "reason": "same budget line"}
+  ],
+  "excluded_by_design": [
+    {"slug": "thefelixproject", "site": "https://thefelixproject.org", "reason": "crawl refuses (offsite redirect); phase-5 negative fixture"}
+  ],
+  "exclusivity": {
+    "grant_shared_by_all_orders": "Lloyds Bank Foundation — New Beginnings",
+    "claims": 4,
+    "distinct_fingerprints": 4,
+    "distinct_axes_tuples": 4,
+    "collision": false
+  },
+  "spend": {
+    "grand_captured_usd": 5.558,
+    "estimated_true_usd": 7.96,
+    "hard_cap_usd": 8.0,
+    "note": "true > captured because KT-10001 analyze+validate ran before the usage-snapshot fixes"
+  }
+}
