@@ -13,13 +13,19 @@ def slice_pdf(data,first=1,last=None):
     if not 1<=total<=2000:raise ValueError('too_many_pages')
     last=min(first+3,total) if last is None else last
     if not 1<=first<=last<=total or last-first+1>4:raise ValueError('invalid_page_range')
-    pages=[];encoded_bytes=0
+    pages=[];encoded_bytes=0;batch=PdfWriter()
     for number in range(first,last+1):
         writer=PdfWriter();writer.add_page(reader.pages[number-1]);out=io.BytesIO();writer.write(out)
         pdf=out.getvalue();encoded_bytes+=4*((len(pdf)+2)//3)
         if encoded_bytes>MAX_OUTPUT:raise ValueError('slice_output_too_large')
         pages.append({'page':number,'pdf_base64':base64.b64encode(pdf).decode('ascii'),'sha256':hashlib.sha256(pdf).hexdigest()})
-    result={'ok':True,'source_sha256':hashlib.sha256(data).hexdigest(),'pages':total,'page_from':first,'page_to':last,'page_results':pages}
+        batch.add_page(reader.pages[number-1])
+    combined=io.BytesIO();batch.write(combined);batch_pdf=combined.getvalue()
+    encoded_bytes+=4*((len(batch_pdf)+2)//3)
+    if encoded_bytes>MAX_OUTPUT or len(batch_pdf)>12*1024*1024:raise ValueError('slice_output_too_large')
+    result={'ok':True,'source_sha256':hashlib.sha256(data).hexdigest(),'pages':total,'page_from':first,'page_to':last,
+            'page_results':pages,'batch_pdf_base64':base64.b64encode(batch_pdf).decode('ascii'),
+            'batch_sha256':hashlib.sha256(batch_pdf).hexdigest(),'batch_page_count':last-first+1}
     if len(json.dumps(result).encode())>MAX_OUTPUT:raise ValueError('slice_output_too_large')
     return result
 

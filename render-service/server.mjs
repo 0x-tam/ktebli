@@ -2,7 +2,7 @@
 //
 // POST /extract-pdf (same auth, raw PDF <=50MiB) -> native evidence, <=64-page batch.
 // POST /inspect-pdf (same auth, raw PDF <=2000 pages) -> bounded native text per page.
-// POST /raster-pdf (same auth, raw PDF <=10 pages) -> PNG images at 200 DPI.
+// POST /raster-pdf (same auth, raw PDF <=10 pages) -> bounded PNG images, up to 200 DPI.
 // POST /render  (Authorization: Bearer <RENDER_SECRET>, body: raw .docx bytes)
 //   -> 200 { ok:true, pages, images:[base64 PNG], images_truncated }
 //   -> 4xx/5xx { ok:false, code }   (codes: unauthorized, too_large, busy,
@@ -43,7 +43,9 @@ const RASTER_TIMEOUT_MS = 45_000;
 const REQUEST_WATCHDOG_MS = 110_000;
 const PDF_RASTER_PAGES = 10;
 const PDF_RASTER_DPI = 200;
-const PDF_RASTER_MAX_PIXELS = 16_000_000;
+const PDF_RASTER_MIN_DPI = 96;
+const PDF_RASTER_MAX_DIMENSION = 6000;
+const PDF_RASTER_MAX_PIXELS = 12_000_000;
 
 
 class RenderError extends Error {
@@ -61,7 +63,7 @@ async function inspectPdf(pdf, signal, execute = run, detailed = false) {
 }
 
 // Rasterize a supplied small PDF chunk. Never fetches a URL or executes PDF
-// JavaScript. Fixed resolution, page/dimension/output bounds and shared HTTP
+// JavaScript. Bounded resolution, page/dimension/output limits and shared HTTP
 // concurrency protect the service from oversized or malicious documents.
 export async function rasterPdf(bytes, signal, { execute = run } = {}) {
   if (bytes.length > MAX_BYTES) throw new RenderError("too_large", 413);
@@ -75,14 +77,23 @@ export async function rasterPdf(bytes, signal, { execute = run } = {}) {
     const sizes = [...info.matchAll(/^Page\s+(\d+)\s+size:\s+([\d.]+) x ([\d.]+) pts/gm)];
     if (sizes.length !== pages || new Set(sizes.map(s => Number(s[1]))).size !== pages) throw new RenderError("pdf_dimensions_unavailable", 422);
     const boxes = [...info.matchAll(/^Page\s+(\d+)\s+MediaBox:\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/gm)];
-    if (boxes.length !== pages) throw new RenderError("pdf_dimensions_unavailable", 422);
+    if (boxes.length !== pages || new Set(boxes.map(b => Number(b[1]))).size !== pages) throw new RenderError("pdf_dimensions_unavailable", 422);
+    const expectedPages = Array.from({ length: pages }, (_, i) => i + 1);
+    if (sizes.some((s, i) => Number(s[1]) !== expectedPages[i]) ||
+        boxes.some((b, i) => Number(b[1]) !== expectedPages[i])) throw new RenderError("pdf_dimensions_unavailable", 422);
     const dimensions = [...sizes.map(s => [s[1], Number(s[2]), Number(s[3])]), ...boxes.map(b => [b[1], Number(b[4])-Number(b[2]), Number(b[5])-Number(b[3])])];
-    for (const [number, width, height] of dimensions) {
-      const w = Number(width), h = Number(height), page = Number(number);
-      if (!(w > 0 && h > 0 && page >= 1 && page <= pages) || w * PDF_RASTER_DPI / 72 > 8192 || h * PDF_RASTER_DPI / 72 > 8192 || Math.ceil(w * PDF_RASTER_DPI / 72) * Math.ceil(h * PDF_RASTER_DPI / 72) > PDF_RASTER_MAX_PIXELS) throw new RenderError("pdf_dimensions_limit", 422);
-    }
+    if (dimensions.some(([, w, h]) => !Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0))
+      throw new RenderError("pdf_dimensions_limit", 422);
+    const fits = dpi => dimensions.every(([, w, h]) => {
+      const width = Math.ceil(w * dpi / 72), height = Math.ceil(h * dpi / 72);
+      return width <= PDF_RASTER_MAX_DIMENSION && height <= PDF_RASTER_MAX_DIMENSION &&
+        width * height <= PDF_RASTER_MAX_PIXELS;
+    });
+    let dpi = PDF_RASTER_DPI;
+    while (dpi >= PDF_RASTER_MIN_DPI && !fits(dpi)) dpi--;
+    if (dpi < PDF_RASTER_MIN_DPI) throw new RenderError("pdf_dimensions_limit", 422);
     try {
-      await execute("pdftoppm", ["-png", "-r", String(PDF_RASTER_DPI), "-f", "1", "-l", String(pages), pdf, join(dir, "pg")],
+      await execute("pdftoppm", ["-png", "-r", String(dpi), "-f", "1", "-l", String(pages), pdf, join(dir, "pg")],
         { signal, killSignal: "SIGKILL", timeout: RASTER_TIMEOUT_MS, maxBuffer: 65536 });
     } catch (e) {
       throw new RenderError(e.killed ? "timeout" : "raster_failed", e.killed ? 504 : 422);
@@ -95,10 +106,14 @@ export async function rasterPdf(bytes, signal, { execute = run } = {}) {
       total += size;
       if (size < 24 || total > MAX_IMAGE_BYTES) throw new RenderError("render_output_too_large", 422);
       const png = readFileSync(path);
-      if (!png.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) throw new RenderError("raster_failed", 422);
+      if (!png.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10])) ||
+          png.toString("ascii", 12, 16) !== "IHDR") throw new RenderError("raster_failed", 422);
+      const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
+      if (!width || !height || width > PDF_RASTER_MAX_DIMENSION || height > PDF_RASTER_MAX_DIMENSION ||
+          width * height > PDF_RASTER_MAX_PIXELS) throw new RenderError("pdf_dimensions_limit", 422);
       return png.toString("base64");
     });
-    return { ok: true, pages, dpi: PDF_RASTER_DPI, images, images_truncated: false };
+    return { ok: true, pages, dpi, images, images_truncated: false };
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
