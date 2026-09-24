@@ -4,11 +4,11 @@
 # render_service_url / render_service_secret.
 FROM node:20-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      libreoffice-writer poppler-utils \
+      libreoffice-writer poppler-utils python3 python3-pypdf \
       fonts-liberation fonts-crosextra-carlito fonts-crosextra-caladea \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY server.mjs .
+COPY server.mjs extract_pdf.py slice_pdf.py ./
 ENV PORT=8080
 EXPOSE 8080
 CMD ["node", "server.mjs"]
