@@ -11,7 +11,7 @@ RUN python3 -m venv /opt/pdf-env \
     && /opt/pdf-env/bin/pip install --no-cache-dir pypdf==6.6.2
 ENV PATH="/opt/pdf-env/bin:${PATH}"
 WORKDIR /app
-COPY server.mjs extract_pdf.py slice_pdf.py ./
+COPY server.mjs extract_pdf.py native_layout.py slice_pdf.py ./
 ENV PORT=8080
 EXPOSE 8080
 CMD ["node", "server.mjs"]
