@@ -5,7 +5,7 @@
 FROM node:20-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libreoffice-writer poppler-utils python3 python3-venv \
-      fonts-liberation fonts-crosextra-carlito fonts-crosextra-caladea \
+      fonts-liberation fonts-crosextra-carlito fonts-crosextra-caladea fonts-noto-core \
     && rm -rf /var/lib/apt/lists/*
 RUN python3 -m venv /opt/pdf-env \
     && /opt/pdf-env/bin/pip install --no-cache-dir pypdf==6.6.2
