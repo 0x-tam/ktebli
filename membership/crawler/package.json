@@ -1,0 +1,23 @@
+{
+  "name": "@ktebli/opportunity-crawler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "crawl": "node src/cli.mjs",
+    "crawl:supplemental": "node src/supplemental-cli.mjs",
+    "crawl:ungm-curated": "node src/ungm-cli.mjs",
+    "crawl:mawred": "node src/mawred-cli.mjs"
+  },
+  "dependencies": {
+    "@crawlee/basic": "3.18.2",
+    "cheerio": "1.0.0",
+    "ipaddr.js": "2.5.0",
+    "playwright": "1.63.0",
+    "robots-parser": "3.0.1"
+  }
+}

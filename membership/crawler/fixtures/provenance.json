@@ -1,0 +1,32 @@
+{
+  "capturedAt": "2026-10-05",
+  "ppa-en-first.html": {
+    "url": "https://www.ppa.gov.lb/en/tenders",
+    "method": "HTTPS; reduced to actual table and pagination HTML"
+  },
+  "ppa-ar-first.html": {
+    "url": "https://www.ppa.gov.lb/ar/tenders",
+    "method": "HTTPS; reduced to actual table and pagination HTML"
+  },
+  "ppa-en-detail.html": {
+    "url": "https://www.ppa.gov.lb/en/tenders/details/12982",
+    "method": "HTTPS; reduced to title and actual details table"
+  },
+  "cdr-row.html": {
+    "url": "https://www.cdr.gov.lb/en-US/Procurment.aspx",
+    "method": "Browser DOM; first content row plus hidden responsive header, whitespace/classes reduced; this fixture does not prove source exhaustion"
+  },
+  "aics-listing.html": {
+    "url": "https://trasparenzabeirut.aics.gov.it/index.php?id_sezione=952",
+    "method": "HTTPS; reduced to actual18-row listing table; pre-decoder fixture retains original replacement characters"
+  },
+  "embassy-call-snapshots.json": {
+    "method": "HTTPS official Australia and Czech pages; visible main text normalized, each snapshot carries URL/time/hash"
+  },
+  "cdr-ongoing-manual-2026-10-05.json": {
+    "method": "Normal public browser Load more UI to hidden terminal button; normalized visible cells,43 lot-aware records; scheduled crawler still blocked"
+  },
+  "ppa-refresh-contract.json": {
+    "method": "Regression records produced by real PPA parser/enricher with simulated future refresh dates and deterministic failed detail HTTP; not new live source facts"
+  }
+}

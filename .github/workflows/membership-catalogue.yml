@@ -1,0 +1,43 @@
+name: Membership public catalogue
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: membership-public-catalogue
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    # Activation is a repository variable, initially absent/false. A manual
+    # dispatch can qualify the runner before turning on the daily schedule.
+    if: github.event_name == 'workflow_dispatch' || vars.MEMBERSHIP_CATALOG_REFRESH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: membership-catalogue
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "20.19.4"
+          package-manager-cache: false
+      - name: Install pinned catalogue dependencies
+        run: |
+          npm ci --ignore-scripts --prefix membership
+          npm ci --ignore-scripts --prefix membership/crawler
+      - name: Verify dedicated ingestion configuration
+        env:
+          INGEST_DATABASE_URL: ${{ secrets.MEMBERSHIP_INGEST_DATABASE_URL }}
+        run: test -n "$INGEST_DATABASE_URL"
+      - name: Refresh and import official public notices
+        working-directory: membership
+        env:
+          INGEST_DATABASE_URL: ${{ secrets.MEMBERSHIP_INGEST_DATABASE_URL }}
+        run: npm run catalog:scheduled

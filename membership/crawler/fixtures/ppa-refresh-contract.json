@@ -1,0 +1,2594 @@
+{
+  "provenance": "Regression fixture derived from real PPA fixtures, with simulated future listing refresh and deterministic failed detail transport; not new live facts.",
+  "verified": {
+    "source": "ppa",
+    "sourceKey": "ppa:12982",
+    "sourceUrl": "https://www.ppa.gov.lb/en/tenders/details/12982",
+    "title": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+    "description": "Municipality of Bkassine. Auction. Purchase code: 10028",
+    "publishedAt": "2026-10-05",
+    "deadline": "2026-11-02",
+    "kind": "procurement",
+    "evidence": [
+      {
+        "label": "Issuer ID",
+        "text": "12982",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring entity",
+        "text": "Municipality of Bkassine",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase code",
+        "text": "10028",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Tender title",
+        "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procurement method",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Announcement date",
+        "text": "Monday 5 October 2026",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Opening of offers",
+        "text": "Monday 2 November 2026 11:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Brief :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchasing Studies :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sustainability Standards :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Preferential Systems National :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Type :",
+        "text": "Goods and supplies",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sector :",
+        "text": "Agriculture - Forestry",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Responsible Name :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Phone :",
+        "text": "07-800580 07-800046",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Email :",
+        "text": "bkassine@cyberia.net.lb",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring Method :",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Award Criteria :",
+        "text": "Price only",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Rationales :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Min estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Max estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Offer guarantee value :",
+        "text": "30,000,000.00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Currency :",
+        "text": "LBP",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Budget source :",
+        "text": "16123",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Uri :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Placement or Reference :",
+        "text": "وزارة الزراعة",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Description :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of publish plan :",
+        "text": "2026-10-06 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Submission files date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date on which the list of qualified exhibitors was prepared :",
+        "text": "2026-10-30 00:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for submission of offers :",
+        "text": "2026-11-02 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification on awarding procedures :",
+        "text": "2026-10-19 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the administrative and technical bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the financial bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification of the award result :",
+        "text": "2026-10-23 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of signing the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of commencement of implementation of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Final delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "fetchedAt": "2026-10-05T01:00:00Z",
+    "contentHash": "a76bef60faf405faf19c04b46341393589bfb9496cffe757e58baac024e7c3e4",
+    "locales": [
+      {
+        "locale": "en",
+        "sourceUrl": "https://www.ppa.gov.lb/en/tenders/details/12982",
+        "title": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "description": "Municipality of Bkassine. Auction. Purchase code: 10028",
+        "publishedAt": "2026-10-05",
+        "deadline": "2026-11-02",
+        "evidence": [
+          {
+            "label": "Issuer ID",
+            "text": "12982",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring entity",
+            "text": "Municipality of Bkassine",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase code",
+            "text": "10028",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Tender title",
+            "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procurement method",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Announcement date",
+            "text": "Monday 5 October 2026",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Opening of offers",
+            "text": "Monday 2 November 2026 11:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Brief :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchasing Studies :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sustainability Standards :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Preferential Systems National :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Type :",
+            "text": "Goods and supplies",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sector :",
+            "text": "Agriculture - Forestry",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Responsible Name :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Phone :",
+            "text": "07-800580 07-800046",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Email :",
+            "text": "bkassine@cyberia.net.lb",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring Method :",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Award Criteria :",
+            "text": "Price only",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Rationales :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Min estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Max estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Offer guarantee value :",
+            "text": "30,000,000.00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Currency :",
+            "text": "LBP",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Budget source :",
+            "text": "16123",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Uri :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Placement or Reference :",
+            "text": "وزارة الزراعة",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Description :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of publish plan :",
+            "text": "2026-10-06 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Submission files date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date on which the list of qualified exhibitors was prepared :",
+            "text": "2026-10-30 00:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for submission of offers :",
+            "text": "2026-11-02 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification on awarding procedures :",
+            "text": "2026-10-19 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the administrative and technical bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the financial bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification of the award result :",
+            "text": "2026-10-23 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of signing the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of commencement of implementation of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Final delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "listingEvidence": [
+          {
+            "label": "Issuer ID",
+            "text": "12982",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring entity",
+            "text": "Municipality of Bkassine",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase code",
+            "text": "10028",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Tender title",
+            "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procurement method",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Announcement date",
+            "text": "Monday 5 October 2026",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Opening of offers",
+            "text": "Monday 2 November 2026 11:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "listingDescription": "Municipality of Bkassine. Auction. Purchase code: 10028",
+        "listingFetchedAt": "2026-10-05T00:00:00Z",
+        "listingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+        "detailEvidence": [
+          {
+            "label": "Purchase Brief :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchasing Studies :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sustainability Standards :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Preferential Systems National :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Type :",
+            "text": "Goods and supplies",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sector :",
+            "text": "Agriculture - Forestry",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Responsible Name :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Phone :",
+            "text": "07-800580 07-800046",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Email :",
+            "text": "bkassine@cyberia.net.lb",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring Method :",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Award Criteria :",
+            "text": "Price only",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Rationales :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Min estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Max estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Offer guarantee value :",
+            "text": "30,000,000.00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Currency :",
+            "text": "LBP",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Budget source :",
+            "text": "16123",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Uri :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Placement or Reference :",
+            "text": "وزارة الزراعة",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Description :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of publish plan :",
+            "text": "2026-10-06 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Submission files date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date on which the list of qualified exhibitors was prepared :",
+            "text": "2026-10-30 00:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for submission of offers :",
+            "text": "2026-11-02 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification on awarding procedures :",
+            "text": "2026-10-19 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the administrative and technical bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the financial bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification of the award result :",
+            "text": "2026-10-23 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of signing the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of commencement of implementation of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Final delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "detailFetchedAt": "2026-10-05T01:00:00Z",
+        "detailHash": "7377485ff20af9fbd1fbe5504994358705d8ca955e936fe549c1d3b02581b458",
+        "detailListingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+        "detailNeedsRefresh": false,
+        "detailDescription": null,
+        "deadlineLocal": "2026-11-02T11:00:00",
+        "deadlinePrecision": "local_datetime",
+        "deadlineTimezone": null,
+        "detailStatus": "verified"
+      }
+    ],
+    "detailStatus": "verified",
+    "applicationStatus": "needs_verification",
+    "locale": "en",
+    "listingEvidence": [
+      {
+        "label": "Issuer ID",
+        "text": "12982",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring entity",
+        "text": "Municipality of Bkassine",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase code",
+        "text": "10028",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Tender title",
+        "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procurement method",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Announcement date",
+        "text": "Monday 5 October 2026",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Opening of offers",
+        "text": "Monday 2 November 2026 11:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "listingDescription": "Municipality of Bkassine. Auction. Purchase code: 10028",
+    "listingFetchedAt": "2026-10-05T00:00:00Z",
+    "listingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+    "detailEvidence": [
+      {
+        "label": "Purchase Brief :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchasing Studies :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sustainability Standards :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Preferential Systems National :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Type :",
+        "text": "Goods and supplies",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sector :",
+        "text": "Agriculture - Forestry",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Responsible Name :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Phone :",
+        "text": "07-800580 07-800046",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Email :",
+        "text": "bkassine@cyberia.net.lb",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring Method :",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Award Criteria :",
+        "text": "Price only",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Rationales :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Min estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Max estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Offer guarantee value :",
+        "text": "30,000,000.00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Currency :",
+        "text": "LBP",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Budget source :",
+        "text": "16123",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Uri :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Placement or Reference :",
+        "text": "وزارة الزراعة",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Description :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of publish plan :",
+        "text": "2026-10-06 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Submission files date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date on which the list of qualified exhibitors was prepared :",
+        "text": "2026-10-30 00:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for submission of offers :",
+        "text": "2026-11-02 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification on awarding procedures :",
+        "text": "2026-10-19 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the administrative and technical bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the financial bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification of the award result :",
+        "text": "2026-10-23 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of signing the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of commencement of implementation of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Final delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "detailFetchedAt": "2026-10-05T01:00:00Z",
+    "detailHash": "7377485ff20af9fbd1fbe5504994358705d8ca955e936fe549c1d3b02581b458",
+    "detailListingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+    "detailNeedsRefresh": false,
+    "detailDescription": null,
+    "deadlineLocal": "2026-11-02T11:00:00",
+    "deadlinePrecision": "local_datetime",
+    "deadlineTimezone": null,
+    "deadlineConflict": false
+  },
+  "expiredFailedRefresh": {
+    "source": "ppa",
+    "sourceKey": "ppa:12982",
+    "sourceUrl": "https://www.ppa.gov.lb/en/tenders/details/12982",
+    "title": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+    "description": "Municipality of Bkassine. Auction. Purchase code: 10028",
+    "publishedAt": "2026-10-05",
+    "deadline": "2026-11-02",
+    "kind": "procurement",
+    "evidence": [
+      {
+        "label": "Issuer ID",
+        "text": "12982",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring entity",
+        "text": "Municipality of Bkassine",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase code",
+        "text": "10028",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Tender title",
+        "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procurement method",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Announcement date",
+        "text": "Monday 5 October 2026",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Opening of offers",
+        "text": "Monday 2 November 2026 11:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Brief :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchasing Studies :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sustainability Standards :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Preferential Systems National :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Type :",
+        "text": "Goods and supplies",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sector :",
+        "text": "Agriculture - Forestry",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Responsible Name :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Phone :",
+        "text": "07-800580 07-800046",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Email :",
+        "text": "bkassine@cyberia.net.lb",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring Method :",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Award Criteria :",
+        "text": "Price only",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Rationales :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Min estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Max estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Offer guarantee value :",
+        "text": "30,000,000.00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Currency :",
+        "text": "LBP",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Budget source :",
+        "text": "16123",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Uri :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Placement or Reference :",
+        "text": "وزارة الزراعة",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Description :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of publish plan :",
+        "text": "2026-10-06 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Submission files date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date on which the list of qualified exhibitors was prepared :",
+        "text": "2026-10-30 00:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for submission of offers :",
+        "text": "2026-11-02 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification on awarding procedures :",
+        "text": "2026-10-19 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the administrative and technical bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the financial bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification of the award result :",
+        "text": "2026-10-23 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of signing the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of commencement of implementation of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Final delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "fetchedAt": "2026-10-07T00:00:00Z",
+    "contentHash": "a76bef60faf405faf19c04b46341393589bfb9496cffe757e58baac024e7c3e4",
+    "locales": [
+      {
+        "locale": "en",
+        "sourceUrl": "https://www.ppa.gov.lb/en/tenders/details/12982",
+        "title": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "description": "Municipality of Bkassine. Auction. Purchase code: 10028",
+        "publishedAt": "2026-10-05",
+        "deadline": "2026-11-02",
+        "evidence": [
+          {
+            "label": "Issuer ID",
+            "text": "12982",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring entity",
+            "text": "Municipality of Bkassine",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase code",
+            "text": "10028",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Tender title",
+            "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procurement method",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Announcement date",
+            "text": "Monday 5 October 2026",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Opening of offers",
+            "text": "Monday 2 November 2026 11:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Brief :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchasing Studies :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sustainability Standards :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Preferential Systems National :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Type :",
+            "text": "Goods and supplies",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sector :",
+            "text": "Agriculture - Forestry",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Responsible Name :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Phone :",
+            "text": "07-800580 07-800046",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Email :",
+            "text": "bkassine@cyberia.net.lb",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring Method :",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Award Criteria :",
+            "text": "Price only",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Rationales :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Min estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Max estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Offer guarantee value :",
+            "text": "30,000,000.00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Currency :",
+            "text": "LBP",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Budget source :",
+            "text": "16123",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Uri :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Placement or Reference :",
+            "text": "وزارة الزراعة",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Description :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of publish plan :",
+            "text": "2026-10-06 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Submission files date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date on which the list of qualified exhibitors was prepared :",
+            "text": "2026-10-30 00:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for submission of offers :",
+            "text": "2026-11-02 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification on awarding procedures :",
+            "text": "2026-10-19 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the administrative and technical bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the financial bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification of the award result :",
+            "text": "2026-10-23 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of signing the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of commencement of implementation of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Final delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "listingEvidence": [
+          {
+            "label": "Issuer ID",
+            "text": "12982",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring entity",
+            "text": "Municipality of Bkassine",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase code",
+            "text": "10028",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Tender title",
+            "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procurement method",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Announcement date",
+            "text": "Monday 5 October 2026",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Opening of offers",
+            "text": "Monday 2 November 2026 11:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "listingDescription": "Municipality of Bkassine. Auction. Purchase code: 10028",
+        "listingFetchedAt": "2026-10-07T00:00:00Z",
+        "listingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+        "detailEvidence": [
+          {
+            "label": "Purchase Brief :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchasing Studies :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sustainability Standards :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Preferential Systems National :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Type :",
+            "text": "Goods and supplies",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sector :",
+            "text": "Agriculture - Forestry",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Responsible Name :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Phone :",
+            "text": "07-800580 07-800046",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Email :",
+            "text": "bkassine@cyberia.net.lb",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring Method :",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Award Criteria :",
+            "text": "Price only",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Rationales :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Min estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Max estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Offer guarantee value :",
+            "text": "30,000,000.00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Currency :",
+            "text": "LBP",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Budget source :",
+            "text": "16123",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Uri :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Placement or Reference :",
+            "text": "وزارة الزراعة",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Description :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of publish plan :",
+            "text": "2026-10-06 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Submission files date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date on which the list of qualified exhibitors was prepared :",
+            "text": "2026-10-30 00:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for submission of offers :",
+            "text": "2026-11-02 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification on awarding procedures :",
+            "text": "2026-10-19 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the administrative and technical bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the financial bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification of the award result :",
+            "text": "2026-10-23 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of signing the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of commencement of implementation of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Final delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "detailFetchedAt": "2026-10-05T01:00:00Z",
+        "detailHash": "7377485ff20af9fbd1fbe5504994358705d8ca955e936fe549c1d3b02581b458",
+        "detailListingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+        "detailNeedsRefresh": true,
+        "detailDescription": null,
+        "deadlineLocal": "2026-11-02T11:00:00",
+        "deadlinePrecision": "local_datetime",
+        "deadlineTimezone": null,
+        "detailStatus": "verified",
+        "detailAttemptedAt": "2026-10-07T01:00:00.000Z",
+        "detailError": "detail_fetch_failed"
+      }
+    ],
+    "detailStatus": "partial",
+    "applicationStatus": "needs_verification",
+    "locale": "en",
+    "listingEvidence": [
+      {
+        "label": "Issuer ID",
+        "text": "12982",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring entity",
+        "text": "Municipality of Bkassine",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase code",
+        "text": "10028",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Tender title",
+        "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procurement method",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Announcement date",
+        "text": "Monday 5 October 2026",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Opening of offers",
+        "text": "Monday 2 November 2026 11:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "listingDescription": "Municipality of Bkassine. Auction. Purchase code: 10028",
+    "listingFetchedAt": "2026-10-07T00:00:00Z",
+    "listingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+    "detailEvidence": [
+      {
+        "label": "Purchase Brief :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchasing Studies :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sustainability Standards :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Preferential Systems National :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Type :",
+        "text": "Goods and supplies",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sector :",
+        "text": "Agriculture - Forestry",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Responsible Name :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Phone :",
+        "text": "07-800580 07-800046",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Email :",
+        "text": "bkassine@cyberia.net.lb",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring Method :",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Award Criteria :",
+        "text": "Price only",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Rationales :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Min estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Max estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Offer guarantee value :",
+        "text": "30,000,000.00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Currency :",
+        "text": "LBP",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Budget source :",
+        "text": "16123",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Uri :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Placement or Reference :",
+        "text": "وزارة الزراعة",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Description :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of publish plan :",
+        "text": "2026-10-06 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Submission files date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date on which the list of qualified exhibitors was prepared :",
+        "text": "2026-10-30 00:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for submission of offers :",
+        "text": "2026-11-02 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification on awarding procedures :",
+        "text": "2026-10-19 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the administrative and technical bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the financial bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification of the award result :",
+        "text": "2026-10-23 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of signing the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of commencement of implementation of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Final delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "detailFetchedAt": "2026-10-05T01:00:00Z",
+    "detailHash": "7377485ff20af9fbd1fbe5504994358705d8ca955e936fe549c1d3b02581b458",
+    "detailListingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+    "detailNeedsRefresh": true,
+    "detailDescription": null,
+    "deadlineLocal": "2026-11-02T11:00:00",
+    "deadlinePrecision": "local_datetime",
+    "deadlineTimezone": null,
+    "deadlineConflict": false,
+    "detailAttemptedAt": "2026-10-07T01:00:00.000Z",
+    "detailError": "detail_fetch_failed"
+  },
+  "changedListingFailedRefresh": {
+    "source": "ppa",
+    "sourceKey": "ppa:12982",
+    "sourceUrl": "https://www.ppa.gov.lb/en/tenders/details/12982",
+    "title": "Updated تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+    "description": "Municipality of Bkassine. Auction. Purchase code: 10028",
+    "publishedAt": "2026-10-05",
+    "deadline": "2026-11-02",
+    "kind": "procurement",
+    "evidence": [
+      {
+        "label": "Issuer ID",
+        "text": "12982",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring entity",
+        "text": "Municipality of Bkassine",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase code",
+        "text": "10028",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Tender title",
+        "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procurement method",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Announcement date",
+        "text": "Monday 5 October 2026",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Opening of offers",
+        "text": "Monday 2 November 2026 11:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Brief :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchasing Studies :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sustainability Standards :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Preferential Systems National :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Type :",
+        "text": "Goods and supplies",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sector :",
+        "text": "Agriculture - Forestry",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Responsible Name :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Phone :",
+        "text": "07-800580 07-800046",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Email :",
+        "text": "bkassine@cyberia.net.lb",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring Method :",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Award Criteria :",
+        "text": "Price only",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Rationales :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Min estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Max estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Offer guarantee value :",
+        "text": "30,000,000.00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Currency :",
+        "text": "LBP",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Budget source :",
+        "text": "16123",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Uri :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Placement or Reference :",
+        "text": "وزارة الزراعة",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Description :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of publish plan :",
+        "text": "2026-10-06 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Submission files date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date on which the list of qualified exhibitors was prepared :",
+        "text": "2026-10-30 00:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for submission of offers :",
+        "text": "2026-11-02 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification on awarding procedures :",
+        "text": "2026-10-19 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the administrative and technical bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the financial bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification of the award result :",
+        "text": "2026-10-23 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of signing the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of commencement of implementation of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Final delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "fetchedAt": "2026-10-07T00:00:00Z",
+    "contentHash": "a85a43905ea8f2116451f5e1a4dfd20e89b4257ee02c42c784425aad49211310",
+    "locales": [
+      {
+        "locale": "en",
+        "sourceUrl": "https://www.ppa.gov.lb/en/tenders/details/12982",
+        "title": "Updated تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "description": "Municipality of Bkassine. Auction. Purchase code: 10028",
+        "publishedAt": "2026-10-05",
+        "deadline": "2026-11-02",
+        "evidence": [
+          {
+            "label": "Issuer ID",
+            "text": "12982",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring entity",
+            "text": "Municipality of Bkassine",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase code",
+            "text": "10028",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Tender title",
+            "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procurement method",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Announcement date",
+            "text": "Monday 5 October 2026",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Opening of offers",
+            "text": "Monday 2 November 2026 11:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Brief :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchasing Studies :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sustainability Standards :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Preferential Systems National :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Type :",
+            "text": "Goods and supplies",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sector :",
+            "text": "Agriculture - Forestry",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Responsible Name :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Phone :",
+            "text": "07-800580 07-800046",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Email :",
+            "text": "bkassine@cyberia.net.lb",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring Method :",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Award Criteria :",
+            "text": "Price only",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Rationales :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Min estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Max estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Offer guarantee value :",
+            "text": "30,000,000.00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Currency :",
+            "text": "LBP",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Budget source :",
+            "text": "16123",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Uri :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Placement or Reference :",
+            "text": "وزارة الزراعة",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Description :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of publish plan :",
+            "text": "2026-10-06 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Submission files date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date on which the list of qualified exhibitors was prepared :",
+            "text": "2026-10-30 00:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for submission of offers :",
+            "text": "2026-11-02 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification on awarding procedures :",
+            "text": "2026-10-19 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the administrative and technical bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the financial bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification of the award result :",
+            "text": "2026-10-23 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of signing the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of commencement of implementation of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Final delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "listingEvidence": [
+          {
+            "label": "Issuer ID",
+            "text": "12982",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring entity",
+            "text": "Municipality of Bkassine",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase code",
+            "text": "10028",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Tender title",
+            "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procurement method",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Announcement date",
+            "text": "Monday 5 October 2026",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Opening of offers",
+            "text": "Monday 2 November 2026 11:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "listingDescription": "Municipality of Bkassine. Auction. Purchase code: 10028",
+        "listingFetchedAt": "2026-10-07T00:00:00Z",
+        "listingHash": "419285b9b5dbd98f618642fe4481ac11fd7e9731fe321e462494daa1eb068dab",
+        "detailEvidence": [
+          {
+            "label": "Purchase Brief :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchasing Studies :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sustainability Standards :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Preferential Systems National :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Purchase Type :",
+            "text": "Goods and supplies",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Sector :",
+            "text": "Agriculture - Forestry",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Responsible Name :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Phone :",
+            "text": "07-800580 07-800046",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Email :",
+            "text": "bkassine@cyberia.net.lb",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Procuring Method :",
+            "text": "Auction",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Award Criteria :",
+            "text": "Price only",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Rationales :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Min estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Max estimated value :",
+            "text": "There is an estimated value, but it is confidential ******",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Offer guarantee value :",
+            "text": "30,000,000.00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Currency :",
+            "text": "LBP",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Budget source :",
+            "text": "16123",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Uri :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Placement or Reference :",
+            "text": "وزارة الزراعة",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Description :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of publish plan :",
+            "text": "2026-10-06 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Submission files date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date on which the list of qualified exhibitors was prepared :",
+            "text": "2026-10-30 00:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for submission of offers :",
+            "text": "2026-11-02 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification on awarding procedures :",
+            "text": "2026-10-19 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the administrative and technical bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of the financial bid opening session :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Deadline for clarification of the award result :",
+            "text": "2026-10-23 11:00:00",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of signing the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Date of commencement of implementation of the contract(s) :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          },
+          {
+            "label": "Final delivery date :",
+            "text": "",
+            "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+          }
+        ],
+        "detailFetchedAt": "2026-10-05T01:00:00Z",
+        "detailHash": "7377485ff20af9fbd1fbe5504994358705d8ca955e936fe549c1d3b02581b458",
+        "detailListingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+        "detailNeedsRefresh": true,
+        "detailDescription": null,
+        "deadlineLocal": "2026-11-02T11:00:00",
+        "deadlinePrecision": "local_datetime",
+        "deadlineTimezone": null,
+        "detailStatus": "verified",
+        "detailAttemptedAt": "2026-10-07T01:00:00.000Z",
+        "detailError": "detail_fetch_failed"
+      }
+    ],
+    "detailStatus": "partial",
+    "applicationStatus": "needs_verification",
+    "locale": "en",
+    "listingEvidence": [
+      {
+        "label": "Issuer ID",
+        "text": "12982",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring entity",
+        "text": "Municipality of Bkassine",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase code",
+        "text": "10028",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Tender title",
+        "text": "تلزيم تفريد اشجار ضمن حرج الصنوبر التابع لبلدية بكاسين",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procurement method",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Announcement date",
+        "text": "Monday 5 October 2026",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Opening of offers",
+        "text": "Monday 2 November 2026 11:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "listingDescription": "Municipality of Bkassine. Auction. Purchase code: 10028",
+    "listingFetchedAt": "2026-10-07T00:00:00Z",
+    "listingHash": "419285b9b5dbd98f618642fe4481ac11fd7e9731fe321e462494daa1eb068dab",
+    "detailEvidence": [
+      {
+        "label": "Purchase Brief :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchasing Studies :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sustainability Standards :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Preferential Systems National :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Purchase Type :",
+        "text": "Goods and supplies",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Sector :",
+        "text": "Agriculture - Forestry",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Responsible Name :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Phone :",
+        "text": "07-800580 07-800046",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Email :",
+        "text": "bkassine@cyberia.net.lb",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Procuring Method :",
+        "text": "Auction",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Award Criteria :",
+        "text": "Price only",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Rationales :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Min estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Max estimated value :",
+        "text": "There is an estimated value, but it is confidential ******",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Offer guarantee value :",
+        "text": "30,000,000.00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Currency :",
+        "text": "LBP",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Budget source :",
+        "text": "16123",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Uri :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Placement or Reference :",
+        "text": "وزارة الزراعة",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Description :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of publish plan :",
+        "text": "2026-10-06 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Submission files date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date on which the list of qualified exhibitors was prepared :",
+        "text": "2026-10-30 00:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for submission of offers :",
+        "text": "2026-11-02 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification on awarding procedures :",
+        "text": "2026-10-19 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the administrative and technical bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of the financial bid opening session :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Deadline for clarification of the award result :",
+        "text": "2026-10-23 11:00:00",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "The date the temporary obligor was notified of the signing of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of signing the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Date of commencement of implementation of the contract(s) :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      },
+      {
+        "label": "Final delivery date :",
+        "text": "",
+        "url": "https://www.ppa.gov.lb/en/tenders/details/12982"
+      }
+    ],
+    "detailFetchedAt": "2026-10-05T01:00:00Z",
+    "detailHash": "7377485ff20af9fbd1fbe5504994358705d8ca955e936fe549c1d3b02581b458",
+    "detailListingHash": "729aa8b9daa185a75e503032324d869285c728107f94f53a5808b1f6ac365169",
+    "detailNeedsRefresh": true,
+    "detailDescription": null,
+    "deadlineLocal": "2026-11-02T11:00:00",
+    "deadlinePrecision": "local_datetime",
+    "deadlineTimezone": null,
+    "deadlineConflict": false,
+    "detailAttemptedAt": "2026-10-07T01:00:00.000Z",
+    "detailError": "detail_fetch_failed"
+  }
+}
