@@ -41,7 +41,10 @@ function boundedDetails(name: string, fallback: number, maximum: number) {
   return String(value);
 }
 const recentDetails = boundedDetails("CATALOGUE_RECENT_DETAILS", 300, 500);
-const backlogDetails = boundedDetails("CATALOGUE_BACKLOG_DETAILS", 100, 300);
+// The measured first GitHub request pace indicates a 100-detail archive slice could exceed
+// the 80-minute runner budget after a full recent-detail refresh. Preserve
+// today's qualified import and advance older evidence in a smaller daily slice.
+const backlogDetails = boundedDetails("CATALOGUE_BACKLOG_DETAILS", 40, 300);
 const sources = (
   process.env.CATALOGUE_SOURCES ?? "worldbank,mawred,ungm-curated,ppa"
 ).split(",");
