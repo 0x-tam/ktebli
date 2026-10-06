@@ -1354,6 +1354,15 @@ footer a:hover {
     padding-left: 18px;
   }
 }
+@media (max-width: 720px) {
+  input,
+  textarea,
+  select,
+  .search input,
+  .catalogue-filters select {
+    font-size: 16px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
