@@ -15,6 +15,7 @@ npm run crawl -- --state .state/coverage.json --output .state/opportunities.json
 npm run crawl:supplemental -- --watch-state .state/watches.json --output .state/supplemental-opportunities.json
 npm run crawl:ungm-curated -- --state .state/ungm-coverage.json --output .state/ungm-opportunities.json --max-details 12
 npm run crawl:mawred -- --state .state/mawred-coverage.json --output .state/mawred-opportunities.json
+npm run crawl:worldbank -- --state .state/worldbank-coverage.json --output .state/worldbank-opportunities.json --refresh
 ```
 
 The same state resumes pending cursors. `--retry-blocked` retries a previously
@@ -75,6 +76,20 @@ the full bounded publisher program text in evidence, including age/origin,
 organization exclusion, application conditions and the explicit Beirut deadline.
 It does not claim broader grant discovery. `--refresh` forces one guarded
 recheck when a publisher correction must be qualified before the normal TTL.
+
+The World Bank runner calls the [Bank's public procurement notices API](https://search.worldbank.org/api/v2/procnotices)
+through the same pinned HTTPS/DNS/robots transport. Its exact query requires
+publisher `project_ctry_name=Lebanon`, three competitive notice types, and a
+submission deadline on or after the query date. The snapshot is accepted only
+after every API page is accounted for; duplicate IDs, changing totals, wrong
+country/type, missing material fields, or oversized notice text leave coverage
+incomplete. The full bounded notice text is retained in evidence chunks while
+the description remains short enough for matching. API deadline dates are not
+interpreted as UTC midnight; a stated clock time is kept with unknown timezone.
+One World Bank OP ID yields one record, including notices that mention multiple
+lots; the crawler does not invent lot IDs. `--refresh` starts a new daily
+snapshot. The importer upserts without deleting older records that may still
+be in the database; their deadlines and freshness still govern matching.
 
 ## Record contract
 
@@ -155,6 +170,12 @@ solutions, stealth plugins, CAPTCHA services or arbitrary domains are used.
   notices, two individual-consultant notices conservatively `unknown`). These
   are a verified subset, not a discovered full UNGM catalogue. A candidate
   detail whose beneficiary did not name Lebanon was excluded.
+- World Bank public procurement API: on 2026-10-06 a complete one-page query
+  returned 9 published notice IDs with explicit `project_ctry_name=Lebanon`,
+  of which 7 have a deadline strictly after that date. All 9 full notices were
+  retained and validated locally; applicant eligibility and procurement
+  documents still require publisher review. This is a qualified current API
+  slice, not all World Bank procurement or every Lebanon opportunity.
 - Two current arts-funding leads were verified directly from their publishers
 - [Culture Resource Production Awards](https://mawred.org/artistic-creativity/production-awards/?lang=en)
   was live-qualified through the guarded crawler as one current grant for
@@ -166,6 +187,13 @@ solutions, stealth plugins, CAPTCHA services or arbitrary domains are used.
   is a publisher-verified manual lead (non-German legal entities with a German
   artistic partner, deadline 2026-10-12 23:59 CET). The guarded client received
   `access_blocked`, so it is not an automated source or imported record.
+- The [EU Funding & Tenders Portal](https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/support/apis)
+  documents a public POST Search API. Two bounded requests to the documented
+  endpoint returned HTTP 500 on 2026-10-06, and no field proving Lebanon
+  location or applicant eligibility was qualified. No generic EU keyword result
+  was imported. The [AFAC official program index](https://www.arabculturefund.org/Programs/)
+  shows its listed 2026 open-call deadlines before 2026-10-06; it is a
+  future-watch source, not a current grant import.
 
 Local artifacts are ignored under `.state/`. Durable reduced public fixtures and
 manual CDR visible-cell provenance are under `fixtures/`. The manual capture is

@@ -9,12 +9,16 @@ export const sources = [
       "https://www.ppa.gov.lb/en/tenders",
     ],
     status: "listing_adapter",
+    coverage:
+      "Complete bilingual listings; detail verification is a separate, incomplete backlog",
   },
   {
     id: "cdr",
     enabled: false,
     urls: ["https://www.cdr.gov.lb/en-US/Procurment.aspx"],
-    status: "browser_transport_required",
+    status: "automated_access_blocked_403",
+    coverage:
+      "43 Ongoing notices captured manually; unattended collection is unavailable",
     stages: ["Ongoing", "Archive", "Others"],
   },
   {
@@ -64,5 +68,39 @@ export const sources = [
     enabled: false,
     url: "https://www.ungm.org/Public/Notice",
     status: "watchlist_only",
+    adapter: "curated_detail_urls_only",
+    coverage:
+      "11 reviewed official detail URLs; public discovery is unqualified",
+  },
+  {
+    id: "mawred",
+    enabled: true,
+    url: "https://mawred.org/artistic-creativity/production-awards/?lang=en",
+    status: "fixed_page_adapter",
+    coverage:
+      "One verified current Production Awards call; no broader Mawred discovery",
+  },
+  {
+    id: "worldbank",
+    enabled: true,
+    url: "https://search.worldbank.org/api/v2/procnotices",
+    status: "lebanon_api_adapter",
+    coverage:
+      "Current procurement notices with explicit project country Lebanon; bidder eligibility unverified",
+  },
+  {
+    id: "eu-funding-tenders",
+    enabled: false,
+    url: "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/support/apis",
+    status: "api_unqualified_http_500",
+    coverage:
+      "Two bounded public API probes failed; no Lebanon eligibility field qualified",
+  },
+  {
+    id: "afac",
+    enabled: false,
+    url: "https://www.arabculturefund.org/Programs/",
+    status: "watch_closed_rounds",
+    coverage: "Listed 2026 open-call deadlines had passed by 2026-10-06",
   },
 ];

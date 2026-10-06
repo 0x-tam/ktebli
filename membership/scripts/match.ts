@@ -114,6 +114,7 @@ try {
         row.opportunity_id,
         row.revision,
         row.content_hash,
+        row.group_version,
       ]);
       if (!stillEligible.rowCount) return { exhausted: false, id: null };
       const spent = Number(
@@ -126,13 +127,15 @@ try {
       if (spent + reserve > budget) return { exhausted: true, id: null };
       const id = (
         await db.query(
-          "INSERT INTO membership.matching_spend(user_id,opportunity_id,reserved_usd,profile_revision,content_hash) VALUES($1,$2,$3,$4,$5) ON CONFLICT(user_id,opportunity_id,profile_revision,content_hash) DO NOTHING RETURNING id",
+          "INSERT INTO membership.matching_spend(user_id,opportunity_id,reserved_usd,profile_revision,content_hash,identity_group_key,group_version) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT DO NOTHING RETURNING id",
           [
             row.user_id,
             row.opportunity_id,
             reserve,
             row.revision,
             row.content_hash,
+            stillEligible.rows[0].group_key,
+            stillEligible.rows[0].group_version,
           ],
         )
       ).rows[0]?.id as string | undefined;
@@ -177,6 +180,7 @@ try {
           match.eligibility,
           JSON.stringify(match.reasons),
           match.model,
+          row.group_version,
         ]);
         if (written.rowCount)
           await db.query(matchingAlertSql, [
@@ -184,6 +188,7 @@ try {
             row.opportunity_id,
             row.content_hash,
             row.revision,
+            row.group_version,
           ]);
         return Boolean(written.rowCount);
       });

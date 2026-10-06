@@ -24,6 +24,9 @@ type Opportunity = {
   eligibility: string | null;
   reasons: { label: string; text: string; url: string }[] | null;
   evidence: { label: string; text: string; url: string }[];
+  geography_status: "lebanon_confirmed" | "regional_includes_lebanon";
+  source_aliases: { source: string; source_url: string; title: string }[];
+  group_conflict: boolean;
 };
 type Profile = {
   past_work: string;
@@ -684,6 +687,11 @@ export default function Dashboard({
                     </p>
                     <div className="card-meta">
                       <span>
+                        {o.geography_status === "lebanon_confirmed"
+                          ? "Lebanon scope confirmed"
+                          : "Regional call including Lebanon"}
+                      </span>
+                      <span>
                         {o.deadline_conflict
                           ? "Conflicting dates — check source"
                           : o.deadline
@@ -692,13 +700,20 @@ export default function Dashboard({
                       </span>
                       <span>Checked {date(o.fetched_at)}</span>
                     </div>
+                    {o.group_conflict && (
+                      <p className="notice">
+                        Official postings disagree on the deadline or status.
+                        Check each source before acting; fit assessment is
+                        paused.
+                      </p>
+                    )}
                     {(o.detail_status !== "verified" ||
                       now - new Date(o.fetched_at).getTime() >
-                        7 * 86400000) && (
+                        24 * 60 * 60 * 1000) && (
                       <p className="notice">
                         {o.detail_status !== "verified"
                           ? "Notice details still need verification."
-                          : "This notice has not been checked in the past week."}
+                          : "This notice has not been checked in the past day."}
                       </p>
                     )}
                     <div className="fit-row">
@@ -760,6 +775,27 @@ export default function Dashboard({
                     >
                       Read original notice <span>↗</span>
                     </a>
+                    {o.source_aliases?.length > 1 && (
+                      <details>
+                        <summary>
+                          Also published by {o.source_aliases.length - 1}{" "}
+                          source(s)
+                        </summary>
+                        {o.source_aliases
+                          .filter((alias) => alias.source_url !== o.source_url)
+                          .map((alias) => (
+                            <p key={`${alias.source}:${alias.source_url}`}>
+                              <a
+                                href={alias.source_url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {alias.source.toUpperCase()}: {alias.title} ↗
+                              </a>
+                            </p>
+                          ))}
+                      </details>
+                    )}
                   </article>
                 ))
               ) : (

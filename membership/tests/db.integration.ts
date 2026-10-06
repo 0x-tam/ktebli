@@ -1,4 +1,5 @@
 import test from "node:test";
+import { dashboardData } from "../lib/dashboard";
 import {
   matchingAlertSql,
   matchingCandidatesSql,
@@ -21,6 +22,7 @@ const socket = process.env.MEMBERSHIP_TEST_PG_SOCKET;
 if (!socket?.startsWith("/private/tmp/"))
   throw new Error("A disposable local Unix socket is required");
 const config = { host: socket, port: 55439, database: "membership_test" };
+process.env.DATABASE_URL = `postgresql://membership_test_runtime@localhost/membership_test?host=${encodeURIComponent(socket)}&port=55439`;
 const admin = new Pool({ ...config, user: "Tamam" });
 const runtime = new Pool({ ...config, user: "membership_test_runtime" }),
   billing = new Pool({ ...config, user: "membership_test_billing" }),
@@ -53,6 +55,7 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
     await admin.query(await readFile("db/001_membership.sql", "utf8"));
     await admin.query(await readFile("db/002_crawler_checkpoint.sql", "utf8"));
     await admin.query(await readFile("db/003_mawred_source.sql", "utf8"));
+    await admin.query(await readFile("db/004_central_catalogue.sql", "utf8"));
     for (const [name, role] of [
       ["membership_test_runtime", "membership_runtime"],
       ["membership_test_billing", "membership_billing"],
@@ -183,9 +186,25 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
         "INSERT INTO membership.crawler_checkpoints(source,state_gzip,state_sha256,phase,last_status) VALUES('mawred',decode('1f','hex'),repeat('a',64),'listing','pending')",
       );
       await db.query(
-        "INSERT INTO membership.opportunities(source,source_key,source_url,title,kind,content_hash,fetched_at) VALUES('mawred','mawred:production-awards:2026','https://mawred.org/artistic-creativity/production-awards/?lang=en','Production Awards','grant','fixture',now())",
+        "INSERT INTO membership.opportunities(source,source_key,source_url,title,kind,source_content_hash,content_hash,fetched_at,geography_status) VALUES('mawred','mawred:production-awards:2026','https://mawred.org/artistic-creativity/production-awards/?lang=en','Production Awards','grant',repeat('f',64),'fixture',now(),'regional_includes_lebanon')",
       );
     });
+    assert.equal(
+      (
+        await tx(runtime, "membership_runtime", "alice", (db) =>
+          db.query(
+            "SELECT source,last_status FROM membership.crawler_checkpoints ORDER BY source",
+          ),
+        )
+      ).rowCount,
+      2,
+    );
+    await assert.rejects(
+      tx(runtime, "membership_runtime", "alice", (db) =>
+        db.query("SELECT state_gzip FROM membership.crawler_checkpoints"),
+      ),
+      /permission denied/,
+    );
     await assert.rejects(
       tx(billing, "membership_billing", "", (db) =>
         db.query("DELETE FROM membership.credits"),
@@ -444,7 +463,7 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
       Array.from({ length: 12 }, () =>
         tx(worker, "membership_worker", "", (db) =>
           db.query(
-            "INSERT INTO membership.matching_spend(user_id,opportunity_id,reserved_usd,profile_revision,content_hash) VALUES('alice','00000000-0000-4000-8000-000000000001',0.003,1,'fixture-hash') ON CONFLICT(user_id,opportunity_id,profile_revision,content_hash) DO NOTHING RETURNING id",
+            "INSERT INTO membership.matching_spend(user_id,opportunity_id,reserved_usd,profile_revision,content_hash,identity_group_key,group_version) VALUES('alice','00000000-0000-4000-8000-000000000001',0.003,1,'fixture-hash','00000000-0000-4000-8000-000000000001','fixture-hash') ON CONFLICT DO NOTHING RETURNING id",
           ),
         ),
       ),
@@ -455,7 +474,13 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
       "one paid claim across concurrent workers",
     );
     await admin.query(
-      "INSERT INTO membership.opportunities(id,source,source_key,source_url,title,kind,content_hash,fetched_at,deadline,detail_status) VALUES('00000000-0000-4000-8000-000000000001','ppa','claimed','https://www.ppa.gov.lb/en/1','Claimed','procurement','fixture-hash',now(),CURRENT_DATE+1,'verified'),('00000000-0000-4000-8000-000000000002','ppa','next','https://www.ppa.gov.lb/en/2','Next','procurement','next-hash',now(),CURRENT_DATE+1,'verified')",
+      "INSERT INTO membership.opportunities(id,source,source_key,source_url,title,kind,source_content_hash,content_hash,fetched_at,deadline,detail_status,geography_status) VALUES('00000000-0000-4000-8000-000000000001','ppa','claimed','https://www.ppa.gov.lb/en/1','Claimed','procurement',repeat('a',64),'fixture-hash',now(),CURRENT_DATE+1,'verified','lebanon_confirmed'),('00000000-0000-4000-8000-000000000002','ppa','next','https://www.ppa.gov.lb/en/2','Next','procurement',repeat('b',64),'next-hash',now(),CURRENT_DATE+1,'verified','lebanon_confirmed')",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET identity_key=repeat('c',64) WHERE source_key='next'",
+    );
+    await admin.query(
+      "INSERT INTO membership.opportunities(id,source,source_key,source_url,title,kind,source_content_hash,content_hash,fetched_at,first_seen_at,deadline,detail_status,geography_status,identity_key) VALUES('00000000-0000-4000-8000-000000000003','worldbank','worldbank:alias','https://projects.worldbank.org/en/projects-operations/procurement-detail/OP12345','Same exact notice','procurement',repeat('d',64),'alias-hash',now()-interval '1 second',now()+interval '1 second',CURRENT_DATE+1,'verified','lebanon_confirmed',repeat('c',64))",
     );
     const candidates = await tx(worker, "membership_worker", "", (db) =>
       db.query(matchingCandidatesSql),
@@ -464,6 +489,72 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
       candidates.rows.map((r) => r.source_key),
       ["next"],
       "claimed failed/unknown versions do not starve later candidates",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET deadline=CURRENT_DATE+2 WHERE source_key='worldbank:alias'",
+    );
+    assert.equal(
+      (
+        await tx(worker, "membership_worker", "", (db) =>
+          db.query(matchingCandidatesSql),
+        )
+      ).rowCount,
+      0,
+      "fresh aliases with conflicting deadlines need review before paid matching",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET deadline=CURRENT_DATE+1,application_status='closed' WHERE source_key='worldbank:alias'",
+    );
+    assert.equal(
+      (
+        await tx(worker, "membership_worker", "", (db) =>
+          db.query(matchingCandidatesSql),
+        )
+      ).rowCount,
+      0,
+      "fresh closed alias conflicts with open alias",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET application_status='needs_verification',detail_status='partial',fetched_at=now()+interval '1 second' WHERE source_key='worldbank:alias'",
+    );
+    assert.deepEqual(
+      (
+        await tx(worker, "membership_worker", "", (db) =>
+          db.query(matchingCandidatesSql),
+        )
+      ).rows.map((r) => r.source_key),
+      ["next"],
+      "newer partial alias does not suppress a fresh verified primary",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET detail_status='verified',fetched_at=now()-interval '1 second' WHERE source_key='worldbank:alias'",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET geography_status='unknown' WHERE source_key='next'",
+    );
+    assert.deepEqual(
+      (
+        await tx(worker, "membership_worker", "", (db) =>
+          db.query(matchingCandidatesSql),
+        )
+      ).rows.map((r) => r.source_key),
+      ["worldbank:alias"],
+      "a source-backed Lebanon alias remains eligible when another alias is unknown",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET geography_status='unknown' WHERE source_key='worldbank:alias'",
+    );
+    assert.equal(
+      (
+        await tx(worker, "membership_worker", "", (db) =>
+          db.query(matchingCandidatesSql),
+        )
+      ).rowCount,
+      0,
+      "unknown geography on every alias cannot trigger a paid call",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET geography_status='lebanon_confirmed' WHERE source_key IN ('next','worldbank:alias')",
     );
     assert.equal(
       typeof candidates.rows[0].deadline,
@@ -480,12 +571,14 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
       "possible",
       "[]",
       "jev-1.13.0",
+      candidates.rows[0].group_version,
     ];
     const alertParams = [
       writeParams[0],
       writeParams[1],
       writeParams[3],
       writeParams[2],
+      candidates.rows[0].group_version,
     ];
     assert.equal(
       (
@@ -495,6 +588,7 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
             "00000000-0000-4000-8000-000000000002",
             1,
             "next-hash",
+            candidates.rows[0].group_version,
           ]),
         )
       ).rowCount,
@@ -517,12 +611,82 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
       1,
     );
     await admin.query(
+      "INSERT INTO membership.saved_opportunities(user_id,opportunity_id) VALUES('alice','00000000-0000-4000-8000-000000000003')",
+    );
+    let board = await dashboardData("alice", { saved: true });
+    assert.equal(board.opportunities.length, 1, "saved sibling appears once");
+    assert.equal(board.opportunities[0].source_key, "next");
+    assert.equal(board.opportunities[0].saved, true);
+    assert.equal(Number(board.opportunities[0].fit), 90);
+    assert.equal(board.alerts.length, 1);
+    await admin.query(
+      "UPDATE membership.matches SET fit=20 WHERE user_id='alice' AND opportunity_id='00000000-0000-4000-8000-000000000002'",
+    );
+    board = await dashboardData("alice", { saved: true });
+    assert.equal(
+      board.alerts.length,
+      0,
+      "a downgraded fit does not revive a prior alert",
+    );
+    await admin.query(
+      "UPDATE membership.matches SET fit=90 WHERE user_id='alice' AND opportunity_id='00000000-0000-4000-8000-000000000002'",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET application_status='closed' WHERE source_key='worldbank:alias'",
+    );
+    board = await dashboardData("alice", { saved: true });
+    assert.equal(
+      board.opportunities.length,
+      1,
+      "conflicting aliases stay visible for review",
+    );
+    assert.equal(board.opportunities[0].group_conflict, true);
+    assert.equal(board.opportunities[0].fit, null);
+    assert.equal(
+      board.alerts.length,
+      0,
+      "closed sibling suppresses an actionable alert",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET application_status='needs_verification' WHERE source_key='worldbank:alias'",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET content_hash='alias-changed-hash' WHERE source_key='worldbank:alias'",
+    );
+    board = await dashboardData("alice", { saved: true });
+    assert.equal(board.opportunities.length, 1);
+    assert.equal(
+      board.opportunities[0].fit,
+      null,
+      "sibling evidence invalidates displayed fit",
+    );
+    assert.equal(
+      board.alerts.length,
+      0,
+      "sibling evidence hides the stale alert",
+    );
+    assert.deepEqual(
+      (
+        await tx(worker, "membership_worker", "", (db) =>
+          db.query(matchingCandidatesSql),
+        )
+      ).rows.map((r) => r.source_key),
+      ["next"],
+      "sibling evidence change permits one fresh paid decision",
+    );
+    await admin.query(
+      "UPDATE membership.opportunities SET content_hash='alias-hash' WHERE source_key='worldbank:alias'",
+    );
+    await admin.query(
       "UPDATE membership.opportunities SET content_hash='changed-hash' WHERE source_key='next'",
     );
     assert.equal(
       (
         await tx(worker, "membership_worker", "", (db) =>
-          db.query(matchingClaimEligibilitySql, writeParams.slice(0, 4)),
+          db.query(matchingClaimEligibilitySql, [
+            ...writeParams.slice(0, 4),
+            candidates.rows[0].group_version,
+          ]),
         )
       ).rowCount,
       0,
@@ -567,7 +731,10 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
     assert.equal(
       (
         await tx(worker, "membership_worker", "", (db) =>
-          db.query(matchingClaimEligibilitySql, writeParams.slice(0, 4)),
+          db.query(matchingClaimEligibilitySql, [
+            ...writeParams.slice(0, 4),
+            candidates.rows[0].group_version,
+          ]),
         )
       ).rowCount,
       0,

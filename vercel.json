@@ -1,5 +1,16 @@
 {
+  "framework": null,
+  "buildCommand": "node tools/release/build_static.mjs",
+  "outputDirectory": "site-dist",
   "rewrites": [
+    {
+      "source": "/account",
+      "destination": "https://ktebli-membership.vercel.app/account"
+    },
+    {
+      "source": "/account/:path*",
+      "destination": "https://ktebli-membership.vercel.app/account/:path*"
+    },
     { "source": "/orders/session/:sid", "destination": "/order.html" },
     { "source": "/orders/:token", "destination": "/order.html" }
   ]

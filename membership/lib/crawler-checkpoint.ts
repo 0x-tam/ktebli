@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { gunzipSync, gzipSync } from "node:zlib";
 
-export type CrawlSource = "ppa" | "ungm-curated" | "mawred";
+export type CrawlSource = "ppa" | "ungm-curated" | "mawred" | "worldbank";
 export type CrawlPhase = "listing" | "backlog" | "imported";
 
 export function ppaNeedsListingRefresh(
@@ -29,6 +29,13 @@ export function validCrawlerState(
     return (
       !value.record ||
       (typeof value.record === "object" && !Array.isArray(value.record))
+    );
+  if (source === "worldbank")
+    return Boolean(
+      value.entries &&
+      typeof value.entries === "object" &&
+      !Array.isArray(value.entries) &&
+      Array.isArray(value.seen),
     );
   if (source === "ungm-curated")
     return Boolean(

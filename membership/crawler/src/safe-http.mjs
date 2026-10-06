@@ -10,6 +10,47 @@ export class CrawlError extends Error {
   }
 }
 export const USER_AGENT = "KtebliOpportunityBot/1.0";
+const WB_NOTICE_TYPES =
+  "Invitation for Bids^Invitation for Prequalification^Request for Expression of Interest";
+function worldBankQueryAllowed(u) {
+  if (u.pathname === "/robots.txt") return !u.search;
+  if (u.pathname !== "/api/v2/procnotices") return false;
+  const expected = {
+    format: "json",
+    project_ctry_name: "Lebanon",
+    notice_type_exact: WB_NOTICE_TYPES,
+    srt: "submission_deadline_date",
+    order: "asc",
+    apilang: "en",
+    srce: "both",
+  };
+  if (
+    [...u.searchParams.keys()].some(
+      (key) =>
+        ![...Object.keys(expected), "rows", "os", "deadline_strdate"].includes(
+          key,
+        ) || u.searchParams.getAll(key).length !== 1,
+    ) ||
+    Object.entries(expected).some(
+      ([key, value]) => u.searchParams.get(key) !== value,
+    )
+  )
+    return false;
+  const rows = Number(u.searchParams.get("rows"));
+  const offset = Number(u.searchParams.get("os"));
+  const date = u.searchParams.get("deadline_strdate") || "";
+  return (
+    Number.isInteger(rows) &&
+    rows >= 1 &&
+    rows <= 100 &&
+    Number.isInteger(offset) &&
+    offset >= 0 &&
+    offset <= 1000 &&
+    /^20\d\d-\d\d-\d\d$/.test(date) &&
+    Number.isFinite(Date.parse(date)) &&
+    new Date(date).toISOString().slice(0, 10) === date
+  );
+}
 export function allowedUrl(input) {
   const u = new URL(input);
   if (
@@ -29,12 +70,14 @@ export function allowedUrl(input) {
         ? /^\/robots\.txt$/.test(u.pathname) ||
           /^\/en-US\/Procurment\.aspx$/i.test(u.pathname) ||
           /^\/Procurment(?:\/ProcurementDetail\.aspx)?$/i.test(u.pathname)
-        : (host === "www.ungm.org" &&
-            (/^\/robots\.txt$/.test(u.pathname) ||
-              /^\/Public\/Notice\/\d+$/.test(u.pathname))) ||
-          (host === "mawred.org" &&
-            (/^\/robots\.txt$/.test(u.pathname) ||
-              u.pathname === "/artistic-creativity/production-awards/"));
+        : host === "search.worldbank.org"
+          ? worldBankQueryAllowed(u)
+          : (host === "www.ungm.org" &&
+              (/^\/robots\.txt$/.test(u.pathname) ||
+                /^\/Public\/Notice\/\d+$/.test(u.pathname))) ||
+            (host === "mawred.org" &&
+              (/^\/robots\.txt$/.test(u.pathname) ||
+                u.pathname === "/artistic-creativity/production-awards/"));
   if (!pathOk) throw new CrawlError("url_not_allowed");
   if (host === "www.ungm.org" && u.search)
     throw new CrawlError("query_not_allowed");
@@ -49,6 +92,7 @@ export function allowedUrl(input) {
     throw new CrawlError("query_not_allowed");
   for (const key of u.searchParams.keys())
     if (
+      host !== "search.worldbank.org" &&
       !["page", "id", "lot", "stage"].includes(key) &&
       !(host === "mawred.org" && key === "lang")
     )

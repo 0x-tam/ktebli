@@ -14,12 +14,25 @@ import {
   catalogueBatchSchema,
   mawredPageBatchSchema,
   ungmCuratedBatchSchema,
+  worldBankBatchSchema,
 } from "../lib/catalogue";
 
 const connectionString = process.env.INGEST_DATABASE_URL;
-if (!connectionString || connectionString.includes("-pooler."))
+const expectedHost = process.env.MEMBERSHIP_EXPECTED_DB_HOST;
+let connectionHost: string | null = null;
+try {
+  if (connectionString) connectionHost = new URL(connectionString).hostname;
+} catch {
+  // Never let URL parser diagnostics include credential-bearing input.
+}
+if (
+  !connectionString ||
+  connectionString.includes("-pooler.") ||
+  !expectedHost ||
+  connectionHost !== expectedHost
+)
   throw new Error(
-    "Use a direct INGEST_DATABASE_URL for the isolated membership branch",
+    "Use the direct ingestion URL for the exact reviewed membership branch",
   );
 function boundedDetails(name: string, fallback: number, maximum: number) {
   const value = Number(process.env[name] ?? fallback);
@@ -30,7 +43,7 @@ function boundedDetails(name: string, fallback: number, maximum: number) {
 const recentDetails = boundedDetails("CATALOGUE_RECENT_DETAILS", 300, 500);
 const backlogDetails = boundedDetails("CATALOGUE_BACKLOG_DETAILS", 100, 300);
 const sources = (
-  process.env.CATALOGUE_SOURCES ?? "mawred,ungm-curated,ppa"
+  process.env.CATALOGUE_SOURCES ?? "worldbank,mawred,ungm-curated,ppa"
 ).split(",");
 const stopAt = Date.now() + 80 * 60 * 1000;
 if (
@@ -38,7 +51,10 @@ if (
   new Set(sources).size !== sources.length ||
   sources.some(
     (source) =>
-      source !== "ppa" && source !== "ungm-curated" && source !== "mawred",
+      source !== "ppa" &&
+      source !== "ungm-curated" &&
+      source !== "mawred" &&
+      source !== "worldbank",
   )
 )
   throw new Error("CATALOGUE_SOURCES must name unique approved sources");
@@ -97,6 +113,14 @@ async function checkpoint(source: CrawlSource): Promise<Checkpoint> {
     state = initialState();
   } else if (source === "ungm-curated") {
     state = { version: 1, entries: {} };
+  } else if (source === "worldbank") {
+    state = {
+      version: 1,
+      entries: {},
+      seen: [],
+      total: null,
+      status: "incomplete",
+    };
   } else {
     state = { version: 1 };
   }
@@ -393,6 +417,35 @@ async function runSource(source: CrawlSource) {
       throw new Error("mawred_page_incomplete");
     }
     mawredPageBatchSchema.parse(output);
+  }
+  if (source === "worldbank") {
+    await rm(outputPath, { force: true });
+    const result = await runProcess(
+      crawlDir,
+      [
+        "src/worldbank-cli.mjs",
+        "--state",
+        statePath,
+        "--output",
+        outputPath,
+        "--rows",
+        "50",
+        "--max-pages",
+        "10",
+      ],
+      saveProgress,
+    );
+    const output = JSON.parse(await readFile(outputPath, "utf8"));
+    if (result.exitCode !== 0) {
+      await persist(
+        cp,
+        "incomplete",
+        output.coverage,
+        "worldbank_api_incomplete",
+      );
+      throw new Error("worldbank_api_incomplete");
+    }
+    worldBankBatchSchema.parse(output);
   }
   await importArtifact(outputPath);
   const output = JSON.parse(await readFile(outputPath, "utf8"));

@@ -67,6 +67,7 @@ export const sourceUrlSchema = z
         "procurement-notices.undp.org",
         "www.ungm.org",
         "mawred.org",
+        "projects.worldbank.org",
       ].includes(u.hostname)
     );
   }, "An official source URL is required");
@@ -90,6 +91,7 @@ export const opportunitySchema = z
       "undp",
       "ungm",
       "mawred",
+      "worldbank",
     ]),
     sourceKey: z.string().min(1).max(250),
     sourceUrl: sourceUrlSchema,
@@ -99,6 +101,28 @@ export const opportunitySchema = z
     deadline: nullableDate,
     kind: z.enum(["procurement", "grant", "unknown"]),
     evidence: z.array(evidenceSchema).max(100),
+    geography: z
+      .object({
+        status: z.enum([
+          "lebanon_confirmed",
+          "regional_includes_lebanon",
+          "unknown",
+          "outside_lebanon",
+        ]),
+        evidence: z.array(evidenceSchema).max(20),
+      })
+      .strict()
+      .optional(),
+    identityClaim: z
+      .object({
+        authority: z.string().regex(/^[a-z0-9.-]{3,100}$/),
+        reference: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$/),
+        granularity: z.enum(["notice", "lot"]),
+        lotId: z.string().min(1).max(120).optional(),
+        proofUrl: sourceUrlSchema,
+      })
+      .strict()
+      .optional(),
     fetchedAt: z.string().datetime({ offset: true }),
     contentHash: z.string().regex(/^[a-f0-9]{64}$/),
     detailStatus: z
@@ -153,6 +177,7 @@ const sourceHosts: Record<string, string[]> = {
   undp: ["procurement-notices.undp.org"],
   ungm: ["www.ungm.org"],
   mawred: ["mawred.org"],
+  worldbank: ["projects.worldbank.org"],
 };
 export function validSourcePair(source: string, url: string) {
   try {

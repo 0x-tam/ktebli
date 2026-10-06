@@ -118,3 +118,46 @@ export const mawredPageBatchSchema = z
       records[0].detailStatus === "verified",
     "Mawred import needs the one reviewed official Production Awards 2026 page",
   );
+
+export const worldBankBatchSchema = z
+  .object({
+    records: opportunitySchema.array().max(1000),
+    coverage: z
+      .object({
+        status: z.literal("complete"),
+        scope: z.literal(
+          "Current World Bank procurement notices explicitly assigned to project country Lebanon; bidder eligibility remains unverified",
+        ),
+        queryDate: z.iso.date(),
+        apiTotal: z.number().int().nonnegative().max(10000),
+        apiSeen: z.number().int().nonnegative().max(10000),
+        selectedRecords: z.number().int().nonnegative().max(1000),
+        excludedRecords: z.number().int().nonnegative().max(10000),
+        pages: z.number().int().positive().max(200),
+        pendingNotices: z.literal(0),
+      })
+      .passthrough(),
+  })
+  .refine(
+    ({ records, coverage }) =>
+      coverage.apiSeen === coverage.apiTotal &&
+      coverage.selectedRecords + coverage.excludedRecords ===
+        coverage.apiTotal &&
+      records.length === coverage.selectedRecords &&
+      new Set(records.map((record) => record.sourceKey)).size ===
+        records.length &&
+      records.every(
+        (record) =>
+          record.source === "worldbank" &&
+          record.kind === "procurement" &&
+          record.detailStatus === "verified" &&
+          record.geography?.status === "lebanon_confirmed" &&
+          record.geography.evidence.some(
+            (item) =>
+              item.label === "Project country" && item.text === "Lebanon",
+          ) &&
+          record.identityClaim?.authority === "worldbank.org" &&
+          record.identityClaim.reference === record.sourceKey.slice(10),
+      ),
+    "World Bank import needs complete API counts and exact Lebanon notice evidence",
+  );

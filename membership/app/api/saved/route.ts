@@ -17,7 +17,14 @@ export const POST = (request: Request) =>
             [user.id, opportunityId],
           )
         : db.query(
-            "DELETE FROM membership.saved_opportunities WHERE user_id=$1 AND opportunity_id=$2",
+            `DELETE FROM membership.saved_opportunities
+             WHERE user_id=$1 AND opportunity_id IN (
+               SELECT alias.id FROM membership.opportunities selected
+               JOIN membership.opportunities alias ON
+                 (selected.identity_key IS NOT NULL AND alias.identity_key=selected.identity_key)
+                 OR alias.id=selected.id
+               WHERE selected.id=$2
+             )`,
             [user.id, opportunityId],
           ),
     );

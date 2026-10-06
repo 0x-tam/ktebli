@@ -28,6 +28,12 @@ import {
   MAWRED_URL,
   parseMawredAwards,
 } from "../src/mawred.mjs";
+import {
+  cleanWorldBankText,
+  crawlWorldBank,
+  parseWorldBankNotice,
+  worldBankQuery,
+} from "../src/worldbank.mjs";
 const fixture = (name) =>
   readFile(new URL(`../fixtures/${name}`, import.meta.url), "utf8");
 const url = "https://www.ppa.gov.lb/en/tenders";
@@ -279,6 +285,122 @@ test("official Mawred grant requires age, Arab origin, organization exclusion, a
   assert.equal(stale.coverage.status, "incomplete");
   assert.equal(stale.coverage.error, "access_blocked");
   assert.equal(stale.records[0].detailStatus, "partial");
+});
+test("official World Bank notice retains full Lebanon procurement evidence without inventing timezone", async () => {
+  const raw = JSON.parse(await fixture("worldbank-lebanon-notice.json"));
+  const record = parseWorldBankNotice(raw, "2026-10-06T03:00:00Z");
+  assert.equal(record.sourceKey, "worldbank:OP00471722");
+  assert.equal(
+    record.sourceUrl,
+    "https://projects.worldbank.org/en/projects-operations/procurement-detail/OP00471722",
+  );
+  assert.equal(record.geography.status, "lebanon_confirmed");
+  assert.equal(record.geography.evidence[0].text, "Lebanon");
+  assert.equal(record.identityClaim.reference, "OP00471722");
+  assert.equal(record.deadline, "2026-10-08");
+  assert.equal(record.deadlineLocal, "2026-10-08T12:00");
+  assert.equal(record.deadlineTimezone, null);
+  assert.equal(record.detailStatus, "verified");
+  assert.ok(record.description.length < 6000);
+  assert.ok(record.evidence.every((item) => item.text.length <= 1500));
+  assert.equal(
+    record.evidence
+      .filter((item) =>
+        item.label.startsWith("Publisher notice scope and requirements"),
+      )
+      .map((item) => item.text)
+      .join(" "),
+    cleanWorldBankText(raw.notice_text),
+  );
+  assert.match(record.evidence[0].text, /RECONSTRUCTION BEIRUT/);
+  assert.throws(
+    () => parseWorldBankNotice({ ...raw, project_ctry_name: "Jordan" }),
+    /outside_lebanon_scope/,
+  );
+  assert.throws(
+    () => parseWorldBankNotice({ ...raw, submission_deadline_time: "99:00" }),
+    /wb_deadline_time_invalid/,
+  );
+  assert.throws(
+    () => parseWorldBankNotice({ ...raw, notice_text: "x".repeat(12001) }),
+    /wb_notice_text_exceeds_contract/,
+  );
+  assert.equal(
+    parseWorldBankNotice({ ...raw, notice_status: "Cancelled" }).excluded,
+    "not_published",
+  );
+});
+test("World Bank API guard fixes Lebanon and bounded query; pagination must finish exactly", async () => {
+  const raw = JSON.parse(await fixture("worldbank-lebanon-notice.json"));
+  const query = worldBankQuery("2026-10-06", 1, 0);
+  assert.equal(allowedUrl(query).hostname, "search.worldbank.org");
+  for (const bad of [
+    query.replace("project_ctry_name=Lebanon", "project_ctry_name=Jordan"),
+    query + "&project_ctry_name=Lebanon",
+    query.replace("rows=1", "rows=10000"),
+    query.replace("deadline_strdate=2026-10-06", "deadline_strdate=2026-13-06"),
+    query.replace("search.worldbank.org", "search.worldbank.org.evil"),
+    "https://search.worldbank.org/api/v2/procnotices",
+  ])
+    assert.throws(() => allowedUrl(bad));
+  let saved = 0;
+  const state = { version: 1 };
+  const first = await crawlWorldBank({
+    state,
+    save: async () => saved++,
+    now: "2026-10-06T03:00:00Z",
+    rows: 1,
+    maxPages: 2,
+    http: {
+      get: async (url) => ({
+        body: JSON.stringify({
+          total: 1,
+          os: new URL(url).searchParams.get("os"),
+          procnotices: [raw],
+        }),
+        url,
+      }),
+    },
+  });
+  assert.equal(first.coverage.status, "complete");
+  assert.equal(first.coverage.apiTotal, 1);
+  assert.equal(first.records.length, 1);
+  assert.ok(saved >= 2);
+  const duplicateState = { version: 1 };
+  const duplicate = await crawlWorldBank({
+    state: duplicateState,
+    save: async () => {},
+    now: "2026-10-06T03:00:00Z",
+    rows: 1,
+    maxPages: 2,
+    http: {
+      get: async (url) => ({
+        body: JSON.stringify({
+          total: 2,
+          os: new URL(url).searchParams.get("os"),
+          procnotices: [raw],
+        }),
+        url,
+      }),
+    },
+  });
+  assert.equal(duplicate.coverage.status, "incomplete");
+  assert.equal(duplicate.coverage.error, "wb_pagination_duplicate_or_count");
+  assert.equal(duplicate.records.length, 0);
+  const staleDate = await crawlWorldBank({
+    state: { version: 1 },
+    save: async () => {},
+    now: "2026-10-09T03:00:00Z",
+    rows: 1,
+    http: {
+      get: async (url) => ({
+        body: JSON.stringify({ total: 1, os: 0, procnotices: [raw] }),
+        url,
+      }),
+    },
+  });
+  assert.equal(staleDate.coverage.error, "wb_deadline_filter_changed");
+  assert.equal(staleDate.records.length, 0);
 });
 test("pagination only follows consecutive, same-publisher, same-locale HTTPS links", () => {
   assert.equal(

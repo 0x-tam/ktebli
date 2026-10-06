@@ -7,7 +7,7 @@ import { Client } from "pg";
 const socket = process.env.MEMBERSHIP_TEST_PG_SOCKET;
 if (!socket?.startsWith("/private/tmp/"))
   throw new Error("Disposable local PostgreSQL socket required");
-const connectionString = `postgresql:///membership_test?host=${encodeURIComponent(socket)}&port=55439&user=membership_test_ingest`;
+const connectionString = `postgresql://membership_test_ingest@localhost/membership_test?host=${encodeURIComponent(socket)}&port=55439`;
 
 async function runner(
   seedDir: string,
@@ -27,6 +27,7 @@ async function runner(
         HOME: process.env.HOME,
         NODE_ENV: "test",
         INGEST_DATABASE_URL: connectionString,
+        MEMBERSHIP_EXPECTED_DB_HOST: "localhost",
         CATALOGUE_SOURCES: "ppa",
         CATALOGUE_RECENT_DETAILS: "1",
         CATALOGUE_BACKLOG_DETAILS: "1",
@@ -231,4 +232,31 @@ test("failed historical pass retains fresh import and next daily cycle refreshes
     await admin.end();
     await rm(temp, { recursive: true, force: true });
   }
+});
+
+test("malformed ingestion URL fails without echoing credential input", async () => {
+  const marker = "not-a-url-secret-canary-987654321";
+  const child = spawn(
+    process.execPath,
+    ["--import", "tsx", "scripts/run-catalogue.ts"],
+    {
+      cwd: process.cwd(),
+      env: {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+        NODE_ENV: "test",
+        INGEST_DATABASE_URL: marker,
+        MEMBERSHIP_EXPECTED_DB_HOST: "localhost",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  let stderr = "";
+  child.stderr.on("data", (chunk) => (stderr += chunk));
+  const exitCode = await new Promise<number | null>((resolve) =>
+    child.on("close", resolve),
+  );
+  assert.notEqual(exitCode, 0);
+  assert.match(stderr, /exact reviewed membership branch/);
+  assert.ok(!stderr.includes(marker), "diagnostic must not echo URL input");
 });

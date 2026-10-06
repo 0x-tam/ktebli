@@ -14,7 +14,7 @@
     "catalog:scheduled": "node --import tsx scripts/run-catalogue.ts",
     "catalog:seed-checkpoint": "node --import tsx scripts/seed-catalogue-checkpoints.ts",
     "match:run": "node --import tsx scripts/match.ts",
-    "test:db": "node --import tsx --test tests/db.integration.ts",
+    "test:db": "node --conditions=react-server --import tsx --test tests/db.integration.ts",
     "test:catalogue-runner": "node --import tsx --test tests/checkpoint.integration.ts",
     "test:billing": "node --conditions=react-server --import tsx --test tests/billing.integration.ts",
     "credits:reconcile": "node --import tsx scripts/reconcile-credits.ts",

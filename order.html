@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
@@ -30,6 +31,11 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,40px);m
 .chip.complete{background:var(--mint);color:var(--forest)}
 .chip.attention{background:#FFE3DF;color:#8a2418}
 .comfort{background:var(--mint);border:1.5px solid var(--green);border-radius:12px;padding:12px 16px;font-size:14.5px;color:var(--forest);margin:-14px 0 26px}
+.buyer-notice{background:#fff;border:1.5px solid var(--green);border-radius:12px;padding:18px 20px;margin:0 0 26px}
+.buyer-notice h2{font-family:'Fraunces',serif;font-size:22px;margin-bottom:7px}
+.buyer-notice p{font-size:14.5px;margin:9px 0}
+.buyer-notice ul{margin:8px 0 12px 21px;font-size:14.5px}
+.buyer-notice a{color:var(--forest);font-weight:700;overflow-wrap:anywhere}
 .pcard{background:#fff;border:2px solid var(--ink);border-radius:16px;margin-bottom:26px;overflow:hidden;box-shadow:6px 6px 0 var(--green)}
 .pcard.attention{box-shadow:6px 6px 0 var(--coral)}
 .phead{background:var(--ink);color:#fff;padding:14px 22px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;gap:12px}
@@ -69,9 +75,105 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,40px);m
 .spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:sp 1s linear infinite;margin-bottom:14px}
 .foot{margin-top:34px;font-size:14px;color:var(--grey)}
 .foot a{color:var(--forest)}
+.paid-intake h3{font-family:'Fraunces',serif;font-size:23px;margin:22px 0 12px}.paid-intake .field{margin:16px 0}.paid-intake label{display:block;font-size:14px;font-weight:600;margin-bottom:7px}.paid-intake input:not([type=checkbox]),.paid-intake select,.paid-intake textarea{width:100%;font:inherit;border:1px solid #aaaFA9;border-radius:8px;padding:12px;min-height:46px;background:white}.paid-intake textarea{min-height:100px}.paid-intake .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.paid-intake .checkrow{display:flex;gap:10px;margin:15px 0;align-items:start}.paid-intake .checkrow input{margin-top:4px}.paid-intake .checkrow label{font-weight:400}.paid-intake .optional,.paid-intake .pill{font-size:12px;color:var(--grey);font-weight:400}.paid-intake .hint{display:block;font-size:13px;color:var(--grey);font-weight:400}.paid-intake details{border-top:1px solid var(--line);padding:18px 0}.paid-intake summary{cursor:pointer;font-weight:700}.paid-intake .rep-row{display:flex;gap:8px;margin-bottom:8px}.paid-intake .rep-fields{display:flex;flex:1;gap:8px;flex-wrap:wrap}.paid-intake .rep-fields input{flex:1;min-width:120px}.paid-intake button{cursor:pointer}.paid-intake .field-help{font-size:13px;color:var(--grey)}@media(max-width:600px){.paid-intake .two{grid-template-columns:1fr;gap:0}.paid-intake .rep-row{flex-wrap:wrap}}
 </style>
 </head>
 <body>
+<template id="paid-intake-template"><section class="buyer-notice paid-intake" id="paid-intake"><h2>A little about the work you want to propose</h2><p>We can read the opportunity while you complete this. Your scope, proposal type and currency are needed before writing starts. The other details help us be specific; leave anything unknown blank.</p><form id="intake-form"><div class="two"><div class="field"><label for="w-proposal-type">Proposal type · Required</label><select id="w-proposal-type" required><option value="">Choose…</option><option value="grant">Grant application</option><option value="government_tender">Government tender</option><option value="procurement">Procurement / RFP</option><option value="business">Business / service proposal</option></select></div><div class="field"><label for="w-currency">Proposal currency · Required</label><select id="w-currency" required><option value="">Choose…</option><option value="USD">USD — US dollar</option><option value="LBP">LBP — Lebanese pound</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British pound</option><option value="other">Other currency</option></select><div id="paid-currency-other" hidden><label for="w-currency-other">Three-letter currency code</label><input id="w-currency-other" maxlength="3" pattern="[A-Za-z]{3}" placeholder="e.g. AED" disabled></div><p id="source-field-note" class="field-help"></p></div></div><div class="field"><label for="w-response-language">Proposal and document language · Required</label><select id="w-response-language" required><option value="">Choose English or Arabic…</option><option value="en">English</option><option value="ar">العربية — Arabic</option></select><p id="language-help" class="field-help">The issuer’s required submission language takes priority. If none is stated, choose English or Arabic.</p></div>      <section>
+        <h3>Your proposed work — the specifics</h3>
+        <p class="ws-sub">This is what turns a template into a proposal only you could have written. Real names, please — we write exactly what you tell us and invent nothing.</p>
+        <div class="field"><label for="w-place">Where will you deliver the work? <span class="optional">Optional</span></label><input type="text" id="w-place" placeholder="e.g. Tripoli municipal offices, a client site in Beirut, or online"></div>
+        <div class="field"><label for="w-venue">Where does it actually happen? <span class="optional">Optional</span><span class="hint">Name the client site, facility, service area or delivery setting. Choose online if the work is remote.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
+          <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
+            <select id="w-venue-escape">
+              <option value="">There is a fixed venue (named above)</option>
+              <option value="homes">We work in people's own homes</option>
+              <option value="street">We do street-based outreach</option>
+              <option value="outdoors">We work outdoors</option>
+              <option value="mobile">We work from a vehicle</option>
+              <option value="online">We work online</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label for="w-activity">What work do you intend to propose? <span class="rq">Required</span></label><input type="text" id="w-activity" minlength="20" required placeholder="e.g. survey three public buildings and produce a phased retrofit plan"></div>
+        <div class="field"><label for="w-last-what">The last work you or your organisation delivered — what was it called? <span class="optional">Optional</span></label><input type="text" id="w-last-what" placeholder="e.g. the Cedar Office refurbishment or the Harbour training programme">
+          <div class="checkrow" style="margin-top:8px"><input type="checkbox" id="w-never"><label for="w-never">I / we have not delivered a project yet — write it as our first, with no track record.</label></div>
+        </div>
+        <div class="field"><label for="w-last-when">Roughly when was that? <span class="optional">Optional</span></label><input type="text" id="w-last-when" placeholder="e.g. winter 2024; since March 2023"></div>
+        <div class="field"><label for="w-trigger">What need or problem does this work address? <span class="optional">Optional</span><span class="hint">Explain the client’s need, the procurement objective or the community issue in your own words.</span></label><textarea id="w-trigger" placeholder="e.g. the client needs to reduce building energy use while keeping offices open throughout the works."></textarea></div>
+      </section>
+
+      <details><summary>Governance &amp; assurances <span class="optional">Optional</span></summary>
+        <h3>Governance &amp; assurances</h3>
+        <p class="ws-sub">Confirm only facts that are true and relevant to your opportunity. A grant, tender or client brief may require different assurances. Leave anything unconfirmed blank; these answers do not replace required certificates or signatures.</p>
+        <div class="checkrow"><input type="checkbox" id="w-sg-policy"><label for="w-sg-policy"><b>We have a written safeguarding policy in place.</b></label></div>
+        <div class="two">
+          <div class="field"><label for="w-dsl-name">Designated Safeguarding Lead — name</label><input type="text" id="w-dsl-name" placeholder="e.g. Amina Yusuf"></div>
+          <div class="field"><label for="w-dsl-role">Their role <span class="pill">optional</span></label><input type="text" id="w-dsl-role" placeholder="e.g. Deputy Chair"></div>
+        </div>
+        <div class="field"><label for="w-dsl-training">Their safeguarding training <span class="pill">optional</span></label><input type="text" id="w-dsl-training" placeholder="e.g. Level 3 safeguarding"></div>
+        <div class="checkrow"><input type="checkbox" id="w-bank"><label for="w-bank">We hold a bank account in the organisation's own name, with unrelated signatories.</label></div>
+        <div class="checkrow"><input type="checkbox" id="w-pli"><label for="w-pli">We hold Public Liability Insurance.</label></div>
+        <div class="checkrow"><input type="checkbox" id="w-board"><label for="w-board">We are an independent organisation, with our Board in full control.</label></div>
+        <div class="checkrow"><input type="checkbox" id="w-noconflict"><label for="w-noconflict">For grant applications: we have no conflicting live grant with this funder.</label></div>
+        <div class="two">
+          <div class="field"><label for="w-annual-income">Latest annual revenue or income <span class="pill">optional</span></label><input type="text" id="w-annual-income" placeholder="e.g. USD 240,000"></div>
+          <div class="field"><label for="w-accounts">Latest filed accounts cover <span class="pill">optional</span></label><input type="text" id="w-accounts" placeholder="e.g. year ending 31 March 2025"></div>
+        </div>
+        <div class="field"><label for="w-lived">People with lived experience in your governance <span class="pill">optional</span></label><input type="text" id="w-lived" placeholder="e.g. three trustees are former service users"></div>
+      </details>
+
+      <details><summary>People, projects &amp; track record <span class="optional">Optional</span></summary>
+        <h3>Your people, projects &amp; track record</h3>
+        <p class="ws-sub">The named facts that let us write about your organisation without inventing anyone. Add as many as are true — leave the rest blank.</p>
+        <div class="field"><label>Key people <span class="pill">optional</span><span class="hint">Directors, specialists, project leads and coordinators your proposal can name.</span></label>
+          <div class="rep" id="rep-people"></div>
+          <button type="button" class="rep-add" id="add-people">+ Add a person</button>
+        </div>
+        <div class="field"><label>Projects, programmes or services <span class="pill">optional</span><span class="hint">Each named service, with a one-line scope.</span></label>
+          <div class="rep" id="rep-programmes"></div>
+          <button type="button" class="rep-add" id="add-programmes">+ Add a project or service</button>
+        </div>
+        <div class="field"><label>Results you can point to <span class="pill">optional</span><span class="hint">A figure, what it counts, and when. Only what you can stand behind.</span></label>
+          <div class="rep" id="rep-results"></div>
+          <button type="button" class="rep-add" id="add-results">+ Add a result</button>
+        </div>
+        <div class="field"><label>Partnerships <span class="pill">optional</span></label>
+          <div class="rep" id="rep-partners"></div>
+          <button type="button" class="rep-add" id="add-partners">+ Add a partner</button>
+        </div>
+        <div class="field"><label>Extra links on your own site <span class="pill">optional</span><span class="hint">Annual reports, team profiles, case studies and project pages on your own website.</span></label>
+          <div class="rep" id="rep-links"></div>
+          <button type="button" class="rep-add" id="add-links">+ Add a link</button>
+        </div>
+        <div class="field">
+          <label for="w-directions">Anything to emphasise or avoid? <span class="pill">optional</span>
+            <span class="hint">e.g. highlight a strength, avoid mentioning something, keep the tone more formal.</span>
+          </label>
+          <textarea id="w-directions" placeholder="Your directions, in your own words."></textarea>
+        </div>
+      </div>
+      </details>
+
+        <details class="intake-extra">
+          <summary>Additional organisation details <span class="optional">Optional</span></summary>
+          <p class="field-help">Useful when the opportunity asks about your legal status or financial capacity.</p>
+          <div class="two">
+            <div class="field"><label for="w-income-band">Annual revenue range</label><input type="text" id="w-income-band" placeholder="e.g. USD 100,000–500,000"></div>
+            <div class="field"><label for="w-legal">Legal form</label>
+            <select id="w-legal">
+              <option value="">Choose…</option>
+              <option>Limited company</option><option>Partnership</option><option>Sole proprietor</option><option>Public institution</option>
+              <option>Charitable Incorporated Organisation (CIO)</option>
+              <option>Charitable company (limited by guarantee)</option>
+              <option>Unincorporated association</option>
+              <option>Community Interest Company (CIC)</option>
+              <option>Trust</option>
+              <option>Other</option>
+            </select>
+            </div>
+          </div>
+        </details><p class="field-help">A named person, a past project or a clear delivery setting helps us write a more specific proposal. Add what you know; it is fine to skip the rest. Issuer-required evidence may still need confirmation after source review.</p><p id="intake-message" role="status" aria-live="polite"></p><button class="revsend" type="submit">Save details and start writing</button></form></section></template>
 <nav><div class="wrap"><a class="stamp" href="/">KTEBLI<span class="dot">!</span></a></div></nav>
 <div class="wrap">
   <div id="app">
@@ -85,13 +187,15 @@ var path = location.pathname.split('/').filter(Boolean);
 var query = path[1] === 'session' ? ('session=' + encodeURIComponent(path[2] || ''))
                                   : ('token=' + encodeURIComponent(path[1] || ''));
 var app = document.getElementById('app');
-var timer = null, misses = 0, formState = {}; // per-proposal open form + selections
+var timer = null, misses = 0, formState = {};
+var intakeDraft=null, latestOrderData=null, intakeTouched={}; // per-proposal open form + selections
 
 var REV_OPTIONS = ["Tone / writing style","Make it more concise","Add more detail",
   "Change positioning / messaging","Strengthen a specific section","Correct organisation information",
   "Change formatting / structure","Other"];
 
 function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+function pdfPageUrl(raw,page){ var u=new URL(raw); u.hash='page='+page; return u.href; }
 function fmtDur(a,b){ if(!a)return ''; var ms=(b?new Date(b):new Date())-new Date(a);
   var s=Math.max(1,Math.round(ms/1000)); return s<60? s+'s' : Math.round(s/60)+'m'; }
 
@@ -114,14 +218,45 @@ function render(d){
   var o = d.order;
   document.getElementById('foot').innerHTML =
     'Keep this page\'s link — it works from any device. Need help? Write to <a href="mailto:' + esc(support) + '">' + esc(support) + '</a> and quote <b>Order ' + esc(o.order_no) + '</b>.';
-  var h = '<h1>' + (o.status==='complete' ? 'Everything is ready.' : o.status==='attention' ? 'Still working — final checks in progress.' : 'Ktebli is writing.') + '</h1>';
+  var h = '<h1>' + (d.intake && d.intake.required ? 'Your order is in. Add your proposed work.' : o.status==='complete' ? 'Everything is ready.' : o.status==='attention' ? 'Still working — final checks in progress.' : 'Ktebli is writing.') + '</h1>';
   h += '<div class="meta"><span class="ordno">Order ' + esc(o.order_no) + '</span> · ' + esc(o.org_name) + ' · ' + esc(o.tier.charAt(0).toUpperCase()+o.tier.slice(1)) + ' package</div>';
   h += '<span class="chip ' + esc(o.status) + '">' + (o.status==='processing'?'In progress':o.status==='complete'?'Complete':'Final checks') + '</span>';
+  if(d.intake && d.intake.required) h+='<p>Source reading can continue now. Proposal writing starts after you save the essential details below.</p>';
   var mailTo = o.email ? ' to <b>' + esc(o.email) + '</b>' : ' to your email';
-  h += o.status === 'complete'
+  h += o.is_owner_test
+    ? '<div class="comfort">Owner test · Full package · No payment taken. All evidence, originality and quality checks still apply. This page shows your progress and any information needed.</div>'
+    : o.status === 'complete'
     ? '<div class="comfort">Your order confirmation and the "everything is ready" email were sent' + mailTo + '. Can\'t find them? Check spam, or write to <b>' + esc(support) + '</b> quoting Order ' + esc(o.order_no) + '.</div>'
-    : '<div class="comfort">Your order confirmation with this tracking link has been emailed' + mailTo + '. Most proposals are ready within 5–30 minutes, depending on complexity. You can close this page anytime — the work continues on its own, and we\'ll email you again the moment everything is ready.</div>';
+    : '<div class="comfort">Your order confirmation with this tracking link has been emailed' + mailTo + '. This page shows progress as we review the source documents and prepare your proposal. You can close it anytime — the work continues on its own, and we\'ll email you when everything is ready.</div>';
+  h += '<p class="field-help">Delivery is within 4 hours of payment and receiving your essential details. We aim to deliver sooner, with every package checked before it reaches you. Track progress here.</p>';
 
+  if (d.buyer_notice_sources && d.buyer_notice_sources.length){
+    h += '<section class="buyer-notice"><h2>You\'re in. We\'re preparing your proposal.</h2>' +
+      '<p>We\'re reviewing the opportunity and its attachments, including:</p><ul>';
+    d.buyer_notice_sources.forEach(function(s){
+      var pages = s.kind === 'page' ? 'source page' : 'PDF · ' + s.page_count + (s.page_count === 1 ? ' page' : ' pages');
+      h += '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.label) + '</a> (' + pages + ')';
+      if (s.drawing_pages && s.drawing_pages.length){
+        h += '<br>Drawing pages: ' + s.drawing_pages.map(function(page){ return '<a href="' + esc(pdfPageUrl(s.url,page)) + '" target="_blank" rel="noopener noreferrer">' + page + '</a>'; }).join(', ');
+      }
+      h += '</li>';
+    });
+    h += '</ul><p>We\'re using those documents to identify what your response needs to cover. We\'ll use those requirements alongside your organisation\'s experience and approach to build your proposal.</p>' +
+      '<p>If we need a detail from your team, we\'ll point you to the exact page and make the request specific.</p></section>';
+  }
+
+  if(d.source_summary){
+    var summary=d.source_summary;
+    h+='<section class="buyer-notice"><h2>Opportunity source review</h2><p>'+esc(summary.title||'Your opportunity')+'</p><p>Submission deadline: '+esc(summary.deadline||'Not confirmed from the source')+'</p><p>Funding or contract value: '+esc(summary.amount||'Not stated clearly in the source')+'</p>';
+    if(summary.deadline_needs_verification||summary.deadline_requires_manual_entry)h+='<p role="alert">'+esc(summary.deadline_warning||'Please double-check the deadline with the issuer. The date is not fully verified.')+(summary.deadline_requires_manual_entry?' No reliable deadline has been confirmed. Contact support with the date you verify; we will not invent one.':' Where dates differ, we plan around the earliest readable source date until confirmed.')+'</p>';
+    h+='</section>';
+  }
+  if(d.pdf_answers && d.pdf_answers.length){
+    h += '<section class="buyer-notice"><h2>From your source documents</h2><p>These passages help guide the proposal. They do not replace the complete requirement checks. Review dates and amounts in their original context.</p>';
+    d.pdf_answers.forEach(function(answer){h+='<h3>'+esc(answer.label)+'</h3>';if(answer.status==='unknown')h+='<p>No clear answer in the reviewed shortlist.</p>';else (answer.passages||[]).forEach(function(p){var url;try{url=new URL(p.source_url);if(!['http:','https:'].includes(url.protocol))return;}catch{return;}if(p.page)url.hash='page='+p.page;h+='<blockquote>'+esc(p.quote)+'</blockquote><p><a href="'+esc(url.href)+'" target="_blank" rel="noopener noreferrer">View source'+(p.page?' · page '+esc(p.page):'')+'</a></p>';});});
+    h+='</section>';
+  }
+  if(d.intake && d.intake.required) h += document.getElementById("paid-intake-template").innerHTML;
   d.proposals.forEach(function(p){
     h += '<div class="pcard ' + esc(p.status) + '"><div class="phead"><span>' + esc(p.title) + '</span><span>' +
       (p.status==='complete'?'✓ Done':p.status==='attention'?'Final checks':'Working…') + '</span></div><div class="pbody">';
@@ -168,6 +303,7 @@ function render(d){
     h += '</div>';
   });
   app.innerHTML = h;
+  if(d.intake && d.intake.required) setupIntake(d);
 
   // wire revision UI
   app.querySelectorAll('[data-open]').forEach(function(b){
@@ -217,10 +353,84 @@ function render(d){
   if (o.status==='complete' && timer){ clearInterval(timer); timer=null; }
 }
 
+var REP = {
+  people:     { c: 'rep-people',     fields: [['name', 'Name — e.g. Grace Mbeki'], ['role', 'Role — e.g. Chair']], cls: 'two-col' },
+  programmes: { c: 'rep-programmes', fields: [['name', 'Programme — e.g. OpenARMS'], ['what', 'What it does, in a few words']], cls: 'two-col' },
+  results:    { c: 'rep-results',    fields: [['figure', 'Figure — e.g. 412'], ['what', 'What — e.g. people supported'], ['when', 'When — e.g. 2024']], cls: 'three-col' },
+  partners:   { c: 'rep-partners',   fields: [['v', 'Partner organisation you actually work with']], cls: '' },
+  links:      { c: 'rep-links',      fields: [['v', 'https://your-site.org/annual-report']], cls: '' }
+};
+function repRow(kind) {
+  var cfg = REP[kind];
+  var row = document.createElement('div'); row.className = 'rep-row';
+  var fields = document.createElement('div'); fields.className = 'rep-fields' + (cfg.cls ? (' ' + cfg.cls) : '');
+  cfg.fields.forEach(function (f) {
+    var inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = f[1]; inp.setAttribute('data-k', f[0]);
+    fields.appendChild(inp);
+  });
+  var x = document.createElement('button'); x.type = 'button'; x.className = 'rep-x'; x.setAttribute('aria-label', 'Remove'); x.innerHTML = '&times;';
+  x.addEventListener('click', function () { if (row.parentNode) row.parentNode.removeChild(row); });
+  row.appendChild(fields); row.appendChild(x);
+  return row;
+}
+function addRep(kind) { var c = document.getElementById(REP[kind].c); if (c) c.appendChild(repRow(kind)); }
+function collectRep(kind) {
+  var cfg = REP[kind], out = [];
+  document.querySelectorAll('#' + cfg.c + ' .rep-row').forEach(function (r) {
+    var o = {}, any = false;
+    r.querySelectorAll('[data-k]').forEach(function (inp) {
+      var v = inp.value.trim(); o[inp.getAttribute('data-k')] = v; if (v) any = true;
+    });
+    if (!any) return;
+    if (cfg.fields.length === 1 && cfg.fields[0][0] === 'v') out.push(o.v);
+    else out.push(o);
+  });
+  return out;
+}
+function seedRepeaters() {
+  Object.keys(REP).forEach(function (k) {
+    var c = document.getElementById(REP[k].c);
+    if (c && !c.children.length) addRep(k);
+  });
+}
+
+
+var INTAKE_FIELDS={site_place:'w-place',site_venue:'w-venue',site_activity:'w-activity',last_delivery_what:'w-last-what',last_delivery_when:'w-last-when',local_trigger:'w-trigger',venue_escape:'w-venue-escape',proposal_type:'w-proposal-type',currency:'w-currency',response_language:'w-response-language',income_band:'w-income-band',legal_form:'w-legal',annual_income:'w-annual-income',accounts_period:'w-accounts',safeguarding_lead_name:'w-dsl-name',safeguarding_lead_role:'w-dsl-role',safeguarding_lead_training:'w-dsl-training',lived_experience_governance:'w-lived'};
+var INTAKE_CHECKS={never_delivered:'w-never',safeguarding_policy:'w-sg-policy',bank_account_own_name:'w-bank',public_liability_insurance:'w-pli',board_independent:'w-board',no_conflicting_grant:'w-noconflict'};
+var INTAKE_LISTS={key_people:'people',programmes:'programmes',results:'results',partnerships:'partners',extra_links:'links'};
+function readIntake(){
+ var facts={};Object.keys(INTAKE_FIELDS).forEach(function(k){facts[k]=document.getElementById(INTAKE_FIELDS[k]).value.trim();});facts.currency=(facts.currency==='other'?document.getElementById('w-currency-other').value.trim():facts.currency).toUpperCase();
+ Object.keys(INTAKE_CHECKS).forEach(function(k){facts[k]=document.getElementById(INTAKE_CHECKS[k]).checked ? true : null;});
+ Object.keys(INTAKE_LISTS).forEach(function(k){facts[k]=collectRep(INTAKE_LISTS[k]);});
+ return {facts:facts,directions:document.getElementById('w-directions').value};
+}
+function syncPaidCurrency(){var other=document.getElementById('w-currency').value==='other';document.getElementById('paid-currency-other').hidden=!other;document.getElementById('w-currency-other').disabled=!other;document.getElementById('w-currency-other').required=other;}
+function setupIntake(d){
+ var state=intakeDraft||{facts:d.intake.facts||{},directions:d.intake.directions||''};
+ var source=d.source_summary||{};['proposal_type','currency','response_language'].forEach(function(k){if(!state.facts[k]&&!intakeTouched[k]&&source[k])state.facts[k]=source[k];});
+ Object.keys(INTAKE_FIELDS).forEach(function(k){document.getElementById(INTAKE_FIELDS[k]).value=state.facts[k]||'';});
+ var requiredLanguage=source.response_language;if(['en','ar'].includes(requiredLanguage)){state.facts.response_language=requiredLanguage;document.getElementById('w-response-language').value=requiredLanguage;document.getElementById('w-response-language').disabled=true;document.getElementById('language-help').textContent='The issuer requires '+(requiredLanguage==='ar'?'Arabic':'English')+' for this submission.';}else if(/\p{Script=Arabic}/u.test(source.title||'')&&!state.facts.response_language){document.getElementById('w-response-language').required=true;document.getElementById('language-help').textContent='This source includes Arabic. Confirm English or Arabic for your documents; the source language alone does not decide the submission language.';}
+ var currency=state.facts.currency||'',standard=['USD','LBP','EUR','GBP'].includes(currency);document.getElementById('w-currency').value=currency?(standard?currency:'other'):'';document.getElementById('w-currency-other').value=currency&&!standard?currency:'';syncPaidCurrency();
+ if(source.proposal_type||source.currency)document.getElementById('source-field-note').textContent='Type and currency may be suggested from the source. Confirm both before saving.';
+ document.getElementById('w-currency').addEventListener('change',syncPaidCurrency);document.getElementById('w-currency-other').addEventListener('input',function(){this.value=this.value.replace(/[^a-z]/gi,'').toUpperCase().slice(0,3);intakeTouched.currency=true;intakeDraft=readIntake();});
+ Object.keys(INTAKE_CHECKS).forEach(function(k){document.getElementById(INTAKE_CHECKS[k]).checked=state.facts[k]===true;});
+ document.getElementById('w-directions').value=state.directions;
+ Object.keys(INTAKE_LISTS).forEach(function(k){var kind=INTAKE_LISTS[k],container=document.getElementById(REP[kind].c);(state.facts[k]||[]).forEach(function(value){var row=repRow(kind);row.querySelectorAll('[data-k]').forEach(function(input){input.value=typeof value==='string'?value:value[input.dataset.k]||'';});container.appendChild(row);});});
+ seedRepeaters();
+ [['add-people','people'],['add-programmes','programmes'],['add-results','results'],['add-partners','partners'],['add-links','links']].forEach(function(pair){document.getElementById(pair[0]).addEventListener('click',function(){addRep(pair[1]);});});
+ var form=document.getElementById('intake-form');form.addEventListener('input',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});intakeDraft=readIntake();});form.addEventListener('change',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});intakeDraft=readIntake();});
+ form.addEventListener('submit',async function(e){e.preventDefault();intakeDraft=readIntake();var button=form.querySelector('[type="submit"]'),message=document.getElementById('intake-message');button.disabled=true;message.textContent='Saving your details…';
+  try {var r=await fetch(FN+'/complete-intake',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:d.order.token,revision:d.intake.revision,facts:intakeDraft.facts,directions:intakeDraft.directions})});var result=await r.json();
+   if(!result.ok){message.textContent=(result.gaps||[]).join(' ')||result.message||'Please try again.';button.disabled=false;return;}
+   intakeDraft=null;message.textContent='Saved. Writing will start once the source checks finish.';document.activeElement.blur();tick();
+  }catch{message.textContent='Connection interrupted. Your answers are kept on this page; please try again.';button.disabled=false;}
+ });
+}
+
 function tick(){
   fetch(FN + '/order-status?' + query)
     .then(function(r){ return r.json(); })
-    .then(render)
+    .then(function(d){latestOrderData=d;if(document.activeElement && document.activeElement.closest && document.activeElement.closest("#paid-intake"))return;render(d);})
     .catch(function(){ /* keep last view; retry next tick */ });
 }
 tick();

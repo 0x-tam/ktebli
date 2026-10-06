@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+// Scoped owner invitation: keep it out of requests, storage and the displayed URL.
+var ownerTestInvite = '';
+(function () {
+  var match = /^#owner-test=([0-9a-f]{64})$/.exec(window.location.hash);
+  if (match) { ownerTestInvite = match[1]; history.replaceState(null, '', window.location.pathname + window.location.search); }
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ktebli — get the proposal only you could have written</title>
-<meta name="description" content="Paste the grant you're applying for, answer a few questions, get a complete submission-ready package in your organisation's own voice. Nobody else applying to the same grant can be given anything like it.">
+<title>Ktebli — find opportunities and make your proposal yours</title>
+<meta name="description" content="Prepare a profile for Lebanon grant, tender and procurement opportunities, or turn a brief you already have into a distinct, evidence-grounded proposal with Ktebli.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='14' width='52' height='36' rx='7' fill='none' stroke='%231F9E5A' stroke-width='6' transform='rotate(-6 32 32)'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='26' font-weight='bold' fill='%231F9E5A' text-anchor='middle' transform='rotate(-6 32 32)'%3EK!%3C/text%3E%3C/svg%3E">
-<meta property="og:title" content="Ktebli — get the proposal only you could have written">
-<meta property="og:description" content="Complete grant proposals in your organisation's own voice, never resembling anyone else's on the same grant.">
+<meta property="og:title" content="Ktebli — find opportunities and make your proposal yours">
+<meta property="og:description" content="Prepare your opportunity profile, then build a distinct proposal. Ktebli also writes one-off proposals for briefs you already have.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -146,7 +154,15 @@ h2{font-size:clamp(32px,4.8vw,50px);max-width:19ch;margin-bottom:18px}
 .tier.hot .badge{position:absolute;top:-15px;left:26px;background:var(--coral);color:#fff;font-size:12.5px;font-weight:700;padding:5px 13px;border-radius:100px;border:2px solid var(--ink)}
 .tname{font-size:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grey);margin-bottom:12px}
 .price{font-family:'Fraunces',serif;font-size:50px;font-weight:700;line-height:1;margin-bottom:8px}
-.tdesc{font-size:15.5px;color:var(--grey);margin-bottom:22px;min-height:52px}
+.tier h3{font-family:'Fraunces',serif;font-size:27px;line-height:1.15;margin-bottom:14px;min-height:64px}
+.price-note{font-size:13px;color:var(--grey);margin-bottom:22px}
+.tdesc{font-size:15.5px;color:var(--grey);margin-bottom:20px;min-height:76px}
+.tier-fit{font-size:13px;font-weight:700;color:var(--green);margin-bottom:18px;min-height:40px}
+.tier-includes{font-size:13px;font-weight:700;margin-bottom:10px}
+.pricing-assurance{margin-top:34px;padding:24px 28px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.65)}
+.pricing-assurance h3{font-family:'Fraunces',serif;font-size:22px;margin-bottom:8px}
+.pricing-assurance p{font-size:15px;color:var(--grey);max-width:88ch}
+.pricing-assurance p+p{margin-top:8px}
 .tier ul{list-style:none;margin-bottom:26px;flex:1}
 .tier li{font-size:15.5px;padding:6px 0 6px 27px;position:relative}
 .tier li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
@@ -291,6 +307,8 @@ footer a:hover{color:var(--coral)}
   .trialstrip{padding:18px}
 }
 </style>
+<link rel="stylesheet" href="/website.css?v=two-services-2">
+<script src="/website.js" defer></script>
 </head>
 <body>
 
@@ -298,10 +316,11 @@ footer a:hover{color:var(--coral)}
   <div class="wrap">
     <a href="#" class="stamp">KTEBLI<span class="dot">!</span></a>
     <div class="navlinks">
+      <a href="#membership">Find opportunities</a>
       <a href="#how">How it works</a>
-      <a href="#lock">No copies</a>
       <a href="#pricing">Pricing</a>
-      <a href="#start" class="btn">Start yours</a>
+      <a href="/account/auth" class="account-link">Account</a>
+      <a href="#start" class="btn">Start a proposal</a>
     </div>
   </div>
 </nav>
@@ -309,329 +328,248 @@ footer a:hover{color:var(--coral)}
 <header>
   <div class="wrap herosplit">
     <div>
-      <span class="tag">🔒 No two proposals alike. Ever.</span>
-      <h1 class="disp">Get the proposal only <span class="squig">you<svg viewBox="0 0 100 12" preserveAspectRatio="none"><path d="M2,8 C18,2 32,10 50,6 C66,2 82,10 98,4" stroke="#FF6B5A" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span> could have written.</h1>
-      <p class="lede">Paste the grant you are going for, answer a few questions, and get a full submission-ready package written in your organisation's own voice. <b>Nobody else applying to that same grant can be given anything close to it.</b></p>
+      <span class="tag">FIND THE OPENING · MAKE YOUR CASE</span>
+      <h1 class="disp">Find your next opportunity.<br>Make your proposal yours.</h1>
+      <p class="lede">Find grants, tenders and procurement notices in Lebanon, or bring a brief you already have. Ktebli turns your evidence into a proposal with <b>four locks to keep it distinct.</b></p>
       <div class="cta-row">
-        <a href="#start" class="btn big">Start yours</a>
-        <a href="#lock" class="btn plain big">How we stop copies</a>
+        <a href="#start" class="btn big">Start with my link</a>
+        <a href="/account/auth" class="btn plain big">Prepare my profile</a>
       </div>
-      <p class="undercta"><b style="color:var(--ink)">Ktebli</b> means &ldquo;write it for me.&rdquo; So we do. &nbsp;·&nbsp; Pay once, per proposal. No subscription.</p>
+      <p class="undercta"><b style="color:var(--ink)">Ktebli</b> means &ldquo;write it for me.&rdquo; One-off proposals start at $149; membership is optional.</p>
     </div>
 
-    <div class="heroviz">
-      <div class="hv-top">ONE GRANT. THREE APPLICANTS. THREE PROPOSALS.</div>
-      <div class="hv-body">
-        <div class="hv-row">
-          <div class="hv-av hv-a">A</div>
-          <div class="hv-txt"><b>ORGANISATION A</b>Youth training academies across two districts</div>
-          <div class="hv-lock">🔒</div>
-        </div>
-        <div class="hv-row">
-          <div class="hv-av hv-b">B</div>
-          <div class="hv-txt"><b>ORGANISATION B</b>Newsroom mentoring for regional radio</div>
-          <div class="hv-lock">🔒</div>
-        </div>
-        <div class="hv-row">
-          <div class="hv-av hv-c">C</div>
-          <div class="hv-txt"><b>ORGANISATION C</b>Verification desks inside municipalities</div>
-          <div class="hv-lock">🔒</div>
-        </div>
-      </div>
-      <div class="hv-foot">Nothing shared. Not the idea, not the shape, not the opening.</div>
-    </div>
+    <aside class="proposal-problem" aria-label="Four enforced originality checks">
+      <div class="problem-half"><p class="problem-label">BUILT TO KEEP YOUR PROPOSAL DISTINCT</p><h2>Originality has rules here.</h2><ol class="hero-locks"><li><b>Reserve your approach.</b> Record it before drafting begins.</li><li><b>Block a repeat.</b> Refuse the same approach on the same opportunity.</li><li><b>Give it its own shape.</b> Plan a distinct structure and opening where the brief allows.</li><li><b>Keep your wording distinct.</b> Check for overlap and rework passages that are too similar.</li></ol></div>
+      <div class="solution-half"><p class="problem-label">ENFORCED THROUGHOUT THE WORKFLOW</p><h2>Four locks. Enforced rules built into the system.</h2><p>Checks cover other proposals Ktebli writes for the same opportunity. Required issuer wording stays intact.</p><a href="#lock">See how each lock works →</a></div>
+    </aside>
   </div>
 </header>
 
-<section>
+<section id="membership" class="membership-path mintbg" aria-labelledby="membership-title">
   <div class="wrap">
-    <div class="kicker">Why this exists</div>
-    <h2 class="disp">Everyone is writing proposals with the same chatbot now.</h2>
-    <p class="sub">Which means the same reviewers keep opening the same application, in the same voice, with the same plan. Three things happen, and none of them are good for you.</p>
+    <div class="kicker">Two ways to begin. One Ktebli.</div>
+    <h2 class="disp" id="membership-title">Find a lead. Then make it yours.</h2>
+    <div class="membership-path-grid">
+      <article class="membership-path-card">
+        <span class="membership-path-step">01 · OPPORTUNITIES</span>
+        <h3>See what may fit your work.</h3>
+        <p>Membership opens soon. Create your free profile now, then explore sourced grants, tenders and procurement notices in Lebanon when the $20/month board opens.</p>
+        <a href="/account/auth" class="text-link">Prepare my profile ↗</a>
+      </article>
+      <article class="membership-path-card">
+        <span class="membership-path-step">02 · PROPOSALS</span>
+        <h3>Turn a brief into your proposal.</h3>
+        <p>Bring an opportunity you already found and order without a membership. Choose a $149, $299 or $449 one-off package. Ktebli writes around your evidence and uses four enforced locks to keep proposals for the same opportunity distinct.</p>
+        <a href="#pricing" class="text-link">Compare proposal packages ↘</a>
+      </article>
+    </div>
+    <p class="membership-credit">When membership checkout opens, each paid monthly cycle includes one $20 credit toward a proposal package. It expires with that cycle and does not stack or roll over. <a href="/account/membership-details">Membership details ↗</a></p>
+  </div>
+</section>
+
+<section id="beyond-chat" class="mintbg">
+  <div class="wrap">
+    <div class="kicker">“Can’t I just give it to ChatGPT or Claude?”</div>
+    <h2 class="disp">You can get a draft.<br>You still have a proposal to check.</h2>
+    <p class="sub">AI can help you write. But a convincing paragraph doesn’t tell you whether every requirement is covered, a claim is supported, or the budget matches the plan. Those checks still need doing.</p>
     <div class="rows">
-      <div class="row">
-        <div class="mark">01</div>
-        <div>
-          <h3>They can tell</h3>
-          <p>Someone who has read four hundred applications spots generated writing in a paragraph. What it signals is that nobody at your organisation cared enough to write it themselves, which is a strange message to send while asking for a quarter of a million dollars.</p>
+      <div class="row"><div class="mark">01</div><div><h3>It needs facts only you can supply.</h3><p>A model doesn’t automatically know your team’s experience, what you can deliver or which figures are confirmed. Ktebli gathers that evidence before writing and holds delivery when factual gaps remain unresolved.</p></div></div>
+      <div class="row"><div class="mark">02</div><div><h3>The whole package has to agree.</h3><p>The response, costs and delivery plan need to tell the same story. Ktebli builds the documents included in your package around the same brief, then checks requirements and consistency before delivery.</p></div></div>
+      <div class="row"><div class="mark">03</div><div><h3>“Make it unique” isn’t a check.</h3><p>A standalone chat cannot compare your draft with other Ktebli proposals for the same opportunity. Our four locks reserve approaches and check for overlap across those proposals, while preserving wording the issuer requires.</p></div></div>
+    </div>
+    <p class="cardnote">Ktebli uses AI too. You’re paying for the structured intake, coordinated documents and checks around the writing. You still review the final package and make the submission.</p>
+    <a href="#lock" class="btn" style="margin-top:24px">See how the four locks work</a>
+  </div>
+</section>
+
+<section id="opportunities">
+  <div class="wrap">
+    <div class="kicker">What are you preparing?</div>
+    <h2 class="disp">Funding, contracts and your next client.</h2>
+    <p class="sub">Start with the opportunity. The proposal type shapes the response; your package determines how much supporting material is included.</p>
+    <div class="stepgrid">
+      <div class="stepitem"><div class="sn">1</div><h3>Grant applications</h3><p>Connect the need, your evidence and planned outcomes to the funder’s criteria.</p></div>
+      <div class="stepitem"><div class="sn">2</div><h3>Government tenders</h3><p>Address the public authority’s specification, evaluation criteria and delivery requirements.</p></div>
+      <div class="stepitem"><div class="sn">3</div><h3>Procurement &amp; RFPs</h3><p>Explain your technical approach, relevant experience, costs and implementation plan.</p></div>
+      <div class="stepitem"><div class="sn">4</div><h3>Business proposals</h3><p>Turn a client brief into a clear scope of work, deliverables, timeline and commercial rationale.</p></div>
+    </div>
+    <p class="cardnote">Architecture, construction, technology, research, community services and more. Your brief determines the requirements. Professional drawings, signed forms and official certificates must be supplied separately where required.</p>
+  </div>
+</section>
+
+
+<section class="mintbg inside-section" id="inside">
+  <div class="wrap">
+    <div class="section-heading"><div><p class="kicker">SAMPLE PACKAGE</p><h2 class="disp">See what you receive.</h2></div><p>A proposal, cost breakdown and delivery plan. Your documents follow your brief and package.</p></div>
+    <div class="sample-context"><span class="sample-label">ILLUSTRATIVE PACKAGE</span><p>Public buildings energy assessment</p><span>All names, figures and project details below are fictional.</span></div>
+    <div class="sample-workspace">
+      <div class="sample-sidebar">
+        <div class="sample-tabs" role="tablist" aria-label="Sample package documents" aria-orientation="vertical">
+          <button type="button" role="tab" aria-selected="true" aria-controls="sample-proposal" id="tab-proposal" data-document="proposal"><span>01</span> The proposal <span class="tab-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="sample-costs" id="tab-costs" data-document="costs" tabindex="-1"><span>02</span> The costs <span class="tab-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="sample-delivery" id="tab-delivery" data-document="delivery" tabindex="-1"><span>03</span> The delivery plan <span class="tab-arrow" aria-hidden="true">↗</span></button>
         </div>
+        <p class="sample-guidance">A clear argument.<br>Numbers you can follow.<br>A plan you can work with.</p>
+        <p class="sample-scope">Draft includes the main response. Competitive adds costs and supporting documents. Full adds delivery planning.</p>
+        <a href="#pricing" class="text-link">Compare packages <span aria-hidden="true">↘</span></a>
       </div>
-      <div class="row">
-        <div class="mark">02</div>
-        <div>
-          <h3>It misses the points</h3>
-          <p>Every donor gives your application a mark, and the marks sit in specific places. A smooth proposal that ignores where they sit loses to a plainer one that hits them squarely.</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="mark">03</div>
-        <div>
-          <h3>It collides with your neighbours</h3>
-          <p>The circle of organisations chasing any one grant is smaller than it looks, and many of them are typing into the same tool. When two applications land on one desk looking like siblings, the reviewer notices, and it goes badly for both. This is the one that ends organisations, and it is the reason the next section exists.</p>
-        </div>
+      <div class="sample-pages">
+        <article id="sample-proposal" role="tabpanel" aria-labelledby="tab-proposal" tabindex="0" class="sample-page">
+          <div class="page-heading"><span>RIVERMARK / ENERGY ASSESSMENT</span><span>PROPOSAL</span></div>
+          <h3>A useful plan starts<br>with the right questions.</h3>
+          <p class="page-deck">Assess three public buildings. Identify practical improvements. Give the client a clear basis for deciding what to do next.</p>
+          <div class="page-body"><h4>Understand the current position</h4><p>We propose reviewing twelve months of energy records alongside a site survey for each building. Conversations with facilities teams will help explain how the spaces are used and where operational constraints affect the options.</p><h4>Compare realistic options</h4><p>Each recommendation will identify the work involved, an indicative cost range and any further investigation needed. Savings estimates will state their assumptions; they will not be presented as guaranteed results.</p><h4>Leave the client with a decision</h4><p>The final report will group recommendations into immediate operational changes and longer-term works, with a proposed sequence for considering them.</p></div>
+          <div class="page-bottom"><span>Prepared from the opportunity brief and applicant evidence.</span><span>01</span></div>
+        </article>
+        <article id="sample-costs" role="tabpanel" aria-labelledby="tab-costs" tabindex="0" class="sample-page" hidden>
+          <div class="page-heading"><span>RIVERMARK / ENERGY ASSESSMENT</span><span>COST BREAKDOWN</span></div>
+          <h3>Make the numbers<br>part of the argument.</h3>
+          <p class="page-deck">Illustrative planning estimates in USD. Rates and tax treatment need client confirmation.</p>
+          <div class="sample-table-wrap"><table><caption>Assessment and reporting costs</caption><thead><tr><th scope="col">Work item</th><th scope="col">Basis</th><th scope="col">Total</th></tr></thead><tbody><tr><th scope="row">Building surveys</th><td>3 × $1,200</td><td>$3,600</td></tr><tr><th scope="row">Energy analysis</th><td>60 hrs × $120</td><td>$7,200</td></tr><tr><th scope="row">Client workshops</th><td>2 × $900</td><td>$1,800</td></tr><tr><th scope="row">Report &amp; recommendations</th><td>45 hrs × $120</td><td>$5,400</td></tr></tbody><tfoot><tr><th scope="row" colspan="2">Estimated total, excluding tax</th><td>$18,000</td></tr></tfoot></table></div>
+          <div class="page-body"><h4>What this covers</h4><p>Assessment, analysis, client discussions and a written recommendation. Installation, specialist testing and statutory approvals are outside this illustrative scope.</p><h4>Why it is structured this way</h4><p>Every cost corresponds to an activity in the delivery plan, so the client can see what they are paying for and challenge an assumption before committing.</p></div>
+          <div class="page-bottom"><span>Editable cost breakdowns included in Competitive and Full.</span><span>02</span></div>
+        </article>
+        <article id="sample-delivery" role="tabpanel" aria-labelledby="tab-delivery" tabindex="0" class="sample-page" hidden>
+          <div class="page-heading"><span>RIVERMARK / ENERGY ASSESSMENT</span><span>DELIVERY PLAN</span></div>
+          <h3>Show what happens.<br>And what it depends on.</h3>
+          <p class="page-deck">An illustrative six-week programme, subject to access and timely receipt of the building records.</p>
+          <ol class="delivery-list"><li><span>WEEK 01</span><div><h4>Agree the starting point</h4><p>Confirm scope, obtain records and schedule access. Owner: project lead.</p></div></li><li><span>WEEKS 02–03</span><div><h4>Survey and analyse</h4><p>Visit the three sites and assess the data. Owner: assessment team.</p></div></li><li><span>WEEK 04</span><div><h4>Test the options together</h4><p>Discuss recommendations and operating constraints with the client. Owner: project lead.</p></div></li><li><span>WEEKS 05–06</span><div><h4>Deliver the recommendation</h4><p>Present the report, cost ranges and proposed priorities. Owner: project lead.</p></div></li></ol>
+          <div class="dependency-note"><b>Dependency to resolve</b> Missing consumption records may limit the confidence of savings estimates. Confirm data availability before agreeing the final scope.</div>
+          <div class="page-bottom"><span>Delivery planning included in Full.</span><span>03</span></div>
+        </article>
       </div>
     </div>
   </div>
 </section>
 
-<section class="mintbg">
-  <div class="wrap">
-    <div class="split">
-      <div>
-        <div class="kicker">No copies</div>
-        <h2 class="disp">One organisation per idea. Enforced, not promised.</h2>
-        <p class="sub" style="margin-bottom:26px">Your approach is written down and reserved to you before a single sentence is drafted. From that moment, nobody else applying to the same grant can be given it. Not steered away from it. Given it is not possible. Approaches are reserved in the order organisations arrive, so there is a good reason to start early.</p>
-        <a href="#lock" class="btn coral">How we make that true</a>
-      </div>
-      <div>
-        <div class="card">
-          <div class="chead"><span>WHAT YOUR CHECK LOOKS LIKE</span><span class="extag">EXAMPLE</span></div>
-          <div class="cbody">
-            <div class="cline"><span class="lbl">Grant</span><span class="val">Civil society fund, 2027 round</span></div>
-            <div class="cline"><span class="lbl">Your approach</span><span class="val">Verification desks inside municipal offices, two districts</span></div>
-            <div class="cline"><span class="lbl">Reserved to you since</span><span class="val">12 August</span></div>
-            <div class="cline"><span class="lbl">Others we are writing for on this grant</span><span class="val">4</span></div>
-            <div class="cline"><span class="lbl">Any of them using your approach?</span><span class="val good">None</span></div>
-            <div class="cline"><span class="lbl">Any sharing your structure or opening?</span><span class="val good">None</span></div>
-            <div class="cline"><span class="lbl">Longest wording in common</span><span class="val good">6 words <span class="allow">(we allow 25)</span></span></div>
-            <div class="cleared">✓ Cleared. Nothing in your proposal overlaps with theirs.</div>
-          </div>
-        </div>
-        <p class="cardnote">Made-up example. Yours arrives with your own proposal.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
 <section class="inkbg" id="lock">
   <div class="wrap">
     <div class="kicker">No two ways about it</div>
-    <h2 class="disp">Four locks, and none of them are a polite request to the AI.</h2>
+    <h2 class="disp">Four locks, and none of them are a request to the AI. They’re rules enforced by the system.</h2>
     <p class="sub" style="max-width:64ch">Asking a model nicely to "be different" is not a guarantee, it is a hope. So we do not do that. Your approach is reserved in a database before writing starts, and the finished text is checked against the others before anything reaches you.</p>
 
     <div class="lockgrid">
       <div class="lockcell">
         <span class="n">LOCK ONE</span>
         <h3>Your approach is written down first</h3>
-        <p>Before any writing, your project is recorded plainly: what the activity is, who it serves, where, and how it is delivered. That record is filed against the grant and reserved to your organisation.</p>
+        <p>Before any writing, your project is recorded plainly: what the activity is, who it serves, where, and how it is delivered. That record is filed against the opportunity and reserved to your organisation.</p>
       </div>
       <div class="lockcell">
         <span class="n">LOCK TWO</span>
         <h3>A repeat is refused outright</h3>
-        <p>A second organisation asking for the same combination on the same grant is rejected by the system and has to be planned differently. It is not a preference that somebody can override.</p>
+        <p>A second organisation asking for the same combination on the same opportunity is rejected by the system and has to be planned differently. It is not a preference that somebody can override.</p>
       </div>
       <div class="lockcell">
         <span class="n">LOCK THREE</span>
         <h3>Different shape, different opening</h3>
-        <p>The structure and the first paragraph are reserved the same way, so two proposals for one grant cannot be built the same way or begin the same way even when the subject is close.</p>
+        <p>Where the brief allows flexibility, the narrative structure and opening are planned for your response. Required issuer sections and official forms take precedence over stylistic differences.</p>
       </div>
       <div class="lockcell">
         <span class="n">LOCK FOUR</span>
-        <h3>The finished text is checked, and can fail</h3>
-        <p>Every draft is compared with every other proposal we have written for that grant. Too close and it is automatically rewritten and re-checked until it is genuinely its own. Nothing that fails the check is ever delivered.</p>
+        <h3>A final check for a voice of your own</h3>
+        <p>Before your proposal reaches you, we compare its wording with other responses we’ve prepared for the same opportunity. Passages that overlap too closely are reworked and checked again, while keeping any wording the issuer requires.</p>
       </div>
     </div>
 
     <div class="callout">
       <h3>But what if someone already took my idea?</h3>
-      <p>Far less likely than it sounds. A grant this size has thousands of workable combinations once you account for the activity, who it serves, where, and how it is delivered. More to the point, your proposal is built out of your own partners, your own communities and your own track record, so your strongest approach is usually one no other organisation could credibly claim anyway. In the rare case where the obvious approach is already taken, we show you what is open before you pay a thing.</p>
+      <p>Your response starts with your own team, experience and method. When an approach overlaps with another proposal, the planning stage looks for a distinct way to present your contribution within the brief. We do not invent capabilities or change mandatory specifications to make a bid look different.</p>
     </div>
 
     <div class="callout" style="border-left-color:#7FE0A8">
       <h3>What we will not claim</h3>
-      <p>We cannot speak for the other applicants who never came near us, and we will not pretend otherwise. Our promise covers every proposal written here, and every package arrives with its own check so you can see it rather than take our word for it. Your writing is never shown to another organisation, and what we keep on file is only the shape of an approach, never anybody's text.</p>
+      <p>We cannot speak for the other applicants who never came near us, and we will not pretend otherwise. Our originality checks compare proposals written here for the same opportunity. They do not cover submissions made elsewhere. Required issuer wording is preserved during those checks.</p>
     </div>
   </div>
 </section>
 
-<section id="how">
-  <div class="wrap">
-    <div class="kicker">How it works</div>
-    <h2 class="disp">About fifteen minutes of your time.</h2>
-    <p class="sub">Most of it is you answering things only you know. That is the point. The specifics you give are what make it sound like your organisation and what make it unlike anyone else's.</p>
-    <div class="stepgrid">
-      <div class="stepitem">
-        <div class="sn">1</div>
-        <h3>Give us the grant</h3>
-        <p>Paste the link, or the guidelines themselves. We read all of it, including the parts everyone skips, and work out exactly what the donor is asking for and how they say they decide.</p>
-      </div>
-      <div class="stepitem">
-        <div class="sn">2</div>
-        <h3>Upload old proposals <span class="pill">optional</span></h3>
-        <p>One to three, funded or not. We learn how your organisation writes and everything after that comes out in your voice. Skip it and you get a distinct house voice instead.</p>
-      </div>
-      <div class="stepitem">
-        <div class="sn">3</div>
-        <h3>Answer a few questions</h3>
-        <p>Who you are, where you work, who you serve, what you have already done and with what numbers. We ask again when an answer is thin, and we never invent a track record you did not give us.</p>
-      </div>
-      <div class="stepitem">
-        <div class="sn">4</div>
-        <h3>Pick your pieces</h3>
-        <p>Full narrative, short concept note, budget, budget justification, logframe, donor forms, and a brief for your own board. Take one or take everything.</p>
-      </div>
-      <div class="stepitem">
-        <div class="sn">5</div>
-        <h3>Download and send</h3>
-        <p>Word and Excel, ready to submit, with your no-copies check attached. Most proposals are ready within 5&ndash;30 minutes, depending on complexity, and you watch the progress live.</p>
-      </div>
-    </div>
-  </div>
-</section>
+<section id="how"><div class="wrap"><div class="kicker">From link to proposal</div><h2 class="disp">Paste the link.<br>Tell us about you.<br>Leave the rest to Ktebli.</h2><p class="sub">One guided intake gets the work started. Ktebli handles the drafting, package assembly and automated checks, and your order page keeps you updated.</p><div class="stepgrid"><div class="stepitem"><div class="sn">1</div><h3>Paste the opportunity link.</h3><p>Share the grant, tender, RFP or client brief. Confirm the opportunity details and supply the requirements if the page cannot be read.</p></div><div class="stepitem"><div class="sn">2</div><h3>Choose your package and add your name.</h3><p>Choose a package, then add your name and email. Apply as an individual or an organisation; a website and registration number are optional.</p></div><div class="stepitem"><div class="sn">3</div><h3>Let Ktebli put it together.</h3><p>After payment, source reading begins. Add the work you propose on your order page, with optional background that helps us be specific. Ktebli then writes, prepares your documents and runs the four locks and quality checks.</p></div></div><p class="cardnote">When the checks pass, download your editable documents, review them and submit. You supply any required signatures, certificates and official attachments.</p></div></section>
 
 <section class="mintbg" id="pricing">
   <div class="wrap">
-    <div class="kicker">Pricing</div>
-    <h2 class="disp">Pay for the proposal. Not for a subscription you forget to cancel.</h2>
-    <p class="sub">You apply three or four times a year. Charging you every month for that would be daft, so we do not.</p>
+    <div class="kicker">One-off proposal packages</div>
+    <h2 class="disp">Make your case. Make it count.</h2>
+    <p class="sub">You bring the expertise and the brief. We turn them into a proposal that makes your value clear. Choose the support you need, with no membership required.</p>
 
     <div class="tiers">
       <div class="tier">
         <div class="tname">Draft</div>
+        <h3>Get your proposal written.</h3>
         <div class="price">$149</div>
-        <p class="tdesc">One strong document, quickly. For when you already know roughly what you want to say.</p>
+        <p class="price-note">USD · one proposal · one-time payment</p>
+        <p class="tdesc">Turn your knowledge and notes into a clear, persuasive response built around the brief.</p>
+        <p class="tier-fit">For when you need the main proposal.</p>
+        <p class="tier-includes">Your core response, taken care of</p>
         <ul>
-          <li>A check that you are actually eligible, before we start</li>
-          <li>Full narrative or short concept note</li>
-          <li>Checklist against the donor's requirements</li>
-          <li>Light voice matching</li>
-          <li>All four locks, and your check</li>
-          <li>One round of changes</li>
-          <li class="no">Budget and justification</li>
-          <li class="no">Logframe and M&amp;E plan</li>
-          <li class="no">The deeper final review against the grant's requirements</li>
+          <li><b>Your main proposal, written for you</b> — delivered in editable Word format</li>
+          <li>A clear case built from your experience, team and evidence</li>
+          <li>Structure and content checked against the brief</li>
+          <li>Your tone reflected in the writing</li>
+          <li><b>1 round of changes</b> to refine the response</li>
         </ul>
-        <a href="#start" id="buy-draft" class="btn plain">Start with Draft</a>
+        <a href="#start" id="buy-draft" class="btn plain">Write my proposal</a>
       </div>
 
       <div class="tier hot">
-        <div class="badge">most take this</div>
+        <div class="badge">Recommended</div>
         <div class="tname">Competitive</div>
+        <h3>Give them the full picture.</h3>
         <div class="price">$299</div>
-        <p class="tdesc">The complete written application, in your organisation's own voice.</p>
+        <p class="price-note">USD · one proposal · one-time payment</p>
+        <p class="tdesc">Bring your approach, costs and supporting documents together in one coherent pitch.</p>
+        <p class="tier-fit">For when the proposal needs the numbers, too.</p>
+        <p class="tier-includes">Everything in Draft, plus</p>
         <ul>
-          <li>Everything in Draft, and then</li>
-          <li>Full narrative <em>and</em> concept note</li>
-          <li>Proper voice matching from your old work</li>
-          <li>Line-item budget in Excel with live formulas</li>
-          <li>Budget justification</li>
-          <li>The covering email, written and ready to send</li>
-          <li>Three rounds of changes</li>
-          <li class="no">Month-by-month workplan</li>
-          <li class="no">Logframe and M&amp;E plan</li>
-          <li class="no">The deeper final review against the grant's requirements</li>
+          <li><b>An executive or concept summary</b> that puts your key case up front</li>
+          <li><b>An editable Excel budget or cost breakdown</b>, with formulas and a written rationale</li>
+          <li>Closer voice matching using your past proposals</li>
+          <li>A covering email to introduce your response</li>
+          <li><b>3 rounds of changes</b> to get the details right</li>
         </ul>
-        <a href="#start" id="buy-competitive" class="btn">Start with Competitive</a>
+        <a href="#start" id="buy-competitive" class="btn">Build my proposal package</a>
       </div>
 
       <div class="tier">
         <div class="tname">Full</div>
+        <h3>Show how you’ll deliver.</h3>
         <div class="price">$449</div>
-        <p class="tdesc">Everything, plus a deeper final review of the whole package against the grant before it reaches you.</p>
+        <p class="price-note">USD · one proposal · one-time payment</p>
+        <p class="tdesc">Back your pitch with a practical delivery plan, clear measures of success and a deeper review.</p>
+        <p class="tier-fit">For complex work with more to demonstrate.</p>
+        <p class="tier-includes">Everything in Competitive, plus</p>
         <ul>
-          <li>Everything in Competitive, and then</li>
-          <li><b>Every stated requirement and question cross-checked and covered</b></li>
-          <li>Facts, figures, dates and your organisation's details verified for consistency</li>
-          <li>Checked for alignment with the donor's published evaluation criteria, where available</li>
-          <li>A written review report showing exactly what was checked</li>
-          <li>Month-by-month workplan</li>
-          <li>Logframe and M&amp;E plan</li>
-          <li>Risk table, the way donors expect to see it</li>
-          <li>One-page summary for your board or partners</li>
-          <li>Support letters drafted for your partners to sign</li>
-          <li>Job descriptions for the roles in your budget</li>
-          <li>Prep for the questions the donor will come back with</li>
-          <li>Ten rounds of changes within two weeks</li>
+          <li><b>A workplan and timeline</b> showing how the work comes together</li>
+          <li><b>Results or acceptance criteria</b> that define what success looks like</li>
+          <li>A risk register with owners and mitigation</li>
+          <li>A one-page summary for decision-makers</li>
+          <li><b>A deeper review and written report</b> covering requirements, consistency and unresolved gaps</li>
+          <li><b>10 rounds of changes within two weeks</b></li>
         </ul>
-        <a href="#start" id="buy-full" class="btn plain">Start with Full</a>
+        <a href="#start" id="buy-full" class="btn plain">Build my full package</a>
       </div>
     </div>
 
-    <div class="trialstrip">
-      <div class="tleft">
-        <span class="tprice">$1</span>
-        <span class="ttxt"><b>Early-access trial.</b> Walk through the whole thing with your real grant, intake to checkout, for a dollar. Credited toward your first package.</span>
-      </div>
-      <a href="#" id="buy-trial" class="btn plain">Try it for $1</a>
+    <div class="pricing-assurance">
+      <h3>Every package has to earn its way to delivery.</h3>
+      <p>Evidence-grounded writing. Checks against your brief. Originality checks. Quality review. Quality targets rise with your package: <b>70/100 for Draft, 80/100 for Competitive and 90/100 for Full.</b> Every package must also pass its required checks before delivery.</p>
+      <p>You choose how much supporting material you need. The quality bar applies to all three. Required signatures, official forms and certificates remain yours to supply.</p>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <div class="kicker">Questions</div>
-    <h2 class="disp">Straight answers.</h2>
-    <div class="faq" style="margin-top:36px">
-      <details open>
-        <summary>You work with organisations competing for the same money. Is that not a conflict?</summary>
-        <p>Two organisations going for the same grant can both be customers here. That is exactly why the locks exist and why they run on their own rather than depending on someone remembering to check. Your writing is never shown to anybody, and the only thing we keep in a shared record is the shape of your approach, which is what lets us refuse it to the next person.</p>
-      </details>
-      <details>
-        <summary>Is there a limit on how many organisations you will work with on one grant?</summary>
-        <p>No. We never turn you away because a grant is busy. Approaches are reserved in the order organisations arrive, and since the proposal is built from your own partners, communities and history, the approach that suits you is rarely one somebody else could have taken. Arriving early does help, so if you know which grant you are going for, start before the week of the deadline rather than during it.</p>
-      </details>
-      <details>
-        <summary>Will it make things up about my organisation?</summary>
-        <p>No. It will not produce claims about your track record, your staff, your partners or your finances that you have not given it. Where something is missing the draft says so plainly instead of papering over it, so you can fill it in or take it out. A funded proposal built on an invented claim is a serious problem for you, and we are not going to create one.</p>
-      </details>
-      <details>
-        <summary>Do I need old proposals to upload?</summary>
-        <p>No, it is optional, but it is the single biggest difference in what comes out. With one to three old documents it sounds like your organisation. Without them it sounds like a capable stranger. If you have nothing, you are given a house voice chosen so it is not the one somebody else applying to the same grant received.</p>
-      </details>
-      <details>
-        <summary>Which donors does this work for?</summary>
-        <p>Any of them. Embassies, EU institutions, UN agencies, development agencies, private foundations — the method is the same everywhere, because it works from the donor's own document: what they ask for, what they require, and how they describe their decision. Where a donor publishes evaluation criteria, we check your proposal against those exact criteria. Where they publish none, we say so plainly rather than inventing a standard.</p>
-      </details>
-      <details>
-        <summary>How do I pay?</summary>
-        <p>By card, through Stripe's secure checkout, in dollars. Stablecoin on request. You get a receipt your finance officer can file, and if the eligibility check finds your organisation cannot apply to that grant, the payment comes back automatically in full. Payment comes before work starts.</p>
-      </details>
-      <details>
-        <summary>How long does it take?</summary>
-        <p>Most proposals are ready within 5 to 30 minutes, depending on the length and complexity of the grant, how many documents your package includes, and how much material you give us to work with. You watch every step happen live on your order page, and we email you the moment everything is ready — so you can close the page and get on with your day.</p>
-      </details>
-      <details>
-        <summary>What happens to my data?</summary>
-        <p>Your uploads and drafts are yours. We keep them so you can reuse your voice next time, and we delete them the day you ask. Nothing you write is ever used to write somebody else's proposal.</p>
-      </details>
-      <details>
-        <summary>Will this get me the grant?</summary>
-        <p>Nobody can promise that, and be careful with anyone who does. What this does is make sure you send something complete, correct, checked against what the donor actually asks for, written like a person, and unlike anything else we have written for that grant. That part is inside your control. The decision is the panel's.</p>
-      </details>
-    </div>
-  </div>
-</section>
-
-<section class="mintbg" id="start">
-  <div class="wrap">
-    <div class="kicker">Get started</div>
-    <h2 class="disp">Pick a package and go. Or talk to us first.</h2>
-    <p class="sub" style="margin-bottom:26px">Starting takes about fifteen minutes: choose a package above, answer the questions step by step, pay, and Ktebli gets to work. Not sure which package, or on a deadline inside 72 hours? Write to us and we answer within one working day.</p>
-    <div class="cta-row">
-      <a href="#pricing" class="btn big">Choose a package</a>
-      <a href="mailto:hello@ktebli.com" class="btn plain big">hello@ktebli.com</a>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap">
-    <div class="frow">
-      <div>
-        <a href="#" class="stamp" style="background:transparent">KTEBLI<span class="dot">!</span></a>
-        <div style="margin-top:16px">Ktebli: Proposals like no other, ever.</div>
-        <p class="fdisc">We work with organisations that compete for the same money. No proposal written here is ever shown to another client, and no two proposals for the same grant can share an approach, a structure or an opening.</p>
-      </div>
-      <div class="fnav">
-        <div><a href="#how">How it works</a></div>
-        <div><a href="#lock">No copies</a></div>
-        <div><a href="#pricing">Pricing</a></div>
-        <div style="margin-top:14px"><a href="mailto:hello@ktebli.com">hello@ktebli.com</a></div>
-      </div>
-    </div>
-  </div>
-</footer>
-
+<section class="faq-section"><div class="wrap"><div><p class="kicker">THE PRACTICAL QUESTIONS</p><h2 class="disp">Before you start.</h2></div><div class="faq">
+<details><summary>Do I need a membership to order a proposal?</summary><p>No. Bring a brief you already found and choose a one-off package. You can also create a free opportunity profile. The membership board and automatic matching are not open yet; coverage will be limited, so always check the publisher’s original notice.</p></details>
+<details><summary>What kinds of proposals can I prepare?</summary><p>Grant applications, government tenders, procurement and RFP responses, and business or service proposals. Your brief determines the requirements. Ktebli prepares the written proposal using the technical inputs you supply; engineering designs, calculations and quantity surveying are not included. Official forms, professional drawings, signatures, certificates and bid securities must come from you where required.</p></details>
+<details><summary>What do I need to bring?</summary><p>Start with the opportunity link or brief, your name and email. You can apply as an individual or an organisation. After payment, confirm the proposal type and currency and describe your proposed work. Team, experience, location and governance details are optional unless the opportunity itself requires them.</p></details>
+<details><summary>What if I need changes?</summary><p>Request changes from your order page. Draft includes one round, Competitive includes three, and Full includes ten within two weeks. We check revised work before delivery.</p></details>
+<details><summary>Will it invent facts to strengthen my case?</summary><p>The workflow checks claims against your supplied evidence and your organisation’s own sources. Missing certifications, capabilities or commitments cannot be invented to meet the brief. Unresolved factual or compliance issues hold delivery.</p></details>
+<details><summary>Does the quality score mean I will win?</summary><p>No. The score measures quality against your purchased tier: at least 70/100 for Draft, 80/100 for Competitive and 90/100 for Full. It is not a probability of success or a certification of eligibility. The issuer or client makes the decision.</p></details>
+<details><summary>When will I receive my documents?</summary><p>Within 4 hours of payment and receiving your essential details. We aim to deliver sooner, with every package checked before it reaches you. Track progress on your order page. Missing evidence, provider outages or a failed check can pause delivery; deadlines do not override the quality bar. A hold does not trigger an automatic refund.</p></details>
+<details><summary>How do payment and submission work?</summary><p>Pay once through Stripe after the intake checks. Download your editable documents when they clear delivery checks, review them, add required official attachments and submit them yourself. Ktebli does not sign documents or submit applications on your behalf.</p></details>
+</div></div></section>
+<section class="mintbg" id="start"><div class="wrap"><div class="kicker">The next opportunity is yours.</div><h2 class="disp">Give it a stronger case.</h2><p class="sub">Choose a package. Bring your brief. Let’s put it into words.</p><a href="#pricing" class="btn big">Find my package</a></div></section>
+<footer><div class="wrap"><div class="frow"><div><a href="/" class="stamp">KTEBLI<span class="dot">!</span></a><p class="fdisc">Find opportunities in Lebanon and build a proposal that sounds like you.<br>Write it for me. So we do.</p></div><div class="fnav"><div><a href="#membership">Find opportunities</a></div><div><a href="/account/auth">Account</a></div><div><a href="/account/data-use">Account data use</a></div><div><a href="#inside">Inside a proposal</a></div><div><a href="#pricing">Proposal packages</a></div></div></div></div></footer>
 <div class="wiz-overlay" id="wiz">
   <div class="wiz" role="dialog" aria-modal="true" aria-label="Start your proposal">
     <div class="wiz-head">
@@ -641,153 +579,77 @@ footer a:hover{color:var(--coral)}
     <div class="wiz-dots" id="wiz-dots"></div>
     <div class="wiz-body">
 
-      <div class="wiz-step" data-step="0">
+      <div class="wiz-step" data-step="1">
         <h3>Your package</h3>
         <p class="ws-sub">You can change this later. Nothing is charged until the last step.</p>
         <div class="pkg" id="pkg">
-          <label data-tier="trial"><span><span class="pk-n">Trial</span><span class="pk-d">The whole flow with your real grant. Credited to your first package.</span></span><span class="pk-p">$1</span><input type="radio" name="tier" value="trial"></label>
-          <label data-tier="draft"><span><span class="pk-n">Draft</span><span class="pk-d">One strong document, quickly.</span></span><span class="pk-p">$149</span><input type="radio" name="tier" value="draft"></label>
-          <label data-tier="competitive"><span><span class="pk-n">Competitive</span><span class="pk-d">The complete written application.</span></span><span class="pk-p">$299</span><input type="radio" name="tier" value="competitive"></label>
-          <label data-tier="full"><span><span class="pk-n">Full</span><span class="pk-d">Everything, with the deeper final review.</span></span><span class="pk-p">$449</span><input type="radio" name="tier" value="full"></label>
-        </div>
-      </div>
-
-      <div class="wiz-step" data-step="1">
-        <h3>Your organisation</h3>
-        <p class="ws-sub">Who is applying, and who we talk to. Funders check the register first, so we ask for it up front.</p>
-        <div class="two">
-          <div class="field"><label>Organisation <span class="rq">*</span></label><input type="text" id="w-org" placeholder="Registered name"></div>
-          <div class="field"><label>Registration no. <span class="rq">*</span><span class="hint">Charity Commission, OSCR, or Companies House number.</span></label><input type="text" id="w-reg" placeholder="e.g. 1187734"></div>
-        </div>
-        <div class="two">
-          <div class="field"><label>Your name <span class="rq">*</span></label><input type="text" id="w-name" placeholder="Who we reply to"></div>
-          <div class="field"><label>Email <span class="rq">*</span></label><input type="email" id="w-email" placeholder="you@organisation.org"></div>
-        </div>
-        <div class="two">
-          <div class="field"><label>WhatsApp</label><input type="text" id="w-wa" placeholder="Phone number"></div>
-          <div class="field"><label>Website</label><input type="text" id="w-web" placeholder="www.yourorganisation.org — optional"></div>
-        </div>
-        <div class="two">
-          <div class="field"><label>Latest annual income band<span class="hint">It decides the grant sizes you are eligible for. You can confirm this before you submit.</span></label>
-            <select id="w-income-band">
-              <option value="">Choose…</option>
-              <option>under £10,000</option>
-              <option>£10,000–£100,000</option>
-              <option>£100,000–£500,000</option>
-              <option>£500,000–£1m</option>
-              <option>over £1m</option>
-            </select>
-          </div>
-          <div class="field"><label>Legal form <span class="pill">optional</span></label>
-            <select id="w-legal">
-              <option value="">Choose…</option>
-              <option>Charitable Incorporated Organisation (CIO)</option>
-              <option>Charitable company (limited by guarantee)</option>
-              <option>Unincorporated association</option>
-              <option>Community Interest Company (CIC)</option>
-              <option>Trust</option>
-              <option>Other</option>
-            </select>
-          </div>
+          <label data-tier="draft"><span><span class="pk-n">Draft</span><span class="pk-d">Your main proposal, written for you.</span></span><span class="pk-p">$149</span><input type="radio" name="tier" value="draft"></label>
+          <label data-tier="competitive"><span><span class="pk-n">Competitive</span><span class="pk-d">Your proposal, costs and supporting documents.</span></span><span class="pk-p">$299</span><input type="radio" name="tier" value="competitive"></label>
+          <label data-tier="full"><span><span class="pk-n">Full</span><span class="pk-d">Your proposal package, delivery plan and deeper review.</span></span><span class="pk-p">$449</span><input type="radio" name="tier" value="full"></label>
         </div>
       </div>
 
       <div class="wiz-step" data-step="2">
-        <h3>The grant</h3>
-        <p class="ws-sub">Paste the link, or the donor's guidelines if there is nothing public.</p>
-        <div class="field"><label>Which grant <span class="rq">*</span></label><textarea id="w-grant" placeholder="https://... or paste the guidelines here"></textarea></div>
-        <div id="gpreview" class="gpreview" style="display:none"></div>
-        <div class="field" id="deadline-manual" style="max-width:260px;display:none"><label>Deadline<span class="hint">We could not detect it, so tell us.</span></label><input type="date" id="w-deadline"></div>
+        <h3>Who is applying?</h3>
+        <p class="ws-sub">The name on your proposal, and the person we’ll keep in touch with.</p>
+        <fieldset class="intake-group">
+          <legend>Applicant details</legend>
+          <div class="field"><label for="w-applicant-type">Applying as</label><select id="w-applicant-type"><option value="individual" selected>An individual</option><option value="organisation">An organisation</option></select></div>
+          <div class="two">
+            <div class="field"><label for="w-org">Applicant or organisation name <span class="optional">Optional</span></label><input type="text" id="w-org" autocomplete="organization" placeholder="Organisation name"></div>
+            <div class="field"><label for="w-reg">Registration number <span class="optional">Optional</span></label><input type="text" id="w-reg" aria-describedby="registration-help" placeholder="e.g. 1187734 · Lebanon"><p class="field-help" id="registration-help">Leave blank if you are not registered.</p></div>
+          </div>
+          <div class="field"><label for="w-web">Website <span class="optional">Optional</span></label><input type="text" id="w-web" inputmode="url" autocomplete="url" placeholder="www.yourorganisation.org"><div id="website-preview" class="field-help" role="status" aria-live="polite"></div></div>
+        </fieldset>
+        <fieldset class="intake-group">
+          <legend>Your contact details</legend>
+          <div class="two">
+            <div class="field"><label for="w-name">Your name <span class="rq">*</span></label><input type="text" id="w-name" autocomplete="name" placeholder="Full name"></div>
+            <div class="field"><label for="w-email">Email <span class="rq">*</span></label><input type="email" id="w-email" autocomplete="email" placeholder="you@organisation.org"></div>
+          </div>
+          <div class="field"><label for="w-wa">WhatsApp <span class="optional">Optional</span></label><input type="tel" id="w-wa" autocomplete="tel" placeholder="Phone number with country code"></div>
+        </fieldset>
+
+      </div>
+
+      <div class="wiz-step" data-step="0">
+        <h3>Start with the opportunity</h3>
+        <p class="ws-sub">Paste your link. We’ll fetch the page details and fill what we can. Full reading of the brief and attachments starts after payment.</p>
+        <div class="field"><label for="w-grant">Opportunity link or brief <span class="rq">*</span></label><textarea id="w-grant" placeholder="https://... or paste the guidelines here"></textarea><div id="opportunity-paste-source" class="field-help" hidden></div></div>
+        <div id="gpreview" class="gpreview" role="status" aria-live="polite" style="display:none"></div>
+        <p class="field-help opportunity-note">Your answers and proposal stay private. All four originality locks apply.</p>
+        <p id="opportunity-filled" class="field-help detected-summary" role="status" aria-live="polite" hidden></p>
+        <details class="intake-extra"><summary>Opportunity details <span class="optional">Review or edit detected details</span></summary>
+        <div class="field"><label for="w-proposal-type">Proposal type <span class="detected-mark" id="w-proposal-type-detected" hidden>Detected from page · review</span></label><select id="w-proposal-type">
+          <option value="">Choose or wait for detection…</option><option value="grant">Grant application</option><option value="government_tender">Government tender</option><option value="procurement">Procurement / RFP response</option><option value="business">Business / service proposal</option>
+        </select></div>
+        <div id="proposal-currency-fields" hidden>
+        <div class="field"><label for="w-currency">Proposal currency <span class="detected-mark" id="w-currency-detected" hidden>Detected from page · review</span></label>
+          <select id="w-currency" aria-describedby="currency-help">
+            <option value="">Choose a currency…</option><option value="USD">USD — US dollar</option><option value="LBP">LBP — Lebanese pound</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British pound</option><option value="other">Other currency</option>
+          </select>
+          <p class="field-help" id="currency-help">Use the currency in the brief or agreed with your client.</p>
+        </div>
+        <div class="field" id="currency-other-field" hidden>
+          <label for="w-currency-other">Three-letter currency code <span class="rq">*</span></label>
+          <input id="w-currency-other" maxlength="3" minlength="3" pattern="[A-Za-z]{3}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. AED" aria-describedby="currency-other-help" disabled>
+          <p class="field-help" id="currency-other-help">Three letters only, such as AED or CAD. No numbers.</p>
+        </div>
+        </div>
+        <div class="field"><label for="w-subject">What field is this proposal in? <span class="detected-mark" id="w-subject-detected" hidden>Detected from page · review</span></label><select id="w-subject">
+          <option value="general">General / another field</option><option value="architecture">Architecture</option><option value="construction">Construction</option><option value="healthcare">Healthcare</option><option value="research">Research</option><option value="technology">Technology</option><option value="community">Community</option><option value="environment">Environment</option><option value="education">Education</option>
+        </select></div>
+        <div class="field" id="deadline-manual" style="display:none"><label for="w-deadline">Submission deadline <span class="optional">Optional</span></label><input type="date" id="w-deadline" aria-describedby="deadline-help"><p class="field-help" id="deadline-help">Enter the date you checked with the issuer. This will be labelled as your supplied date.</p></div>
+        <div class="field" id="deadline-confirmation" style="display:none"><div class="checkrow"><input type="checkbox" id="w-deadline-confirm"><label for="w-deadline-confirm" id="deadline-confirm-label">I have checked the deadline.</label></div></div>
+        </details>
       </div>
 
       <div class="wiz-step" data-step="3">
-        <h3>Your project — the specifics</h3>
-        <p class="ws-sub">This is what turns a template into a proposal only you could have written. Real names, please — we write exactly what you tell us and invent nothing.</p>
-        <div class="field"><label>Which town, city or neighbourhood will this work in? <span class="rq">*</span></label><input type="text" id="w-place" placeholder="e.g. Harlesden, Brent — or Bab al-Tabbaneh, Tripoli"></div>
-        <div class="field"><label>Where does it actually happen? <span class="rq">*</span><span class="hint">A named building is the single most load-bearing detail in a delivery plan.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
-          <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
-            <select id="w-venue-escape">
-              <option value="">There is a fixed venue (named above)</option>
-              <option value="homes">We work in people's own homes</option>
-              <option value="street">We do street-based outreach</option>
-              <option value="outdoors">We work outdoors</option>
-              <option value="mobile">We work from a vehicle</option>
-              <option value="online">We work online</option>
-            </select>
-          </div>
-        </div>
-        <div class="field"><label>What happens there, in one line? <span class="rq">*</span></label><input type="text" id="w-activity" placeholder="e.g. a Thursday evening drop-in with hot food and a homework hour"></div>
-        <div class="field"><label>The last thing your organisation delivered — what was it called? <span class="rq">*</span></label><input type="text" id="w-last-what" placeholder="e.g. the Qobbe school-bag distribution">
-          <div class="checkrow" style="margin-top:8px"><input type="checkbox" id="w-never"><label for="w-never">We have not delivered a project yet — write it as our first, with no track record.</label></div>
-        </div>
-        <div class="field"><label>Roughly when was that? <span class="rq">*</span></label><input type="text" id="w-last-when" placeholder="e.g. winter 2024; since March 2023"></div>
-        <div class="field"><label>What happened locally that made this needed? <span class="rq">*</span><span class="hint">The one thing no website can tell us. It stops your opening paragraph being interchangeable.</span></label><textarea id="w-trigger" placeholder="e.g. the council closed the Stonebridge advice service in April, and the nearest alternative is now four miles away."></textarea></div>
-      </div>
-
-      <div class="wiz-step" data-step="4">
-        <h3>Governance &amp; assurances</h3>
-        <p class="ws-sub">The compliance facts nearly every funder asks you to confirm. We only state what you tick — never a default.</p>
-        <div class="checkrow"><input type="checkbox" id="w-sg-policy"><label for="w-sg-policy"><b>We have a written safeguarding policy in place.</b></label></div>
-        <div class="two">
-          <div class="field"><label>Designated Safeguarding Lead — name</label><input type="text" id="w-dsl-name" placeholder="e.g. Amina Yusuf"></div>
-          <div class="field"><label>Their role <span class="pill">optional</span></label><input type="text" id="w-dsl-role" placeholder="e.g. Deputy Chair"></div>
-        </div>
-        <div class="field"><label>Their safeguarding training <span class="pill">optional</span></label><input type="text" id="w-dsl-training" placeholder="e.g. Level 3 safeguarding"></div>
-        <div class="checkrow"><input type="checkbox" id="w-bank"><label for="w-bank">We hold a bank account in the organisation's own name, with unrelated signatories.</label></div>
-        <div class="checkrow"><input type="checkbox" id="w-pli"><label for="w-pli">We hold Public Liability Insurance.</label></div>
-        <div class="checkrow"><input type="checkbox" id="w-board"><label for="w-board">We are an independent organisation, with our Board in full control.</label></div>
-        <div class="checkrow"><input type="checkbox" id="w-noconflict"><label for="w-noconflict">We have no conflicting live grant running with this funder.</label></div>
-        <div class="two">
-          <div class="field"><label>Latest annual income <span class="pill">optional</span></label><input type="text" id="w-annual-income" placeholder="e.g. £240,000"></div>
-          <div class="field"><label>Latest filed accounts cover <span class="pill">optional</span></label><input type="text" id="w-accounts" placeholder="e.g. year ending 31 March 2025"></div>
-        </div>
-        <div class="field"><label>People with lived experience in your governance <span class="pill">optional</span></label><input type="text" id="w-lived" placeholder="e.g. three trustees are former service users"></div>
-      </div>
-
-      <div class="wiz-step" data-step="5">
-        <h3>Your people, programmes &amp; track record</h3>
-        <p class="ws-sub">The named facts that let us write about your organisation without inventing anyone. Add as many as are true — leave the rest blank.</p>
-        <div class="field"><label>Key people <span class="pill">optional</span><span class="hint">Chair, coordinators, project leads — the people your proposal can name.</span></label>
-          <div class="rep" id="rep-people"></div>
-          <button type="button" class="rep-add" id="add-people">+ Add a person</button>
-        </div>
-        <div class="field"><label>Programmes or services <span class="pill">optional</span><span class="hint">Each named service, with a one-line scope.</span></label>
-          <div class="rep" id="rep-programmes"></div>
-          <button type="button" class="rep-add" id="add-programmes">+ Add a programme</button>
-        </div>
-        <div class="field"><label>Results you can point to <span class="pill">optional</span><span class="hint">A figure, what it counts, and when. Only what you can stand behind.</span></label>
-          <div class="rep" id="rep-results"></div>
-          <button type="button" class="rep-add" id="add-results">+ Add a result</button>
-        </div>
-        <div class="field"><label>Partnerships <span class="pill">optional</span></label>
-          <div class="rep" id="rep-partners"></div>
-          <button type="button" class="rep-add" id="add-partners">+ Add a partner</button>
-        </div>
-        <div class="field"><label>Extra links on your own site <span class="pill">optional</span><span class="hint">Annual report, trustees page, project pages — we read your own domain, nothing third-party.</span></label>
-          <div class="rep" id="rep-links"></div>
-          <button type="button" class="rep-add" id="add-links">+ Add a link</button>
-        </div>
-        <div class="field">
-          <label>Anything to emphasise or avoid? <span class="pill">optional</span>
-            <span class="hint">e.g. highlight a strength, avoid mentioning something, keep the tone more formal.</span>
-          </label>
-          <textarea id="w-directions" placeholder="Your directions, in your own words."></textarea>
-        </div>
-        <div class="field">
-          <label>Past proposals or annual reports, up to three <span class="pill">optional</span>
-            <span class="hint">We read .docx, .txt and .md today and pull the facts and voice from them.</span>
-          </label>
-          <div class="filebox" id="filebox">Click to choose files (.pdf, .doc, .docx) — or skip this</div>
-          <input type="file" id="w-files" multiple accept=".pdf,.doc,.docx,.txt,.md" style="display:none">
-          <div class="filelist" id="filelist"></div>
-        </div>
-      </div>
-
-      <div class="wiz-step" data-step="6">
         <h3>Ready when you are</h3>
-        <p class="ws-sub">Check it over. We confirm we have what we need before anything is charged.</p>
+        <p class="ws-sub">Your opportunity, your documents, one clear next step.</p>
         <div id="suff-result"></div>
         <div class="sumbox" id="summary"></div>
+        <div class="review-package" id="review-package"></div>
       </div>
 
     </div>
@@ -802,13 +664,16 @@ footer a:hover{color:var(--coral)}
 // Form submission endpoint (Formspree / Supabase edge function). Optional but recommended:
 // without it, answers travel only inside the Stripe checkout's own fields.
 var ENDPOINT = "";
+// Activate only after the same-site membership credit bridge passes release checks.
+var MEMBERSHIP_CHECKOUT_PATH = "";
+var memberIntent = new URLSearchParams(window.location.search).get('membership') === '1';
 
-// Stripe payment links. Paste competitive/full when created in the dashboard.
+// Server-owned Stripe tier links. Activate prepared links only after launch acceptance.
 var PAYLINKS = {
   trial: "https://buy.stripe.com/dRm6oHgXLe2jb76a7S5wI04",
   draft: "https://buy.stripe.com/5kQ4gz22Rf6n3EE5RC5wI03",
-  competitive: "",
-  full: ""
+  competitive: "https://buy.stripe.com/00w28r0YNgar7UU2Fq5wI05",
+  full: "https://buy.stripe.com/bJecN5aznf6n4IIa7S5wI06"
 };
 var PRICES = { trial: "$1", draft: "$149", competitive: "$299", full: "$449" };
 var FN = "https://uocauqflcqefgdixbzpf.supabase.co/functions/v1";
@@ -817,7 +682,23 @@ var NAMES  = { trial: "Trial", draft: "Draft", competitive: "Competitive", full:
 // ---- small helpers (function declarations: hoisted, usable inside wiz) ------
 function cb(id) { var e = document.getElementById(id); return !!(e && e.checked); }
 function esch(s) { var d = document.createElement('div'); d.textContent = (s == null ? '' : String(s)); return d.innerHTML; }
-function focusAlert(id, msg) { var e = document.getElementById(id); if (e) e.focus(); alert(msg); return false; }
+function focusAlert(id, msg) {
+  var e = document.getElementById(id); if (!e) return false;
+  var field = e.closest('.field') || e.parentElement;
+  var error = field.querySelector('.field-error');
+  if (!error) { error = document.createElement('p'); error.className = 'field-error'; error.id = id + '-error'; error.setAttribute('role','alert'); field.appendChild(error); }
+  error.textContent = msg; e.setAttribute('aria-invalid','true'); e.setAttribute('aria-errormessage',error.id); e.focus(); return false;
+}
+document.getElementById('wiz').addEventListener('input',function(event) {
+  var e = event.target; if (!e || !e.getAttribute || e.getAttribute('aria-invalid') !== 'true') return;
+  var field = e.closest('.field') || e.parentElement, error = field.querySelector('.field-error');
+  if (error) error.remove(); e.removeAttribute('aria-invalid'); e.removeAttribute('aria-errormessage');
+});
+document.getElementById('wiz').addEventListener('change',function(event) {
+  var e = event.target; if (!e || !e.getAttribute || e.getAttribute('aria-invalid') !== 'true') return;
+  var field = e.closest('.field') || e.parentElement, error = field.querySelector('.field-error');
+  if (error) error.remove(); e.removeAttribute('aria-invalid'); e.removeAttribute('aria-errormessage');
+});
 
 // Repeaters for the list-shaped named facts. Each row is plain inputs tagged
 // with data-k; collectRep reads them back into the intake_answers shape.
@@ -869,7 +750,8 @@ function renderSuff(j) {
   var box = document.getElementById('suff-result');
   if (!box) return;
   if (!j) { box.innerHTML = ''; return; }
-  var m = j.message || {}, items = m.items || [], blockers = m.blockers || [], advisories = m.advisories || [], cleared = j.cleared === true;
+  var m = typeof j.message === 'string' ? {headline:'Please review the opportunity',intro:j.message} : (j.message || {});
+  var items = Array.isArray(m.items) ? m.items : [], blockers = Array.isArray(m.blockers) ? m.blockers : [], advisories = Array.isArray(m.advisories) ? m.advisories : [], cleared = j.cleared === true;
   var h = '<div class="suff' + (cleared ? ' ok' : '') + '">';
   h += '<h4>' + esch(m.headline || (cleared ? 'We have what we need.' : 'A few things are missing.')) + '</h4>';
   if (m.intro) h += '<div class="sf-intro">' + esch(m.intro) + '</div>';
@@ -894,6 +776,27 @@ function renderSuff(j) {
 // Payment happens ONLY with a gate-issued checkout_token (invariant 2): there is
 // no blind timeout that navigates to Stripe without one.
 function goToPayment(email, token) {
+  if (ownerTestInvite) {
+    var testButton = document.getElementById('wiz-next'); testButton.disabled = true; testButton.textContent = 'Starting your Full test…';
+    fetch(FN + '/owner-test-checkout', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({invite:ownerTestInvite,checkout_token:token})})
+    .then(function(r) { return r.json(); }).then(function(result) {
+      if (!result.ok || !/^[0-9a-f-]{36}$/.test(result.order_token || '')) throw new Error('not_authorized');
+      ownerTestInvite = ''; window.location.href = '/orders/' + result.order_token;
+    }).catch(function() {
+      renderSuff({cleared:false,message:{headline:'We could not start this owner test.',intro:'The invitation may have expired, been revoked, or the intake may need another check. Nothing has been charged.'}});
+      testButton.disabled = false; testButton.textContent = 'Try starting the Full test again';
+    });
+    return;
+  }
+  if (memberIntent && ['draft','competitive','full'].indexOf(wiz.tier) !== -1) {
+    if (MEMBERSHIP_CHECKOUT_PATH === '/account/proposal-checkout') {
+      window.location.href = MEMBERSHIP_CHECKOUT_PATH + '#token=' + encodeURIComponent(token) + '&tier=' + encodeURIComponent(wiz.tier);
+    } else {
+      renderSuff({cleared:false,message:{headline:'Membership credit checkout is not open yet.',intro:'Your intake is saved. Nothing has been charged. Return to your membership workspace for updates.'}});
+      var memberButton=document.getElementById('wiz-next');if(memberButton){memberButton.disabled=false;memberButton.textContent='Try membership checkout again';}
+    }
+    return;
+  }
   var link = PAYLINKS[wiz.tier];
   var btn = document.getElementById('wiz-next');
   if (link) {
@@ -911,14 +814,46 @@ function goToPayment(email, token) {
   if (btn) { btn.disabled = false; btn.textContent = 'Pay ' + PRICES[wiz.tier] + ' — Ktebli gets to work'; }
 }
 
+// Public review mirrors the document scope in proposal_policy.json. No timing SLA is qualified.
+var REVIEW_DOCUMENTS = {"draft":["narrative"],"competitive":["narrative","concept_note","budget","budget_justification","cover_email"],"full":["narrative","concept_note","budget","budget_justification","cover_email","workplan","logframe","risk_table","board_summary"]};
+var REVIEW_NAMES = {"grant":{"narrative":"Grant proposal","concept_note":"Concept note","budget":"Project budget","budget_justification":"Budget justification","cover_email":"Covering email","workplan":"Workplan","logframe":"Results framework","risk_table":"Risk register","board_summary":"Board summary"},"government_tender":{"narrative":"Technical response","concept_note":"Executive response summary","budget":"Commercial schedule","budget_justification":"Pricing assumptions","cover_email":"Covering letter draft","workplan":"Delivery plan","logframe":"Performance and acceptance matrix","risk_table":"Contract delivery risk register","board_summary":"Bid approval summary"},"procurement":{"narrative":"RFP response","concept_note":"Solution summary","budget":"Pricing schedule","budget_justification":"Pricing assumptions","cover_email":"Covering email","workplan":"Implementation plan","logframe":"Acceptance and service-level matrix","risk_table":"Delivery risk register","board_summary":"Decision summary"},"business":{"narrative":"Business proposal","concept_note":"Executive summary","budget":"Cost estimate","budget_justification":"Cost assumptions","cover_email":"Covering email","workplan":"Delivery plan","logframe":"Success and acceptance criteria","risk_table":"Risk register","board_summary":"Decision summary"}};
+function currentOpportunityDetails(wizard) {
+  return opportunityDetails && opportunityDetails.input === wizard.val('w-grant') ? opportunityDetails : {};
+}
+function reviewRows(wizard) {
+  var details = currentOpportunityDetails(wizard), manual = wizard.val('w-deadline');
+  var userDeadline = (document.getElementById('w-deadline').dataset || {}).userSelected === 'true';
+  var deadlineField = document.getElementById('w-deadline');
+  var previewAcknowledged = deadlinePreviewPrefill && (deadlineField.dataset || {}).autoDetected === 'true' && document.getElementById('w-deadline-confirm').checked && validDeadline(manual);
+  var deadline = deadlineRequiresManual && (userDeadline || previewAcknowledged) && manual ? manual + ' · supplied by you' : analyzedDeadline ? analyzedDeadline + (deadlineNeedsVerification ? ' · earliest source date; verify with issuer' : ' · source review') : userDeadline && manual ? manual + ' · supplied by you' : details.deadline_excerpt ? compactPreviewDeadline(details.deadline_excerpt) + ' · page preview; verify with issuer' : 'Not confirmed yet';
+  var funding = previewFunding(details.funding_excerpt, details.currency) || 'Will be extracted from documents';
+  return [
+    ['Opportunity', details.display_title || details.title || 'Your supplied opportunity'],
+    ['Package', ownerTestInvite ? 'Full · owner test · no payment' : NAMES[wizard.tier] + ' · ' + PRICES[wizard.tier]],
+    ['Deadline', deadline],
+    ['Funding', funding],
+    ['Applicant', wizard.val('w-org') || wizard.val('w-name')],
+    ['Contact', wizard.val('w-name') + ' · ' + wizard.val('w-email')]
+  ];
+}
+function renderReviewPackage(tier, type) {
+  var docs = REVIEW_DOCUMENTS[tier] || REVIEW_DOCUMENTS.draft;
+  var names = REVIEW_NAMES[type] || {narrative:'Main proposal',concept_note:'Executive or concept summary',budget:'Budget or cost breakdown',budget_justification:'Cost rationale',cover_email:'Covering email',workplan:'Workplan and timeline',logframe:'Results or acceptance criteria',risk_table:'Risk register',board_summary:'Decision summary'};
+  var h = '<h4>What you’ll receive</h4><ul class="review-documents">';
+  docs.forEach(function(key) { h += '<li>' + esch(names[key]) + (key === 'narrative' ? ' <span>· editable Word</span>' : key === 'budget' ? ' <span>· Excel with formulas</span>' : '') + '</li>'; });
+  h += '</ul><p class="review-included">' + (tier === 'full' ? '10 rounds of changes within two weeks · deeper review report' : tier === 'competitive' ? '3 rounds of changes' : '1 round of changes') + '</p>';
+  h += '<div class="review-timing"><h4>When to expect delivery</h4><p>Within 4 hours of payment and receiving your essential details. We aim to deliver sooner, with every package checked before it reaches you. Track progress on your order page.</p></div>';
+  h += '<p class="review-confidence">Built around your brief, grounded in your evidence, and checked for requirements, consistency and originality.</p>';
+  document.getElementById('review-package').innerHTML = h;
+}
+
 var wiz = {
   el: document.getElementById('wiz'),
-  step: 0, last: 6, tier: 'competitive', files: [], intakeId: null, pendingToken: null, pendingEmail: null,
+  step: 0, last: 3, tier: 'competitive', files: [], intakeId: null, pendingToken: null, pendingEmail: null,
   open: function (tier) {
-    this.tier = tier || 'competitive';
-    // A specific package was clicked: skip choosing it again and start the interview.
-    // Back from the first question still returns to the package step if they want to switch.
-    this.step = tier ? 1 : 0;
+    this.tier = ownerTestInvite ? 'full' : (tier || 'competitive');
+    // Source discovery comes first even when a package has been preselected.
+    this.step = 0;
     seedRepeaters();
     this.el.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -930,24 +865,13 @@ var wiz = {
   },
   val: function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; },
   validate: function () {
-    if (this.step === 1) {
-      var need = [['w-org','the organisation name'],['w-reg','your registration number'],['w-name','your name'],['w-email','your email']];
+    if (this.step === 2) {
+      var need = [['w-name','your name'],['w-email','your email']];
       for (var i=0;i<need.length;i++){ if (!this.val(need[i][0])) return focusAlert(need[i][0], 'Please add ' + need[i][1] + '.'); }
       if (!/.+@.+\..+/.test(this.val('w-email'))) return focusAlert('w-email', 'That email does not look right.');
     }
-    if (this.step === 2 && !this.val('w-grant')) return focusAlert('w-grant', 'Please paste the grant link or its guidelines.');
-    if (this.step === 3) {
-      if (!this.val('w-place')) return focusAlert('w-place', 'Please name the town, city or neighbourhood.');
-      if (!this.val('w-venue') && !this.val('w-venue-escape')) return focusAlert('w-venue', 'Name the place it happens — or choose one of the “no fixed venue” options.');
-      if (!this.val('w-activity')) return focusAlert('w-activity', 'Tell us what happens there, in one line.');
-      if (!this.val('w-last-what') && !cb('w-never')) return focusAlert('w-last-what', 'Name your last delivery — or tick “we have not delivered a project yet”.');
-      if (!this.val('w-last-when') && !cb('w-never')) return focusAlert('w-last-when', 'Roughly when was that?');
-      if (!this.val('w-trigger')) return focusAlert('w-trigger', 'Tell us what happened locally that made this needed.');
-    }
-    // Step 4 (governance & assurances) is NOT gated here: income band, the
-    // safeguarding policy and the named DSL are donor self-certs the gate reports
-    // as "to confirm", never blocks. Blocking navigation on them would re-create
-    // the over-blocking the server gate deliberately avoids.
+    if (this.step === 0 && !this.val('w-grant')) return focusAlert('w-grant', 'Please paste the opportunity link or its requirements.');
+    if (this.step === 0 && !canContinueIntake()) return focusAlert('w-grant', analyzing ? 'We’re checking the source reference.' : 'Complete the opportunity check before continuing.');
     return true;
   },
   // The exact intake_answers shape (answers + facts), plus the top-level identity
@@ -956,10 +880,12 @@ var wiz = {
     var esc = this.val('w-venue-escape');
     var never = cb('w-never');
     return {
-      tier: this.tier, price: PRICES[this.tier],
-      org: this.val('w-org'), registration: this.val('w-reg'), website: this.val('w-web'),
+      checkout_version: 2, tier: this.tier, price: PRICES[this.tier],
+      applicant_type: this.val('w-applicant-type'), org: this.val('w-org') || this.val('w-name'), registration: this.val('w-reg'), website: this.val('w-web'),
       name: this.val('w-name'), email: this.val('w-email'), whatsapp: this.val('w-wa'),
-      grant: this.val('w-grant'), deadline: analyzedDeadline || this.val('w-deadline'),
+      extraction_id: opportunityExtractionId || undefined, extraction_token: opportunityExtractionToken || undefined,
+      grant: this.val('w-grant'), deadline: deadlineForSubmission(),
+      deadline_acknowledged: cb('w-deadline-confirm'),
       directions: this.val('w-directions'), files: this.files,
       answers: {
         site_place: this.val('w-place'),
@@ -972,6 +898,10 @@ var wiz = {
       venue_escape: esc || null,
       never_delivered: never,
       facts: {
+        website_suggestions: websiteSuggestions || undefined,
+        proposal_type: this.val('w-proposal-type') || undefined,
+        subject: this.val('w-subject'),
+        currency: proposalCurrency() || undefined,
         legal_form: this.val('w-legal'),
         annual_income: this.val('w-annual-income'),
         income_band: this.val('w-income-band'),
@@ -996,56 +926,44 @@ var wiz = {
   },
   render: function () {
     var steps = this.el.querySelectorAll('.wiz-step');
-    for (var i=0;i<steps.length;i++) steps[i].classList.toggle('on', i === this.step);
+    for (var i=0;i<steps.length;i++) steps[i].classList.toggle('on', Number(steps[i].dataset.step) === this.step);
     var dots = document.getElementById('wiz-dots'); dots.innerHTML = '';
     for (var d=0; d<=this.last; d++){ var el=document.createElement('div'); el.className='d'+(d<=this.step?' on':''); dots.appendChild(el); }
     var pk = this.el.querySelectorAll('.pkg label');
     for (var k=0;k<pk.length;k++) pk[k].classList.toggle('sel', pk[k].getAttribute('data-tier') === this.tier);
     document.getElementById('wiz-back').style.visibility = this.step === 0 ? 'hidden' : 'visible';
-    document.getElementById('wiz-back').textContent = this.step === 1 ? 'Change package' : 'Back';
-    document.getElementById('wiz-title').textContent = 'START YOUR PROPOSAL · ' + NAMES[this.tier].toUpperCase() + ' ' + PRICES[this.tier];
+    document.getElementById('wiz-back').textContent = 'Back';
+    document.getElementById('wiz-title').textContent = ownerTestInvite ? 'OWNER TEST · FULL · NO PAYMENT' : 'START YOUR PROPOSAL · ' + NAMES[this.tier].toUpperCase() + ' ' + PRICES[this.tier];
     renderSuff(null); // a stale gate result never lingers across navigation
     this.pendingToken = null; // any navigation invalidates a held clearance -> re-check
     var next = document.getElementById('wiz-next');
+    setContinueEnabled(this.step !== 0 || canContinueIntake());
     if (this.step === this.last) {
       this.summary();
-      next.textContent = 'Pay ' + PRICES[this.tier] + ' — Ktebli gets to work';
+      next.textContent = !analysisOk ? 'Check source status' : ownerTestInvite ? 'Start my Full test — no payment' : 'Pay ' + PRICES[this.tier] + ' — Ktebli gets to work';
     } else {
       next.textContent = 'Continue';
     }
   },
   summary: function () {
-    var esc2 = this.val('w-venue-escape');
-    var venMap = { homes: "in people's homes", street: 'street outreach', outdoors: 'outdoors', mobile: 'from a vehicle', online: 'online' };
-    var venue = esc2 ? venMap[esc2] : this.val('w-venue');
-    var np = collectRep('people').length, npr = collectRep('programmes').length, nr = collectRep('results').length, nl = collectRep('links').length;
-    var named = [np ? np + ' people' : '', npr ? npr + ' programmes' : '', nr ? nr + ' results' : ''].filter(Boolean).join(', ');
-    var rows = [
-      ['Package', NAMES[this.tier] + ', ' + PRICES[this.tier]],
-      ['Organisation', this.val('w-org') + (this.val('w-reg') ? ' · ' + this.val('w-reg') : '')],
-      ['Income band', this.val('w-income-band')],
-      ['Contact', this.val('w-name') + ' · ' + this.val('w-email')],
-      ['Grant', this.val('w-grant').slice(0, 80) + (this.val('w-grant').length > 80 ? '…' : '')],
-      ['Deadline', (analyzedDeadline || this.val('w-deadline')) || '—'],
-      ['Where', [this.val('w-place'), venue].filter(Boolean).join(' · ')],
-      ['Safeguarding lead', this.val('w-dsl-name') || '—'],
-      ['Named facts', named || '—'],
-      ['Extra links', nl ? nl + ' link(s)' : '—'],
-      ['Uploads', this.files.length ? this.files.length + ' file(s)' : 'None']
-    ];
+    var rows = reviewRows(this);
     var h = '';
     rows.forEach(function (r) { h += '<div class="sumrow"><span class="sk">' + esch(r[0]) + '</span><span class="sv">' + esch(r[1] || '—') + '</span></div>'; });
     document.getElementById('summary').innerHTML = h;
-    var note = 'Payment is a secure Stripe checkout, opened only once we confirm the answers can be delivered. The writing starts the moment payment clears — most proposals are ready within 5–30 minutes.';
+    renderReviewPackage(this.tier, this.val('w-proposal-type'));
+    var note = 'Secure payment with Stripe. Next, add the work you propose and any helpful background on your order page. We read the full brief and attachments, then draft and check your package.';
     var pn = this.el.querySelector('.paynote');
     if (!pn) { pn = document.createElement('p'); pn.className = 'paynote'; document.getElementById('summary').parentNode.appendChild(pn); }
-    pn.textContent = note;
+    pn.textContent = ownerTestInvite ? 'Owner testing: no payment will be taken. The same source, evidence, originality and Full-tier quality checks apply. One test is available per private invitation.' : note;
   },
   pay: function () {
+    if (!analysisOk || lastAnalyzed !== this.val('w-grant')) { this.step = 0; this.render(); analyzeGrant(false); return; }
+
     // Second click after a clearance that carried "to confirm" self-certs: the
     // customer has seen the list, proceed straight to the gated checkout.
     if (this.pendingToken) { goToPayment(this.pendingEmail, this.pendingToken); return; }
     var data = this.collect();
+    if (ownerTestInvite) data.owner_test_invite = ownerTestInvite;
     var self = this;
     var btn = document.getElementById('wiz-next');
     btn.disabled = true; btn.textContent = 'Checking your answers…';
@@ -1053,6 +971,7 @@ var wiz = {
       .then(function (r) { return r.json(); })
       .then(function (j) {
         if (j && j.id) self.intakeId = j.id;
+        if (j && j.reason === 'opportunity_analysis_required') { analysisOk = false; lastAnalyzed = ''; self.pendingToken = null; }
         if (j && j.cleared && j.checkout_token) {
           renderSuff({ cleared: true, message: (j.message || { headline: 'We have what we need.', items: [], advisories: [] }) });
           var adv = (j.message && j.message.advisories) || [];
@@ -1061,15 +980,15 @@ var wiz = {
             // the customer read before the checkout redirect (one more click).
             self.pendingToken = j.checkout_token; self.pendingEmail = data.email;
             btn.disabled = false;
-            btn.textContent = 'Looks good — pay ' + PRICES[self.tier] + ' and continue';
+            btn.textContent = ownerTestInvite ? 'Looks good — start my Full test' : 'Looks good — pay ' + PRICES[self.tier] + ' and continue';
             document.getElementById('suff-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           } else {
-            btn.textContent = 'Opening secure checkout…';
+            btn.textContent = ownerTestInvite ? 'Starting Full test…' : 'Opening secure checkout…';
             goToPayment(data.email, j.checkout_token);
           }
         } else {
           btn.disabled = false;
-          btn.textContent = 'Check again — Ktebli gets to work';
+          btn.textContent = j && j.reason === 'opportunity_analysis_required' ? 'Review the opportunity again' : 'Check again — Ktebli gets to work';
           renderSuff(j || { cleared: false, message: { headline: 'We could not read that back.', intro: 'Please try again.', items: [] } });
           document.getElementById('suff-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -1092,78 +1011,366 @@ document.querySelectorAll('a[href="#start"]').forEach(function (a) {
   a.addEventListener('click', function (e) { e.preventDefault(); wiz.open(null); });
 });
 
-// live grant analysis: starts automatically, blocks Continue only while a URL
-// is being read, autofills the deadline, and fails with a retry path.
-var lastAnalyzed = "", analyzing = false, analysisOk = false, analyzedDeadline = "";
-var STAGES_MSG = ["Opening grant page…", "Reading requirements…", "Extracting eligibility and submission details…"];
-function setContinueEnabled(on) {
-  var btn = document.getElementById('wiz-next');
-  btn.disabled = !on;
-  btn.style.opacity = on ? '1' : '.55';
+// A public check creates a source reference or reads an existing cache entry.
+// Paid source review starts only after checkout or an authorized owner test.
+var lastAnalyzed = "", analyzing = false, analysisOk = false, analysisReady = false, analysisBackground = false, analyzedDeadline = "";
+function canContinueIntake() { return analysisOk && !!opportunityExtractionId && !!opportunityExtractionToken; }
+var deadlineRequiresManual = false, deadlineNeedsVerification = false, deadlinePreviewPrefill = false;
+function deadlineForSubmission() {
+  var field = document.getElementById('w-deadline'), value = field.value.trim();
+  var userSelected = (field.dataset || {}).userSelected;
+  var acknowledgedPreview = deadlinePreviewPrefill && field.dataset.autoDetected === 'true' && document.getElementById('w-deadline-confirm').checked && validDeadline(value);
+  return deadlineRequiresManual ? (userSelected && validDeadline(value) || acknowledgedPreview ? value : '') : analyzedDeadline || (userSelected ? value : '');
 }
-function analyzeGrant(force) {
-  var input = wiz.val('w-grant');
-  if (!input || input.length < 12) return;
-  if (!force && input === lastAnalyzed) return;
-  lastAnalyzed = input; analyzing = true; analysisOk = false; analyzedDeadline = "";
-  var isUrl = /^https?:\/\//i.test(input) && !/\s/.test(input.trim());
-  var box = document.getElementById('gpreview');
-  box.style.display = 'block'; box.className = 'gpreview';
-  var mi = 0;
-  box.innerHTML = '<span class="spin"></span><span id="gp-msg">' + STAGES_MSG[0] + '</span>';
-  var rot = setInterval(function () {
-    mi = Math.min(mi + 1, STAGES_MSG.length - 1);
-    var m = document.getElementById('gp-msg'); if (m) m.textContent = STAGES_MSG[mi];
-  }, 2600);
-  if (isUrl) setContinueEnabled(false); // reading their link: hold Continue briefly
-  function finish() { clearInterval(rot); analyzing = false; setContinueEnabled(true); updateDeadlineField(); }
-  fetch(FN + '/analyze-grant', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input: input })
-  }).then(function (r) { return r.json(); }).then(function (a) {
-    finish();
-    if (!a.ok || (!a.title && !a.issuer)) {
-      box.className = 'gpreview err';
-      box.innerHTML = 'We could not open or understand that link' +
-        (a.reason === 'unreachable' || (a.reason||'').indexOf('fetch') === 0 ? ' (the page did not respond)' : '') +
-        '. <a href="#" id="gp-retry">Try again</a>, or paste the grant text itself into the box above — that always works.';
-      var rt = document.getElementById('gp-retry');
-      if (rt) rt.addEventListener('click', function (e) { e.preventDefault(); analyzeGrant(true); });
-      return;
+function resetDeadlineForSourceChange() {
+  var field = document.getElementById('w-deadline');
+  field.value = '';
+  delete field.dataset.userSelected;
+  delete field.dataset.autoDetected;
+  deadlinePreviewPrefill = false;
+  document.getElementById('w-deadline-confirm').checked = false;
+}
+function validDeadline(value) { return /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value; }
+var opportunityExtractionId = "", opportunityExtractionToken = "", analysisPoll = null;
+function setContinueEnabled(on) {
+  var btn = document.getElementById('wiz-next'); btn.disabled = !on; btn.style.opacity = on ? '1' : '.55';
+}
+var analysisSequence = 0;
+var opportunityDetails = null;
+function compactPreviewDeadline(value) { return value.replace(/^(?:extended\s+)?(?:deadline(?: for submission of (?:bids|offers))?|submission deadline|closing date|applications close)\s*[:–—-]?\s*/i,''); }
+function previewDeadlineDate(value) {
+  var text = compactPreviewDeadline(String(value || '')).replace(/’/g,"'").trim();
+  var months = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  var iso = text.match(/\b(\d{4})-(\d{2})-(\d{2})\b/g) || [];
+  var found = iso.slice();
+  var textual = /\b(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})\b/ig, match;
+  while ((match = textual.exec(text))) found.push(match[1] + ' ' + match[2] + ' ' + match[3]);
+  var unique = Array.from(new Set(found.map(function(item) {
+    var m = item.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return validDeadline(item) ? item : '';
+    var parts = item.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/);
+    if (!parts) return '';
+    var monthNumber = months[parts[2].slice(0,3).toLowerCase()], dayNumber = Number(parts[1]), yearNumber = Number(parts[3]);
+    var parsed = new Date(Date.UTC(yearNumber,monthNumber-1,dayNumber));
+    return parsed.getUTCFullYear() === yearNumber && parsed.getUTCMonth() === monthNumber-1 && parsed.getUTCDate() === dayNumber ? yearNumber + '-' + String(monthNumber).padStart(2,'0') + '-' + String(dayNumber).padStart(2,'0') : '';
+  }).filter(Boolean)));
+  if (unique.length !== 1) return '';
+  return unique[0];
+}
+function previewFunding(value, currency) {
+  var text = String(value || '').trim();
+  if (!text || /\b(?:document|tender dossier|purchase|fee|security|guarantee|turnover|liquidity)\b/i.test(text)) return '';
+  var code = /^[A-Z]{3}$/.test(currency || '') ? currency : '';
+  var codes = 'USD|EUR|GBP|LBP|CAD|AUD|AED|CHF|JPY|CNY' + (code ? '|' + code : '');
+  var hasAmount = new RegExp('(?:[$€£]\\s*\\d|\\b(?:' + codes + ')\\s*[$€£]?\\s*\\d|\\d[\\d,.]*(?:\\s*(?:k|m|million|billion))?\\s*(?:' + codes + '|dollars|euros|pounds)\\b|\\b(?:up to|maximum|max\\.?|ceiling|between|from)\\s+\\d|^\\s*\\d[\\d,.]*(?:\\s*(?:k|m|million|billion))?\\s*$)','i').test(text);
+  if (!hasAmount) return '';
+  var sourceCode = text.match(new RegExp('\\b(' + codes + ')\\b','i'));
+  var namedCurrency = !!sourceCode || /\b(?:dollars|euros|pounds)\b/i.test(text);
+  if (sourceCode && code && sourceCode[1].toUpperCase() !== code) return '';
+  if (code && /\bdollars\b/i.test(text) && !['USD','CAD','AUD'].includes(code)) return '';
+  if (code && /\beuros\b/i.test(text) && code !== 'EUR') return '';
+  if (code && /\bpounds\b/i.test(text) && code !== 'GBP') return '';
+  if (code && text.includes('$') && !['USD','CAD','AUD'].includes(code)) return '';
+  if (code && text.includes('€') && code !== 'EUR') return '';
+  if (code && text.includes('£') && code !== 'GBP') return '';
+  if (!previewCurrencyCode(text,code)) return '';
+  return code && !namedCurrency ? text + ' · ' + code : text;
+}
+function previewCurrencyCode(value, currency) {
+  var code = /^[A-Z]{3}$/.test(currency || '') ? currency : '';
+  var text = String(value || '');
+  var explicit = text.match(/\b(USD|EUR|GBP|LBP|CAD|AUD|AED|CHF|JPY|CNY)\b/i);
+  if (explicit) return code && explicit[1].toUpperCase() !== code ? '' : explicit[1].toUpperCase();
+  if (code) return code;
+  if (/\$/.test(text)) return ['USD','CAD','AUD'].includes(code) ? code : '';
+  if (/€/.test(text)) return 'EUR';
+  if (/£/.test(text)) return 'GBP';
+  if (/\bdollars\b/i.test(text)) return ['USD','CAD','AUD'].includes(code) ? code : '';
+  if (/\beuros\b/i.test(text)) return 'EUR';
+  if (/\bpounds\b/i.test(text)) return 'GBP';
+  return '';
+}
+function syncFundingCurrencyVisibility(found) {
+  var currency = document.getElementById('w-currency');
+  document.getElementById('proposal-currency-fields').hidden = !found && !(currency.dataset || {}).userSelected;
+}
+function refreshDetectedDetails() {
+  var fields = [['w-proposal-type','proposal type'],['w-subject','field'],['w-currency','currency']], filled = [];
+  fields.forEach(function(pair) {
+    var detected = document.getElementById(pair[0]).dataset.detected === 'true';
+    document.getElementById(pair[0] + '-detected').hidden = !detected;
+    if (detected) filled.push(pair[1]);
+  });
+  var note = document.getElementById('opportunity-filled'); note.hidden = !filled.length;
+  note.textContent = filled.length ? filled.length + (filled.length === 1 ? ' detail filled' : ' details filled') + ' from the page: ' + filled.join(', ') + '. Review or edit below.' : '';
+}
+function fillDetectedDetail(id, value, allowed) {
+  var field = document.getElementById(id);
+  if (field.dataset.userSelected || !allowed.includes(value)) return;
+  field.value = value; field.dataset.detected = 'true';
+}
+function resetDetectedDetails() {
+  [['w-proposal-type',''],['w-subject','general'],['w-currency','']].forEach(function(pair) {
+    var field = document.getElementById(pair[0]);
+    if (!field.dataset.userSelected) field.value = pair[1];
+    delete field.dataset.detected;
+  });
+  if (!document.getElementById('w-currency').dataset.userSelected) { document.getElementById('w-currency-other').value = ''; syncCurrencyOther(); }
+  syncFundingCurrencyVisibility(false);
+  refreshDetectedDetails();
+}
+function sourceLink(url, label) {
+  var node = document.createElement('span'); node.textContent = label;
+  try {
+    var parsed = new URL(url);
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+      node = document.createElement('a'); node.href = parsed.href; node.textContent = label;
+      node.target = '_blank'; node.rel = 'noopener noreferrer';
     }
-    analysisOk = true;
-    var h = '<div class="gp-t">✓ Got it. Here is what we can already see:</div>';
-    if (a.issuer) h += '<div class="gp-r"><span class="gp-k">Issuer</span><span>' + a.issuer + '</span></div>';
-    if (a.title) h += '<div class="gp-r"><span class="gp-k">Opportunity</span><span>' + a.title + '</span></div>';
-    if (a.looking_for) h += '<div class="gp-r"><span class="gp-k">Looking for</span><span>' + a.looking_for + '</span></div>';
-    if (a.amount) h += '<div class="gp-r"><span class="gp-k">Funding</span><span>' + a.amount + '</span></div>';
-    if (a.deadline) {
-      analyzedDeadline = a.deadline;
-      h += '<div class="gp-r"><span class="gp-k">Deadline</span><span><b>' + a.deadline + '</b> — detected automatically</span></div>';
-    } else {
-      h += '<div class="gp-r"><span class="gp-k">Deadline</span><span>Not stated on the page — add it below if you know it</span></div>';
+  } catch (_) {}
+  return node;
+}
+function opportunityProgress(a) {
+  var supplied = a.progress && typeof a.progress === 'object' ? a.progress : {};
+  var phase = a.status === 'ready' ? 'ready' : ['discovering','reading','verifying'].includes(supplied.phase) ? supplied.phase : 'discovering';
+  var panel = document.createElement('div'); panel.className = 'source-progress'; panel.setAttribute('role','status'); panel.setAttribute('aria-live','polite');
+  var steps = document.createElement('ol'); steps.className = 'source-progress-steps';
+  var phases = ['discovering','reading','verifying','ready'];
+  ['Find documents','Read sources','Verify requirements','Ready'].forEach(function(label,index) {
+    var item = document.createElement('li'); item.textContent = label;
+    if (phases[index] === phase) { item.className = 'current'; item.setAttribute('aria-current','step'); }
+    else if (index < phases.indexOf(phase)) item.className = 'complete';
+    steps.appendChild(item);
+  });
+  panel.appendChild(steps);
+  var lines = [];
+  [['sources_completed','sources_total','sources'],['pages_completed','pages_total','pages']].forEach(function(fields) {
+    var done = supplied[fields[0]], total = supplied[fields[1]];
+    if (!Number.isSafeInteger(done) || done < 0) return;
+    if (Number.isSafeInteger(total) && total > 0 && done <= total) lines.push(done + ' of ' + total + ' ' + fields[2] + ' read');
+    else if (total == null && done > 0) lines.push(done + ' ' + fields[2] + ' read — finding the full total');
+  });
+  if (lines.length) { var counts = document.createElement('p'); counts.className = 'source-progress-counts'; counts.textContent = lines.join(' · '); panel.appendChild(counts); }
+  var note = document.createElement('p'); note.className = 'source-progress-note';
+  note.textContent = a.status === 'ready' ? 'A cached source review is ready. Confirm the details below to continue.' : a.awaiting_payment ? 'Source saved. Full reading and requirement checks start after payment.' : phase === 'verifying' ? 'Checking requirements against the sources and reconciling any differences.' : phase === 'reading' ? 'Reading the opportunity and its attachments before drafting starts.' : 'Finding the opportunity details and linked documents.';
+  panel.appendChild(note);
+  if (a.status === 'processing') {
+    var resume = document.createElement('p'); resume.className = 'source-progress-note';
+    resume.textContent = a.awaiting_payment ? 'Continue with your organisation’s details. If the source cannot be read after payment, we will ask for the missing documents or facts on your order page.' : 'Continue with your organisation’s details while source review progresses.';
+    panel.appendChild(resume);
+  }
+  return panel;
+}
+function showPreviewLoading(box, message) {
+  box.replaceChildren(); box.style.display='block'; box.className=box.id==='gpreview'?'gpreview preview-loading':'field-help preview-loading'; box.setAttribute('aria-busy','true');
+  var label=document.createElement('span');label.className='preview-loading-label';label.textContent=message;box.appendChild(label);
+  if(box.id==='gpreview') {var hint=document.createElement('p');hint.className='source-progress-note';hint.textContent='Fetching the page title, deadline and key details. Attachments are read after payment.';box.appendChild(hint);var lines=document.createElement('div');lines.className='preview-skeleton';lines.setAttribute('aria-hidden','true');for(var i=0;i<3;i++)lines.appendChild(document.createElement('span'));box.appendChild(lines);}
+}
+function previewFact(box, key, value) {
+  if(!value)return;var row=document.createElement('div');row.className='gp-r';var label=document.createElement('span');label.className='gp-k';label.textContent=key;var text=document.createElement('span');text.textContent=value;row.append(label,text);box.appendChild(row);
+}
+function previewTags(box, values) {
+  var tags=document.createElement('div');tags.className='preview-tags';values.filter(Boolean).forEach(function(value){var tag=document.createElement('span');tag.textContent=value.replace(/_/g,' ');tags.appendChild(tag);});if(values.filter(Boolean).length)box.appendChild(tags);
+}
+var opportunityPasteSource = '';
+function offerOpportunityPaste(box, preview) {
+  var input=wiz.val('w-grant');
+  if(!/^https?:\/\/\S+$/i.test(input)||preview&&preview.failure_reason==='unsupported_content')return;
+  var note=document.createElement('p');note.className='source-progress-note';
+  note.textContent=preview&&['login_required','verification_required'].includes(preview.failure_reason)?'This page needs a login or verification. Open it in your browser, copy the full page text, then paste it here.':'We couldn’t read this page. Open it in your browser, copy the full page text, then paste it here.';
+  box.appendChild(note);
+  var actions=document.createElement('div');actions.style.display='flex';actions.style.gap='16px';actions.style.flexWrap='wrap';actions.style.alignItems='center';
+  var open=sourceLink(input,'Open source page');open.className='text-link';actions.appendChild(open);
+  var paste=document.createElement('button');paste.type='button';paste.className='text-link';paste.textContent='Paste full page text';
+  paste.addEventListener('click',function(){
+    if(wiz.val('w-grant')!==input)return;
+    opportunityPasteSource=input;
+    var field=document.getElementById('w-grant');field.value='';field.placeholder='Paste the full page text here, including requirements and deadlines';
+    field.dispatchEvent(new Event('input',{bubbles:true}));
+    var reference=document.getElementById('opportunity-paste-source');reference.replaceChildren();reference.hidden=false;
+    var label=document.createElement('p');label.textContent='Copy the full page text from this source, then paste it above. Include any required attachment text.';reference.appendChild(label);reference.appendChild(sourceLink(opportunityPasteSource,'Original source page'));
+    field.focus();
+  });actions.appendChild(paste);box.appendChild(actions);
+}
+function showOpportunityResult(a) {
+  var currentBox=document.getElementById('gpreview');currentBox.setAttribute('aria-busy','false');
+  if(a.awaiting_payment) {
+    var p=a.quick_preview||{}, unavailable=p.status==='unavailable', funding=previewFunding(p.funding_excerpt,p.currency);currentBox.replaceChildren();currentBox.style.display='block';currentBox.className='gpreview';
+    var name=document.createElement('div');name.className='gp-t';name.textContent=p.display_title||p.title||'Opportunity saved';currentBox.appendChild(name);
+    previewTags(currentBox,[p.proposal_type,p.subject]);
+    previewFact(currentBox,'Deadline',p.deadline_excerpt&&compactPreviewDeadline(p.deadline_excerpt));previewFact(currentBox,'Funding',funding||'Will be extracted from documents');
+    var note=document.createElement('p');note.className='source-progress-note';note.textContent=unavailable?'Link saved. You can paste a copy now. Full document reading starts after payment.':'Page details to review. Full document reading starts after payment.';currentBox.appendChild(note);
+    if(unavailable)offerOpportunityPaste(currentBox,p);
+    if(p.deadline_needs_verification&&p.deadline_warning){var warning=document.createElement('p');warning.className='deadline-warning';warning.setAttribute('role','alert');warning.textContent=p.deadline_warning;currentBox.appendChild(warning);}
+    var more=document.createElement('details');more.className='preview-more';var summary=document.createElement('summary');summary.textContent='More details';more.appendChild(summary);
+    (p.deadline_candidates||[p.deadline_excerpt]).forEach(function(value){previewFact(more,'Source deadline',value);});previewFact(more,'Source funding',funding);previewFact(more,'Issuer',p.issuer);previewFact(more,'About',p.description||p.scope);if(funding)previewFact(more,'Funding currency',p.currency);previewFact(more,'Location',p.location);previewFact(more,'Public contact',p.contact_email||p.contact_phone);
+    if(!unavailable&&!p.deadline_excerpt)previewFact(more,'Deadline','Not confirmed from this page');
+    if(p.source_url)more.appendChild(sourceLink(p.source_url,'View source page'));
+    if(p.raw_title&&p.raw_title!==p.display_title)previewFact(more,'Source title',p.raw_title);
+    currentBox.appendChild(more);return;
+  }
+
+  var oversized = a.reason === 'opportunity_writing_context_limit' || a.reason === 'packet_processing_limit';
+  var box = document.getElementById('gpreview'); box.replaceChildren(); box.style.display = 'block';
+  box.className = 'gpreview' + (a.status === 'blocked' ? ' err' : '');
+  var heading = document.createElement('div'); heading.className = 'gp-t';
+  heading.textContent = a.status === 'ready' ? 'Requirements ready — saved source review' : a.awaiting_payment ? 'Source saved — full review starts after payment' : a.status === 'processing' ? 'Preparing the source review…' : oversized ? 'This document pack needs a larger review' : 'We need the complete source documents';
+  box.appendChild(heading);
+  if (a.status === 'processing' || a.status === 'ready') box.appendChild(opportunityProgress(a));
+  if (a.quick_preview) {
+    var preview = a.quick_preview, previewUnavailable = preview.status === 'unavailable';
+    [['Opportunity',preview.title || 'Title will be checked after payment'],['Type',preview.proposal_type ? preview.proposal_type.replace(/_/g,' ') : 'To be confirmed'],['Deadline',preview.deadline_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['Funding',preview.funding_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['What to expect',preview.description || preview.expected]].forEach(function(pair) {
+      var row=document.createElement('p'); row.textContent=pair[0]+': '+pair[1]; box.appendChild(row);
+    });
+    var notice=document.createElement('p'); notice.className='source-progress-note'; notice.textContent=previewUnavailable?'Link saved. You can paste a copy now. Full document reading starts after payment.':'Quick page preview — unverified. Dates and amounts may refer to other events or fees. Full source checks happen after payment.';box.appendChild(notice);
+    if(previewUnavailable)offerOpportunityPaste(box,preview);
+  }
+
+  [['Issuer',a.issuer],['Opportunity',a.title],['Scope',a.looking_for],['Deadline',/^\d{4}-\d{2}-\d{2}$/.test(a.deadline || '') ? a.deadline : null]].forEach(function(pair) {
+    if (!pair[1]) return;
+    var row = document.createElement('div'); row.className = 'gp-r';
+    var key = document.createElement('span'); key.className = 'gp-k'; key.textContent = pair[0];
+    var value = document.createElement('span'); value.textContent = pair[1]; row.append(key,value); box.appendChild(row);
+  });
+  if (a.deadline_needs_verification && a.deadline_warning) {
+    var warning = document.createElement('div'); warning.className = 'deadline-warning'; warning.setAttribute('role','alert');
+    var warningTitle = document.createElement('strong'); warningTitle.textContent = 'Please double-check the deadline';
+    var warningText = document.createElement('p'); warningText.textContent = a.deadline_warning;
+    warning.append(warningTitle,warningText);
+    (a.deadline_sources || []).forEach(function(source) {
+      var row = document.createElement('div'); row.appendChild(sourceLink(source.source_url,source.date + (source.verification === 'unverified_reading' ? ' (unverified reading)' : '') + ' — view source')); warning.appendChild(row);
+    });
+    box.appendChild(warning);
+  }
+  function details(title, items, render) {
+    if (!Array.isArray(items) || !items.length) return;
+    var panel = document.createElement('details'); panel.open = a.status !== 'ready'; panel.className = 'opportunity-sources';
+    var summary = document.createElement('summary'); summary.textContent = title + ' (' + items.length + ')'; panel.appendChild(summary);
+    var list = document.createElement('ul'); items.forEach(function(item) { var li = document.createElement('li'); render(li,item); list.appendChild(li); }); panel.appendChild(list); box.appendChild(panel);
+  }
+  details('Source documents', a.documents, function(li,doc) {
+    li.appendChild(sourceLink(doc.url,doc.title || 'Source document'));
+    var status = document.createElement('span'); status.className = 'source-status'; status.textContent = doc.status || 'Pending'; li.appendChild(status);
+    if (doc.reason) { var note = document.createElement('p'); note.textContent = doc.reason; li.appendChild(note); }
+  });
+  var requirementCount = Number.isSafeInteger(a.requirements_count) && a.requirements_count >= 0 ? a.requirements_count : null;
+  var shownRequirements = Array.isArray(a.requirements) ? a.requirements : [];
+  if (a.requirements_previewed && requirementCount !== null) {
+    var previewNote = document.createElement('p'); previewNote.className = 'source-progress-note';
+    previewNote.textContent = requirementCount === 0 ? 'The source review found no explicit response requirements.' : 'Source review retained ' + requirementCount + ' requirements. Showing ' + shownRequirements.length + ' here; the complete set stays with your proposal.';
+    box.appendChild(previewNote);
+  }
+  details(a.requirements_previewed ? 'Requirements preview' : 'What your response needs to cover', shownRequirements, function(li,req) { li.appendChild(sourceLink(req.source_url,req.text)); });
+  if (!oversized) details('Still needed', a.missing_documents, function(li,item) { li.textContent = item; });
+  if (a.status === 'blocked') {
+    var message = document.createElement('p'); message.textContent = oversized ? 'This opportunity has more material than Ktebli can safely review automatically at the moment. All required documents must be covered before writing can begin.' : a.message || 'This source is incomplete or could not be read. Paste the full requirements, including attachment contents, or provide a publicly accessible source before continuing.'; box.appendChild(message);
+    if(!oversized&&!(a.quick_preview&&a.quick_preview.status==='unavailable'))offerOpportunityPaste(box,a.quick_preview);
+  }
+}
+function analyzeGrant(force, poll) {
+  var input = wiz.val('w-grant'); if (!input || (!/^https?:\/\//i.test(input) && input.length < 12)) return;
+  if (!poll && !force && input === lastAnalyzed) return;
+  clearTimeout(analysisPoll); var sequence = ++analysisSequence;
+  lastAnalyzed = input; analyzing = true; analysisOk = false; analysisReady = false; analyzedDeadline = '';
+  if (!poll) { opportunityDetails = null; resetDetectedDetails(); analysisBackground = false; deadlineRequiresManual = false; deadlineNeedsVerification = false; document.getElementById('w-deadline-confirm').checked = false; var currentDeadline=document.getElementById('w-deadline'); if(currentDeadline.dataset.autoDetected==='true'){currentDeadline.value='';delete currentDeadline.dataset.autoDetected;deadlinePreviewPrefill=false;} opportunityExtractionId = ''; opportunityExtractionToken = ''; showPreviewLoading(document.getElementById('gpreview'),'Finding opportunity details…'); }
+  if (wiz.step === 0) setContinueEnabled(canContinueIntake());
+  var payload = poll ? {extraction_id:opportunityExtractionId, extraction_token:opportunityExtractionToken} : {input:input};
+  fetch(FN + '/analyze-grant', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+  .then(function(r) { return r.json(); }).then(function(a) {
+    if (sequence !== analysisSequence || input !== wiz.val('w-grant')) return;
+    if (a.extraction_id) opportunityExtractionId = a.extraction_id;
+    if (a.extraction_token) opportunityExtractionToken = a.extraction_token;
+    if (!['ready','processing','blocked'].includes(a.status) || (a.status === 'ready' && (!opportunityExtractionId || !opportunityExtractionToken))) a.status = 'blocked';
+    showOpportunityResult(a); analyzing = a.status === 'processing' && a.awaiting_payment !== true;
+    analysisBackground = analyzing && a.progress && a.progress.background === true;
+    analysisOk = (a.status === 'ready' || (a.status === 'processing' && a.awaiting_payment === true)) && !!opportunityExtractionId && !!opportunityExtractionToken;
+    analysisReady = a.status === 'ready' && analysisOk;
+    var pollDelay = Number.isFinite(a.poll_after_ms) ? Math.max(1000,Math.min(30000,a.poll_after_ms)) : 3000;
+    if (analyzing && opportunityExtractionId && opportunityExtractionToken) analysisPoll = setTimeout(function() { analyzeGrant(false,true); }, pollDelay);
+    else if (analyzing) { analyzing = false; showOpportunityResult({status:'blocked', message:'We could not start a source review. Please try again.'}); }
+    var quick = a.quick_preview;
+    if (analysisOk) {
+      opportunityDetails = {input:input, display_title:quick && quick.display_title, title:analysisReady ? a.title : quick && quick.title, deadline_excerpt:quick && quick.deadline_excerpt, funding_excerpt:quick && quick.funding_excerpt, currency:quick && quick.currency};
+      if(quick&&quick.deadline_needs_verification)deadlineNeedsVerification=true;
+      var deadlineInput = document.getElementById('w-deadline');
+      if (quick && quick.suggestion_method === 'jev_source_selection' && !deadlineInput.dataset.userSelected && !deadlineInput.value) {
+        var suggestedDate = previewDeadlineDate(quick.deadline_excerpt);
+        if (suggestedDate) { deadlineInput.value = suggestedDate; deadlineInput.dataset.autoDetected = 'true'; deadlinePreviewPrefill = true; }
+      }
+      if (quick && quick.suggestion_method === 'jev_source_selection' && quick.status !== 'unavailable') {
+        fillDetectedDetail('w-proposal-type',quick.proposal_type,['grant','government_tender','procurement','business']);
+        fillDetectedDetail('w-subject',quick.subject,['architecture','construction','healthcare','research','technology','community','environment','education']);
+        var currency = document.getElementById('w-currency');
+        var fundingCode = previewCurrencyCode(quick.funding_excerpt,quick.currency);
+        var fundingFound = !!previewFunding(quick.funding_excerpt,quick.currency) && !!fundingCode;
+        syncFundingCurrencyVisibility(fundingFound);
+        if (fundingFound && !currency.dataset.userSelected) { setDetectedCurrency(fundingCode); currency.dataset.detected = 'true'; }
+      }
     }
-    box.innerHTML = h;
+    if (analysisReady) {
+      // A tender-document fee is not the proposal currency.
+      fillDetectedDetail('w-proposal-type',a.proposal_type,['grant','government_tender','procurement','business']);
+      fillDetectedDetail('w-subject',a.subject,['general','architecture','construction','healthcare','research','technology','community','environment','education']);
+      deadlineRequiresManual = a.deadline_requires_manual_entry === true; deadlineNeedsVerification = a.deadline_needs_verification === true;
+      if (validDeadline(a.deadline || '')) analyzedDeadline = a.deadline;
+    }
+    refreshDetectedDetails();
+    if (wiz.step === 0) setContinueEnabled(canContinueIntake());
+    if (wiz.step === wiz.last) { wiz.summary(); document.getElementById('wiz-next').textContent = analysisOk ? (ownerTestInvite ? 'Start my Full test — no payment' : 'Pay ' + PRICES[wiz.tier] + ' — Ktebli gets to work') : 'Check source status'; }
     updateDeadlineField();
-  }).catch(function () {
-    finish();
-    box.className = 'gpreview err';
-    box.innerHTML = 'The check did not go through. <a href="#" id="gp-retry">Try again</a>, or paste the grant text itself instead of the link.';
-    var rt = document.getElementById('gp-retry');
-    if (rt) rt.addEventListener('click', function (e) { e.preventDefault(); analyzeGrant(true); });
+  }).catch(function() {
+    if (sequence !== analysisSequence || input !== wiz.val('w-grant')) return;
+    analyzing = false; analysisOk = false; analysisReady = false; analysisBackground = false;
+    showOpportunityResult({status:'blocked',message:'Connection interrupted. Retry the existing source review; no new scan is requested.'});
+    var retry = document.createElement('button'); retry.type = 'button'; retry.className = 'text-link'; retry.textContent = 'Retry source review';
+    retry.addEventListener('click',function() { analyzeGrant(true,!!opportunityExtractionId && !!opportunityExtractionToken); }); document.getElementById('gpreview').appendChild(retry);
+    if (wiz.step === 0) setContinueEnabled(false); updateDeadlineField();
   });
 }
 function updateDeadlineField() {
   // manual deadline appears only when analysis could not supply one
-  var show = !analyzing && lastAnalyzed && !analyzedDeadline;
+  var show = analysisOk && (deadlineRequiresManual || !analyzedDeadline);
   document.getElementById('deadline-manual').style.display = show ? 'block' : 'none';
+  document.getElementById('deadline-help').textContent = deadlinePreviewPrefill && document.getElementById('w-deadline').dataset.autoDetected === 'true' ? 'Filled from your link. Please check the date and time with the issuer.' : 'Enter the date you checked with the issuer. This will be labelled as your supplied date.';
+  document.getElementById('deadline-confirmation').style.display = analysisOk && (deadlineRequiresManual || deadlineNeedsVerification) ? 'block' : 'none';
+  document.getElementById('deadline-confirm-label').textContent = deadlineRequiresManual ? 'I have checked this date. I understand it is supplied by me, not verified by Ktebli.' : 'I understand Ktebli will plan for the earliest readable date, and I will verify the deadline with the issuer.';
 }
+document.getElementById('w-deadline-confirm').addEventListener('change',function(){ wiz.pendingToken=null; });
+document.getElementById('w-deadline').addEventListener('input',function(){ delete this.dataset.autoDetected; this.dataset.userSelected='true'; deadlinePreviewPrefill=false; document.getElementById('w-deadline-confirm').checked=false; wiz.pendingToken=null; updateDeadlineField(); });
 var debounceT = null;
 document.getElementById('w-grant').addEventListener('input', function () {
+  if(/^https?:\/\//i.test(this.value.trim())){opportunityPasteSource='';var reference=document.getElementById('opportunity-paste-source');reference.hidden=true;reference.replaceChildren();this.placeholder='https://... or paste the guidelines here';}
+  clearTimeout(analysisPoll); analysisSequence++; deadlineRequiresManual = false; deadlineNeedsVerification = false; resetDeadlineForSourceChange(); analysisOk = false; analysisReady = false; analysisBackground = false; opportunityExtractionId = ''; opportunityExtractionToken = ''; analyzedDeadline = ''; analyzing = false; lastAnalyzed = ''; setContinueEnabled(false); document.getElementById('gpreview').style.display = 'none';
+  opportunityDetails = null; resetDetectedDetails();
+  updateDeadlineField();
   clearTimeout(debounceT);
   debounceT = setTimeout(function () { analyzeGrant(false); }, 900);
 });
 document.getElementById('w-grant').addEventListener('blur', function () { analyzeGrant(false); });
+
+function proposalCurrency() {
+  var selected = document.getElementById('w-currency').value;
+  return selected === 'other' ? document.getElementById('w-currency-other').value.toUpperCase() : selected;
+}
+function syncCurrencyOther() {
+  var other = document.getElementById('w-currency').value === 'other';
+  document.getElementById('currency-other-field').hidden = !other;
+  document.getElementById('w-currency-other').disabled = !other;
+  document.getElementById('w-currency-other').required = other;
+}
+function setDetectedCurrency(code) {
+  var standard = ['USD','LBP','EUR','GBP'].indexOf(code) !== -1;
+  document.getElementById('w-currency').value = standard ? code : 'other';
+  document.getElementById('w-currency-other').value = standard ? '' : code;
+  syncCurrencyOther();
+}
+document.getElementById('w-currency').addEventListener('change', syncCurrencyOther);
+document.getElementById('w-currency-other').addEventListener('input', function() {
+  this.value = this.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0,3);
+  document.getElementById('w-currency').dataset.userSelected = 'true';
+  delete document.getElementById('w-currency').dataset.detected; refreshDetectedDetails();
+});
+['w-proposal-type','w-subject','w-currency'].forEach(function(id) { document.getElementById(id).addEventListener('change', function() { this.dataset.userSelected = 'true'; delete this.dataset.detected; if(id==='w-currency') syncFundingCurrencyVisibility(true); refreshDetectedDetails(); }); });
 
 // wizard controls
 document.getElementById('wiz-close').addEventListener('click', function(){ wiz.close(); });
@@ -1173,11 +1380,10 @@ document.getElementById('wiz-back').addEventListener('click', function(){ if (wi
 document.getElementById('wiz-next').addEventListener('click', function(){
   if (wiz.step === wiz.last) { wiz.pay(); return; }
   if (!wiz.validate()) return;
-  if (wiz.step === 2) analyzeGrant();
   wiz.step++; wiz.render();
 });
 document.querySelectorAll('.pkg label').forEach(function (l) {
-  l.addEventListener('click', function(){ wiz.tier = l.getAttribute('data-tier'); wiz.render(); });
+  l.addEventListener('click', function(){ wiz.tier = ownerTestInvite ? 'full' : l.getAttribute('data-tier'); wiz.render(); });
 });
 
 // repeater "add" buttons for the list-shaped named facts
@@ -1186,37 +1392,37 @@ document.querySelectorAll('.pkg label').forEach(function (l) {
   if (b) b.addEventListener('click', function () { addRep(p[1]); });
 });
 
-// old proposals: uploaded and read immediately, so the voice analysis is real
-var fb = document.getElementById('filebox'), fi = document.getElementById('w-files');
-fb.addEventListener('click', function(){ fi.click(); });
-fi.addEventListener('change', function(){
-  var list = Array.prototype.slice.call(fi.files, 0, 3);
-  wiz.files = list.map(function (f) { return f.name; });
-  var fl = document.getElementById('filelist');
-  fl.innerHTML = list.map(function (f) { return '<div id="fs-' + f.name.replace(/[^a-z0-9]/gi,'') + '">⏳ ' + f.name + ' — uploading…</div>'; }).join('');
-  var analysed = 0, doneCount = 0;
-  list.forEach(function (f) {
-    var fd = new FormData();
-    fd.append('file', f);
-    fd.append('email', wiz.val('w-email'));
-    var row = document.getElementById('fs-' + f.name.replace(/[^a-z0-9]/gi,''));
-    fetch(FN + '/upload-intake-file', { method: 'POST', body: fd })
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        doneCount++;
-        if (j.ok && j.analysed) { analysed++; if (row) row.innerHTML = '✓ ' + f.name + ' — read and understood'; }
-        else if (j.ok) { if (row) row.innerHTML = '✓ ' + f.name + ' — saved (we will read this format soon)'; }
-        else { if (row) row.innerHTML = '⚠ ' + f.name + ' — upload failed, you can still continue'; }
-        if (doneCount === list.length && analysed > 0) {
-          fl.insertAdjacentHTML('beforeend',
-            '<div style="margin-top:6px;font-weight:700">We’ve analysed ' + analysed +
-            ' previous proposal' + (analysed>1?'s':'') + ' and will use them to understand your organisation and writing style.</div>');
-        }
-      })
-      .catch(function () { doneCount++; if (row) row.innerHTML = '⚠ ' + f.name + ' — upload failed, you can still continue'; });
-  });
-  if (fi.files.length > 3) fl.insertAdjacentHTML('beforeend', '<div style="color:var(--coral)">Only the first three are used.</div>');
+
+// Website preview: preserve user edits and discard responses for old URLs.
+var websitePreviewSequence=0, websiteAutoName="", websiteAutoType="", websiteSuggestions=null;
+document.getElementById('w-org').addEventListener('input',function(){this.dataset.userEdited='true';});
+document.getElementById('w-web').addEventListener('input',function(){websitePreviewSequence++;var name=document.getElementById('w-org'), applicant=document.getElementById('w-applicant-type');if(!name.dataset.userEdited&&name.value===websiteAutoName)name.value='';if(!applicant.dataset.userSelected&&applicant.value===websiteAutoType)applicant.value='individual';websiteAutoName='';websiteAutoType='';websiteSuggestions=null;var box=document.getElementById('website-preview');box.replaceChildren();box.className='field-help';box.setAttribute('aria-busy','false');});
+document.getElementById('w-web').addEventListener('blur',async function(){
+ var raw=this.value.trim(), sequence=++websitePreviewSequence, label=document.getElementById('website-preview');
+ if(!raw)return;var url=/^https?:\/\//i.test(raw)?raw:'https://'+raw;showPreviewLoading(label,'Finding website details…');
+ try {var r=await fetch(FN+'/preview-website',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})});var p=await r.json();
+  if(sequence!==websitePreviewSequence||document.getElementById('w-web').value.trim()!==raw)return;
+  label.replaceChildren();label.className='field-help';label.setAttribute('aria-busy','false');
+  if(p.status==='unavailable'||p.ok===false){label.textContent='Website preview unavailable. You can continue.';return;}
+  websiteSuggestions={source_url:p.source_url,source_sha256:p.source_sha256,name:p.suggested_name,description:p.description,subject:p.subject,contact_email:p.contact_email,contact_phone:p.contact_phone,location:p.location,verification:'unverified_page_metadata'};
+  var name=document.getElementById('w-org'), applicant=document.getElementById('w-applicant-type');
+  if(p.suggested_name&&!name.dataset.userEdited&&(!name.value||name.value===websiteAutoName)){name.value=p.suggested_name;websiteAutoName=p.suggested_name;}
+  if(!applicant.dataset.userSelected&&['individual','organisation'].includes(p.applicant_type)){applicant.value=p.applicant_type;websiteAutoType=p.applicant_type;applicant.dispatchEvent(new Event('change'));}
+  label.textContent=p.suggested_name?'Please review the suggested name above.':'No clear name found. You can continue.';
+  if(p.description||p.subject||p.contact_email||p.contact_phone||p.location){var more=document.createElement('details');more.className='preview-more';var title=document.createElement('summary');title.textContent='Website details';more.appendChild(title);previewFact(more,'About',p.description);previewFact(more,'Sector',p.subject);previewFact(more,'Location',p.location);previewFact(more,'Public email',p.contact_email);previewFact(more,'Public phone',p.contact_phone);if(p.source_url)more.appendChild(sourceLink(p.source_url,'View source page'));label.appendChild(more);}
+ }catch{if(sequence===websitePreviewSequence){label.className='field-help';label.setAttribute('aria-busy','false');label.textContent='Website preview unavailable. You can continue.';}}
 });
+document.getElementById('w-applicant-type').addEventListener('change',function(event){if(event.isTrusted)this.dataset.userSelected='true';document.querySelector('label[for="w-org"]').firstChild.textContent=this.value==='individual'?'Name to use on the proposal ':'Organisation name ';});
+
+if (ownerTestInvite) wiz.open('full');
+else if (memberIntent) {
+  var memberSource=new URLSearchParams(window.location.search).get('opportunity')||'';
+  if (/^https:\/\/[^\s]+$/.test(memberSource) && memberSource.length<=2000) {
+    document.getElementById('w-grant').value=memberSource;
+    wiz.open(null);
+  }
+}
+
 </script>
 
 </body>

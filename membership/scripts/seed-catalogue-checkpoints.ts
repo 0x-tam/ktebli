@@ -4,6 +4,7 @@ import {
   catalogueBatchSchema,
   mawredPageBatchSchema,
   ungmCuratedBatchSchema,
+  worldBankBatchSchema,
 } from "../lib/catalogue";
 import {
   encodeCrawlerState,
@@ -38,9 +39,16 @@ const inputs: { source: CrawlSource; state: string; output: string }[] = [
     state: "crawler/.state/mawred-coverage.json",
     output: "crawler/.state/mawred-opportunities.json",
   },
+  {
+    source: "worldbank",
+    state: "crawler/.state/worldbank-coverage.json",
+    output: "crawler/.state/worldbank-opportunities.json",
+  },
 ];
 const wanted = new Set(
-  (process.env.CATALOGUE_SEED_SOURCES ?? "ppa,ungm-curated,mawred").split(","),
+  (
+    process.env.CATALOGUE_SEED_SOURCES ?? "ppa,ungm-curated,mawred,worldbank"
+  ).split(","),
 );
 if (
   !wanted.size ||
@@ -59,7 +67,9 @@ for (const input of inputs.filter((item) => wanted.has(item.source))) {
       ? catalogueBatchSchema.parse(output)
       : input.source === "ungm-curated"
         ? ungmCuratedBatchSchema(seeds).parse(output)
-        : mawredPageBatchSchema.parse(output);
+        : input.source === "mawred"
+          ? mawredPageBatchSchema.parse(output)
+          : worldBankBatchSchema.parse(output);
   if (input.source === "ppa" && !ppaStreamsComplete(state))
     throw new Error("PPA seed needs both complete locale streams");
   const currentRecords: Record<string, { contentHash: string }> =
@@ -74,9 +84,11 @@ for (const input of inputs.filter((item) => wanted.has(item.source))) {
               return record ? [[record.sourceKey, record]] : [];
             }),
           )
-        : state.record
-          ? { [state.record.sourceKey]: state.record }
-          : {};
+        : input.source === "mawred"
+          ? state.record
+            ? { [state.record.sourceKey]: state.record }
+            : {}
+          : state.entries;
   if (
     Object.keys(currentRecords).length !== batch.records.length ||
     batch.records.some(

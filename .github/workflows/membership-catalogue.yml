@@ -40,4 +40,5 @@ jobs:
         working-directory: membership
         env:
           INGEST_DATABASE_URL: ${{ secrets.MEMBERSHIP_INGEST_DATABASE_URL }}
+          MEMBERSHIP_EXPECTED_DB_HOST: ep-autumn-feather-b1fk17te.c-5.eu-central-1.aws.neon.tech
         run: npm run catalog:scheduled
