@@ -482,17 +482,51 @@ export default function Dashboard({
   return (
     <div className="workspace">
       <aside className="sidebar">
-        <Link className="brand" href={proposalOrigin}>
-          ktebli
+        <Link className="brand" href={proposalOrigin} aria-label="Ktebli home">
+          KTEBLI<span className="brand-mark">!</span>
         </Link>
         <p className="nav-label">YOUR WORKSPACE</p>
         <nav>
           {(
             [
-              { id: "discover", label: "Discover", icon: "◈" },
-              { id: "saved", label: "Saved opportunities", icon: "◇" },
-              { id: "alerts", label: "Alerts", icon: "◉" },
-              { id: "profile", label: "Your profile", icon: "◌" },
+              {
+                id: "discover",
+                label: "Discover",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="10.8" cy="10.8" r="6.7" />
+                    <path d="m16 16 4.2 4.2M8.2 10.8h5.2M10.8 8.2v5.2" />
+                  </svg>
+                ),
+              },
+              {
+                id: "saved",
+                label: "Saved opportunities",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6.2 4.5h11.6v15l-5.8-3.7-5.8 3.7v-15Z" />
+                  </svg>
+                ),
+              },
+              {
+                id: "alerts",
+                label: "Alerts",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M18 9.8a6 6 0 0 0-12 0c0 7-2.4 7-2.4 8.4h16.8c0-1.4-2.4-1.4-2.4-8.4ZM9.4 21h5.2" />
+                  </svg>
+                ),
+              },
+              {
+                id: "profile",
+                label: "Your profile",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.3" />
+                    <path d="M5.2 20c.4-3.3 3.2-5.3 6.8-5.3s6.4 2 6.8 5.3" />
+                  </svg>
+                ),
+              },
             ] as const
           ).map((item) => (
             <button
@@ -510,7 +544,7 @@ export default function Dashboard({
                 }
               }}
             >
-              <span>{item.icon}</span>
+              {item.icon}
               {item.label}
               {item.id === "alerts" && data.alerts.some((a) => !a.read_at) && (
                 <i />
@@ -528,6 +562,7 @@ export default function Dashboard({
           </div>
           <button
             title="Sign out"
+            aria-label="Sign out"
             onClick={() =>
               void act(async () => {
                 const result = await authClient.signOut();

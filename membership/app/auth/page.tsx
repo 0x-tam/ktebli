@@ -257,177 +257,200 @@ export default function AuthPage() {
   }
   return (
     <main className="auth-shell">
-      <Link className="brand" href="https://ktebli.vercel.app">
-        ktebli
-      </Link>
-      <section className="auth-card">
-        <p className="eyebrow">A LITTLE MORE POSSIBILITY</p>
-        <h1>
-          {mode === "signUp"
-            ? "Make yourself known."
-            : mode === "verify"
-              ? "Verify your email."
-              : mode === "otp"
-                ? sent
-                  ? "Check your inbox."
-                  : "Sign in by email code."
-                : "Welcome back."}
-        </h1>
-        <p className="muted">
-          Your next opportunity starts with a clearer picture of you.
-        </p>
-        <div className="tabs">
-          {(["signIn", "signUp", "otp"] as const).map((value) => (
-            <button
-              className={mode === value ? "active" : ""}
-              key={value}
-              type="button"
-              disabled={busy}
-              onClick={() => {
-                setMode(value);
-                setMessage("");
-                setCodeError("");
-                setSent(false);
-                setCode("");
-              }}
-            >
-              {value === "signIn"
-                ? "Sign in"
-                : value === "signUp"
-                  ? "Create account"
-                  : "Email code"}
-            </button>
-          ))}
-        </div>
-        <form onSubmit={submit} aria-busy={busy}>
-          {mode === "signUp" && (
+      <header className="auth-topbar">
+        <Link
+          className="brand"
+          href="https://ktebli.vercel.app"
+          aria-label="Ktebli home"
+        >
+          KTEBLI<span className="brand-mark">!</span>
+        </Link>
+        <Link className="auth-back" href="https://ktebli.vercel.app">
+          Back to Ktebli
+        </Link>
+      </header>
+      <div className="auth-layout">
+        <aside className="auth-intro">
+          <p className="eyebrow">MADE FOR AMBITION IN LEBANON</p>
+          <h2>Find the right opportunity. Take a clearer next step.</h2>
+          <p className="muted">
+            Create your free account and browse public opportunities now. When
+            membership opens, you can save notices and see how they fit your
+            work.
+          </p>
+          <div className="auth-note">
+            <p>Browsing is free. Membership checkout is not open yet.</p>
+          </div>
+        </aside>
+        <section className="auth-card">
+          <p className="eyebrow">A LITTLE MORE POSSIBILITY</p>
+          <h1>
+            {mode === "signUp"
+              ? "Make yourself known."
+              : mode === "verify"
+                ? "Verify your email."
+                : mode === "otp"
+                  ? sent
+                    ? "Check your inbox."
+                    : "Sign in by email code."
+                  : "Welcome back."}
+          </h1>
+          <p className="muted">
+            Your next opportunity starts with a clearer picture of you.
+          </p>
+          <div className="tabs">
+            {(["signIn", "signUp", "otp"] as const).map((value) => (
+              <button
+                className={mode === value ? "active" : ""}
+                key={value}
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setMode(value);
+                  setMessage("");
+                  setCodeError("");
+                  setSent(false);
+                  setCode("");
+                }}
+              >
+                {value === "signIn"
+                  ? "Sign in"
+                  : value === "signUp"
+                    ? "Sign up"
+                    : "Email code"}
+              </button>
+            ))}
+          </div>
+          <form onSubmit={submit} aria-busy={busy}>
+            {mode === "signUp" && (
+              <label>
+                Your name
+                <input
+                  required
+                  disabled={busy}
+                  maxLength={120}
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+            )}
             <label>
-              Your name
+              Email address
               <input
                 required
                 disabled={busy}
-                maxLength={120}
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-          )}
-          <label>
-            Email address
-            <input
-              required
-              disabled={busy}
-              type="email"
-              maxLength={254}
-              autoComplete="email"
-              readOnly={mode === "verify"}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setSent(false);
-                setCode("");
-                setCodeError("");
-                setMessage("");
-              }}
-            />
-          </label>
-          {mode !== "otp" && mode !== "verify" && (
-            <label>
-              Password
-              <input
-                required
-                disabled={busy}
-                type="password"
-                minLength={8}
-                maxLength={128}
-                autoComplete={
-                  mode === "signUp" ? "new-password" : "current-password"
-                }
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-          )}
-          {((mode === "otp" && sent) || mode === "verify") && (
-            <label>
-              {mode === "verify" ? "Verification code" : "Email code"}
-              <input
-                ref={codeInput}
-                required
-                disabled={busy}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={12}
-                aria-invalid={Boolean(codeError)}
-                aria-describedby={codeError ? "auth-code-error" : undefined}
-                value={code}
+                type="email"
+                maxLength={254}
+                autoComplete="email"
+                readOnly={mode === "verify"}
+                value={email}
                 onChange={(e) => {
-                  setCode(e.target.value);
+                  setEmail(e.target.value);
+                  setSent(false);
+                  setCode("");
                   setCodeError("");
                   setMessage("");
                 }}
               />
-              {codeError && (
-                <span
-                  className="auth-code-error"
-                  id="auth-code-error"
-                  role="alert"
-                >
-                  {codeError}
-                </span>
-              )}
             </label>
-          )}
-          <button className="button auth-submit" disabled={busy}>
-            {busy
-              ? phaseMessage[phase]
-              : mode === "signUp"
-                ? "Create account"
-                : mode === "otp" && !sent
-                  ? "Send sign-in code"
-                  : mode === "otp"
-                    ? "Sign in with code"
-                    : mode === "verify"
-                      ? "Verify email"
-                      : "Sign in"}{" "}
-            {busy ? (
-              <span className="auth-spinner" aria-hidden="true" />
-            ) : (
-              <span aria-hidden="true">↗</span>
+            {mode !== "otp" && mode !== "verify" && (
+              <label>
+                Password
+                <input
+                  required
+                  disabled={busy}
+                  type="password"
+                  minLength={8}
+                  maxLength={128}
+                  autoComplete={
+                    mode === "signUp" ? "new-password" : "current-password"
+                  }
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </label>
             )}
-          </button>
-          {busy && (
-            <p className="auth-progress" role="status" aria-live="polite">
-              {phaseMessage[phase]}
-            </p>
+            {((mode === "otp" && sent) || mode === "verify") && (
+              <label>
+                {mode === "verify" ? "Verification code" : "Email code"}
+                <input
+                  ref={codeInput}
+                  required
+                  disabled={busy}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={12}
+                  aria-invalid={Boolean(codeError)}
+                  aria-describedby={codeError ? "auth-code-error" : undefined}
+                  value={code}
+                  onChange={(e) => {
+                    setCode(e.target.value);
+                    setCodeError("");
+                    setMessage("");
+                  }}
+                />
+                {codeError && (
+                  <span
+                    className="auth-code-error"
+                    id="auth-code-error"
+                    role="alert"
+                  >
+                    {codeError}
+                  </span>
+                )}
+              </label>
+            )}
+            <button className="button auth-submit" disabled={busy}>
+              {busy
+                ? phaseMessage[phase]
+                : mode === "signUp"
+                  ? "Create account"
+                  : mode === "otp" && !sent
+                    ? "Send sign-in code"
+                    : mode === "otp"
+                      ? "Sign in with code"
+                      : mode === "verify"
+                        ? "Verify email"
+                        : "Sign in"}{" "}
+              {busy ? (
+                <span className="auth-spinner" aria-hidden="true" />
+              ) : (
+                <span aria-hidden="true">↗</span>
+              )}
+            </button>
+            {busy && (
+              <p className="auth-progress" role="status" aria-live="polite">
+                {phaseMessage[phase]}
+              </p>
+            )}
+            {mode === "signUp" && (
+              <p className="fine">
+                Before creating an account, read how your{" "}
+                <Link href="/data-use">account data is used</Link>.
+              </p>
+            )}
+            {message && (
+              <p role="status" className="notice">
+                {message}
+              </p>
+            )}
+          </form>
+          {mode === "verify" && (
+            <button
+              className="text-button"
+              type="button"
+              disabled={busy}
+              onClick={resendVerification}
+            >
+              Send a new code
+            </button>
           )}
-          {mode === "signUp" && (
-            <p className="fine">
-              Before creating an account, read how your{" "}
-              <Link href="/data-use">account data is used</Link>.
-            </p>
-          )}
-          {message && (
-            <p role="status" className="notice">
-              {message}
-            </p>
-          )}
-        </form>
-        {mode === "verify" && (
-          <button
-            className="text-button"
-            type="button"
-            disabled={busy}
-            onClick={resendVerification}
-          >
-            Send a new code
-          </button>
-        )}
-        <p className="fine">
-          Use “Email code” to sign in without your password.
-        </p>
-      </section>
+          <p className="fine">
+            Use “Email code” to sign in without your password.
+          </p>
+        </section>
+      </div>
     </main>
   );
 }

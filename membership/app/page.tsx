@@ -3,8 +3,12 @@ export default function Home() {
   return (
     <main className="landing">
       <nav className="topbar">
-        <Link className="brand" href="https://ktebli.vercel.app">
-          ktebli
+        <Link
+          className="brand"
+          href="https://ktebli.vercel.app"
+          aria-label="Ktebli home"
+        >
+          KTEBLI<span className="brand-mark">!</span>
         </Link>
         <Link className="button subtle" href="/auth">
           Sign in ↗
