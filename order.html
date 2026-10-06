@@ -103,34 +103,43 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,42px);m
 .paid-intake .rep-add,.paid-intake .rep-x{min-height:44px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--forest);font:600 .84rem 'DM Sans',sans-serif}
 .paid-intake .rep-add:hover,.paid-intake .rep-x:hover{background:var(--mint)}
 button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C5739;outline-offset:3px}
+.order-next{margin:0 0 14px;padding:12px 14px;border-left:3px solid var(--green);background:var(--mint);color:var(--forest);font-size:.9rem}
+.source-summary{margin-top:18px}
+.deadline-alert{margin:0 0 16px;padding:12px 14px;border-left:3px solid var(--coral);background:#f8e9e4;color:#773d34;font-size:.88rem}
+.source-details{margin:0 0 22px;padding:0 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.source-details>summary{min-height:48px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;color:var(--forest);font-weight:700}
+.source-details>summary::-webkit-details-marker{display:none}
+.source-details>summary::after{width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;content:"";transform:rotate(45deg) translateY(-2px)}
+.source-details[open]>summary::after{transform:rotate(225deg) translateY(-2px)}
+.source-details>.buyer-notice{padding:14px 0;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent}
+
 @media(max-width:600px){.wrap{padding-right:18px;padding-left:18px}.paid-intake .two{grid-template-columns:1fr;gap:0}.paid-intake .rep-row{flex-wrap:wrap}.phead,.pbody,.files,.revzone{padding-right:16px;padding-left:16px}.stage{gap:9px;font-size:.85rem}.stage .t{font-size:.7rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<template id="paid-intake-template"><section class="buyer-notice paid-intake" id="paid-intake"><h2>A little about the work you want to propose</h2><p>We can read the opportunity while you complete this. Your scope, proposal type and currency are needed before writing starts. The other details help us be specific; leave anything unknown blank.</p><form id="intake-form"><div class="two"><div class="field"><label for="w-proposal-type">Proposal type · Required</label><select id="w-proposal-type" required><option value="">Choose…</option><option value="grant">Grant application</option><option value="government_tender">Government tender</option><option value="procurement">Procurement / RFP</option><option value="business">Business / service proposal</option></select></div><div class="field"><label for="w-currency">Proposal currency · Required</label><select id="w-currency" required><option value="">Choose…</option><option value="USD">USD — US dollar</option><option value="LBP">LBP — Lebanese pound</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British pound</option><option value="other">Other currency</option></select><div id="paid-currency-other" hidden><label for="w-currency-other">Three-letter currency code</label><input id="w-currency-other" maxlength="3" pattern="[A-Za-z]{3}" placeholder="e.g. AED" disabled></div><p id="source-field-note" class="field-help"></p></div></div><div class="field"><label for="w-response-language">Proposal and document language · Required</label><select id="w-response-language" required><option value="">Choose English or Arabic…</option><option value="en">English</option><option value="ar">العربية — Arabic</option></select><p id="language-help" class="field-help">The issuer’s required submission language takes priority. If none is stated, choose English or Arabic.</p></div>      <section>
-        <h3>Your proposed work — the specifics</h3>
-        <p class="ws-sub">This is what turns a template into a proposal only you could have written. Real names, please — we write exactly what you tell us and invent nothing.</p>
-        <div class="field"><label for="w-place">Where will you deliver the work? <span class="optional">Optional</span></label><input type="text" id="w-place" placeholder="e.g. Tripoli municipal offices, a client site in Beirut, or online"></div>
-        <div class="field"><label for="w-venue">Where does it actually happen? <span class="optional">Optional</span><span class="hint">Name the client site, facility, service area or delivery setting. Choose online if the work is remote.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
-          <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
-            <select id="w-venue-escape">
-              <option value="">There is a fixed venue (named above)</option>
-              <option value="homes">We work in people's own homes</option>
-              <option value="street">We do street-based outreach</option>
-              <option value="outdoors">We work outdoors</option>
-              <option value="mobile">We work from a vehicle</option>
-              <option value="online">We work online</option>
-            </select>
+<template id="paid-intake-template"><section class="buyer-notice paid-intake" id="paid-intake"><h2>A little about the work you want to propose</h2><p>We can read the opportunity while you complete this. Your proposal type, currency and work description are required before writing starts. Leave anything else blank if you do not know it.</p><form id="intake-form"><div class="two"><div class="field"><label for="w-proposal-type">Proposal type · Required</label><select id="w-proposal-type" required><option value="">Choose…</option><option value="grant">Grant application</option><option value="government_tender">Government tender</option><option value="procurement">Procurement / RFP</option><option value="business">Business / service proposal</option></select></div><div class="field"><label for="w-currency">Proposal currency · Required</label><select id="w-currency" required><option value="">Choose…</option><option value="USD">USD — US dollar</option><option value="LBP">LBP — Lebanese pound</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British pound</option><option value="other">Other currency</option></select><div id="paid-currency-other" hidden><label for="w-currency-other">Three-letter currency code</label><input id="w-currency-other" maxlength="3" pattern="[A-Za-z]{3}" placeholder="e.g. AED" disabled></div><p id="source-field-note" class="field-help"></p></div></div><div class="field"><label for="w-response-language">Proposal and document language · Required</label><select id="w-response-language" required><option value="">Choose English or Arabic…</option><option value="en">English</option><option value="ar">العربية — Arabic</option></select><p id="language-help" class="field-help">The issuer’s required submission language takes priority. If none is stated, choose English or Arabic.</p></div>
+        <div class="field"><label for="w-activity">What work do you intend to propose? <span class="rq">Required</span></label><input type="text" id="w-activity" minlength="20" required aria-describedby="w-activity-help" placeholder="e.g. survey three public buildings and produce a phased retrofit plan"><p class="field-help" id="w-activity-help">Describe the work you will deliver. Add background below if useful.</p></div>
+        <details class="work-background"><summary>Delivery setting and past work <span class="optional">Optional</span></summary>
+          <div class="field"><label for="w-place">Where will you deliver the work? <span class="optional">Optional</span></label><input type="text" id="w-place" placeholder="e.g. Tripoli municipal offices, a client site in Beirut, or online"></div>
+          <div class="field"><label for="w-venue">Where does it actually happen? <span class="optional">Optional</span><span class="hint">Name the client site, facility, service area or delivery setting. Choose online if the work is remote.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
+            <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
+              <select id="w-venue-escape">
+                <option value="">There is a fixed venue (named above)</option>
+                <option value="homes">We work in people's own homes</option>
+                <option value="street">We do street-based outreach</option>
+                <option value="outdoors">We work outdoors</option>
+                <option value="mobile">We work from a vehicle</option>
+                <option value="online">We work online</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="field"><label for="w-activity">What work do you intend to propose? <span class="rq">Required</span></label><input type="text" id="w-activity" minlength="20" required placeholder="e.g. survey three public buildings and produce a phased retrofit plan"></div>
-        <div class="field"><label for="w-last-what">The last work you or your organisation delivered — what was it called? <span class="optional">Optional</span></label><input type="text" id="w-last-what" placeholder="e.g. the Cedar Office refurbishment or the Harbour training programme">
-          <div class="checkrow" style="margin-top:8px"><input type="checkbox" id="w-never"><label for="w-never">I / we have not delivered a project yet — write it as our first, with no track record.</label></div>
-        </div>
-        <div class="field"><label for="w-last-when">Roughly when was that? <span class="optional">Optional</span></label><input type="text" id="w-last-when" placeholder="e.g. winter 2024; since March 2023"></div>
-        <div class="field"><label for="w-trigger">What need or problem does this work address? <span class="optional">Optional</span><span class="hint">Explain the client’s need, the procurement objective or the community issue in your own words.</span></label><textarea id="w-trigger" placeholder="e.g. the client needs to reduce building energy use while keeping offices open throughout the works."></textarea></div>
-      </section>
+          <div class="field"><label for="w-last-what">The last work you or your organisation delivered — what was it called? <span class="optional">Optional</span></label><input type="text" id="w-last-what" placeholder="e.g. the Cedar Office refurbishment or the Harbour training programme">
+            <div class="checkrow" style="margin-top:8px"><input type="checkbox" id="w-never"><label for="w-never">I / we have not delivered a project yet — write it as our first, with no track record.</label></div>
+          </div>
+          <div class="field"><label for="w-last-when">Roughly when was that? <span class="optional">Optional</span></label><input type="text" id="w-last-when" placeholder="e.g. winter 2024; since March 2023"></div>
+          <div class="field"><label for="w-trigger">What need or problem does this work address? <span class="optional">Optional</span><span class="hint">Explain the client’s need, the procurement objective or the community issue in your own words.</span></label><textarea id="w-trigger" placeholder="e.g. the client needs to reduce building energy use while keeping offices open throughout the works."></textarea></div>
+        </details>
 
       <details><summary>Governance &amp; assurances <span class="optional">Optional</span></summary>
         <h3>Governance &amp; assurances</h3>
@@ -250,42 +259,27 @@ function render(d){
   var h = '<h1>' + (d.intake && d.intake.required ? 'Your order is in. Add your proposed work.' : o.status==='complete' ? 'Everything is ready.' : o.status==='attention' ? 'Still working — final checks in progress.' : 'Ktebli is writing.') + '</h1>';
   h += '<div class="meta"><span class="ordno">Order ' + esc(o.order_no) + '</span> · ' + esc(o.org_name) + ' · ' + esc(o.tier.charAt(0).toUpperCase()+o.tier.slice(1)) + ' package</div>';
   h += '<span class="chip ' + esc(o.status) + '">' + (o.status==='processing'?'In progress':o.status==='complete'?'Complete':'Final checks') + '</span>';
-  if(d.intake && d.intake.required) h+='<p>Source reading can continue now. Proposal writing starts after you save the essential details below.</p>';
+  if(d.intake && d.intake.required) h+='<p class="order-next">Source reading continues while you add the required details. Writing starts after you save them.</p>';
   var mailTo = o.email ? ' to <b>' + esc(o.email) + '</b>' : ' to your email';
   h += o.is_owner_test
-    ? '<div class="comfort">Owner test · Full package · No payment taken. All evidence, originality and quality checks still apply. This page shows your progress and any information needed.</div>'
+    ? '<div class="comfort">Owner test · Full package · No payment taken. Evidence and quality checks still apply.</div>'
     : o.status === 'complete'
-    ? '<div class="comfort">Your order confirmation and the "everything is ready" email were sent' + mailTo + '. Can\'t find them? Check spam, or write to <b>' + esc(support) + '</b> quoting Order ' + esc(o.order_no) + '.</div>'
-    : '<div class="comfort">Your order confirmation with this tracking link has been emailed' + mailTo + '. This page shows progress as we review the source documents and prepare your proposal. You can close it anytime — the work continues on its own, and we\'ll email you when everything is ready.</div>';
+    ? '<div class="comfort">Your ready email was sent' + mailTo + '. Check spam or contact <b>' + esc(support) + '</b> with your order number if needed.</div>'
+    : '<div class="comfort">Your order link was emailed' + mailTo + '. Work continues while you are away; we’ll email you when it is ready.</div>';
   h += '<p class="field-help">Delivery is within 4 hours of payment and receiving your essential details. We aim to deliver sooner, with every package checked before it reaches you. Track progress here.</p>';
-
-  if (d.buyer_notice_sources && d.buyer_notice_sources.length){
-    h += '<section class="buyer-notice"><h2>You\'re in. We\'re preparing your proposal.</h2>' +
-      '<p>We\'re reviewing the opportunity and its attachments, including:</p><ul>';
-    d.buyer_notice_sources.forEach(function(s){
-      var pages = s.kind === 'page' ? 'source page' : 'PDF · ' + s.page_count + (s.page_count === 1 ? ' page' : ' pages');
-      h += '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.label) + '</a> (' + pages + ')';
-      if (s.drawing_pages && s.drawing_pages.length){
-        h += '<br>Drawing pages: ' + s.drawing_pages.map(function(page){ return '<a href="' + esc(pdfPageUrl(s.url,page)) + '" target="_blank" rel="noopener noreferrer">' + page + '</a>'; }).join(', ');
-      }
-      h += '</li>';
-    });
-    h += '</ul><p>We\'re using those documents to identify what your response needs to cover. We\'ll use those requirements alongside your organisation\'s experience and approach to build your proposal.</p>' +
-      '<p>If we need a detail from your team, we\'ll point you to the exact page and make the request specific.</p></section>';
+  if(d.source_summary&&(d.source_summary.deadline_needs_verification||d.source_summary.deadline_requires_manual_entry)){
+    var deadlineWarning=d.source_summary.deadline_warning||'Please double-check the deadline with the issuer. The date is not fully verified.';
+    h+='<p class="deadline-alert" role="alert">'+esc(deadlineWarning)+(d.source_summary.deadline_requires_manual_entry?' No reliable deadline has been confirmed. Contact support with the date you verify; we will not invent one.':' Where dates differ, we plan around the earliest readable source date until confirmed.')+'</p>';
   }
 
   if(d.source_summary){
     var summary=d.source_summary;
-    h+='<section class="buyer-notice"><h2>Opportunity source review</h2><p>'+esc(summary.title||'Your opportunity')+'</p><p>Submission deadline: '+esc(summary.deadline||'Not confirmed from the source')+'</p><p>Funding or contract value: '+esc(summary.amount||'Not stated clearly in the source')+'</p>';
-    if(summary.deadline_needs_verification||summary.deadline_requires_manual_entry)h+='<p role="alert">'+esc(summary.deadline_warning||'Please double-check the deadline with the issuer. The date is not fully verified.')+(summary.deadline_requires_manual_entry?' No reliable deadline has been confirmed. Contact support with the date you verify; we will not invent one.':' Where dates differ, we plan around the earliest readable source date until confirmed.')+'</p>';
+    h+='<section class="buyer-notice source-summary"><h2>'+esc(summary.title||'Opportunity source review')+'</h2><p>Submission deadline: '+esc(summary.deadline||'Not confirmed from the source')+'</p><p>Funding or contract value: '+esc(summary.amount||'Not stated clearly in the source')+'</p>';
     h+='</section>';
   }
-  if(d.pdf_answers && d.pdf_answers.length){
-    h += '<section class="buyer-notice"><h2>From your source documents</h2><p>These passages help guide the proposal. They do not replace the complete requirement checks. Review dates and amounts in their original context.</p>';
-    d.pdf_answers.forEach(function(answer){h+='<h3>'+esc(answer.label)+'</h3>';if(answer.status==='unknown')h+='<p>No clear answer in the reviewed shortlist.</p>';else (answer.passages||[]).forEach(function(p){var url;try{url=new URL(p.source_url);if(!['http:','https:'].includes(url.protocol))return;}catch{return;}if(p.page)url.hash='page='+p.page;h+='<blockquote>'+esc(p.quote)+'</blockquote><p><a href="'+esc(url.href)+'" target="_blank" rel="noopener noreferrer">View source'+(p.page?' · page '+esc(p.page):'')+'</a></p>';});});
-    h+='</section>';
-  }
+
   if(d.intake && d.intake.required) h += document.getElementById("paid-intake-template").innerHTML;
+
   d.proposals.forEach(function(p){
     h += '<div class="pcard ' + esc(p.status) + '"><div class="phead"><span>' + esc(p.title) + '</span><span>' +
       (p.status==='complete'?'✓ Done':p.status==='attention'?'Final checks':'Working…') + '</span></div><div class="pbody">';
@@ -331,6 +325,27 @@ function render(d){
     }
     h += '</div>';
   });
+  if ((d.buyer_notice_sources && d.buyer_notice_sources.length) || (d.pdf_answers && d.pdf_answers.length)){
+    h += '<details class="source-details"><summary>Source documents and reviewed passages</summary>';
+  }
+  if (d.buyer_notice_sources && d.buyer_notice_sources.length){
+    h += '<section class="buyer-notice"><h2>Documents being reviewed</h2><ul>';
+    d.buyer_notice_sources.forEach(function(s){
+      var pages = s.kind === 'page' ? 'source page' : 'PDF · ' + s.page_count + (s.page_count === 1 ? ' page' : ' pages');
+      h += '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.label) + '</a> (' + pages + ')';
+      if (s.drawing_pages && s.drawing_pages.length){
+        h += '<br>Drawing pages: ' + s.drawing_pages.map(function(page){ return '<a href="' + esc(pdfPageUrl(s.url,page)) + '" target="_blank" rel="noopener noreferrer">' + page + '</a>'; }).join(', ');
+      }
+      h += '</li>';
+    });
+    h += '</ul><p>These documents guide the requirement checks. If we need more from your team, we will ask for the specific item.</p></section>';
+  }
+  if(d.pdf_answers && d.pdf_answers.length){
+    h += '<section class="buyer-notice"><h2>Reviewed passages</h2><p>These excerpts help guide the proposal. They do not replace the full requirement checks.</p>';
+    d.pdf_answers.forEach(function(answer){h+='<h3>'+esc(answer.label)+'</h3>';if(answer.status==='unknown')h+='<p>No clear answer in the reviewed shortlist.</p>';else (answer.passages||[]).forEach(function(p){var url;try{url=new URL(p.source_url);if(!['http:','https:'].includes(url.protocol))return;}catch{return;}if(p.page)url.hash='page='+p.page;h+='<blockquote>'+esc(p.quote)+'</blockquote><p><a href="'+esc(url.href)+'" target="_blank" rel="noopener noreferrer">View source'+(p.page?' · page '+esc(p.page):'')+'</a></p>'; });});
+    h+='</section>';
+  }
+  if ((d.buyer_notice_sources && d.buyer_notice_sources.length) || (d.pdf_answers && d.pdf_answers.length)) h += '</details>';
   app.innerHTML = h;
   if(d.intake && d.intake.required) setupIntake(d);
 

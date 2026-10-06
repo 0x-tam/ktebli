@@ -49,3 +49,7 @@ White on Forest has a measured contrast ratio of about 9.5:1. Muted text on Pape
 - Preserve source verification and deadline cautions. Do not imply an opportunity is verified when the source state says otherwise.
 - Keep proposal checkout, authentication, and payment copy aligned with the existing product state.
 - Do not change customer-order provider, backend behavior, or spending claims as part of visual work.
+
+## Journey simplification — 6 October 2026
+
+Use `docs/UX_CONVERSION_BRIEF.md` for customer-flow and copy decisions. The cream/forest identity remains. One primary task per screen; use concise summaries before optional details. Opportunity details can open in a user-initiated, labelled native dialog. Filters beyond the common controls belong in a visible disclosure that shows active state. Essential contact fields precede optional background. Never collapse a required confirmation or material deadline warning. Do not advertise unavailable membership above the board's primary task. Preserve accessible focus, recovery and input state; avoid surprise popups.

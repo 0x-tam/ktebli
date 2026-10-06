@@ -1,0 +1,16 @@
+# Ktebli journey audit — 6 October 2026
+
+Goal: make opportunity discovery and buying a proposal straightforward. This is a UX audit and implementation brief, not a claim of WCAG compliance or measured conversion lift.
+
+## Current-run observations
+1. Homepage — needs simplification. Captured and inspected `/private/tmp/ktebli-journey-before-home.jpg` at 1440×1000. Hero consumes nearly a viewport and repeats the four-lock promise inside the same card. The live page then repeats opportunities/proposals, AI comparison, proposal types, sample, locks, process and pricing. Strength: prices, constraints and broad opportunity types already truthful. Change: concise main job, one primary CTA, secondary browse route, details on demand.
+2. Account entry — needs simplification. The existing browser was signed out and displayed an existing generic sign-in error; captured in `/private/tmp/ktebli-journey-before-board.jpg` (filename predates discovery of signed-out state). Two large editorial headings and three equivalent mode controls distract from signing in. Change: direct task heading, sign-in/create account choices and secondary code alternative. No credentials submitted or emails requested. Screenshot contains personal autofill and is local-only, not a publication asset.
+3. Proposal source — mostly sound, clarify progress. Captured and inspected `/private/tmp/ktebli-journey-before-intake.jpg`. One source field and expandable details are appropriate. Header prematurely advertises default Competitive price before a package choice; progress has no labels. Change: neutral start, explicit current step, compact source-backed summary and clear next action.
+4. Package and applicant — captured and inspected `/private/tmp/ktebli-journey-before-package.jpg` and `/private/tmp/ktebli-journey-before-details.jpg`. Packages show useful price summaries. Applicant screen shows optional organization/registration/website fields before required name/email even for individuals. Change: required contact first, organization details when relevant, optional extras grouped. No contact data entered or order submitted.
+5. Board, profile, paid order — source inspection this run; no fresh authenticated/paid browser evidence yet. Current board rendering promotes unavailable membership before the actual task, presents every filter together and repeats long caution paragraphs. Paid page repeats preparation/progress text and source excerpts ahead of work. Change: task first, compact truthful status, optional details. Preserve uncertainty, eligibility and payment gates.
+
+## Design basis
+UI/UX Pro Max search supported a minimal functional hierarchy, readable labels, feedback and focus-managed dialogs. Keep existing cream/forest and editorial identity instead of replacing it with generic generated palette/fonts. Progressive disclosure is our product-specific architecture decision. Full implementation rules: UX_CONVERSION_BRIEF.md.
+
+## Evidence limits
+No live purchase, profile submission, authentication submission or paid membership activation. Use a clearly isolated synthetic fixture to verify inaccessible account/paid presentation; separately report live versus local coverage. Fresh final screenshots and deterministic checks required before release.

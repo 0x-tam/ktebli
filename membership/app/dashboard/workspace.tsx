@@ -93,6 +93,8 @@ function OpportunityRow({
   proposalOrigin: string;
   onSave: () => void;
 }) {
+  const detailsDialog = useRef<HTMLDialogElement | null>(null);
+  const detailsTrigger = useRef<HTMLButtonElement | null>(null);
   const stale = now - new Date(o.fetched_at).getTime() > 24 * 60 * 60 * 1000;
   const deadlineLabel = o.deadline_conflict
     ? "Conflicting dates — check source"
@@ -152,6 +154,14 @@ function OpportunityRow({
           <a href={o.source_url} target="_blank" rel="noreferrer">
             Original notice ↗
           </a>
+          <button
+            ref={detailsTrigger}
+            className="text-button"
+            type="button"
+            onClick={() => detailsDialog.current?.showModal()}
+          >
+            Details
+          </button>
           {active && (
             <button
               type="button"
@@ -164,8 +174,41 @@ function OpportunityRow({
           )}
         </div>
       </div>
-      <details className="opportunity-row-details">
-        <summary>Scope and source details</summary>
+      <dialog
+        className="opportunity-details-dialog"
+        ref={detailsDialog}
+        aria-labelledby={`opportunity-details-${o.id}`}
+        onClose={() => detailsTrigger.current?.focus()}
+      >
+        <div className="opportunity-details-dialog-header">
+          <div>
+            <p className="eyebrow">
+              {o.source.toUpperCase()} · OPPORTUNITY DETAILS
+            </p>
+            <h2 id={`opportunity-details-${o.id}`} dir="auto">
+              {o.title}
+            </h2>
+          </div>
+          <button
+            className="dialog-close"
+            type="button"
+            aria-label="Close opportunity details"
+            onClick={() => detailsDialog.current?.close()}
+          >
+            ×
+          </button>
+        </div>
+        <div className="opportunity-details-summary">
+          <p>{deadlineLabel}</p>
+          <p>{geographyLabel}</p>
+          <p>
+            {o.board_status === "current"
+              ? "Deadline ahead — verify with the issuer"
+              : o.board_status === "closed"
+                ? "Closed or past deadline"
+                : "Needs review before you decide"}
+          </p>
+        </div>
         <p dir="auto">
           {o.description || "Read the original notice for full requirements."}
         </p>
@@ -181,9 +224,9 @@ function OpportunityRow({
         {active && o.fit === null && <p>Fit assessment pending.</p>}
         {(o.reasons?.length || o.evidence.length) > 0 && (
           <div className="opportunity-row-evidence">
-            {(o.reasons ?? o.evidence).slice(0, 5).map((item, index) => (
+            {(o.reasons ?? o.evidence).map((item, index) => (
               <p dir="auto" key={index}>
-                <strong>{item.label}</strong> — {item.text.slice(0, 700)}{" "}
+                <strong>{item.label}</strong> — {item.text}{" "}
                 <a href={item.url} target="_blank" rel="noreferrer">
                   Source ↗
                 </a>
@@ -219,7 +262,21 @@ function OpportunityRow({
               ))}
           </div>
         )}
-      </details>
+        <div className="opportunity-details-dialog-actions">
+          <a
+            className="button"
+            href={`${proposalOrigin}/?prepare=${encodeURIComponent(o.id)}`}
+          >
+            Prepare proposal ↗
+          </a>
+          <a href={o.source_url} target="_blank" rel="noreferrer">
+            Open original notice ↗
+          </a>
+          <button type="button" onClick={() => detailsDialog.current?.close()}>
+            Done
+          </button>
+        </div>
+      </dialog>
     </article>
   );
 }
@@ -252,6 +309,8 @@ export default function Dashboard({
     status: "all",
     deadline: "all",
   });
+  const activeSecondaryFilters =
+    Number(filters.source !== "all") + Number(filters.deadline !== "all");
   const [boardBusy, setBoardBusy] = useState(false);
   const [boardResetting, setBoardResetting] = useState(false);
   const [boardError, setBoardError] = useState("");
@@ -588,22 +647,23 @@ export default function Dashboard({
       <main className="main">
         <header className="workspace-header">
           <div>
-            <p className="eyebrow">YOUR NEXT CHAPTER</p>
             <h1>
               {tab === "profile"
-                ? "The work only you can do."
+                ? "Your profile"
                 : tab === "saved"
-                  ? "Worth a closer look."
+                  ? "Saved opportunities"
                   : tab === "alerts"
-                    ? "Stay in the know."
-                    : `Good to see you${name ? ", " + name.split(" ")[0] : ""}.`}
+                    ? "Alerts"
+                    : "Opportunities"}
             </h1>
             <p className="muted">
               {tab === "profile"
-                ? "Tell us what you do well. Better context means a more useful shortlist."
+                ? "Add the details you want to use for matching."
                 : tab === "alerts"
-                  ? "New matches appear here when alerts are enabled in your profile."
-                  : "A focused view of opportunities in Lebanon, with the original source always close."}
+                  ? "New matches appear here when matching and alerts are available."
+                  : tab === "saved"
+                    ? "Your saved public opportunities."
+                    : "Browse public opportunities in Lebanon."}
             </p>
           </div>
           <span className="status-pill">
@@ -645,57 +705,43 @@ export default function Dashboard({
             </button>
           </div>
         )}
-        <section className="membership-strip">
-          <div>
-            <p className="eyebrow">
-              {active ? "YOUR MEMBERSHIP" : "A LITTLE SUPPORT, EVERY MONTH"}
-            </p>
-            <h2>
-              {active
-                ? "Make the most of your next move."
-                : "$20/month. Get $20 off one proposal each month."}
-            </h2>
-            <p>
-              {data.credit
-                ? `$20 proposal credit ${data.credit.state === "reserved" ? "reserved" : "available"} · expires ${date(data.credit.expires_at)}`
-                : active
-                  ? "Your next credit arrives with your next paid month."
-                  : billingEnabled
-                    ? "Browse the board for free before you join."
-                    : "Membership opening soon. Browse the board for free today."}
-            </p>
-            <details className="membership-terms">
-              <summary>Credit and membership details</summary>
+        {active ? (
+          <section className="membership-strip">
+            <div>
+              <p className="eyebrow">YOUR MEMBERSHIP</p>
+              <h2>Make the most of your next move.</h2>
               <p>
-                One credit per paid cycle toward an eligible Ktebli proposal.
-                Credits expire with that cycle and do not stack or roll over.
-                Fit scores are guidance, never odds of winning.{" "}
-                <Link href="/membership-details">Read membership details</Link>.
+                {data.credit
+                  ? `$20 proposal credit ${data.credit.state === "reserved" ? "reserved" : "available"} · expires ${date(data.credit.expires_at)}`
+                  : "Your next credit arrives with your next paid month."}
               </p>
-            </details>
-          </div>
-          <button
-            disabled={busy || (!active && !billingEnabled)}
-            className="button"
-            data-checkout-closed={
-              !active && !billingEnabled ? "true" : undefined
-            }
-            onClick={() =>
-              void act(async () => {
-                const r = await api(
-                  active ? "/api/billing/portal" : "/api/billing/checkout",
-                );
-                window.location.assign(r.url);
-              })
-            }
-          >
-            {active
-              ? "Manage membership ↗"
-              : billingEnabled
-                ? "Become a member ↗"
-                : "Checkout opening soon"}
-          </button>
-        </section>
+              <details className="membership-terms">
+                <summary>Credit and membership details</summary>
+                <p>
+                  One credit per paid cycle toward an eligible Ktebli proposal.
+                  Credits expire with that cycle and do not stack or roll over.
+                  Fit scores are guidance, never odds of winning.{" "}
+                  <Link href="/membership-details">
+                    Read membership details
+                  </Link>
+                  .
+                </p>
+              </details>
+            </div>
+            <button
+              disabled={busy}
+              className="button"
+              onClick={() =>
+                void act(async () => {
+                  const r = await api("/api/billing/portal");
+                  window.location.assign(r.url);
+                })
+              }
+            >
+              Manage membership ↗
+            </button>
+          </section>
+        ) : null}
         {tab === "profile" ? (
           <section className="profile-panel">
             <form onSubmit={saveProfile}>
@@ -731,7 +777,7 @@ export default function Dashboard({
                 </select>
               </label>
               <label>
-                Sectors <small>Separate with commas</small>
+                Sectors <small>Optional · separate with commas</small>
                 <input
                   maxLength={1000}
                   placeholder="Water, education, construction"
@@ -740,146 +786,161 @@ export default function Dashboard({
                 />
               </label>
               <label>
-                Where you work <small>Separate with commas</small>
+                Where you work <small>Optional · separate with commas</small>
                 <input
                   maxLength={1000}
                   value={locationsText}
                   onChange={(e) => setLocationsText(e.target.value)}
                 />
               </label>
-              <label>
-                Qualifications <small>Separate with commas</small>
-                <input
-                  value={qualificationsText}
-                  maxLength={2000}
-                  onChange={(e) => setQualificationsText(e.target.value)}
-                />
-              </label>
-              <label>
-                Interests <small>Separate with commas</small>
-                <input
-                  value={interestsText}
-                  maxLength={2000}
-                  onChange={(e) => setInterestsText(e.target.value)}
-                />
-              </label>
-              <label>
-                Excluded work or capability gaps{" "}
-                <small>Separate with commas</small>
-                <input
-                  value={exclusionsText}
-                  maxLength={2000}
-                  onChange={(e) => setExclusionsText(e.target.value)}
-                />
-              </label>
-              <label>
-                Opportunity preference
-                <select
-                  value={
-                    profile.opportunity_types.length === 2
-                      ? "both"
-                      : profile.opportunity_types[0]
-                  }
-                  onChange={(e) =>
-                    setProfile({
-                      ...profile,
-                      opportunity_types:
-                        e.target.value === "both"
-                          ? ["procurement", "grant"]
-                          : [e.target.value],
-                    })
-                  }
-                >
-                  <option value="both">Grants and procurement</option>
-                  <option value="grant">Grants</option>
-                  <option value="procurement">Procurement</option>
-                </select>
-              </label>
-              <label>
-                Capabilities and relevant experience
-                <textarea
-                  rows={6}
-                  maxLength={4000}
-                  placeholder="Your services, past projects, team strengths, and certifications. Leave out confidential personal information."
-                  value={profile.capabilities}
-                  onChange={(e) =>
-                    setProfile({ ...profile, capabilities: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Past work
-                <textarea
-                  rows={3}
-                  maxLength={2000}
-                  value={profile.past_work}
-                  onChange={(e) =>
-                    setProfile({ ...profile, past_work: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Team capacity
-                <input
-                  maxLength={500}
-                  value={profile.team_capacity}
-                  onChange={(e) =>
-                    setProfile({ ...profile, team_capacity: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Working languages <small>Separate with commas</small>
-                <input
-                  maxLength={1000}
-                  value={languagesText}
-                  onChange={(e) => setLanguagesText(e.target.value)}
-                />
-              </label>
-              <label>
-                Project budget range in USD — minimum
-                <input
-                  type="number"
-                  min={0}
-                  max={2147483647}
-                  value={profile.budget_min ?? ""}
-                  onChange={(e) =>
-                    setProfile({
-                      ...profile,
-                      budget_min: e.target.value
-                        ? Number(e.target.value)
-                        : null,
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Project budget range in USD — maximum
-                <input
-                  type="number"
-                  min={profile.budget_min ?? 0}
-                  max={2147483647}
-                  value={profile.budget_max ?? ""}
-                  onChange={(e) =>
-                    setProfile({
-                      ...profile,
-                      budget_max: e.target.value
-                        ? Number(e.target.value)
-                        : null,
-                    })
-                  }
-                />
-              </label>
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={profile.alerts_enabled}
-                  onChange={(e) =>
-                    setProfile({ ...profile, alerts_enabled: e.target.checked })
-                  }
-                />
-                Notify me in this workspace about new strong matches
-              </label>
+              <details className="profile-more">
+                <summary>
+                  More about your work <span>(optional)</span>
+                </summary>
+                <div className="profile-optional-fields">
+                  <label>
+                    Qualifications{" "}
+                    <small>Optional · separate with commas</small>
+                    <input
+                      value={qualificationsText}
+                      maxLength={2000}
+                      onChange={(e) => setQualificationsText(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Interests <small>Optional · separate with commas</small>
+                    <input
+                      value={interestsText}
+                      maxLength={2000}
+                      onChange={(e) => setInterestsText(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Excluded work or capability gaps{" "}
+                    <small>Optional · separate with commas</small>
+                    <input
+                      value={exclusionsText}
+                      maxLength={2000}
+                      onChange={(e) => setExclusionsText(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Opportunity preference
+                    <select
+                      value={
+                        profile.opportunity_types.length === 2
+                          ? "both"
+                          : profile.opportunity_types[0]
+                      }
+                      onChange={(e) =>
+                        setProfile({
+                          ...profile,
+                          opportunity_types:
+                            e.target.value === "both"
+                              ? ["procurement", "grant"]
+                              : [e.target.value],
+                        })
+                      }
+                    >
+                      <option value="both">Grants and procurement</option>
+                      <option value="grant">Grants</option>
+                      <option value="procurement">Procurement</option>
+                    </select>
+                  </label>
+                  <label>
+                    Capabilities and relevant experience
+                    <textarea
+                      rows={6}
+                      maxLength={4000}
+                      placeholder="Your services, past projects, team strengths, and certifications. Leave out confidential personal information."
+                      value={profile.capabilities}
+                      onChange={(e) =>
+                        setProfile({ ...profile, capabilities: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Past work
+                    <textarea
+                      rows={3}
+                      maxLength={2000}
+                      value={profile.past_work}
+                      onChange={(e) =>
+                        setProfile({ ...profile, past_work: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Team capacity
+                    <input
+                      maxLength={500}
+                      value={profile.team_capacity}
+                      onChange={(e) =>
+                        setProfile({
+                          ...profile,
+                          team_capacity: e.target.value,
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Working languages{" "}
+                    <small>Optional · separate with commas</small>
+                    <input
+                      maxLength={1000}
+                      value={languagesText}
+                      onChange={(e) => setLanguagesText(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Project budget range in USD — minimum
+                    <input
+                      type="number"
+                      min={0}
+                      max={2147483647}
+                      value={profile.budget_min ?? ""}
+                      onChange={(e) =>
+                        setProfile({
+                          ...profile,
+                          budget_min: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Project budget range in USD — maximum
+                    <input
+                      type="number"
+                      min={profile.budget_min ?? 0}
+                      max={2147483647}
+                      value={profile.budget_max ?? ""}
+                      onChange={(e) =>
+                        setProfile({
+                          ...profile,
+                          budget_max: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={profile.alerts_enabled}
+                      onChange={(e) =>
+                        setProfile({
+                          ...profile,
+                          alerts_enabled: e.target.checked,
+                        })
+                      }
+                    />
+                    Notify me in this workspace about new strong matches
+                  </label>
+                </div>
+              </details>
               <button className="button" disabled={busy}>
                 Save profile ↗
               </button>
@@ -968,9 +1029,6 @@ export default function Dashboard({
           <>
             <div className="list-toolbar">
               <div>
-                <h2>
-                  {tab === "saved" ? "Your shortlist" : "Opportunity board"}
-                </h2>
                 <p className="muted">
                   {boardResetting
                     ? "Loading filtered notices…"
@@ -1003,84 +1061,97 @@ export default function Dashboard({
             </div>
             <div
               ref={boardControls}
-              className="catalogue-filters"
+              className="board-filter-controls"
+              role="group"
               aria-label="Filter opportunity board"
             >
-              <label>
-                Type
-                <select
-                  data-filter="kind"
-                  value={filters.kind}
-                  onChange={(e) =>
-                    void loadMore(true, tab === "saved", {
-                      ...filters,
-                      kind: e.target.value,
-                    })
-                  }
-                >
-                  <option value="all">All types</option>
-                  <option value="procurement">Procurement</option>
-                  <option value="grant">Grants</option>
-                  <option value="unknown">Other notices</option>
-                </select>
-              </label>
-              <label>
-                Source
-                <select
-                  data-filter="source"
-                  value={filters.source}
-                  onChange={(e) =>
-                    void loadMore(true, tab === "saved", {
-                      ...filters,
-                      source: e.target.value,
-                    })
-                  }
-                >
-                  <option value="all">All sources</option>
-                  <option value="ppa">PPA</option>
-                  <option value="ungm">UNGM</option>
-                  <option value="mawred">Mawred</option>
-                  <option value="worldbank">World Bank</option>
-                  <option value="cdr">CDR</option>
-                </select>
-              </label>
-              <label>
-                Status
-                <select
-                  data-filter="status"
-                  value={filters.status}
-                  onChange={(e) =>
-                    void loadMore(true, tab === "saved", {
-                      ...filters,
-                      status: e.target.value,
-                    })
-                  }
-                >
-                  <option value="all">All statuses</option>
-                  <option value="current">Current, source checked</option>
-                  <option value="needs_review">Needs review</option>
-                  <option value="closed">Closed or past deadline</option>
-                </select>
-              </label>
-              <label>
-                Deadline
-                <select
-                  data-filter="deadline"
-                  value={filters.deadline}
-                  onChange={(e) =>
-                    void loadMore(true, tab === "saved", {
-                      ...filters,
-                      deadline: e.target.value,
-                    })
-                  }
-                >
-                  <option value="all">Any deadline</option>
-                  <option value="future">After today</option>
-                  <option value="today">Today — verify time</option>
-                  <option value="past">Past</option>
-                  <option value="unknown">Not listed</option>
-                </select>
-              </label>
+              <div className="catalogue-primary-filters">
+                <label>
+                  Type
+                  <select
+                    data-filter="kind"
+                    value={filters.kind}
+                    onChange={(e) =>
+                      void loadMore(true, tab === "saved", {
+                        ...filters,
+                        kind: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="all">All types</option>
+                    <option value="procurement">Procurement</option>
+                    <option value="grant">Grants</option>
+                    <option value="unknown">Other notices</option>
+                  </select>
+                </label>
+                <label>
+                  Status
+                  <select
+                    data-filter="status"
+                    value={filters.status}
+                    onChange={(e) =>
+                      void loadMore(true, tab === "saved", {
+                        ...filters,
+                        status: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="current">Current, source checked</option>
+                    <option value="needs_review">Needs review</option>
+                    <option value="closed">Closed or past deadline</option>
+                  </select>
+                </label>
+              </div>
+              <details className="catalogue-secondary-filters">
+                <summary>
+                  More filters
+                  {activeSecondaryFilters > 0 && (
+                    <span>{activeSecondaryFilters} active</span>
+                  )}
+                </summary>
+                <div className="catalogue-filters">
+                  <label>
+                    Source
+                    <select
+                      data-filter="source"
+                      value={filters.source}
+                      onChange={(e) =>
+                        void loadMore(true, tab === "saved", {
+                          ...filters,
+                          source: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="all">All sources</option>
+                      <option value="ppa">PPA</option>
+                      <option value="ungm">UNGM</option>
+                      <option value="mawred">Mawred</option>
+                      <option value="worldbank">World Bank</option>
+                      <option value="cdr">CDR</option>
+                    </select>
+                  </label>
+                  <label>
+                    Deadline
+                    <select
+                      data-filter="deadline"
+                      value={filters.deadline}
+                      onChange={(e) =>
+                        void loadMore(true, tab === "saved", {
+                          ...filters,
+                          deadline: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="all">Any deadline</option>
+                      <option value="future">After today</option>
+                      <option value="today">Today — verify time</option>
+                      <option value="past">Past</option>
+                      <option value="unknown">Not listed</option>
+                    </select>
+                  </label>
+                </div>
+              </details>
             </div>
             {boardBusy && (
               <p role="status" className="muted">
@@ -1182,6 +1253,32 @@ export default function Dashboard({
               </button>
             )}
           </>
+        )}
+        {!active && (
+          <aside className="membership-strip membership-quiet">
+            <p>
+              <strong>Membership:</strong>{" "}
+              {billingEnabled
+                ? "$20/month checkout is open."
+                : "Checkout is not open yet."}{" "}
+              Browse public opportunities for free.{" "}
+              <Link href="/membership-details">Details</Link>
+            </p>
+            {billingEnabled && (
+              <button
+                disabled={busy}
+                className="button subtle"
+                onClick={() =>
+                  void act(async () => {
+                    const r = await api("/api/billing/checkout");
+                    window.location.assign(r.url);
+                  })
+                }
+              >
+                Join membership
+              </button>
+            )}
+          </aside>
         )}
         <footer>
           Built for the work ahead. <span>Ktebli · Lebanon</span>

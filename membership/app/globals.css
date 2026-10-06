@@ -426,6 +426,10 @@ footer a:hover {
   color: var(--forest);
   box-shadow: 0 1px 4px rgb(31 54 42 / 12%);
 }
+.auth-alternative {
+  display: block;
+  margin: 12px auto 0;
+}
 .notice {
   padding: 14px 17px;
   border: 1px solid #e7c5b5;
@@ -717,6 +721,32 @@ footer a:hover {
   margin: 5px 0 0;
   font-size: 0.76rem;
 }
+.membership-quiet {
+  min-height: 58px;
+  margin-top: 14px;
+  margin-bottom: 20px;
+  padding: 8px 14px;
+  border-color: #e2e4dc;
+  background: transparent;
+}
+.membership-quiet p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.membership-quiet p strong {
+  color: var(--ink);
+}
+.membership-quiet a {
+  color: var(--forest);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.membership-quiet .button {
+  min-height: 40px;
+  padding: 7px 12px;
+}
 .list-toolbar {
   display: flex;
   align-items: center;
@@ -892,6 +922,14 @@ footer a:hover {
   text-decoration-color: #aeb9ad;
   text-underline-offset: 3px;
 }
+.opportunity-row-secondary .text-button {
+  min-height: 44px;
+  margin: 0;
+  padding: 4px 7px;
+  text-decoration: underline;
+  text-decoration-color: #aeb9ad;
+  text-underline-offset: 3px;
+}
 .opportunity-row-secondary button {
   padding: 4px 7px;
   border: 0;
@@ -903,45 +941,6 @@ footer a:hover {
   color: #1b3c2a;
   text-decoration-color: currentColor;
 }
-.opportunity-row-details {
-  grid-column: 1 / -1;
-  min-width: 0;
-  border-top: 1px solid #e6e9e1;
-  padding-top: 8px;
-  color: var(--muted);
-  font-size: 0.83rem;
-}
-.opportunity-row-details summary {
-  display: inline-flex;
-  min-height: 38px;
-  align-items: center;
-  gap: 10px;
-  color: var(--forest);
-  font-weight: 650;
-  cursor: pointer;
-  list-style: none;
-}
-.opportunity-row-details summary::-webkit-details-marker {
-  display: none;
-}
-.opportunity-row-details summary::after {
-  width: 8px;
-  height: 8px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  content: "";
-  transform: rotate(45deg) translateY(-2px);
-  transition: transform 0.16s ease;
-}
-.opportunity-row-details[open] summary::after {
-  transform: rotate(225deg) translateY(-2px);
-}
-.opportunity-row-details p {
-  margin: 8px 0;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.opportunity-row-details a,
 .locale-links a {
   color: var(--forest);
   text-decoration: underline;
@@ -960,6 +959,109 @@ footer a:hover {
   gap: 16px;
   margin-top: 12px;
   font-size: 0.8rem;
+}
+.opportunity-details-dialog {
+  width: min(720px, calc(100% - 32px));
+  max-height: min(82vh, 820px);
+  overflow: auto;
+  padding: clamp(20px, 4vw, 32px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 20px 70px rgb(16 32 23 / 28%);
+}
+.opportunity-details-dialog::backdrop {
+  background: rgb(21 33 27 / 58%);
+}
+.opportunity-details-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+.opportunity-details-dialog-header .eyebrow {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+.opportunity-details-dialog-header h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 4vw, 1.75rem);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.opportunity-details-dialog .dialog-close {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--forest);
+  font-size: 1.55rem;
+  cursor: pointer;
+}
+.opportunity-details-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 9px;
+  background: #f0f3ec;
+}
+.opportunity-details-summary p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+.opportunity-details-dialog > p,
+.opportunity-details-dialog .opportunity-row-evidence {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.opportunity-details-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.opportunity-details-dialog-actions a,
+.opportunity-details-dialog-actions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border: 1px solid #aeb9ad;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--forest);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.opportunity-details-dialog-actions a:hover,
+.opportunity-details-dialog-actions button:hover {
+  background: var(--green-soft);
+}
+.opportunity-details-dialog-actions a.button {
+  border-color: var(--forest);
+  background: var(--forest);
+  color: white;
+  text-decoration: none;
+}
+.opportunity-details-dialog-actions a.button:hover {
+  border-color: #193c2b;
+  background: #193c2b;
 }
 .empty {
   grid-column: 1 / -1;
@@ -1012,13 +1114,113 @@ footer a:hover {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 22px;
 }
-.profile-panel label:nth-child(n + 5),
+.profile-panel form > label:nth-child(n + 5),
 .profile-panel .button {
+  grid-column: 1 / -1;
+}
+.profile-more {
+  grid-column: 1 / -1;
+  margin: 8px 0 14px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.profile-more summary,
+.catalogue-secondary-filters summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--forest);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.profile-more summary::-webkit-details-marker,
+.catalogue-secondary-filters summary::-webkit-details-marker {
+  display: none;
+}
+.profile-more summary::after,
+.catalogue-secondary-filters summary::after {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  content: "";
+  transform: rotate(45deg) translateY(-2px);
+}
+.profile-more[open] summary::after,
+.catalogue-secondary-filters[open] summary::after {
+  transform: rotate(225deg) translateY(-2px);
+}
+.profile-more summary span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.profile-optional-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 22px;
+  padding-bottom: 8px;
+}
+.profile-optional-fields > label {
+  min-width: 0;
+}
+.profile-optional-fields > label:nth-child(n + 5) {
   grid-column: 1 / -1;
 }
 .profile-panel .button {
   justify-self: start;
   min-width: 170px;
+}
+.board-filter-controls {
+  margin-bottom: 15px;
+}
+.catalogue-primary-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  gap: 12px;
+  margin: 0 0 8px;
+}
+.catalogue-primary-filters label,
+.catalogue-filters label {
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.catalogue-primary-filters select,
+.catalogue-filters select {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 5px;
+  padding: 9px 30px 9px 11px;
+  font-size: 0.84rem;
+}
+.catalogue-secondary-filters {
+  max-width: 620px;
+  margin-bottom: 8px;
+}
+.catalogue-secondary-filters summary {
+  justify-content: flex-start;
+  width: fit-content;
+  min-width: min(100%, 180px);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.catalogue-secondary-filters summary span {
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--green-soft);
+  color: var(--forest);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+.catalogue-secondary-filters .catalogue-filters {
+  margin-bottom: 12px;
 }
 .checkbox {
   display: flex;
@@ -1259,6 +1461,9 @@ footer a:hover {
     justify-content: flex-end;
     gap: 4px;
   }
+  .opportunity-row-secondary > a:first-child {
+    display: none;
+  }
   .opportunity-row-actions .button {
     min-width: 0;
   }
@@ -1267,6 +1472,12 @@ footer a:hover {
   }
   .profile-panel form {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .profile-optional-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .catalogue-primary-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .profile-panel label {
     grid-column: 1;
@@ -1359,6 +1570,7 @@ footer a:hover {
   textarea,
   select,
   .search input,
+  .catalogue-primary-filters select,
   .catalogue-filters select {
     font-size: 16px;
   }

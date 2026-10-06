@@ -88,6 +88,13 @@ export default function AuthPage() {
       ),
     );
   }
+  function selectMode(nextMode: "signIn" | "signUp") {
+    setMode(nextMode);
+    setMessage("");
+    setCodeError("");
+    setSent(false);
+    setCode("");
+  }
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     const currentMode = mode;
@@ -271,53 +278,42 @@ export default function AuthPage() {
       </header>
       <div className="auth-layout">
         <aside className="auth-intro">
-          <p className="eyebrow">MADE FOR AMBITION IN LEBANON</p>
-          <h2>Find the right opportunity. Take a clearer next step.</h2>
+          <h2>Find opportunities in Lebanon.</h2>
           <p className="muted">
-            Create your free account and browse public opportunities now. When
-            membership opens, you can save notices and see how they fit your
-            work.
+            Browse grants, tenders, and procurement notices. Choose a notice to
+            start a proposal.
           </p>
-          <div className="auth-note">
-            <p>Browsing is free. Membership checkout is not open yet.</p>
-          </div>
         </aside>
         <section className="auth-card">
-          <p className="eyebrow">A LITTLE MORE POSSIBILITY</p>
           <h1>
             {mode === "signUp"
-              ? "Make yourself known."
+              ? "Create your account."
               : mode === "verify"
                 ? "Verify your email."
                 : mode === "otp"
                   ? sent
                     ? "Check your inbox."
                     : "Sign in by email code."
-                  : "Welcome back."}
+                  : "Sign in to browse opportunities."}
           </h1>
           <p className="muted">
-            Your next opportunity starts with a clearer picture of you.
+            {mode === "signUp"
+              ? "Create a free account to browse public opportunities."
+              : mode === "verify"
+                ? "Enter the code sent to your email address."
+                : "Browse grants, tenders, and procurement notices in Lebanon."}
           </p>
-          <div className="tabs">
-            {(["signIn", "signUp", "otp"] as const).map((value) => (
+          <div className="tabs" role="group" aria-label="Account access">
+            {(["signIn", "signUp"] as const).map((value) => (
               <button
                 className={mode === value ? "active" : ""}
                 key={value}
                 type="button"
+                aria-pressed={mode === value}
                 disabled={busy}
-                onClick={() => {
-                  setMode(value);
-                  setMessage("");
-                  setCodeError("");
-                  setSent(false);
-                  setCode("");
-                }}
+                onClick={() => selectMode(value)}
               >
-                {value === "signIn"
-                  ? "Sign in"
-                  : value === "signUp"
-                    ? "Sign up"
-                    : "Email code"}
+                {value === "signIn" ? "Sign in" : "Create account"}
               </button>
             ))}
           </div>
@@ -446,9 +442,32 @@ export default function AuthPage() {
               Send a new code
             </button>
           )}
-          <p className="fine">
-            Use “Email code” to sign in without your password.
-          </p>
+          {mode === "signIn" && (
+            <button
+              className="text-button auth-alternative"
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setMode("otp");
+                setSent(false);
+                setCode("");
+                setMessage("");
+                setCodeError("");
+              }}
+            >
+              Sign in with an email code
+            </button>
+          )}
+          {mode === "otp" && (
+            <button
+              className="text-button auth-alternative"
+              type="button"
+              disabled={busy}
+              onClick={() => selectMode("signIn")}
+            >
+              Use your password instead
+            </button>
+          )}
         </section>
       </div>
     </main>
