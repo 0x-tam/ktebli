@@ -1,0 +1,753 @@
+{
+  "provenance": {
+    "sourceUrl": "https://www.cdr.gov.lb/en-US/Procurment.aspx",
+    "capturedAt": "2026-10-05T13:40:15.815Z",
+    "transport": "manual_browser",
+    "scope": "Ongoing",
+    "batches": [
+      8,
+      8,
+      8,
+      8,
+      8,
+      3
+    ],
+    "loadMoreClicks": 5,
+    "terminalEvidence": "Load more hidden after final batch; 43 visible content rows",
+    "scheduledRefreshStatus": "blocked",
+    "normalization": "Visible DOM cell text transcribed as structured rows. Dates retain source date precision. Not a capture of original HTML."
+  },
+  "rows": [
+    {
+      "id": 1293,
+      "lot": 0,
+      "cells": [
+        "1293",
+        "30 Sep 2026",
+        "12941 30 Sep 2026",
+        "Supply and Installation of Radio Therapy Machine for the Ministry of Public Health (Rafik Hariri University Hospital)",
+        "Supplies",
+        "Open",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "5 Nov 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1293&lot=0"
+    },
+    {
+      "id": 1251,
+      "lot": 0,
+      "cells": [
+        "1251",
+        "14 Sep 2026",
+        "12732 14 Sep 2026",
+        "El Mina remaining Coastal sewer collectors",
+        "Works",
+        "Open International Competitive Bidding (ICB)",
+        "Kuwait Fund for Arab Economic Development",
+        "1,000 USD",
+        "English",
+        "28 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1251&lot=0"
+    },
+    {
+      "id": 1292,
+      "lot": 0,
+      "cells": [
+        "1292",
+        "30 Sep 2026",
+        "12916 30 Sep 2026",
+        "Supply of 34 Fully Equipped Ambulances for the General Directorate of Civil Defense",
+        "Supplies",
+        "Open",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "27 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1292&lot=0"
+    },
+    {
+      "id": 1133,
+      "lot": 0,
+      "cells": [
+        "1133",
+        "15 Sep 2026",
+        "12779 15 Sep 2026",
+        "Invitation to Bids of Wadi El Delem – El Mraijat – Qabb Elias and Maksé Water Systems",
+        "Works",
+        "Open International Competitive Bidding (ICB)",
+        "Kuwait Fund for Arab Economic Development",
+        "200 USD",
+        "English",
+        "26 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1133&lot=0"
+    },
+    {
+      "id": 1221,
+      "lot": 1,
+      "cells": [
+        "1221 cdr.lot-1",
+        "31 Jul 2026",
+        "12389 30 Jul 2026",
+        "Supply and Installation of Medical Equipment, Medical & Surgical Instruments and Furniture to Al Sarafand Governmental Hospital in Lebanon (ICB No.: #/2025/ICB/Goods/CDR/IsDB). Medical Equipment and Surgical Instruments",
+        "Supplies",
+        "Open International Competitive Bidding",
+        "Islamic Development Bank",
+        "300 USD",
+        "English",
+        "22 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1221&lot=1"
+    },
+    {
+      "id": 1221,
+      "lot": 2,
+      "cells": [
+        "1221 cdr.lot-2",
+        "31 Jul 2026",
+        "12389 30 Jul 2026",
+        "Supply and Installation of Medical Equipment, Medical & Surgical Instruments and Furniture to Al Sarafand Governmental Hospital in Lebanon (ICB No.: #/2025/ICB/Goods/CDR/IsDB). Non- Medical Equipment / Furniture",
+        "Supplies",
+        "Open International Competitive Bidding",
+        "Islamic Development Bank",
+        "300 USD",
+        "English",
+        "22 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1221&lot=2"
+    },
+    {
+      "id": 1249,
+      "lot": 0,
+      "cells": [
+        "1249",
+        "21 Aug 2026",
+        "12548 21 Aug 2026",
+        "Request for Proposals for Consulting Services for the Feasibility Study of Beirut - Bekaa Transport Link",
+        "Consultancy Services",
+        "Open International Competitive Bidding (ICB)",
+        "Local Fund",
+        "1,000 USD",
+        "English",
+        "21 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1249&lot=0"
+    },
+    {
+      "id": 1256,
+      "lot": 0,
+      "cells": [
+        "1256",
+        "17 Sep 2026",
+        "12811 17 Sep 2026",
+        "Roof Plant Heat Extraction- Ventilation System for the Roof of CDR s Building. Ref Nb:LMSEP/AFESD/W3",
+        "Works",
+        "Open Natinal Competitive Bidding (NCB)",
+        "Arab Fund for Economic and Social Development",
+        "100 USD",
+        "English",
+        "19 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1256&lot=0"
+    },
+    {
+      "id": 1240,
+      "lot": 0,
+      "cells": [
+        "1240",
+        "25 Sep 2026",
+        "12885 25 Sep 2026",
+        "Supply of 30,000 LTE-A CPEs for the Ministry of Telecommunication/OGERO.Ref No.: LEAP - OG5",
+        "Supplies",
+        "Qualified",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "19 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1240&lot=0"
+    },
+    {
+      "id": 1268,
+      "lot": 0,
+      "cells": [
+        "1268",
+        "22 Sep 2026",
+        "12861 23 Sep 2026",
+        "Request for Quotations (RFQ) for the Supply of Two cars for the Council for Development and Reconstruction (CDR) within the Framework of the Capacity Building Support Project Ref Nb: AFESD/Support/CDR/3",
+        "Supplies",
+        "Short List",
+        "Arab Fund for Economic and Social Development",
+        "Free",
+        "English",
+        "16 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1268&lot=0"
+    },
+    {
+      "id": 1297,
+      "lot": 0,
+      "cells": [
+        "1297",
+        "2 Oct 2026",
+        "12967 02 Oct 2026",
+        "Consensual Agreement with Mrs Mona Abou Zeid",
+        "Consultancy Services",
+        "Consensual Agreement",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "16 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1297&lot=0"
+    },
+    {
+      "id": 1298,
+      "lot": 0,
+      "cells": [
+        "1298",
+        "2 Oct 2026",
+        "12968 02 Oct 2026",
+        "Consensual Agreement with Mrs. Christiane Bou Najm",
+        "Consultancy Services",
+        "Consensual Agreement",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "16 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1298&lot=0"
+    },
+    {
+      "id": 1295,
+      "lot": 0,
+      "cells": [
+        "1295",
+        "1 Oct 2026",
+        "12952 01 Oct 2026",
+        "Consenual Agreement with Tetracom s.a.l for the supply of Telephones for the Council for Development and Reconstruction",
+        "Supplies",
+        "Consensual Agreement",
+        "Arab Fund for Economic and Social Development",
+        "Free",
+        "English",
+        "15 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1295&lot=0"
+    },
+    {
+      "id": 1296,
+      "lot": 0,
+      "cells": [
+        "1296",
+        "1 Oct 2026",
+        "12957 01 Oct 2026",
+        "Consensual Agreement with Lilian Eid",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "15 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1296&lot=0"
+    },
+    {
+      "id": 1262,
+      "lot": 0,
+      "cells": [
+        "1262",
+        "9 Sep 2026",
+        "12681 09 Sep 2026",
+        "Supply & Installation of Magnetic Resonance Imaging (MRI) Machine for the Ministry of Public Health (Rafik Hariri University Hospital (RHUH).RFB Ref No.:LEAP-MOPH1-A",
+        "Supplies",
+        "Open International Competitive Bidding (ICB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "15 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1262&lot=0"
+    },
+    {
+      "id": 1264,
+      "lot": 0,
+      "cells": [
+        "1264",
+        "18 Sep 2026",
+        "12818 18 Sep 2026",
+        "Supply of 29 Fully Equipped Ambulances for the Ministry of Public Health. RFB Reference No.: LEAP-MoPH2",
+        "Supplies",
+        "Open International Competitive Bidding (ICB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "12 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1264&lot=0"
+    },
+    {
+      "id": 1280,
+      "lot": 0,
+      "cells": [
+        "1280",
+        "25 Sep 2026",
+        "12886 25 Sep 2026",
+        "Consensual Agreement with Akram Karam",
+        "Consultancy Services",
+        "Consensual Agreement",
+        "Islamic Development Bank",
+        "Free",
+        "English",
+        "9 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1280&lot=0"
+    },
+    {
+      "id": 1284,
+      "lot": 0,
+      "cells": [
+        "1284",
+        "25 Sep 2026",
+        "12887 25 Sep 2026",
+        "Consensual Agreement with Houssein Zein",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "9 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1284&lot=0"
+    },
+    {
+      "id": 1285,
+      "lot": 0,
+      "cells": [
+        "1285",
+        "29 Sep 2026",
+        "12899 29 Sep 2026",
+        "Rehabilitation of Shelters(Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 2: Lot 1",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "9 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1285&lot=0"
+    },
+    {
+      "id": 1286,
+      "lot": 0,
+      "cells": [
+        "1286",
+        "29 Sep 2026",
+        "12900 29 Sep 2026",
+        "Rehabilitation of Shelters(Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 2: Lot 2",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "9 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1286&lot=0"
+    },
+    {
+      "id": 1287,
+      "lot": 0,
+      "cells": [
+        "1287",
+        "29 Sep 2026",
+        "12927 29 Sep 2026",
+        "Rehabilitation of Shelters(Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 2: Lot 3",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "9 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1287&lot=0"
+    },
+    {
+      "id": 1281,
+      "lot": 0,
+      "cells": [
+        "1281",
+        "28 Sep 2026",
+        "12896 28 Sep 2026",
+        "Rehabilitation of Shelters (Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 1: Lot 1",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "8 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1281&lot=0"
+    },
+    {
+      "id": 1282,
+      "lot": 0,
+      "cells": [
+        "1282",
+        "28 Sep 2026",
+        "12897 28 Sep 2026",
+        "Rehabilitation of Shelters (Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 1: Lot 2",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "8 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1282&lot=0"
+    },
+    {
+      "id": 1283,
+      "lot": 0,
+      "cells": [
+        "1283",
+        "28 Sep 2026",
+        "12898 28 Sep 2026",
+        "Rehabilitation of Shelters (Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 1: Lot 3",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "8 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1283&lot=0"
+    },
+    {
+      "id": 1124,
+      "lot": 0,
+      "cells": [
+        "1124",
+        "14 Sep 2026",
+        "12731 14 Sep 2026",
+        "Preparation of the Environmental Impact Assessment (EIA) Study for the Construction of the Akkar Governmental Hospital (Sahleh-Akkar Area)",
+        "Consultancy Services",
+        "Open",
+        "Kuwait Fund for Arab Economic Development",
+        "2,000,000 LBP",
+        "English",
+        "8 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1124&lot=0"
+    },
+    {
+      "id": 1278,
+      "lot": 0,
+      "cells": [
+        "1278",
+        "24 Sep 2026",
+        "12879 24 Sep 2026",
+        "Consensual Agreement with Joseph Ghosh",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "8 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1278&lot=0"
+    },
+    {
+      "id": 1277,
+      "lot": 0,
+      "cells": [
+        "1277",
+        "23 Sep 2026",
+        "12841 23 Sep 2026",
+        "Consensual Agreement with Mr.Gerges Yammine",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "7 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1277&lot=0"
+    },
+    {
+      "id": 1230,
+      "lot": 0,
+      "cells": [
+        "1230",
+        "15 Jul 2026",
+        "12293 15 Jul 2026",
+        "Request for Quotation (RFQ) for the \"Relocation of a Network Room in the Council for Development and Reconstruction (CDR)\", under the project \"Support the capabilities of the Council for Development and Reconstruction Project\".Ref No.: AFESD/Support/ 2",
+        "Works",
+        "Short List",
+        "Arab Fund for Economic and Social Development",
+        "100 USD",
+        "English",
+        "7 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1230&lot=0"
+    },
+    {
+      "id": 1252,
+      "lot": 0,
+      "cells": [
+        "1252",
+        "17 Sep 2026",
+        "12798 17 Sep 2026",
+        "REOI for the Shortlisting of Consultants for the Preparation of Integrated Capacity-Building Program on Climate Smart Agriculture, Digital Extension, and food safety services under Gate",
+        "Consultancy Services",
+        "Open",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "6 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1252&lot=0"
+    },
+    {
+      "id": 1288,
+      "lot": 0,
+      "cells": [
+        "1288",
+        "25 Sep 2026",
+        "12888 25 Sep 2026",
+        "Rehabilitation of Shelters (Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 3: Lot 1",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "6 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1288&lot=0"
+    },
+    {
+      "id": 1289,
+      "lot": 0,
+      "cells": [
+        "1289",
+        "25 Sep 2026",
+        "12889 26 Sep 2026",
+        "Rehabilitation of Shelters (Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 3: Lot 2",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "6 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1289&lot=0"
+    },
+    {
+      "id": 1290,
+      "lot": 0,
+      "cells": [
+        "1290",
+        "25 Sep 2026",
+        "12890 26 Sep 2026",
+        "Rehabilitation of Shelters (Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 3: Lot 3",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "6 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1290&lot=0"
+    },
+    {
+      "id": 1291,
+      "lot": 0,
+      "cells": [
+        "1291",
+        "25 Sep 2026",
+        "12891 26 Sep 2026",
+        "Rehabilitation of Shelters (Public Schools) - Ref No.: LEAP-SH-SW-MEHE-Batch 3: Lot 4",
+        "Works",
+        "Open National Competitive Bidding (NCB)",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "100 USD",
+        "English",
+        "6 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1291&lot=0"
+    },
+    {
+      "id": 1155,
+      "lot": 0,
+      "cells": [
+        "1155",
+        "16 Sep 2026",
+        "12788 16 Sep 2026",
+        "REOI for Shortlisting firms for Preparing Detailed Design, Tender Documents and Supervision for the Construction of Sludge Solar Dryers for Zahle and Charqiyeh Wastewater Treatments Plants.",
+        "Consultancy Services",
+        "Open",
+        "International Bank for Reconstruction & Development (The World Bank)",
+        "Free",
+        "English",
+        "5 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1155&lot=0"
+    },
+    {
+      "id": 1270,
+      "lot": 0,
+      "cells": [
+        "1270",
+        "18 Sep 2026",
+        "12820 18 Sep 2026",
+        "Renewal of Signed Contract with Project Coordinator Mr.Sami Feghali on the projects financed by the Agence Française de Développement",
+        "Consultancy Services",
+        "Consensual Agreement",
+        "French Agency for Development",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1270&lot=0"
+    },
+    {
+      "id": 1271,
+      "lot": 0,
+      "cells": [
+        "1271",
+        "18 Sep 2026",
+        "12827 19 Sep 2026",
+        "Consensual Agreement with Mrs Lina Ezzedine",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1271&lot=0"
+    },
+    {
+      "id": 1272,
+      "lot": 0,
+      "cells": [
+        "1272",
+        "18 Sep 2026",
+        "12826 19 Sep 2026",
+        "Consensual Agreement with Mrs Marie Tannous",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1272&lot=0"
+    },
+    {
+      "id": 1273,
+      "lot": 0,
+      "cells": [
+        "1273",
+        "18 Sep 2026",
+        "12825 19 Sep 2026",
+        "Consensual Agreement with Mr. Karim El Chami",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1273&lot=0"
+    },
+    {
+      "id": 1274,
+      "lot": 0,
+      "cells": [
+        "1274",
+        "18 Sep 2026",
+        "12824 19 Sep 2026",
+        "Consensual Agreement with Mr. Khalil Abdel ahad",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1274&lot=0"
+    },
+    {
+      "id": 1275,
+      "lot": 0,
+      "cells": [
+        "1275",
+        "18 Sep 2026",
+        "12822 19 Sep 2026",
+        "Consensual Agreement with Mr Elie Rhayem",
+        "Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1275&lot=0"
+    },
+    {
+      "id": 1276,
+      "lot": 0,
+      "cells": [
+        "1276",
+        "18 Sep 2026",
+        "12823 19 Sep 2026",
+        "Consensual Agreement with Mrs Racha Salam",
+        "Non Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1276&lot=0"
+    },
+    {
+      "id": 1263,
+      "lot": 0,
+      "cells": [
+        "1263",
+        "18 Sep 2026",
+        "12821 18 Sep 2026",
+        "Renewal of Signed Contract with MEAS for the Operation and Maintenance of Public Buildings at Rafik Hariri International Airport in Beirut",
+        "Works",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1263&lot=0"
+    },
+    {
+      "id": 1279,
+      "lot": 0,
+      "cells": [
+        "1279",
+        "18 Sep 2026",
+        "12819 18 Sep 2026",
+        "Consensual Agreement with Mrs. Hala Deghaili to Provide Consulting Services in Support of the Project Division and Legal Affairs Division at the Council for Development and Reconstruction (CDR).",
+        "Consultancy Services",
+        "Consensual Agreement",
+        "Local Fund",
+        "Free",
+        "English",
+        "2 Oct 2026"
+      ],
+      "url": "https://www.cdr.gov.lb/Procurment/ProcurementDetail.aspx?id=1279&lot=0"
+    }
+  ]
+}

@@ -1,9 +1,15 @@
-# Static site: Vercel serves the repo root. Keep everything that is not the
-# front end out of the deployment, or it becomes publicly fetchable on the domain.
-supabase/
-db/
-reports/
-render-service/
-CLAUDE.md
-DEPLOY.md
-BLUEPRINT.md
+# Fail closed: only these reviewed static files belong in a web deployment.
+# Prefer tools/release/stage_site.py and deploy its isolated output directory.
+*
+!index.html
+!order.html
+!website.css
+!website.js
+!vercel.json
+# The Git-connected static build needs this one reviewed source file. Vercel
+# still serves only site-dist, which contains the four assets above.
+!tools/
+tools/**
+!tools/release/
+tools/release/**
+!tools/release/build_static.mjs
