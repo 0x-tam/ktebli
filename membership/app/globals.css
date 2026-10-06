@@ -13,6 +13,9 @@
   --gold: #76571f;
   --gold-soft: #f7efd9;
   --shadow: 0 18px 48px -38px rgb(31 54 42 / 42%);
+  --motion-press: 120ms;
+  --motion-small: 180ms;
+  --motion-surface: 240ms;
   --serif: "Fraunces", Georgia, serif;
   --sans: "DM Sans", "Helvetica Neue", Arial, sans-serif;
 }
@@ -47,6 +50,17 @@ a {
 }
 button {
   color: inherit;
+  transition:
+    background-color var(--motion-small) ease-out,
+    border-color var(--motion-small) ease-out,
+    color var(--motion-small) ease-out,
+    transform var(--motion-press) ease-out;
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+a {
+  transition: color var(--motion-small) ease-out;
 }
 button:disabled {
   cursor: not-allowed;
@@ -178,10 +192,10 @@ label small {
   text-align: center;
   cursor: pointer;
   transition:
-    background-color 0.16s ease,
-    border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.16s ease;
+    background-color var(--motion-small) ease-out,
+    border-color var(--motion-small) ease-out,
+    box-shadow var(--motion-small) ease-out,
+    transform var(--motion-press) ease-out;
 }
 .button:hover:not(:disabled) {
   background: #193c2b;
@@ -397,6 +411,20 @@ footer a:hover {
 .auth-card .button {
   width: 100%;
 }
+.checkout-recovery {
+  display: grid;
+  gap: 10px;
+}
+.checkout-recovery > a:not(.button) {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .tabs {
   display: flex;
   gap: 4px;
@@ -417,9 +445,17 @@ footer a:hover {
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  transition:
+    color var(--motion-small) ease-out,
+    background-color var(--motion-small) ease-out,
+    box-shadow var(--motion-small) ease-out,
+    transform var(--motion-press) ease-out;
 }
 .tabs button:hover {
   color: var(--ink);
+}
+.tabs button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 .tabs .active {
   background: var(--surface);
@@ -438,6 +474,16 @@ footer a:hover {
   background: var(--coral-soft);
   color: #663c30;
   line-height: 1.55;
+}
+.notice-success {
+  border-color: #c9d6c2;
+  background: #f0f4eb;
+  color: #31533b;
+}
+.notice-error {
+  border-color: #e7c5b5;
+  background: var(--coral-soft);
+  color: #663c30;
 }
 .notice button {
   min-height: 40px;
@@ -820,6 +866,10 @@ footer a:hover {
   grid-template-columns: minmax(0, 1fr);
   gap: 9px;
 }
+.opportunity-grid.is-refreshing {
+  opacity: 0.68;
+  transition: opacity var(--motion-small) ease-out;
+}
 .opportunity {
   min-width: 0;
   border: 1px solid var(--line);
@@ -834,8 +884,8 @@ footer a:hover {
   gap: 10px 22px;
   padding: 16px 19px;
   transition:
-    border-color 0.16s ease,
-    box-shadow 0.16s ease;
+    border-color var(--motion-small) ease-out,
+    box-shadow var(--motion-small) ease-out;
 }
 .opportunity-row:hover {
   border-color: #c4d0c1;
@@ -922,6 +972,19 @@ footer a:hover {
   text-decoration-color: #aeb9ad;
   text-underline-offset: 3px;
 }
+.opportunity-row svg,
+.alert svg,
+.opportunity-details-dialog svg,
+.button svg,
+.empty button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .opportunity-row-secondary .text-button {
   min-height: 44px;
   margin: 0;
@@ -970,9 +1033,35 @@ footer a:hover {
   background: var(--surface);
   color: var(--ink);
   box-shadow: 0 20px 70px rgb(16 32 23 / 28%);
+  opacity: 0;
+  transform: translateY(7px) scale(0.99);
+  transition:
+    opacity var(--motion-small) ease-out,
+    transform var(--motion-small) ease-out,
+    display var(--motion-small) allow-discrete,
+    overlay var(--motion-small) allow-discrete;
+}
+.opportunity-details-dialog[open] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition-duration: var(--motion-surface);
+}
+@starting-style {
+  .opportunity-details-dialog[open] {
+    opacity: 0;
+    transform: translateY(7px) scale(0.99);
+  }
 }
 .opportunity-details-dialog::backdrop {
+  background: transparent;
+  transition:
+    background-color var(--motion-small) ease-out,
+    display var(--motion-small) allow-discrete,
+    overlay var(--motion-small) allow-discrete;
+}
+.opportunity-details-dialog[open]::backdrop {
   background: rgb(21 33 27 / 58%);
+  transition-duration: var(--motion-surface);
 }
 .opportunity-details-dialog-header {
   display: flex;
@@ -1001,6 +1090,11 @@ footer a:hover {
   color: var(--forest);
   font-size: 1.55rem;
   cursor: pointer;
+}
+.opportunity-details-dialog .dialog-close svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
 }
 .opportunity-details-summary {
   display: flex;
@@ -1074,6 +1168,18 @@ footer a:hover {
 .empty > span {
   color: #71866b;
   font: 500 2.4rem/1 var(--serif);
+}
+.empty .empty-icon {
+  display: inline-flex;
+  color: #71866b;
+}
+.empty .empty-icon svg {
+  width: 34px;
+  height: 34px;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .empty h2 {
   margin: 10px 0 8px;
@@ -1173,7 +1279,62 @@ footer a:hover {
 }
 .profile-panel .button {
   justify-self: start;
-  min-width: 170px;
+  min-width: 192px;
+}
+.verification-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+.verification-form label {
+  flex: 1 1 220px;
+  margin: 0;
+}
+.verification-form .verification-help {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.verification-form button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--forest);
+  border-radius: 8px;
+  background: var(--forest);
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-small) ease-out,
+    transform var(--motion-press) ease-out;
+}
+.verification-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+.verification-form button:hover:not(:disabled) {
+  background: #193c2b;
+}
+.verification-form button.verification-resend {
+  border-color: transparent;
+  background: transparent;
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.verification-form button.verification-resend:hover:not(:disabled) {
+  background: var(--green-soft);
+}
+.verification-form [role="alert"] {
+  flex-basis: 100%;
+  color: #9c3030;
+  font-weight: 500;
+}
+.verification-form button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 .board-filter-controls {
   margin-bottom: 15px;
@@ -1578,6 +1739,11 @@ footer a:hover {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  .opportunity-details-dialog,
+  .opportunity-details-dialog[open],
+  button:active:not(:disabled) {
+    transform: none;
   }
   *,
   *::before,

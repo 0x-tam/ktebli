@@ -34,6 +34,10 @@ var ownerTestInvite = '';
   --ink:#20392F;
   --grey:#59695F;
   --line:#D9DED4;
+  --motion-press:120ms;
+  --motion-state:180ms;
+  --motion-surface:240ms;
+  --motion-ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:88px}
@@ -61,7 +65,7 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:7
 .btn{
   display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;
   min-height:48px;font-size:15.5px;padding:13px 24px;border-radius:100px;border:none;cursor:pointer;
-  font-family:inherit;transition:transform .14s,box-shadow .14s,background .14s;
+  font-family:inherit;transition:transform var(--motion-press) var(--motion-ease),box-shadow var(--motion-state) var(--motion-ease),background-color var(--motion-state) var(--motion-ease),color var(--motion-state) var(--motion-ease);
   box-shadow:0 3px 0 var(--forest);
 }
 .btn:hover{background:#284d39;transform:translateY(-2px);box-shadow:0 5px 0 var(--forest)}
@@ -388,9 +392,9 @@ footer a:hover{color:var(--coral)}
     <div class="sample-workspace">
       <div class="sample-sidebar">
         <div class="sample-tabs" role="tablist" aria-label="Sample package documents" aria-orientation="vertical">
-          <button type="button" role="tab" aria-selected="true" aria-controls="sample-proposal" id="tab-proposal" data-document="proposal"><span>01</span> The proposal <span class="tab-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" role="tab" aria-selected="false" aria-controls="sample-costs" id="tab-costs" data-document="costs" tabindex="-1"><span>02</span> The costs <span class="tab-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" role="tab" aria-selected="false" aria-controls="sample-delivery" id="tab-delivery" data-document="delivery" tabindex="-1"><span>03</span> The delivery plan <span class="tab-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" role="tab" aria-selected="true" aria-controls="sample-proposal" id="tab-proposal" data-document="proposal"><span>01</span> The proposal <span class="tab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="sample-costs" id="tab-costs" data-document="costs" tabindex="-1"><span>02</span> The costs <span class="tab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="sample-delivery" id="tab-delivery" data-document="delivery" tabindex="-1"><span>03</span> The delivery plan <span class="tab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
         </div>
         <p class="sample-guidance">A clear argument.<br>Numbers you can follow.<br>A plan you can work with.</p>
         <p class="sample-scope">Draft includes the main response. Competitive adds costs and supporting documents. Full adds delivery planning.</p>
@@ -476,11 +480,11 @@ footer a:hover{color:var(--coral)}
 </div></div></section>
 <section class="mintbg" id="start"><div class="wrap"><div class="kicker">Ready to begin?</div><h2 class="disp">Bring the brief. We’ll guide you through.</h2><p class="sub">Share the opportunity first. You can choose a package after we check the source.</p><a href="#start" class="btn big">Start a proposal</a></div></section>
 <footer><div class="wrap"><div class="frow"><div><a href="/" class="stamp">KTEBLI<span class="dot">!</span></a><p class="fdisc">Find opportunities in Lebanon and build a proposal that sounds like you.<br>Write it for me. So we do.</p></div><div class="fnav"><div><a href="#membership">Find opportunities</a></div><div><a href="/account/auth">Account</a></div><div><a href="/account/data-use">Account data use</a></div><div><a href="#inside">Inside a proposal</a></div><div><a href="#pricing">Proposal packages</a></div></div></div></div></footer>
-<div class="wiz-overlay" id="wiz">
+<div class="wiz-overlay" id="wiz" aria-hidden="true">
   <div class="wiz" role="dialog" aria-modal="true" aria-labelledby="wiz-title">
     <div class="wiz-head">
       <span class="wt" id="wiz-title">START YOUR PROPOSAL</span>
-      <button class="wiz-x" id="wiz-close" aria-label="Close">&times;</button>
+      <button class="wiz-x" id="wiz-close" aria-label="Close"><svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
     </div>
     <div class="wiz-dots" id="wiz-dots"></div>
     <div class="wiz-body">
@@ -756,9 +760,14 @@ var catalogueHandoffEpoch = 0, catalogueHandoffPending = false, catalogueContext
 var wiz = {
   el: document.getElementById('wiz'),
   returnFocus: null,
+  closeTimer: null,
   step: 0, last: 3, tier: 'competitive', tierChosen: false, files: [], intakeId: null, pendingToken: null, pendingEmail: null,
   open: function (tier) {
     if (!this.el.classList.contains('open') && document.activeElement && document.activeElement !== document.body) this.returnFocus = document.activeElement;
+    clearTimeout(this.closeTimer);
+    this.el.classList.remove('closing');
+    this.el.removeAttribute('inert');
+    this.el.setAttribute('aria-hidden', 'false');
     catalogueHandoffEpoch++;
     if(catalogueHandoffPending){catalogueHandoffPending=false;var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
     this.tier = ownerTestInvite ? 'full' : (tier || 'competitive');
@@ -777,6 +786,13 @@ var wiz = {
     if(catalogueHandoffPending){var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
     catalogueHandoffPending = false;
     this.el.classList.remove('open');
+    this.el.classList.add('closing');
+    this.el.setAttribute('aria-hidden', 'true');
+    this.el.setAttribute('inert', '');
+    clearTimeout(this.closeTimer);
+    var overlay = this.el;
+    var closeDelay = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 160;
+    this.closeTimer = setTimeout(function () { overlay.classList.remove('closing'); }, closeDelay);
     document.body.style.overflow = '';
     var returnFocus = this.returnFocus;
     this.returnFocus = null;
@@ -850,7 +866,7 @@ var wiz = {
       intake_id: this.intakeId || undefined
     };
   },
-  render: function () {
+  render: function (moveFocus) {
     var steps = this.el.querySelectorAll('.wiz-step');
     for (var i=0;i<steps.length;i++) steps[i].classList.toggle('on', Number(steps[i].dataset.step) === this.step);
     var dots = document.getElementById('wiz-dots'); dots.innerHTML = '';
@@ -876,6 +892,14 @@ var wiz = {
       next.textContent = !analysisOk ? 'Check source status' : ownerTestInvite ? 'Start my Full test — no payment' : 'Pay ' + PRICES[this.tier] + ' — Ktebli gets to work';
     } else {
       next.textContent = this.step === 0 ? 'Choose a package' : this.step === 1 ? 'Add your details' : 'Review order';
+    }
+    if (moveFocus) {
+      this.el.scrollTop = 0;
+      var stepFocus = this.step === 0 ? document.getElementById('w-grant') : this.step === 1 ? (this.el.querySelector('.pkg input:checked') || this.el.querySelector('.pkg input')) : this.step === 2 ? document.getElementById('w-name') : this.el.querySelector('.wiz-step.on h3');
+      if (stepFocus) {
+        if (stepFocus.tagName === 'H3') stepFocus.setAttribute('tabindex', '-1');
+        stepFocus.focus({ preventScroll: true });
+      }
     }
   },
   summary: function () {
@@ -1102,6 +1126,7 @@ function opportunityProgress(a) {
 }
 function showPreviewLoading(box, message) {
   box.replaceChildren(); box.style.display='block'; box.className=box.id==='gpreview'?'gpreview preview-loading':'field-help preview-loading'; box.setAttribute('aria-busy','true');
+  if (box.id === 'gpreview') { box.classList.remove('preview-entering'); void box.offsetWidth; box.classList.add('preview-entering'); }
   var label=document.createElement('span');label.className='preview-loading-label';label.textContent=message;box.appendChild(label);
   if(box.id==='gpreview') {var hint=document.createElement('p');hint.className='source-progress-note';hint.textContent='Fetching the page title, deadline and key details. Attachments are read after payment.';box.appendChild(hint);var lines=document.createElement('div');lines.className='preview-skeleton';lines.setAttribute('aria-hidden','true');for(var i=0;i<3;i++)lines.appendChild(document.createElement('span'));box.appendChild(lines);}
 }
@@ -1137,6 +1162,7 @@ function showOpportunityResult(a) {
   var currentBox=document.getElementById('gpreview');currentBox.setAttribute('aria-busy','false');
   if(a.awaiting_payment) {
     var p=a.quick_preview||{}, unavailable=p.status==='unavailable', funding=previewFunding(p.funding_excerpt,p.currency);currentBox.replaceChildren();currentBox.style.display='block';currentBox.className='gpreview';
+    void currentBox.offsetWidth; currentBox.classList.add('preview-entering');
     var name=document.createElement('div');name.className='gp-t';name.textContent=p.display_title||p.title||'Opportunity saved';currentBox.appendChild(name);
     var note=document.createElement('p');note.className='source-progress-note';
     note.textContent=unavailable?(p.failure_reason==='login_required'||p.failure_reason==='verification_required'?'This page needs a login or verification. Full document reading starts after payment.':'Link saved. We couldn’t read this page. Full document reading starts after payment.'):'Page preview only. Dates and amounts are unverified; full document reading starts after payment.';
@@ -1163,6 +1189,7 @@ function showOpportunityResult(a) {
   var oversized = a.reason === 'opportunity_writing_context_limit' || a.reason === 'packet_processing_limit';
   var box = document.getElementById('gpreview'); box.replaceChildren(); box.style.display = 'block';
   box.className = 'gpreview' + (a.status === 'blocked' ? ' err' : '');
+  void box.offsetWidth; box.classList.add('preview-entering');
   var heading = document.createElement('div'); heading.className = 'gp-t';
   heading.textContent = a.status === 'ready' ? a.title || 'Source review ready' : a.awaiting_payment ? 'Source saved — full review starts after payment' : a.status === 'processing' ? 'Preparing the source review…' : oversized ? 'This document pack needs a larger review' : 'We need the complete source documents';
   box.appendChild(heading);
@@ -1175,7 +1202,7 @@ function showOpportunityResult(a) {
   }
   if (a.quick_preview && a.status !== 'ready') {
     var preview = a.quick_preview, previewUnavailable = preview.status === 'unavailable';
-    [['Opportunity',preview.title || 'Title will be checked after payment'],['Type',preview.proposal_type ? preview.proposal_type.replace(/_/g,' ') : 'To be confirmed'],['Deadline',preview.deadline_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['Funding',preview.funding_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['What to expect',preview.description || preview.expected]].forEach(function(pair) {
+    [['Opportunity',preview.title || 'Title will be checked after payment'],['Type',preview.proposal_type ? preview.proposal_type.replace(/_/g,' ') : 'To be confirmed'],['Deadline',preview.deadline_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['Funding',preview.funding_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['What to expect',preview.description || preview.expected]].filter(function(pair){return typeof pair[1] === 'string' && pair[1].trim();}).forEach(function(pair) {
       var row=document.createElement('p'); row.textContent=pair[0]+': '+pair[1]; box.appendChild(row);
     });
     var notice=document.createElement('p'); notice.className='source-progress-note'; notice.textContent=previewUnavailable?'Link saved. You can paste a copy now. Full document reading starts after payment.':'Quick page preview — unverified. Dates and amounts may refer to other events or fees. Full source checks happen after payment.';box.appendChild(notice);
@@ -1360,11 +1387,11 @@ document.addEventListener('keydown', function(e){
   if (e.shiftKey && (document.activeElement === first || !wiz.el.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
   else if (!e.shiftKey && (document.activeElement === last || !wiz.el.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
 });
-document.getElementById('wiz-back').addEventListener('click', function(){ if (wiz.step>0){ wiz.step--; wiz.render(); } });
+document.getElementById('wiz-back').addEventListener('click', function(){ if (wiz.step>0){ wiz.step--; wiz.render(true); } });
 document.getElementById('wiz-next').addEventListener('click', function(){
   if (wiz.step === wiz.last) { wiz.pay(); return; }
   if (!wiz.validate()) return;
-  wiz.step++; wiz.render();
+  wiz.step++; wiz.render(true);
 });
 document.querySelectorAll('.pkg label').forEach(function (l) {
   l.addEventListener('click', function(){ wiz.tier = ownerTestInvite ? 'full' : l.getAttribute('data-tier'); wiz.tierChosen = true; wiz.render(); });

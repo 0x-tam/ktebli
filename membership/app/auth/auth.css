@@ -5,6 +5,14 @@
   gap: 8px;
   min-height: 46px;
 }
+.auth-card .auth-submit > svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 .auth-card .auth-spinner {
   width: 15px;

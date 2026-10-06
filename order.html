@@ -60,6 +60,7 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,42px);m
 .fbtn:hover{background:#193c2b}
 .revzone{border-top:1px solid var(--line);padding:16px 20px;background:var(--surface)}
 .revbtn{min-height:44px;background:transparent;color:var(--ink);border:1px solid #849488;font-weight:700;font-size:.88rem;padding:9px 17px;border-radius:8px;cursor:pointer;font-family:inherit}
+.revbtn{display:inline-flex;align-items:center;gap:9px}
 .revbtn:hover{background:var(--forest);border-color:var(--forest);color:#fff}
 .revleft{font-size:.84rem;color:var(--grey);margin-top:8px}
 .revform{display:none;margin-top:16px}
@@ -69,7 +70,7 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,42px);m
 .opt.sel{border-color:var(--green);background:var(--mint);color:var(--forest);font-weight:700}
 .revform textarea{width:100%;border:1px solid #9eaa9f;border-radius:9px;padding:11px 13px;font-family:inherit;font-size:16px;min-height:100px;resize:vertical;background:#fff}
 .revform textarea:focus{outline:3px solid #8C5739;outline-offset:2px;border-color:var(--green)}
-.revsend{min-height:46px;margin-top:10px;background:var(--forest);color:#fff;border:1px solid var(--forest);font-weight:700;font-size:.9rem;padding:10px 19px;border-radius:8px;cursor:pointer;font-family:inherit;box-shadow:0 2px 0 #183B2A}
+.revsend{min-height:46px;display:inline-flex;align-items:center;gap:9px;margin-top:10px;background:var(--forest);color:#fff;border:1px solid var(--forest);font-weight:700;font-size:.9rem;padding:10px 19px;border-radius:8px;cursor:pointer;font-family:inherit;box-shadow:0 2px 0 #183B2A}
 .revsend:hover{background:#193c2b}
 .bigmsg{background:var(--surface);border:1px solid var(--ink);border-radius:14px;padding:30px;text-align:center;box-shadow:5px 5px 0 var(--green)}
 .bigmsg h2{font-family:'Fraunces',serif;font-size:1.5rem;margin-bottom:8px}
@@ -112,6 +113,27 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C
 .source-details>summary::after{width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;content:"";transform:rotate(45deg) translateY(-2px)}
 .source-details[open]>summary::after{transform:rotate(225deg) translateY(-2px)}
 .source-details>.buyer-notice{padding:14px 0;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent}
+.poll-error{display:flex;align-items:flex-start;gap:10px;margin:14px 0;padding:12px 14px;border:1px solid #dfb8ad;border-radius:9px;background:#fbefeb;color:#773d34;font-size:.88rem}
+.poll-error[hidden]{display:none}
+.poll-error svg{width:18px;height:18px;flex:0 0 auto;margin-top:2px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.revmessage{min-height:1.5em;margin:8px 0 0;font-size:.84rem;color:var(--grey)}
+.revmessage.error{color:#8d3e32}
+.revmessage.success{color:var(--forest)}
+.revmessage.pending{color:var(--grey)}
+.opts .opt{appearance:none;background:transparent;color:var(--ink);font-family:inherit;text-align:left;transition:color .18s ease,background-color .18s ease,border-color .18s ease,transform .12s ease}
+.opts .opt:hover{background:var(--mint);border-color:var(--green)}
+.opts .opt:active{transform:translateY(1px)}
+.opts .opt.sel{border-color:var(--green);background:var(--mint);color:var(--forest);font-weight:700}
+.fbtn,.revbtn,.revsend,.paid-intake summary,.stamp{transition:color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .12s ease}
+.fbtn:active,.revbtn:active,.revsend:active{transform:translateY(1px)}
+.fbtn svg,.revbtn svg,.revsend svg,.rep-x svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.fbtn{gap:8px}
+.paid-intake details[open]:not(.poll-restored)>:not(summary),.source-details[open]:not(.poll-restored)>.buyer-notice{animation:details-enter .18s ease-out both}
+@keyframes details-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+button,a,summary{transition:color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .12s ease}
+button:active:not(:disabled),.fbtn:active,.stamp:active{transform:translateY(1px)}
+button:disabled{cursor:not-allowed;opacity:.64}
+@media(prefers-reduced-motion:reduce){.paid-intake details[open]>:not(summary),.source-details[open]>.buyer-notice{animation:none}}
 
 @media(max-width:600px){.wrap{padding-right:18px;padding-left:18px}.paid-intake .two{grid-template-columns:1fr;gap:0}.paid-intake .rep-row{flex-wrap:wrap}.phead,.pbody,.files,.revzone{padding-right:16px;padding-left:16px}.stage{gap:9px;font-size:.85rem}.stage .t{font-size:.7rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
@@ -120,7 +142,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C
 <body>
 <template id="paid-intake-template"><section class="buyer-notice paid-intake" id="paid-intake"><h2>A little about the work you want to propose</h2><p>We can read the opportunity while you complete this. Your proposal type, currency and work description are required before writing starts. Leave anything else blank if you do not know it.</p><form id="intake-form"><div class="two"><div class="field"><label for="w-proposal-type">Proposal type · Required</label><select id="w-proposal-type" required><option value="">Choose…</option><option value="grant">Grant application</option><option value="government_tender">Government tender</option><option value="procurement">Procurement / RFP</option><option value="business">Business / service proposal</option></select></div><div class="field"><label for="w-currency">Proposal currency · Required</label><select id="w-currency" required><option value="">Choose…</option><option value="USD">USD — US dollar</option><option value="LBP">LBP — Lebanese pound</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British pound</option><option value="other">Other currency</option></select><div id="paid-currency-other" hidden><label for="w-currency-other">Three-letter currency code</label><input id="w-currency-other" maxlength="3" pattern="[A-Za-z]{3}" placeholder="e.g. AED" disabled></div><p id="source-field-note" class="field-help"></p></div></div><div class="field"><label for="w-response-language">Proposal and document language · Required</label><select id="w-response-language" required><option value="">Choose English or Arabic…</option><option value="en">English</option><option value="ar">العربية — Arabic</option></select><p id="language-help" class="field-help">The issuer’s required submission language takes priority. If none is stated, choose English or Arabic.</p></div>
         <div class="field"><label for="w-activity">What work do you intend to propose? <span class="rq">Required</span></label><input type="text" id="w-activity" minlength="20" required aria-describedby="w-activity-help" placeholder="e.g. survey three public buildings and produce a phased retrofit plan"><p class="field-help" id="w-activity-help">Describe the work you will deliver. Add background below if useful.</p></div>
-        <details class="work-background"><summary>Delivery setting and past work <span class="optional">Optional</span></summary>
+        <details class="work-background" data-poll-key="work-background"><summary>Delivery setting and past work <span class="optional">Optional</span></summary>
           <div class="field"><label for="w-place">Where will you deliver the work? <span class="optional">Optional</span></label><input type="text" id="w-place" placeholder="e.g. Tripoli municipal offices, a client site in Beirut, or online"></div>
           <div class="field"><label for="w-venue">Where does it actually happen? <span class="optional">Optional</span><span class="hint">Name the client site, facility, service area or delivery setting. Choose online if the work is remote.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
             <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
@@ -141,7 +163,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C
           <div class="field"><label for="w-trigger">What need or problem does this work address? <span class="optional">Optional</span><span class="hint">Explain the client’s need, the procurement objective or the community issue in your own words.</span></label><textarea id="w-trigger" placeholder="e.g. the client needs to reduce building energy use while keeping offices open throughout the works."></textarea></div>
         </details>
 
-      <details><summary>Governance &amp; assurances <span class="optional">Optional</span></summary>
+      <details data-poll-key="governance"><summary>Governance &amp; assurances <span class="optional">Optional</span></summary>
         <h3>Governance &amp; assurances</h3>
         <p class="ws-sub">Confirm only facts that are true and relevant to your opportunity. A grant, tender or client brief may require different assurances. Leave anything unconfirmed blank; these answers do not replace required certificates or signatures.</p>
         <div class="checkrow"><input type="checkbox" id="w-sg-policy"><label for="w-sg-policy"><b>We have a written safeguarding policy in place.</b></label></div>
@@ -161,7 +183,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C
         <div class="field"><label for="w-lived">People with lived experience in your governance <span class="pill">optional</span></label><input type="text" id="w-lived" placeholder="e.g. three trustees are former service users"></div>
       </details>
 
-      <details><summary>People, projects &amp; track record <span class="optional">Optional</span></summary>
+      <details data-poll-key="track-record"><summary>People, projects &amp; track record <span class="optional">Optional</span></summary>
         <h3>Your people, projects &amp; track record</h3>
         <p class="ws-sub">The named facts that let us write about your organisation without inventing anyone. Add as many as are true — leave the rest blank.</p>
         <div class="field"><label>Key people <span class="pill">optional</span><span class="hint">Directors, specialists, project leads and coordinators your proposal can name.</span></label>
@@ -193,7 +215,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C
       </div>
       </details>
 
-        <details class="intake-extra">
+        <details class="intake-extra" data-poll-key="organization-details">
           <summary>Additional organisation details <span class="optional">Optional</span></summary>
           <p class="field-help">Useful when the opportunity asks about your legal status or financial capacity.</p>
           <div class="two">
@@ -211,9 +233,10 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C
             </select>
             </div>
           </div>
-        </details><p class="field-help">A named person, a past project or a clear delivery setting helps us write a more specific proposal. Add what you know; it is fine to skip the rest. Issuer-required evidence may still need confirmation after source review.</p><p id="intake-message" role="status" aria-live="polite"></p><button class="revsend" type="submit">Save details and start writing</button></form></section></template>
+        </details><p class="field-help">A named person, a past project or a clear delivery setting helps us write a more specific proposal. Add what you know; it is fine to skip the rest. Issuer-required evidence may still need confirmation after source review.</p><p id="intake-message" class="revmessage" role="status" aria-live="polite"></p><button class="revsend" type="submit" id="save-intake-button"><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M10 2v10m0 0 4-4m-4 4-4-4M3 13v4h14v-4"/></svg><span>Save details and start writing</span></button></form></section></template>
 <nav><div class="wrap"><a class="stamp" href="/">KTEBLI<span class="dot">!</span></a></div></nav>
 <div class="wrap">
+  <div id="order-poll-error" class="poll-error" role="status" aria-live="polite" hidden><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M10 2.5 18 17H2L10 2.5Z"/><path d="M10 7v4m0 2.5v.1"/></svg><span></span></div>
   <div id="app">
     <div class="bigmsg" style="margin-top:60px"><span class="spin"></span><h2>Finding your order…</h2><p>One moment.</p></div>
   </div>
@@ -225,8 +248,10 @@ var path = location.pathname.split('/').filter(Boolean);
 var query = path[1] === 'session' ? ('session=' + encodeURIComponent(path[2] || ''))
                                   : ('token=' + encodeURIComponent(path[1] || ''));
 var app = document.getElementById('app');
-var timer = null, misses = 0, formState = {};
-var intakeDraft=null, latestOrderData=null, intakeTouched={}; // per-proposal open form + selections
+var timer = null, misses = 0, formState = {}, lastRenderKey = null;
+var pollActive = false, pollAgain = false, pollSequence = 0;
+var intakeDraft=null, intakeRows=null, intakeServerRevision=null, deferredOrderData=null, latestOrderData=null, intakeTouched={}, intakeSubmitting=false, intakeSaved=false, intakeStatus=''; // per-proposal open form + selections
+if(app.addEventListener)app.addEventListener('click',function(event){var summary=event.target.closest&&event.target.closest('summary');if(summary&&app.contains(summary)&&summary.parentElement.classList)summary.parentElement.classList.remove('poll-restored');});
 
 var REV_OPTIONS = ["Tone / writing style","Make it more concise","Add more detail",
   "Change positioning / messaging","Strengthen a specific section","Correct organisation information",
@@ -236,16 +261,67 @@ function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':S
 function pdfPageUrl(raw,page){ var u=new URL(raw); u.hash='page='+page; return u.href; }
 function fmtDur(a,b){ if(!a)return ''; var ms=(b?new Date(b):new Date())-new Date(a);
   var s=Math.max(1,Math.round(ms/1000)); return s<60? s+'s' : Math.round(s/60)+'m'; }
+function setControlLabel(button,label){var text=button.querySelector&&button.querySelector('span');if(text)text.textContent=label;else button.textContent=label;}
+function boundedJson(url,options,timeoutMs){
+  var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},timeoutMs);
+  var requestOptions=Object.assign({},options||{},{signal:controller.signal});
+  return fetch(url,requestOptions).then(function(response){return response.json();}).finally(function(){clearTimeout(timer);});
+}
+
+function captureOrderView(){
+  var detailStates=Array.prototype.map.call(app.querySelectorAll('details'),function(node,index){return {key:node.getAttribute('data-poll-key')||node.id||('details-'+index),open:node.open};});
+  var active=document.activeElement, focus=null;
+  if(active&&app.contains(active)){
+    focus={id:active.id||'',selectionStart:typeof active.selectionStart==='number'?active.selectionStart:null,selectionEnd:typeof active.selectionEnd==='number'?active.selectionEnd:null,selectionDirection:active.selectionDirection||'none'};
+    if(!focus.id&&active.tagName==='SUMMARY'&&active.parentElement&&active.parentElement.tagName==='DETAILS')focus.detailKey=active.parentElement.getAttribute('data-poll-key')||active.parentElement.id||('details-'+Array.prototype.indexOf.call(app.querySelectorAll('details'),active.parentElement));
+    if(!focus.id&&!focus.detailKey){['data-send','data-open','data-op'].some(function(name){var value=active.getAttribute&&active.getAttribute(name);if(value){focus.attribute=name;focus.value=value;return true;}return false;});}
+  }
+  return {details:detailStates,focus:focus,scrollY:window.scrollY||window.pageYOffset||0};
+}
+function restoreOrderView(state){
+  if(!state)return;
+  var details=app.querySelectorAll('details');
+  state.details.forEach(function(saved){Array.prototype.some.call(details,function(node,index){var key=node.getAttribute('data-poll-key')||node.id||('details-'+index);if(key===saved.key){node.open=saved.open;if(saved.open&&node.classList)node.classList.add('poll-restored');return true;}return false;});});
+  var target=null,focus=state.focus;
+  if(focus){
+    if(focus.id){var candidate=document.getElementById(focus.id);if(candidate&&app.contains(candidate))target=candidate;}
+    else if(focus.detailKey)Array.prototype.some.call(details,function(node,index){var key=node.getAttribute('data-poll-key')||node.id||('details-'+index);if(key===focus.detailKey){target=node.querySelector(':scope > summary');return true;}return false;});
+    else if(focus.attribute)Array.prototype.some.call(app.querySelectorAll('['+focus.attribute+']'),function(node){if(node.getAttribute(focus.attribute)===focus.value){target=node;return true;}return false;});
+  }
+  if(target&&!target.disabled){try{target.focus({preventScroll:true});}catch(_){target.focus();}if(focus.selectionStart!==null&&target.setSelectionRange)try{target.setSelectionRange(focus.selectionStart,focus.selectionEnd,focus.selectionDirection);}catch(_){}}
+  if(Number.isFinite(state.scrollY)&&window.scrollTo)window.scrollTo(0,state.scrollY);
+}
+function refreshStageDurations(){
+  app.querySelectorAll('.stage .t[data-start]').forEach(function(node){node.textContent=fmtDur(node.getAttribute('data-start'),node.getAttribute('data-finish')||null);});
+}
+function orderRenderSignature(d){
+  var comparable=JSON.parse(JSON.stringify(d));
+  (comparable.proposals||[]).forEach(function(proposal){(proposal.files||[]).forEach(function(file){delete file.url;});});
+  return JSON.stringify(comparable);
+}
+function refreshSignedLinks(d){
+  app.querySelectorAll('[data-proposal-index][data-file-index]').forEach(function(link){
+    var proposal=(d.proposals||[])[Number(link.getAttribute('data-proposal-index'))],file=proposal&&(proposal.files||[])[Number(link.getAttribute('data-file-index'))];
+    if(file&&file.url)link.href=file.url;
+  });
+}
+function revisionMarker(d,pid){
+  var proposal=((d&&d.proposals)||[]).find(function(item){return String(item.id)===String(pid);});
+  if(!proposal)return '';
+  var fileVersion=Math.max(0,...(proposal.files||[]).map(function(file){return Number(file.version)||1;}));
+  return String(proposal.revisions_used||0)+':'+String(fileVersion);
+}
 
 function render(d){
   var support = d.support || 'hello@ktebli.com';
   if (d.pending){
     misses++;
-    app.innerHTML = '<div class="bigmsg" style="margin-top:60px"><span class="spin"></span>' +
+    var pendingKey='pending:'+String(misses>8);
+    if(lastRenderKey!==pendingKey){app.innerHTML = '<div class="bigmsg" style="margin-top:60px"><span class="spin"></span>' +
       '<h2>Payment confirmed. Setting up your order…</h2>' +
       '<p>This takes a few seconds. We\'ll also email you a tracking link shortly.' +
       (misses>8 ? '<br>Taking longer than usual — this page keeps trying on its own. If no email arrives either, contact <b>' + esc(support) + '</b>.' : '') +
-      '</p></div>';
+      '</p></div>';lastRenderKey=pendingKey;}
     return;
   }
   if (d.order && d.order.token && path[1]==='session'){
@@ -253,6 +329,9 @@ function render(d){
     path = ['orders', d.order.token];
     query = 'token=' + d.order.token;
   }
+  var renderKey=orderRenderSignature(d);
+  if(renderKey===lastRenderKey){refreshSignedLinks(d);refreshStageDurations();return;}
+  var viewState=captureOrderView();
   var o = d.order;
   document.getElementById('foot').innerHTML =
     'Keep this page\'s link — it works from any device. Need help? Write to <a href="mailto:' + esc(support) + '">' + esc(support) + '</a> and quote <b>Order ' + esc(o.order_no) + '</b>.';
@@ -288,7 +367,7 @@ function render(d){
       h += '<div class="stage ' + esc(s.status) + '"><div class="ic ' + esc(s.status) + '">' + ic + '</div>' +
         '<div class="lbl">' + esc(s.label) +
         (s.note? '<span class="note">' + esc(s.note) + '</span>':'') + '</div>' +
-        '<div class="t">' + (s.status==='done'? fmtDur(s.started_at,s.finished_at) : s.status==='running'? fmtDur(s.started_at,null):'') + '</div></div>';
+        '<div class="t" data-start="' + esc(s.started_at||'') + '" data-finish="' + esc(s.finished_at||'') + '">' + (s.status==='done'? fmtDur(s.started_at,s.finished_at) : s.status==='running'? fmtDur(s.started_at,null):'') + '</div></div>';
     });
     h += '</div>';
 
@@ -299,7 +378,7 @@ function render(d){
         var vf = p.files.filter(function(f){ return (f.version||1) === v; });
         if (!vf.length) continue;
         h += '<div class="ft">' + (maxV>1 ? 'Version ' + v + (v===maxV?' — latest':'') : 'Your files') + '</div>';
-        vf.forEach(function(f){ h += '<a class="fbtn" href="' + f.url + '">⬇ ' + esc(f.name) + '</a>'; });
+        vf.forEach(function(f){ h += '<a class="fbtn" data-proposal-index="'+d.proposals.indexOf(p)+'" data-file-index="'+p.files.indexOf(f)+'" href="' + esc(f.url) + '"><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M10 2v10m0 0 4-4m-4 4-4-4M3 13v4h14v-4"/></svg><span>' + esc(f.name) + '</span></a>'; });
       }
       h += '</div>';
     }
@@ -308,15 +387,19 @@ function render(d){
       var left = p.revisions_cap - p.revisions_used;
       h += '<div class="revzone" data-pid="' + esc(p.id) + '">';
       if (left > 0) {
-        h += '<button class="revbtn" data-open="' + esc(p.id) + '">Request changes</button>' +
+        var revisionState=formState[p.id]||{opts:[],details:'',open:false,pending:false,sent:false,message:'',messageType:''};
+        var currentRevisionMarker=revisionMarker(d,p.id);
+        if(revisionState.sent&&revisionState.requestMarker&&revisionState.requestMarker!==currentRevisionMarker){revisionState.sent=false;revisionState.requestMarker='';revisionState.opts=[];revisionState.details='';revisionState.open=false;revisionState.message='';revisionState.messageType='';}
+        h += '<button class="revbtn" data-open="' + esc(p.id) + '" aria-expanded="'+(revisionState.open?'true':'false')+'" aria-controls="rf-'+esc(p.id)+'"><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M11.5 4.5 15.5 8.5M4 16l3.5-.7L16.2 6.6a1.8 1.8 0 0 0-2.5-2.5L5 12.8 4 16Z"/></svg><span>Request changes</span></button>' +
           '<div class="revleft">' + left + ' round' + (left>1?'s':'') + ' of changes included in your package.</div>' +
-          '<div class="revform' + (formState[p.id] ? ' open':'') + '" id="rf-' + esc(p.id) + '">' +
+          '<div class="revform' + (revisionState.open ? ' open':'') + '" id="rf-' + esc(p.id) + '"'+(revisionState.pending?' aria-busy="true"':'')+'>' +
           '<div style="font-weight:700;margin-top:6px">What kind of changes?</div><div class="opts">' +
-          REV_OPTIONS.map(function(op,i){ var sel = (formState[p.id]&&formState[p.id].opts||[]).indexOf(op)>=0;
-            return '<div class="opt'+(sel?' sel':'')+'" data-pid="'+esc(p.id)+'" data-op="'+esc(op)+'">'+esc(op)+'</div>'; }).join('') +
+          REV_OPTIONS.map(function(op){ var sel = revisionState.opts.indexOf(op)>=0;
+            return '<button type="button" class="opt'+(sel?' sel':'')+'" aria-pressed="'+(sel?'true':'false')+'" data-pid="'+esc(p.id)+'" data-op="'+esc(op)+'"'+(revisionState.pending||revisionState.sent||revisionState.blocked?' disabled':'')+'>'+esc(op)+'</button>'; }).join('') +
           '</div>' +
-          '<textarea id="rd-' + esc(p.id) + '" placeholder="Tell us exactly what you want changed.">' + esc((formState[p.id]&&formState[p.id].details)||'') + '</textarea>' +
-          '<br><button class="revsend" data-send="' + esc(p.id) + '">Send revision request</button>' +
+          '<textarea id="rd-' + esc(p.id) + '"'+(revisionState.pending||revisionState.sent||revisionState.blocked?' disabled':'')+' placeholder="Tell us exactly what you want changed.">' + esc(revisionState.details) + '</textarea>' +
+          '<p id="rm-' + esc(p.id) + '" class="revmessage '+esc(revisionState.messageType)+'" role="status" aria-live="polite">'+esc(revisionState.message)+'</p>' +
+          '<button class="revsend" id="rs-' + esc(p.id) + '" data-send="' + esc(p.id) + '"'+(revisionState.pending||revisionState.sent?' disabled':'')+'><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M3 10h13m-5-5 5 5-5 5"/></svg><span>' + (revisionState.pending?'Sending…':revisionState.sent?'Request sent':'Send revision request') + '</span></button>' +
           '</div>';
       } else {
         h += '<div class="revleft">All included rounds of changes for this package have been used. Need more? Write to ' + esc(support) + ' quoting Order ' + esc(o.order_no) + '.</div>';
@@ -326,7 +409,7 @@ function render(d){
     h += '</div>';
   });
   if ((d.buyer_notice_sources && d.buyer_notice_sources.length) || (d.pdf_answers && d.pdf_answers.length)){
-    h += '<details class="source-details"><summary>Source documents and reviewed passages</summary>';
+    h += '<details class="source-details" data-poll-key="source-details"><summary>Source documents and reviewed passages</summary>';
   }
   if (d.buyer_notice_sources && d.buyer_notice_sources.length){
     h += '<section class="buyer-notice"><h2>Documents being reviewed</h2><ul>';
@@ -346,57 +429,94 @@ function render(d){
     h+='</section>';
   }
   if ((d.buyer_notice_sources && d.buyer_notice_sources.length) || (d.pdf_answers && d.pdf_answers.length)) h += '</details>';
-  app.innerHTML = h;
+  app.innerHTML = h;lastRenderKey=renderKey;
   if(d.intake && d.intake.required) setupIntake(d);
 
   // wire revision UI
   app.querySelectorAll('[data-open]').forEach(function(b){
     b.addEventListener('click', function(){
       var pid = b.getAttribute('data-open');
-      formState[pid] = formState[pid] || { opts: [], details: '' };
-      document.getElementById('rf-' + pid).classList.toggle('open');
+      var state=formState[pid]||{opts:[],details:'',open:false,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+      state.open=!state.open;b.setAttribute('aria-expanded',state.open?'true':'false');
+      document.getElementById('rf-' + pid).classList.toggle('open',state.open);
     });
   });
   app.querySelectorAll('.opt').forEach(function(el){
     el.addEventListener('click', function(){
       var pid = el.getAttribute('data-pid'), op = el.getAttribute('data-op');
-      formState[pid] = formState[pid] || { opts: [], details: '' };
-      var i = formState[pid].opts.indexOf(op);
-      if (i >= 0) formState[pid].opts.splice(i,1); else formState[pid].opts.push(op);
-      el.classList.toggle('sel');
+      var state=formState[pid]||{opts:[],details:'',open:true,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+      var i = state.opts.indexOf(op);
+      if (i >= 0) state.opts.splice(i,1); else state.opts.push(op);
+      state.sent=false;state.message='';state.messageType='';
+      var selected=state.opts.indexOf(op)>=0;el.classList.toggle('sel',selected);el.setAttribute('aria-pressed',selected?'true':'false');
+      var send=document.getElementById('rs-'+pid);if(send){send.disabled=state.pending;setControlLabel(send,state.pending?'Sending…':'Send revision request');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked;});
+      if(state.sent||state.blocked){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
+      var message=document.getElementById('rm-'+pid);if(message){message.textContent='';message.className='revmessage';}
     });
   });
   app.querySelectorAll('[data-send]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var pid = b.getAttribute('data-send');
-      var details = (document.getElementById('rd-' + pid) || {}).value || '';
-      var opts = (formState[pid] && formState[pid].opts) || [];
-      if (!opts.length && !details.trim()) { alert('Pick at least one change type or describe what you want changed.'); return; }
-      b.disabled = true; b.textContent = 'Sending…';
-      fetch(FN + '/request-revision', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ token: path[1], proposal_id: pid, options: opts, details: details }) })
-        .then(function(r){ return r.json(); })
-        .then(function(j){
-          if (j.ok) { formState = {}; if (!timer) timer = setInterval(tick, 3500); tick(); }
-          else { b.disabled = false; b.textContent = 'Send revision request';
-                 alert(j.reason === 'no_revisions_left' ? 'All included rounds of changes have been used.' : 'Could not send — try again.'); }
-        })
-        .catch(function(){ b.disabled = false; b.textContent = 'Send revision request'; alert('Could not send — try again.'); });
-    });
+    b.addEventListener('click', function(){ submitRevision(b.getAttribute('data-send')); });
   });
 
   // keep textarea edits across polls
   app.querySelectorAll('.revform textarea').forEach(function(t){
     t.addEventListener('input', function(){
       var pid = t.id.slice(3);
-      formState[pid] = formState[pid] || { opts: [], details: '' };
-      formState[pid].details = t.value;
+      var state=formState[pid]||{opts:[],details:'',open:true,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+      state.details = t.value;state.sent=false;
+      if(state.messageType==='success'){state.message='';state.messageType='';}
+      var send=document.getElementById('rs-'+pid);if(send){send.disabled=state.pending;setControlLabel(send,state.pending?'Sending…':'Send revision request');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked;});
+      if(state.sent||state.blocked){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
+      var message=document.getElementById('rm-'+pid);if(message&&state.messageType===''){message.textContent='';message.className='revmessage';}
     });
   });
 
-  if (o.status==='complete' && timer){ clearInterval(timer); timer=null; }
+  if (o.status==='complete' && timer&&!Object.keys(formState).some(function(pid){return formState[pid]&&(formState[pid].pending||formState[pid].sent); })){ clearInterval(timer); timer=null; }
+  restoreOrderView(viewState);
 }
 
+function submitRevision(pid){
+  var state=formState[pid]||{opts:[],details:'',open:true,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+  if(state.pending||state.sent||state.blocked)return;
+  var details=(document.getElementById('rd-'+pid)||{}).value||'';
+  if(!state.opts.length&&!details.trim()){
+    state.message='Choose a change type or describe what you want changed.';state.messageType='error';
+    var emptyMessage=document.getElementById('rm-'+pid);if(emptyMessage){emptyMessage.textContent=state.message;emptyMessage.className='revmessage error';}
+    var emptyField=document.getElementById('rd-'+pid);if(emptyField)emptyField.focus();return;
+  }
+  state.details=details;state.pending=true;state.message='Sending your request…';state.messageType='pending';
+  state.requestMarker=revisionMarker(latestOrderData,pid);
+  var button=document.getElementById('rs-'+pid),message=document.getElementById('rm-'+pid);
+  if(button){button.disabled=true;setControlLabel(button,'Sending…');button.setAttribute('aria-busy','true');}
+  app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=true;});
+  var field=document.getElementById('rd-'+pid);if(field)field.disabled=true;
+  if(message){message.textContent=state.message;message.className='revmessage pending';}
+  boundedJson(FN + '/request-revision', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:path[1],proposal_id:pid,options:state.opts.slice(),details:details})}, ACTION_TIMEOUT)
+    .then(function(j){
+      state.pending=false;
+      if(j&&j.ok){state.sent=true;state.message='Your change request was sent.';state.messageType='success';if(!timer)timer=setInterval(function(){refreshStageDurations();tick(false);},3500);tick(true);}
+      else if(j&&j.reason==='no_revisions_left'){state.blocked=true;state.message='All included rounds of changes have been used. Contact support for help.';state.messageType='error';}
+      else {state.message='Could not send your request. Your answers are still here; please try again.';state.messageType='error';}
+      var currentButton=document.getElementById('rs-'+pid),currentMessage=document.getElementById('rm-'+pid);
+      if(currentButton){currentButton.disabled=state.sent||state.blocked;setControlLabel(currentButton,state.sent?'Request sent':state.blocked?'No rounds left':'Send revision request');currentButton.removeAttribute('aria-busy');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.sent||state.blocked;});
+      var currentField=document.getElementById('rd-'+pid);if(currentField)currentField.disabled=state.sent||state.blocked;
+      if(currentMessage){currentMessage.textContent=state.message;currentMessage.className='revmessage '+state.messageType;}
+    })
+    .catch(function(error){
+      state.pending=false;state.message=error&&error.name==='AbortError'?'No response arrived before the request timed out. Check the order before trying again; your answers are still here.':'Connection interrupted. Your answers are still here; please try again.';state.messageType='error';
+      var currentButton=document.getElementById('rs-'+pid),currentMessage=document.getElementById('rm-'+pid);
+      if(currentButton){currentButton.disabled=false;setControlLabel(currentButton,'Send revision request');currentButton.removeAttribute('aria-busy');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=false;});
+      var currentField=document.getElementById('rd-'+pid);if(currentField)currentField.disabled=false;
+      if(currentMessage){currentMessage.textContent=state.message;currentMessage.className='revmessage error';}
+      if(!timer)timer=setInterval(function(){refreshStageDurations();tick(false);},3500);
+    });
+}
+
+var ORDER_STATUS_TIMEOUT=12000, ACTION_TIMEOUT=20000;
 var REP = {
   people:     { c: 'rep-people',     fields: [['name', 'Name — e.g. Grace Mbeki'], ['role', 'Role — e.g. Chair']], cls: 'two-col' },
   programmes: { c: 'rep-programmes', fields: [['name', 'Programme — e.g. OpenARMS'], ['what', 'What it does, in a few words']], cls: 'two-col' },
@@ -404,32 +524,38 @@ var REP = {
   partners:   { c: 'rep-partners',   fields: [['v', 'Partner organisation you actually work with']], cls: '' },
   links:      { c: 'rep-links',      fields: [['v', 'https://your-site.org/annual-report']], cls: '' }
 };
-function repRow(kind) {
+function repRow(kind, index) {
   var cfg = REP[kind];
   var row = document.createElement('div'); row.className = 'rep-row';
   var fields = document.createElement('div'); fields.className = 'rep-fields' + (cfg.cls ? (' ' + cfg.cls) : '');
   cfg.fields.forEach(function (f) {
-    var inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = f[1]; inp.setAttribute('data-k', f[0]);
+    var inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = f[1]; inp.id='rep-'+kind+'-'+index+'-'+f[0];inp.setAttribute('data-k', f[0]);
     fields.appendChild(inp);
   });
-  var x = document.createElement('button'); x.type = 'button'; x.className = 'rep-x'; x.setAttribute('aria-label', 'Remove'); x.innerHTML = '&times;';
-  x.addEventListener('click', function () { if (row.parentNode) row.parentNode.removeChild(row); });
+  var x = document.createElement('button'); x.type = 'button'; x.className = 'rep-x'; x.setAttribute('aria-label', 'Remove'); x.innerHTML = '<svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg>';
+  x.addEventListener('click', function () { if (row.parentNode) {row.parentNode.removeChild(row);renumberRep(kind);}rememberIntakeRows(); });
   row.appendChild(fields); row.appendChild(x);
   return row;
 }
-function addRep(kind) { var c = document.getElementById(REP[kind].c); if (c) c.appendChild(repRow(kind)); }
-function collectRep(kind) {
+function addRep(kind) { var c = document.getElementById(REP[kind].c); if (c) {c.appendChild(repRow(kind,c.querySelectorAll('.rep-row').length));rememberIntakeRows();} }
+function renumberRep(kind){var c=document.getElementById(REP[kind].c);if(!c)return;c.querySelectorAll('.rep-row').forEach(function(row,index){row.querySelectorAll('[data-k]').forEach(function(input){input.id='rep-'+kind+'-'+index+'-'+input.getAttribute('data-k');});});}
+function collectRep(kind, includeEmpty) {
   var cfg = REP[kind], out = [];
   document.querySelectorAll('#' + cfg.c + ' .rep-row').forEach(function (r) {
     var o = {}, any = false;
     r.querySelectorAll('[data-k]').forEach(function (inp) {
       var v = inp.value.trim(); o[inp.getAttribute('data-k')] = v; if (v) any = true;
     });
-    if (!any) return;
+    if (!any&&!includeEmpty) return;
     if (cfg.fields.length === 1 && cfg.fields[0][0] === 'v') out.push(o.v);
     else out.push(o);
   });
   return out;
+}
+function rememberIntakeRows(){
+ if(!intakeRows)intakeRows={};
+ Object.keys(INTAKE_LISTS).forEach(function(key){intakeRows[key]=collectRep(INTAKE_LISTS[key],true);});
+ if(document.getElementById('intake-form'))intakeDraft=readIntake();
 }
 function seedRepeaters() {
   Object.keys(REP).forEach(function (k) {
@@ -449,36 +575,72 @@ function readIntake(){
  return {facts:facts,directions:document.getElementById('w-directions').value};
 }
 function syncPaidCurrency(){var other=document.getElementById('w-currency').value==='other';document.getElementById('paid-currency-other').hidden=!other;document.getElementById('w-currency-other').disabled=!other;document.getElementById('w-currency-other').required=other;}
+function completeIntake(token){
+ if(intakeSubmitting||intakeSaved)return;
+ intakeDraft=readIntake();intakeSubmitting=true;intakeStatus='Saving your details…';
+ var button=document.getElementById('save-intake-button'),message=document.getElementById('intake-message');
+ if(button){button.disabled=true;setControlLabel(button,intakeStatus);}if(message){message.textContent=intakeStatus;message.className='revmessage pending';}
+ boundedJson(FN+'/complete-intake',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,revision:intakeServerRevision,facts:intakeDraft.facts,directions:intakeDraft.directions})},ACTION_TIMEOUT)
+  .then(function(result){
+   intakeSubmitting=false;
+   if(!result.ok){intakeStatus=(result.gaps||[]).join(' ')||result.message||'Please try again.';}
+   else {intakeSaved=true;intakeStatus='Saved. Writing will start once the source checks finish.';}
+   var currentButton=document.getElementById('save-intake-button'),currentMessage=document.getElementById('intake-message');
+   if(currentButton){currentButton.disabled=intakeSaved;setControlLabel(currentButton,intakeSaved?'Details saved':'Save details and start writing');}
+   if(currentMessage){currentMessage.textContent=intakeStatus;currentMessage.className='revmessage '+(intakeSaved?'success':result.ok?'success':'error');}
+   applyDeferredOrderData();
+  })
+  .catch(function(error){
+   intakeSubmitting=false;intakeStatus=error&&error.name==='AbortError'?'No response arrived before the save timed out. Your answers are kept here; check the order before trying again.':'Connection interrupted. Your answers are kept here; please try again.';
+   var currentButton=document.getElementById('save-intake-button'),currentMessage=document.getElementById('intake-message');
+   if(currentButton){currentButton.disabled=false;setControlLabel(currentButton,'Save details and start writing');}
+   if(currentMessage){currentMessage.textContent=intakeStatus;currentMessage.className='revmessage error';}
+   applyDeferredOrderData();
+  });
+}
+function applyDeferredOrderData(){
+ if(deferredOrderData){var data=deferredOrderData;deferredOrderData=null;render(data);}
+ else tick(true);
+}
 function setupIntake(d){
  var state=intakeDraft||{facts:d.intake.facts||{},directions:d.intake.directions||''};
+ intakeServerRevision=d.intake.revision;
  var source=d.source_summary||{};['proposal_type','currency','response_language'].forEach(function(k){if(!state.facts[k]&&!intakeTouched[k]&&source[k])state.facts[k]=source[k];});
  Object.keys(INTAKE_FIELDS).forEach(function(k){document.getElementById(INTAKE_FIELDS[k]).value=state.facts[k]||'';});
  var requiredLanguage=source.response_language;if(['en','ar'].includes(requiredLanguage)){state.facts.response_language=requiredLanguage;document.getElementById('w-response-language').value=requiredLanguage;document.getElementById('w-response-language').disabled=true;document.getElementById('language-help').textContent='The issuer requires '+(requiredLanguage==='ar'?'Arabic':'English')+' for this submission.';}else if(/\p{Script=Arabic}/u.test(source.title||'')&&!state.facts.response_language){document.getElementById('w-response-language').required=true;document.getElementById('language-help').textContent='This source includes Arabic. Confirm English or Arabic for your documents; the source language alone does not decide the submission language.';}
  var currency=state.facts.currency||'',standard=['USD','LBP','EUR','GBP'].includes(currency);document.getElementById('w-currency').value=currency?(standard?currency:'other'):'';document.getElementById('w-currency-other').value=currency&&!standard?currency:'';syncPaidCurrency();
  if(source.proposal_type||source.currency)document.getElementById('source-field-note').textContent='Type and currency may be suggested from the source. Confirm both before saving.';
+ document.getElementById('intake-message').textContent=intakeStatus;
+ var saveButton=document.getElementById('save-intake-button');saveButton.disabled=intakeSubmitting||intakeSaved;setControlLabel(saveButton,intakeSubmitting?'Saving details…':intakeSaved?'Details saved':'Save details and start writing');
  document.getElementById('w-currency').addEventListener('change',syncPaidCurrency);document.getElementById('w-currency-other').addEventListener('input',function(){this.value=this.value.replace(/[^a-z]/gi,'').toUpperCase().slice(0,3);intakeTouched.currency=true;intakeDraft=readIntake();});
  Object.keys(INTAKE_CHECKS).forEach(function(k){document.getElementById(INTAKE_CHECKS[k]).checked=state.facts[k]===true;});
  document.getElementById('w-directions').value=state.directions;
- Object.keys(INTAKE_LISTS).forEach(function(k){var kind=INTAKE_LISTS[k],container=document.getElementById(REP[kind].c);(state.facts[k]||[]).forEach(function(value){var row=repRow(kind);row.querySelectorAll('[data-k]').forEach(function(input){input.value=typeof value==='string'?value:value[input.dataset.k]||'';});container.appendChild(row);});});
+ if(!intakeRows)intakeRows={};
+ Object.keys(INTAKE_LISTS).forEach(function(k){var kind=INTAKE_LISTS[k],container=document.getElementById(REP[kind].c),rows=Array.isArray(intakeRows[k])?intakeRows[k]:(state.facts[k]||[]);intakeRows[k]=rows.slice();rows.forEach(function(value,index){var row=repRow(kind,index);row.querySelectorAll('[data-k]').forEach(function(input){input.value=typeof value==='string'?value:value[input.dataset.k]||'';});container.appendChild(row);});});
  seedRepeaters();
  [['add-people','people'],['add-programmes','programmes'],['add-results','results'],['add-partners','partners'],['add-links','links']].forEach(function(pair){document.getElementById(pair[0]).addEventListener('click',function(){addRep(pair[1]);});});
- var form=document.getElementById('intake-form');form.addEventListener('input',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});intakeDraft=readIntake();});form.addEventListener('change',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});intakeDraft=readIntake();});
- form.addEventListener('submit',async function(e){e.preventDefault();intakeDraft=readIntake();var button=form.querySelector('[type="submit"]'),message=document.getElementById('intake-message');button.disabled=true;message.textContent='Saving your details…';
-  try {var r=await fetch(FN+'/complete-intake',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:d.order.token,revision:d.intake.revision,facts:intakeDraft.facts,directions:intakeDraft.directions})});var result=await r.json();
-   if(!result.ok){message.textContent=(result.gaps||[]).join(' ')||result.message||'Please try again.';button.disabled=false;return;}
-   intakeDraft=null;message.textContent='Saved. Writing will start once the source checks finish.';document.activeElement.blur();tick();
-  }catch{message.textContent='Connection interrupted. Your answers are kept on this page; please try again.';button.disabled=false;}
- });
+ var form=document.getElementById('intake-form');form.addEventListener('input',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});rememberIntakeRows();});form.addEventListener('change',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});rememberIntakeRows();});
+ form.addEventListener('submit',function(e){e.preventDefault();completeIntake(d.order.token);});
 }
 
-function tick(){
-  fetch(FN + '/order-status?' + query)
-    .then(function(r){ return r.json(); })
-    .then(function(d){latestOrderData=d;if(document.activeElement && document.activeElement.closest && document.activeElement.closest("#paid-intake"))return;render(d);})
-    .catch(function(){ /* keep last view; retry next tick */ });
+function tick(force){
+  if(pollActive){if(force!==false)pollAgain=true;return;}
+  pollActive=true;var requestSequence=++pollSequence,requestQuery=query;
+  boundedJson(FN + '/order-status?' + requestQuery,null,ORDER_STATUS_TIMEOUT)
+    .then(function(d){
+      if(requestSequence!==pollSequence||requestQuery!==query)return;
+      latestOrderData=d;var error=document.getElementById('order-poll-error');error.hidden=true;error.querySelector('span').textContent='';
+      if(intakeSubmitting){deferredOrderData=d;return;}
+      render(d);
+    })
+    .catch(function(){
+      if(requestSequence!==pollSequence||requestQuery!==query)return;
+      var error=document.getElementById('order-poll-error');error.hidden=false;error.querySelector('span').textContent='Could not refresh this order. Your current details are still here; we will try again automatically.';
+    })
+    .finally(function(){pollActive=false;if(pollAgain){pollAgain=false;tick(true);}});
 }
-tick();
-timer = setInterval(tick, 3500);
+tick(true);
+timer = setInterval(function(){refreshStageDurations();tick(false);}, 3500);
 </script>
 </body>
 </html>

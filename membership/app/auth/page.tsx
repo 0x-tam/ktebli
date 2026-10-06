@@ -412,7 +412,10 @@ export default function AuthPage() {
               {busy ? (
                 <span className="auth-spinner" aria-hidden="true" />
               ) : (
-                <span aria-hidden="true">↗</span>
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M11.5 3.5h5v5M16.2 3.8 9 11" />
+                  <path d="M15 10.5v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h4" />
+                </svg>
               )}
             </button>
             {busy && (

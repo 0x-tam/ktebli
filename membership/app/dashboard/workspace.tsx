@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
+import { runBoundedAuthCall } from "@/lib/auth/flow";
 import { isMembershipActive } from "@/lib/contracts";
 import { accountPath } from "@/lib/paths";
 type Opportunity = {
@@ -78,6 +79,27 @@ const date = (value: string) =>
     year: "numeric",
   });
 
+function ExternalLinkIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M11.5 3.5h5v5M16.2 3.8 9 11" />
+      <path d="M15 10.5v4A1.5 1.5 0 0 1 13.5 16h-9A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h4" />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ saved = false }: { saved?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill={saved ? "currentColor" : "none"}
+      aria-hidden="true"
+    >
+      <path d="M5 3.5h10v13L10 13.4l-5 3.1v-13Z" />
+    </svg>
+  );
+}
+
 function OpportunityRow({
   opportunity: o,
   active,
@@ -148,11 +170,11 @@ function OpportunityRow({
           className="button"
           href={`${proposalOrigin}/?prepare=${encodeURIComponent(o.id)}`}
         >
-          Prepare proposal ↗
+          Prepare proposal <ExternalLinkIcon />
         </a>
         <div className="opportunity-row-secondary">
           <a href={o.source_url} target="_blank" rel="noreferrer">
-            Original notice ↗
+            Original notice <ExternalLinkIcon />
           </a>
           <button
             ref={detailsTrigger}
@@ -169,7 +191,8 @@ function OpportunityRow({
               aria-pressed={o.saved}
               onClick={onSave}
             >
-              {o.saved ? "Saved ◆" : "Save ◇"}
+              <BookmarkIcon saved={o.saved} />
+              {o.saved ? "Saved" : "Save"}
             </button>
           )}
         </div>
@@ -195,7 +218,9 @@ function OpportunityRow({
             aria-label="Close opportunity details"
             onClick={() => detailsDialog.current?.close()}
           >
-            ×
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="m5 5 10 10M15 5 5 15" />
+            </svg>
           </button>
         </div>
         <div className="opportunity-details-summary">
@@ -228,7 +253,7 @@ function OpportunityRow({
               <p dir="auto" key={index}>
                 <strong>{item.label}</strong> — {item.text}{" "}
                 <a href={item.url} target="_blank" rel="noreferrer">
-                  Source ↗
+                  Source <ExternalLinkIcon />
                 </a>
               </p>
             ))}
@@ -243,7 +268,8 @@ function OpportunityRow({
                 target="_blank"
                 rel="noreferrer"
               >
-                {locale.locale === "ar" ? "العربية" : "English"} ↗
+                {locale.locale === "ar" ? "العربية" : "English"}{" "}
+                <ExternalLinkIcon />
               </a>
             ))}
           </div>
@@ -256,7 +282,8 @@ function OpportunityRow({
               .map((alias) => (
                 <p key={`${alias.source}:${alias.source_url}`}>
                   <a href={alias.source_url} target="_blank" rel="noreferrer">
-                    {alias.source.toUpperCase()}: {alias.title} ↗
+                    {alias.source.toUpperCase()}: {alias.title}{" "}
+                    <ExternalLinkIcon />
                   </a>
                 </p>
               ))}
@@ -267,10 +294,10 @@ function OpportunityRow({
             className="button"
             href={`${proposalOrigin}/?prepare=${encodeURIComponent(o.id)}`}
           >
-            Prepare proposal ↗
+            Prepare proposal <ExternalLinkIcon />
           </a>
           <a href={o.source_url} target="_blank" rel="noreferrer">
-            Open original notice ↗
+            Open original notice <ExternalLinkIcon />
           </a>
           <button type="button" onClick={() => detailsDialog.current?.close()}>
             Done
@@ -362,6 +389,13 @@ export default function Dashboard({
   );
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [noticeKind, setNoticeKind] = useState<"success" | "error">("success");
+  const [busyAction, setBusyAction] = useState("");
+  const actionInFlight = useRef(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
+  const verificationCodeInput = useRef<HTMLInputElement | null>(null);
   const [profile, setProfile] = useState<Profile>(
     initial.profile ?? {
       organization_name: "",
@@ -499,14 +533,27 @@ export default function Dashboard({
     if (!response.ok) throw new Error(result.error ?? "Please try again");
     return result;
   }
-  async function act(fn: () => Promise<void>) {
+  async function act(
+    fn: () => Promise<void>,
+    action = "",
+    onError?: (error: unknown) => void,
+  ) {
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
     setBusy(true);
+    setBusyAction(action);
     setNotice("");
     try {
       await fn();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Please try again");
+      if (onError) onError(error);
+      else {
+        setNoticeKind("error");
+        setNotice(error instanceof Error ? error.message : "Please try again");
+      }
     } finally {
+      actionInFlight.current = false;
+      setBusyAction("");
       setBusy(false);
     }
   }
@@ -535,8 +582,9 @@ export default function Dashboard({
         "PUT",
       );
       publicFilterCache.current.clear();
+      setNoticeKind("success");
       setNotice("Profile saved. Fresh matches will use these details.");
-    });
+    }, "profile");
   }
   return (
     <div className="workspace">
@@ -627,15 +675,17 @@ export default function Dashboard({
             <small>{email}</small>
           </div>
           <button
-            title="Sign out"
-            aria-label="Sign out"
+            title={busyAction === "signout" ? "Signing out" : "Sign out"}
+            aria-label={busyAction === "signout" ? "Signing out" : "Sign out"}
+            disabled={busy}
+            aria-busy={busy && busyAction === "signout"}
             onClick={() =>
               void act(async () => {
                 const result = await authClient.signOut();
                 if (result.error) throw new Error(result.error.message);
                 router.replace("/");
                 router.refresh();
-              })
+              }, "signout")
             }
           >
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -671,38 +721,137 @@ export default function Dashboard({
           </span>
         </header>
         {notice && (
-          <p role="status" className="notice">
+          <p
+            role={noticeKind === "error" ? "alert" : "status"}
+            className={`notice notice-${noticeKind}`}
+          >
             {notice}
           </p>
         )}
         {!verified && (
           <div className="notice">
             Verify your email before subscribing.{" "}
-            <button
-              disabled={busy}
-              onClick={() =>
-                void act(async () => {
-                  const r = await authClient.emailOtp.sendVerificationOtp({
-                    email,
-                    type: "email-verification",
-                  });
-                  if (r.error) throw new Error(r.error.message);
-                  const otp = window.prompt(
-                    "Enter the verification code sent to your email",
+            {!verificationSent ? (
+              <button
+                disabled={busy}
+                onClick={() =>
+                  void act(async () => {
+                    const result = await runBoundedAuthCall((signal) =>
+                      authClient.emailOtp.sendVerificationOtp({
+                        email,
+                        type: "email-verification",
+                        fetchOptions: { signal },
+                      }),
+                    );
+                    if (result.error) throw new Error(result.error.message);
+                    setVerificationSent(true);
+                    setTimeout(() => verificationCodeInput.current?.focus(), 0);
+                  }, "verification")
+                }
+              >
+                {busy && busyAction === "verification"
+                  ? "Sending code…"
+                  : "Send verification code"}
+              </button>
+            ) : (
+              <form
+                className="verification-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void act(
+                    async () => {
+                      const result = await runBoundedAuthCall((signal) =>
+                        authClient.emailOtp.verifyEmail({
+                          email,
+                          otp: verificationCode,
+                          fetchOptions: { signal },
+                        }),
+                      );
+                      if (result.error) throw new Error(result.error.message);
+                      const session = await runBoundedAuthCall((signal) =>
+                        authClient.getSession({ fetchOptions: { signal } }),
+                      );
+                      if (!session.data?.user?.emailVerified) {
+                        throw new Error(
+                          "Your email was confirmed, but the session could not be updated. Please refresh and try again.",
+                        );
+                      }
+                      window.location.reload();
+                    },
+                    "verification",
+                    (error) => {
+                      setVerificationError(
+                        error instanceof Error
+                          ? error.message
+                          : "We could not check that code. Please try again.",
+                      );
+                      requestAnimationFrame(() =>
+                        verificationCodeInput.current?.focus(),
+                      );
+                    },
                   );
-                  if (otp) {
-                    const v = await authClient.emailOtp.verifyEmail({
-                      email,
-                      otp,
-                    });
-                    if (v.error) throw new Error(v.error.message);
-                    window.location.reload();
+                }}
+              >
+                <p className="verification-help" role="status">
+                  If this address can receive a verification code, check your
+                  inbox and spam.
+                </p>
+                <label>
+                  Verification code
+                  <input
+                    ref={verificationCodeInput}
+                    required
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    aria-invalid={Boolean(verificationError)}
+                    aria-describedby={
+                      verificationError ? "verification-code-error" : undefined
+                    }
+                    value={verificationCode}
+                    onChange={(event) => {
+                      setVerificationCode(event.target.value);
+                      setVerificationError("");
+                    }}
+                  />
+                  {verificationError && (
+                    <small id="verification-code-error" role="alert">
+                      {verificationError}
+                    </small>
+                  )}
+                </label>
+                <button disabled={busy || !verificationCode.trim()}>
+                  {busy && busyAction === "verification"
+                    ? "Verifying…"
+                    : "Verify email"}
+                </button>
+                <button
+                  type="button"
+                  className="verification-resend"
+                  disabled={busy}
+                  onClick={() =>
+                    void act(async () => {
+                      const result = await runBoundedAuthCall((signal) =>
+                        authClient.emailOtp.sendVerificationOtp({
+                          email,
+                          type: "email-verification",
+                          fetchOptions: { signal },
+                        }),
+                      );
+                      if (result.error) throw new Error(result.error.message);
+                      setVerificationError("");
+                      setNoticeKind("success");
+                      setNotice(
+                        "If this address needs verification, check your inbox and spam for a new code.",
+                      );
+                    }, "verification")
                   }
-                })
-              }
-            >
-              Send verification code
-            </button>
+                >
+                  {busy && busyAction === "verification"
+                    ? "Sending a new code…"
+                    : "Send a new code"}
+                </button>
+              </form>
+            )}
           </div>
         )}
         {active ? (
@@ -730,15 +879,22 @@ export default function Dashboard({
             </div>
             <button
               disabled={busy}
+              aria-busy={busy && busyAction === "portal"}
               className="button"
               onClick={() =>
                 void act(async () => {
                   const r = await api("/api/billing/portal");
                   window.location.assign(r.url);
-                })
+                }, "portal")
               }
             >
-              Manage membership ↗
+              {busy && busyAction === "portal" ? (
+                "Opening membership…"
+              ) : (
+                <>
+                  Manage membership <ExternalLinkIcon />
+                </>
+              )}
             </button>
           </section>
         ) : null}
@@ -941,8 +1097,14 @@ export default function Dashboard({
                   </label>
                 </div>
               </details>
-              <button className="button" disabled={busy}>
-                Save profile ↗
+              <button
+                className="button"
+                disabled={busy}
+                aria-busy={busy && busyAction === "profile"}
+              >
+                {busy && busyAction === "profile"
+                  ? "Saving profile…"
+                  : "Save profile"}
               </button>
             </form>
           </section>
@@ -950,7 +1112,11 @@ export default function Dashboard({
           <section className="alerts-panel">
             {!active ? (
               <div className="empty">
-                <span>◉</span>
+                <span className="empty-icon" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none">
+                    <path d="M24 12a8 8 0 0 0-16 0c0 9-3 9-3 11h22c0-2-3-2-3-11ZM13 27h6" />
+                  </svg>
+                </span>
                 <h2>Alerts come with membership.</h2>
                 <p>
                   You can browse the public opportunity board with your free
@@ -971,13 +1137,14 @@ export default function Dashboard({
                         target="_blank"
                         rel="noreferrer"
                       >
-                        {alert.title} ↗
+                        {alert.title} <ExternalLinkIcon />
                       </a>
                     </h2>
                   </div>
                   {!alert.read_at && (
                     <button
                       disabled={busy}
+                      aria-busy={busy && busyAction === `alert:${alert.id}`}
                       onClick={() =>
                         void act(async () => {
                           await api("/api/alerts", { id: alert.id });
@@ -989,17 +1156,23 @@ export default function Dashboard({
                                 : a,
                             ),
                           });
-                        })
+                        }, `alert:${alert.id}`)
                       }
                     >
-                      Mark read
+                      {busy && busyAction === `alert:${alert.id}`
+                        ? "Marking read…"
+                        : "Mark read"}
                     </button>
                   )}
                 </article>
               ))
             ) : (
               <div className="empty">
-                <span>◉</span>
+                <span className="empty-icon" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none">
+                    <path d="M24 12a8 8 0 0 0-16 0c0 9-3 9-3 11h22c0-2-3-2-3-11ZM13 27h6" />
+                  </svg>
+                </span>
                 <h2>You’re up to date.</h2>
                 <p>
                   New strong matches will appear here after your profile and
@@ -1010,7 +1183,9 @@ export default function Dashboard({
           </section>
         ) : tab === "saved" && !active ? (
           <section className="empty">
-            <span>◇</span>
+            <span className="empty-icon" aria-hidden="true">
+              <BookmarkIcon />
+            </span>
             <h2>Saved notices come with membership.</h2>
             <p>
               You can browse every imported public notice in Discover with your
@@ -1022,7 +1197,7 @@ export default function Dashboard({
                 void loadMore(true, false);
               }}
             >
-              Open opportunity board ↗
+              Open opportunity board <ExternalLinkIcon />
             </button>
           </section>
         ) : (
@@ -1033,7 +1208,7 @@ export default function Dashboard({
                   {boardResetting
                     ? "Loading filtered notices…"
                     : boardError
-                      ? "Results unavailable. Previous results are hidden."
+                      ? "Results unavailable. Previous results remain visible."
                       : `${data.filteredCount} matching notices · Showing ${visible.length}. Always confirm dates and eligibility with the issuer.`}
                 </p>
               </div>
@@ -1160,7 +1335,7 @@ export default function Dashboard({
             )}
             {boardError && (
               <div role="alert" className="notice">
-                {boardError}{" "}
+                {boardError} Previous results remain visible.{" "}
                 <button
                   type="button"
                   onClick={() =>
@@ -1175,74 +1350,84 @@ export default function Dashboard({
                 </button>
               </div>
             )}
-            {!boardResetting && !boardError && (
-              <section className="opportunity-grid">
-                {visible.length ? (
-                  visible.map((o) => (
-                    <OpportunityRow
-                      key={o.id}
-                      opportunity={o}
-                      active={active}
-                      busy={busy}
-                      now={now}
-                      proposalOrigin={proposalOrigin}
-                      onSave={() =>
-                        void act(async () => {
-                          await api("/api/saved", {
-                            opportunityId: o.id,
-                            saved: !o.saved,
-                          });
-                          publicFilterCache.current.clear();
-                          setData((previous) => ({
-                            ...previous,
-                            opportunities: previous.opportunities.map((item) =>
-                              item.id === o.id
-                                ? { ...item, saved: !item.saved }
-                                : item,
-                            ),
-                          }));
-                        })
+            <section
+              className={`opportunity-grid${boardResetting ? " is-refreshing" : ""}`}
+              aria-busy={boardBusy}
+              inert={boardResetting || Boolean(boardError)}
+            >
+              {visible.length ? (
+                visible.map((o) => (
+                  <OpportunityRow
+                    key={o.id}
+                    opportunity={o}
+                    active={active}
+                    busy={busy}
+                    now={now}
+                    proposalOrigin={proposalOrigin}
+                    onSave={() =>
+                      void act(async () => {
+                        await api("/api/saved", {
+                          opportunityId: o.id,
+                          saved: !o.saved,
+                        });
+                        publicFilterCache.current.clear();
+                        setData((previous) => ({
+                          ...previous,
+                          opportunities: previous.opportunities.map((item) =>
+                            item.id === o.id
+                              ? { ...item, saved: !item.saved }
+                              : item,
+                          ),
+                        }));
+                      })
+                    }
+                  />
+                ))
+              ) : (
+                <div className="empty">
+                  <span className="empty-icon" aria-hidden="true">
+                    <BookmarkIcon />
+                  </span>
+                  <h2>
+                    {tab === "saved"
+                      ? "Room for your next big idea."
+                      : "No notices match these filters."}
+                  </h2>
+                  <p>
+                    {tab === "saved"
+                      ? "Save interesting notices from Discover and come back when you’re ready."
+                      : "Try another type, source, status, deadline, or search term."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (tab === "saved") {
+                        setTab("discover");
+                        void loadMore(true, false);
+                      } else {
+                        setQuery("");
+                        void loadMore(true, false, {
+                          query: "",
+                          kind: "all",
+                          source: "all",
+                          status: "all",
+                          deadline: "all",
+                        });
                       }
-                    />
-                  ))
-                ) : (
-                  <div className="empty">
-                    <span>◇</span>
-                    <h2>
-                      {tab === "saved"
-                        ? "Room for your next big idea."
-                        : "No notices match these filters."}
-                    </h2>
-                    <p>
-                      {tab === "saved"
-                        ? "Save interesting notices from Discover and come back when you’re ready."
-                        : "Try another type, source, status, deadline, or search term."}
-                    </p>
-                    <button
-                      onClick={() => {
-                        if (tab === "saved") {
-                          setTab("discover");
-                          void loadMore(true, false);
-                        } else {
-                          setQuery("");
-                          void loadMore(true, false, {
-                            query: "",
-                            kind: "all",
-                            source: "all",
-                            status: "all",
-                            deadline: "all",
-                          });
-                        }
-                      }}
-                    >
-                      {tab === "saved"
-                        ? "Explore opportunities ↗"
-                        : "Clear filters ↗"}
-                    </button>
-                  </div>
-                )}
-              </section>
-            )}
+                    }}
+                  >
+                    {tab === "saved" ? (
+                      <>
+                        Explore opportunities <ExternalLinkIcon />
+                      </>
+                    ) : (
+                      <>
+                        Clear filters <ExternalLinkIcon />
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </section>
             {!boardError && !boardResetting && data.nextCursor && (
               <button
                 className="button subtle"
@@ -1267,15 +1452,18 @@ export default function Dashboard({
             {billingEnabled && (
               <button
                 disabled={busy}
+                aria-busy={busy && busyAction === "checkout"}
                 className="button subtle"
                 onClick={() =>
                   void act(async () => {
                     const r = await api("/api/billing/checkout");
                     window.location.assign(r.url);
-                  })
+                  }, "checkout")
                 }
               >
-                Join membership
+                {busy && busyAction === "checkout"
+                  ? "Opening checkout…"
+                  : "Join membership"}
               </button>
             )}
           </aside>

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8');
 class Element {
-  constructor() { this.children=[]; this.style={}; this.dataset={}; this.value=''; this.events={}; }
+  constructor() { this.children=[]; this.style={}; this.dataset={}; this.value=''; this.events={}; this.classes=new Set(); this.classList={add:(name)=>this.classes.add(name),remove:(name)=>this.classes.delete(name),contains:(name)=>this.classes.has(name)}; this.offsetWidth=0; }
   appendChild(x) { this.children.push(x); return x; }
   append(...items) { this.children.push(...items); }
   replaceChildren() { this.children=[]; }
@@ -49,6 +49,9 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
  assert.equal((content(document.getElementById('gpreview')).match(/Link saved/g)||[]).length,1);
  assert.equal(document.getElementById('gpreview')['aria-busy'],'false');
  assert.doesNotMatch(content(document.getElementById('gpreview')),/Not found on this page|Not stated on this page/);
+ ctx.showOpportunityResult({status:'blocked',message:'The illustrative source could not be read.',quick_preview:{status:'preview',display_title:'Illustrative source unavailable',failure_reason:'verification_required'}});
+ assert.match(content(document.getElementById('gpreview')),/The illustrative source could not be read/);
+ assert.doesNotMatch(content(document.getElementById('gpreview')),/undefined/,'partial source preview fields stay omitted instead of rendering undefined');
  ctx.showOpportunityResult({status:'processing',awaiting_payment:true,quick_preview:{status:'preview',expected:'Full reading after payment'}});
  assert.match(content(document.getElementById('gpreview')),/Deadline Not confirmed from this page/);
  ctx.showOpportunityResult({status:'processing',awaiting_payment:true,quick_preview:{status:'preview',funding_excerpt:null,currency:'USD'}});

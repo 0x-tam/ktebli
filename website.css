@@ -561,7 +561,7 @@
   border-bottom: 1.5px solid var(--forest);
   content: "";
   transform: rotate(45deg) translateY(-2px);
-  transition: transform 0.16s ease;
+  transition: transform var(--motion-state) var(--motion-ease);
 }
 .intake-extra[open] summary::after {
   transform: rotate(225deg) translateY(-2px);
@@ -612,7 +612,7 @@
   border-bottom: 1.5px solid var(--forest);
   content: "";
   transform: rotate(45deg) translateY(-2px);
-  transition: transform 0.16s ease;
+  transition: transform var(--motion-state) var(--motion-ease);
 }
 .opportunity-sources[open] summary::after,
 .preview-more[open] summary::after {
@@ -1115,7 +1115,7 @@ header {
   border-bottom: 1.5px solid currentColor;
   content: "";
   transform: rotate(45deg) translateY(-2px);
-  transition: transform 0.16s ease;
+  transition: transform var(--motion-state) var(--motion-ease);
 }
 .sample-disclosure[open] > summary::after,
 .tier-details[open] > summary::after,
@@ -1188,6 +1188,127 @@ header {
   font-size: 0.8rem;
   font-weight: 400;
 }
+
+/* Shared public-site feedback follows the 120 / 180 / 240 ms motion rhythm. */
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: transparent;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--motion-state);
+  transition-timing-function: var(--motion-ease);
+}
+button:disabled,
+.btn:disabled {
+  cursor: not-allowed;
+}
+button:active:not(:disabled):not(.wiz-x),
+summary:active {
+  transform: translateY(1px);
+}
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  transition: border-color var(--motion-state) var(--motion-ease), box-shadow var(--motion-state) var(--motion-ease), background-color var(--motion-state) var(--motion-ease);
+}
+
+.tab-arrow {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--motion-state) var(--motion-ease), transform var(--motion-state) var(--motion-ease);
+}
+.tab-arrow svg,
+.wiz-x svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+.sample-tabs button:hover .tab-arrow,
+.sample-tabs button[aria-selected="true"] .tab-arrow {
+  transform: translate(1px, -1px);
+}
+.sample-page.is-entering {
+  animation: sample-page-enter var(--motion-state) var(--motion-ease) both;
+}
+@keyframes sample-page-enter {
+  from { opacity: 0.72; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wiz-x {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  border-radius: 50%;
+}
+.wiz-x:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.wiz-x:active {
+  transform: scale(0.96);
+}
+.wiz-overlay.open {
+  animation: wiz-overlay-enter var(--motion-surface) var(--motion-ease) both;
+}
+.wiz-overlay.closing {
+  display: block;
+  pointer-events: none;
+  animation: wiz-overlay-exit 160ms ease-in both;
+}
+.wiz {
+  transform-origin: center top;
+}
+.wiz-overlay.open .wiz {
+  animation: wiz-surface-enter var(--motion-surface) var(--motion-ease) both;
+}
+.wiz-overlay.closing .wiz {
+  animation: wiz-surface-exit 160ms ease-in both;
+}
+.wiz-step.on {
+  animation: wiz-step-enter var(--motion-state) var(--motion-ease) both;
+}
+.wiz-dots .d {
+  transition: color var(--motion-state) var(--motion-ease), border-color var(--motion-state) var(--motion-ease), background-color var(--motion-state) var(--motion-ease);
+}
+@keyframes wiz-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes wiz-overlay-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes wiz-surface-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes wiz-surface-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(3px) scale(0.99); }
+}
+@keyframes wiz-step-enter {
+  from { opacity: 0.72; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gpreview.preview-entering {
+  animation: preview-enter var(--motion-surface) var(--motion-ease) both;
+}
+@keyframes preview-enter {
+  from { opacity: 0.76; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 700px) {
   header {
     padding: 50px 0 42px;
@@ -1200,6 +1321,30 @@ header {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  a,
+  button,
+  summary,
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms !important;
+  }
+  button:active:not(:disabled):not(.wiz-x),
+  summary:active,
+  .sample-tabs button:hover .tab-arrow,
+  .sample-tabs button[aria-selected="true"] .tab-arrow {
+    transform: none;
+  }
+  .sample-page.is-entering,
+  .wiz-overlay.open,
+  .wiz-overlay.closing,
+  .wiz-overlay.open .wiz,
+  .wiz-overlay.closing .wiz,
+  .wiz-step.on,
+  .gpreview.preview-entering {
+    animation: none;
+  }
   .sample-disclosure > summary::after,
   .tier-details > summary::after,
   .wiz .intake-extra > summary::after {
