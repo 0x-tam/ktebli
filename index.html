@@ -307,6 +307,13 @@ footer a:hover{color:var(--coral)}
   .trialstrip{padding:18px}
 }
 </style>
+<style>
+.catalogue-context{border:1px solid #d4dfd1;background:#f3f7ef;border-radius:9px;padding:13px 16px;margin:0 0 17px;line-height:1.5}
+.catalogue-context strong{display:block;color:#20392f;overflow-wrap:anywhere}
+.catalogue-context p{margin:5px 0 0;font-size:13px;color:#596b5e}
+.catalogue-context a{text-decoration:underline;text-underline-offset:3px}
+.catalogue-context .catalogue-warning{color:#845329}
+</style>
 <link rel="stylesheet" href="/website.css?v=two-services-2">
 <script src="/website.js" defer></script>
 </head>
@@ -615,6 +622,7 @@ footer a:hover{color:var(--coral)}
       <div class="wiz-step" data-step="0">
         <h3>Start with the opportunity</h3>
         <p class="ws-sub">Paste your link. We’ll fetch the page details and fill what we can. Full reading of the brief and attachments starts after payment.</p>
+        <div id="catalogue-context" class="catalogue-context" role="status" aria-live="polite" hidden></div>
         <div class="field"><label for="w-grant">Opportunity link or brief <span class="rq">*</span></label><textarea id="w-grant" placeholder="https://... or paste the guidelines here"></textarea><div id="opportunity-paste-source" class="field-help" hidden></div></div>
         <div id="gpreview" class="gpreview" role="status" aria-live="polite" style="display:none"></div>
         <p class="field-help opportunity-note">Your answers and proposal stay private. All four originality locks apply.</p>
@@ -666,7 +674,9 @@ footer a:hover{color:var(--coral)}
 var ENDPOINT = "";
 // Activate only after the same-site membership credit bridge passes release checks.
 var MEMBERSHIP_CHECKOUT_PATH = "";
-var memberIntent = new URLSearchParams(window.location.search).get('membership') === '1';
+var prepareReference = new URLSearchParams(window.location.search).get('prepare') || '';
+var hasPrepareReference = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(prepareReference);
+var memberIntent = !hasPrepareReference && new URLSearchParams(window.location.search).get('membership') === '1';
 
 // Server-owned Stripe tier links. Activate prepared links only after launch acceptance.
 var PAYLINKS = {
@@ -847,10 +857,13 @@ function renderReviewPackage(tier, type) {
   document.getElementById('review-package').innerHTML = h;
 }
 
+var catalogueHandoffEpoch = 0, catalogueHandoffPending = false, catalogueContextTitle = '';
 var wiz = {
   el: document.getElementById('wiz'),
   step: 0, last: 3, tier: 'competitive', files: [], intakeId: null, pendingToken: null, pendingEmail: null,
   open: function (tier) {
+    catalogueHandoffEpoch++;
+    if(catalogueHandoffPending){catalogueHandoffPending=false;var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
     this.tier = ownerTestInvite ? 'full' : (tier || 'competitive');
     // Source discovery comes first even when a package has been preselected.
     this.step = 0;
@@ -860,6 +873,9 @@ var wiz = {
     this.render();
   },
   close: function () {
+    catalogueHandoffEpoch++;
+    if(catalogueHandoffPending){var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
+    catalogueHandoffPending = false;
     this.el.classList.remove('open');
     document.body.style.overflow = '';
   },
@@ -950,6 +966,12 @@ var wiz = {
     var h = '';
     rows.forEach(function (r) { h += '<div class="sumrow"><span class="sk">' + esch(r[0]) + '</span><span class="sv">' + esch(r[1] || '—') + '</span></div>'; });
     document.getElementById('summary').innerHTML = h;
+    if (catalogueContextTitle && this.val('w-grant') === catalogueContextSource) {
+      var catalogueSummary = document.createElement('p');
+      catalogueSummary.className = 'field-help';
+      catalogueSummary.textContent = 'Selected catalogue notice: ' + catalogueContextTitle + '. This is a source hint; confirm the issuer’s requirements and deadline.';
+      document.getElementById('summary').appendChild(catalogueSummary);
+    }
     renderReviewPackage(this.tier, this.val('w-proposal-type'));
     var note = 'Secure payment with Stripe. Next, add the work you propose and any helpful background on your order page. We read the full brief and attachments, then draft and check your package.';
     var pn = this.el.querySelector('.paynote');
@@ -1338,7 +1360,10 @@ function updateDeadlineField() {
 document.getElementById('w-deadline-confirm').addEventListener('change',function(){ wiz.pendingToken=null; });
 document.getElementById('w-deadline').addEventListener('input',function(){ delete this.dataset.autoDetected; this.dataset.userSelected='true'; deadlinePreviewPrefill=false; document.getElementById('w-deadline-confirm').checked=false; wiz.pendingToken=null; updateDeadlineField(); });
 var debounceT = null;
+var catalogueContextSource = '';
 document.getElementById('w-grant').addEventListener('input', function () {
+  if (catalogueHandoffPending) { catalogueHandoffPending=false; catalogueHandoffEpoch++; var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren(); }
+  if (catalogueContextSource && this.value.trim() !== catalogueContextSource) { catalogueContextSource='';catalogueContextTitle='';var catalogueContext=document.getElementById('catalogue-context');catalogueContext.hidden=true;catalogueContext.replaceChildren(); }
   if(/^https?:\/\//i.test(this.value.trim())){opportunityPasteSource='';var reference=document.getElementById('opportunity-paste-source');reference.hidden=true;reference.replaceChildren();this.placeholder='https://... or paste the guidelines here';}
   clearTimeout(analysisPoll); analysisSequence++; deadlineRequiresManual = false; deadlineNeedsVerification = false; resetDeadlineForSourceChange(); analysisOk = false; analysisReady = false; analysisBackground = false; opportunityExtractionId = ''; opportunityExtractionToken = ''; analyzedDeadline = ''; analyzing = false; lastAnalyzed = ''; setContinueEnabled(false); document.getElementById('gpreview').style.display = 'none';
   opportunityDetails = null; resetDetectedDetails();
@@ -1415,6 +1440,29 @@ document.getElementById('w-web').addEventListener('blur',async function(){
 document.getElementById('w-applicant-type').addEventListener('change',function(event){if(event.isTrusted)this.dataset.userSelected='true';document.querySelector('label[for="w-org"]').firstChild.textContent=this.value==='individual'?'Name to use on the proposal ':'Organisation name ';});
 
 if (ownerTestInvite) wiz.open('full');
+else if (hasPrepareReference) {
+  var prepareId=prepareReference;
+  var contextBox=document.getElementById('catalogue-context');
+  wiz.open(null);contextBox.hidden=false;contextBox.textContent='Loading the selected public notice…';
+  var handoffEpoch=catalogueHandoffEpoch, handoffInitialSource=document.getElementById('w-grant').value;
+  catalogueHandoffPending=true;
+  var handoffController=new AbortController();
+  var handoffTimeout=setTimeout(function(){handoffController.abort();},10000);
+  fetch('/account/api/opportunity-handoff?id='+encodeURIComponent(prepareId),{credentials:'same-origin',cache:'no-store',signal:handoffController.signal})
+    .then(function(response){if(!response.ok)throw new Error('handoff_unavailable');return response.json();})
+    .then(function(item){
+      if(handoffEpoch!==catalogueHandoffEpoch||!catalogueHandoffPending||!wiz.el.classList.contains('open')||document.getElementById('w-grant').value!==handoffInitialSource)return;
+      if(!item||typeof item.sourceUrl!=='string'||!/^https:\/\/[^\s]+$/.test(item.sourceUrl)||item.sourceUrl.length>2000)throw new Error('handoff_invalid');
+      catalogueHandoffPending=false;contextBox.replaceChildren();
+      var heading=document.createElement('strong');heading.textContent=item.title||'Selected opportunity';contextBox.appendChild(heading);
+      var meta=document.createElement('p');meta.textContent=(item.source||'Official source').toUpperCase()+' · '+(item.kind==='grant'?'Grant':item.kind==='procurement'?'Procurement':'Notice')+(item.deadline?' · Listed deadline '+item.deadline:' · Deadline not confirmed');contextBox.appendChild(meta);
+      if(item.description){var brief=document.createElement('p');brief.textContent=item.description;contextBox.appendChild(brief);}
+      var warning=document.createElement('p');warning.className='catalogue-warning';warning.textContent=item.status==='closed'?'This notice appears closed or past its listed deadline. Check the issuer before preparing a response.':item.deadlineConflict?'Published dates conflict. Check the issuer before continuing.':'Source context is a starting point. Verify the deadline and eligibility with the issuer before payment.';contextBox.appendChild(warning);
+      var original=document.createElement('a');original.href=item.sourceUrl;original.target='_blank';original.rel='noreferrer';original.textContent='Read original notice ↗';contextBox.appendChild(original);
+      var field=document.getElementById('w-grant');catalogueContextSource=item.sourceUrl;catalogueContextTitle=item.title||'';field.value=item.sourceUrl;field.dispatchEvent(new Event('input',{bubbles:true}));
+    }).catch(function(){if(handoffEpoch!==catalogueHandoffEpoch||!catalogueHandoffPending||!wiz.el.classList.contains('open'))return;catalogueHandoffPending=false;contextBox.replaceChildren();contextBox.textContent='Could not load this notice. Paste its original link below, or sign in again and retry.';})
+    .finally(function(){clearTimeout(handoffTimeout);});
+}
 else if (memberIntent) {
   var memberSource=new URLSearchParams(window.location.search).get('opportunity')||'';
   if (/^https:\/\/[^\s]+$/.test(memberSource) && memberSource.length<=2000) {

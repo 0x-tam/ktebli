@@ -2,6 +2,7 @@ import "server-only";
 import { userTransaction } from "./db";
 import { HttpError } from "./http";
 import { z } from "zod";
+import type { PoolClient } from "pg";
 
 export const catalogueFiltersSchema = z.object({
   query: z.string().trim().max(200).default(""),
@@ -87,7 +88,8 @@ const catalogueCte = `WITH ranked AS (
       WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids)))
 )`;
 
-export async function dashboardData(
+async function queryCatalogue(
+  db: PoolClient,
   userId: string,
   raw: CatalogueFilters = {},
 ) {
@@ -102,6 +104,86 @@ export async function dashboardData(
       throw new HttpError(400, "Invalid page cursor");
     }
   }
+  const values = [
+    userId,
+    options.query,
+    options.kind,
+    options.source,
+    options.status,
+    options.deadline,
+    options.saved,
+    cursor?.at ?? null,
+    cursor?.id ?? null,
+  ];
+  const result = await db.query(
+    `${catalogueCte},
+     entitlement AS (
+       SELECT EXISTS(SELECT 1 FROM membership.subscriptions
+         WHERE user_id=$1 AND state='active' AND paid_until>now()) AS paid
+     ), tally AS (SELECT count(*)::int AS total FROM filtered)
+     SELECT tally.total, entitlement.paid, page.*
+     FROM tally CROSS JOIN entitlement
+     LEFT JOIN LATERAL (
+       SELECT o.*,o.published_at::text AS published_at,o.deadline::text AS deadline,
+         to_char(o.fetched_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_at,
+         CASE WHEN entitlement.paid THEN EXISTS(
+           SELECT 1 FROM membership.saved_opportunities s
+           WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids)) ELSE false END AS saved,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.fit END AS fit,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.confidence END AS confidence,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.eligibility END AS eligibility,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.reasons END AS reasons
+       FROM filtered o
+       LEFT JOIN membership.matches m ON entitlement.paid AND m.opportunity_id=o.id AND m.user_id=$1
+       LEFT JOIN membership.profiles p ON entitlement.paid AND p.user_id=$1
+       WHERE ($8::timestamptz IS NULL OR (o.fetched_at,o.id)<($8::timestamptz,$9::uuid))
+       ORDER BY o.fetched_at DESC,o.id DESC LIMIT 51
+     ) page ON true`,
+    values,
+  );
+  const paid = result.rows[0]?.paid === true;
+  if (options.saved && !paid)
+    throw new HttpError(402, "An active paid membership is required");
+  const pages = result.rows.filter((row) => row.id !== null);
+  const more = pages.length > 50;
+  const rows = pages.slice(0, 50).map(({ total, paid: paidFlag, ...row }) => {
+    void total;
+    void paidFlag;
+    return row;
+  });
+  const last = rows.at(-1);
+  return {
+    paid,
+    opportunities: rows,
+    filteredCount: result.rows[0].total as number,
+    nextCursor:
+      more && last
+        ? Buffer.from(
+            JSON.stringify({ at: last.cursor_at, id: last.id }),
+          ).toString("base64url")
+        : null,
+  };
+}
+
+export async function catalogueData(
+  userId: string,
+  raw: CatalogueFilters = {},
+) {
+  return userTransaction(userId, (db) => queryCatalogue(db, userId, raw));
+}
+
+export async function dashboardData(
+  userId: string,
+  raw: CatalogueFilters = {},
+) {
   return userTransaction(userId, async (db) => {
     const profile = await db.query(
       "SELECT * FROM membership.profiles WHERE user_id=$1",
@@ -111,60 +193,12 @@ export async function dashboardData(
       "SELECT state,paid_until,cancel_at_period_end FROM membership.subscriptions WHERE user_id=$1",
       [userId],
     );
-    const paid =
-      subscription.rows[0]?.state === "active" &&
-      new Date(subscription.rows[0].paid_until) > new Date();
-    if (options.saved && !paid)
-      throw new HttpError(402, "An active paid membership is required");
     const credits = await db.query(
       "SELECT id,amount_cents,expires_at,state FROM membership.credits WHERE user_id=$1 AND expires_at>now() AND valid_from<=now() AND state IN ('available','reserved') ORDER BY expires_at DESC LIMIT 1",
       [userId],
     );
-    const values = [
-      userId,
-      options.query,
-      options.kind,
-      options.source,
-      options.status,
-      options.deadline,
-      options.saved,
-      paid,
-      cursor?.at ?? null,
-      cursor?.id ?? null,
-    ];
-    const count = await db.query(
-      `${catalogueCte} SELECT count(*)::int AS total FROM filtered`,
-      values.slice(0, 7),
-    );
-    const opportunities = await db.query(
-      `${catalogueCte}
-       SELECT o.*,o.published_at::text AS published_at,o.deadline::text AS deadline,
-         to_char(o.fetched_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_at,
-         CASE WHEN $8::boolean THEN EXISTS(
-           SELECT 1 FROM membership.saved_opportunities s
-           WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids)) ELSE false END AS saved,
-         CASE WHEN $8::boolean AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
-           AND m.group_version=o.group_version AND o.board_status='current'
-           THEN m.fit END AS fit,
-         CASE WHEN $8::boolean AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
-           AND m.group_version=o.group_version AND o.board_status='current'
-           THEN m.confidence END AS confidence,
-         CASE WHEN $8::boolean AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
-           AND m.group_version=o.group_version AND o.board_status='current'
-           THEN m.eligibility END AS eligibility,
-         CASE WHEN $8::boolean AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
-           AND m.group_version=o.group_version AND o.board_status='current'
-           THEN m.reasons END AS reasons
-       FROM filtered o
-       LEFT JOIN membership.matches m ON $8::boolean AND m.opportunity_id=o.id AND m.user_id=$1
-       LEFT JOIN membership.profiles p ON $8::boolean AND p.user_id=$1
-       WHERE ($9::timestamptz IS NULL OR (o.fetched_at,o.id)<($9::timestamptz,$10::uuid))
-       ORDER BY o.fetched_at DESC,o.id DESC LIMIT 51`,
-      values,
-    );
-    const more = opportunities.rows.length > 50;
-    const rows = opportunities.rows.slice(0, 50);
-    const last = rows.at(-1);
+    const catalogue = await queryCatalogue(db, userId, raw);
+    const paid = catalogue.paid;
     const alerts = paid
       ? await db.query(
           `SELECT a.id,a.created_at,a.read_at,o.title,o.source_url FROM membership.alerts a
@@ -213,15 +247,10 @@ export async function dashboardData(
       profile: profile.rows[0] ?? null,
       subscription: subscription.rows[0] ?? null,
       credit: credits.rows[0] ?? null,
-      opportunities: rows,
+      opportunities: catalogue.opportunities,
       alerts: alerts.rows,
-      filteredCount: count.rows[0].total as number,
-      nextCursor:
-        more && last
-          ? Buffer.from(
-              JSON.stringify({ at: last.cursor_at, id: last.id }),
-            ).toString("base64url")
-          : null,
+      filteredCount: catalogue.filteredCount,
+      nextCursor: catalogue.nextCursor,
     };
   });
 }

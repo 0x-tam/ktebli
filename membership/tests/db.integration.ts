@@ -1,5 +1,6 @@
 import test from "node:test";
-import { dashboardData } from "../lib/dashboard";
+import { catalogueData, dashboardData } from "../lib/dashboard";
+import { loadPublicOpportunityHandoff } from "../lib/opportunity-handoff";
 import {
   matchingAlertSql,
   matchingCandidatesSql,
@@ -774,6 +775,43 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
        FROM generate_series(1,61) n`,
     );
     const freeFirst = await dashboardData("alice", { query: "Board fixture" });
+    const apiFirst = await catalogueData("alice", { query: "Board fixture" });
+    assert.equal(apiFirst.filteredCount, 61);
+    assert.equal(apiFirst.opportunities.length, 50);
+    assert.ok(!("profile" in apiFirst) && !("alerts" in apiFirst));
+    assert.ok(
+      apiFirst.opportunities.every((row) => row.fit === null && !row.saved),
+    );
+    const publicHint = await tx(runtime, "membership_runtime", "alice", (db) =>
+      loadPublicOpportunityHandoff(db, apiFirst.opportunities[0].id),
+    );
+    assert.equal(publicHint.id, apiFirst.opportunities[0].id);
+    assert.ok(publicHint.sourceUrl.startsWith("https://"));
+    assert.ok(!("fit" in publicHint) && !("credit" in publicHint));
+    assert.ok(!("profile" in publicHint) && !("email" in publicHint));
+    const closedId = (
+      await admin.query(
+        "SELECT id FROM membership.opportunities WHERE source_key='board-fixture-50'",
+      )
+    ).rows[0].id as string;
+    const closedHint = await tx(runtime, "membership_runtime", "alice", (db) =>
+      loadPublicOpportunityHandoff(db, closedId),
+    );
+    assert.equal(
+      closedHint.status,
+      "closed",
+      "past or closed notice cannot be presented as open",
+    );
+    const apiEmpty = await catalogueData("alice", {
+      query: "no-such-notice-928374",
+    });
+    assert.equal(apiEmpty.filteredCount, 0);
+    assert.deepEqual(apiEmpty.opportunities, []);
+    assert.equal(apiEmpty.nextCursor, null);
+    await assert.rejects(
+      catalogueData("alice", { cursor: "not-a-cursor" }),
+      /Invalid page cursor/,
+    );
     assert.equal(
       freeFirst.filteredCount,
       61,

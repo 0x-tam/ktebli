@@ -1,5 +1,5 @@
 import { handle, requireUser, json, HttpError } from "@/lib/http";
-import { catalogueFiltersSchema, dashboardData } from "@/lib/dashboard";
+import { catalogueFiltersSchema, catalogueData } from "@/lib/dashboard";
 export const GET = (request: Request) =>
   handle(async () => {
     const user = await requireUser();
@@ -19,7 +19,7 @@ export const GET = (request: Request) =>
     if (saved !== null && saved !== "1")
       throw new HttpError(400, "Invalid saved filter");
     return json(
-      await dashboardData(
+      await catalogueData(
         user.id,
         catalogueFiltersSchema.parse({
           query: url.searchParams.get("q") ?? "",
