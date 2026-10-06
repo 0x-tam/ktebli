@@ -493,6 +493,9 @@ footer a:hover {
   font-weight: 700;
   letter-spacing: 0.14em;
 }
+.nav-label-short {
+  display: none;
+}
 .sidebar nav {
   display: grid;
   gap: 5px;
@@ -523,11 +526,10 @@ footer a:hover {
   box-shadow: 0 3px 12px rgb(32 57 47 / 5%);
 }
 .sidebar nav span {
-  width: 24px;
-  color: #6a7d6d;
-  font-size: 1.2rem;
-  line-height: 1;
-  text-align: center;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  text-align: left;
 }
 .sidebar nav button > svg {
   width: 20px;
@@ -579,6 +581,14 @@ footer a:hover {
   color: var(--forest);
   font-weight: 600;
   cursor: pointer;
+}
+.sidebar-bottom button > svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .sidebar-bottom button:hover {
   background: var(--green-soft);
@@ -1093,7 +1103,7 @@ footer a:hover {
     inset: 0 0 auto;
     width: 100%;
     height: auto;
-    padding: 13px 18px 10px;
+    padding: 8px 14px 6px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
     background: rgb(240 238 229 / 96%);
@@ -1101,7 +1111,7 @@ footer a:hover {
   }
   .sidebar .brand {
     margin: 0 2px;
-    font-size: 1.65rem;
+    font-size: 1.55rem;
   }
   .sidebar > a {
     align-self: flex-start;
@@ -1110,48 +1120,88 @@ footer a:hover {
     display: none;
   }
   .sidebar nav {
-    display: flex;
-    gap: 5px;
-    margin-top: 10px;
-    overflow-x: auto;
-    scrollbar-width: thin;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin-top: 7px;
+    overflow: visible;
   }
   .sidebar nav button {
-    min-height: 42px;
-    flex: 0 0 auto;
-    gap: 7px;
-    padding: 8px 11px;
-    font-size: 0.8rem;
-    white-space: nowrap;
+    position: relative;
+    min-width: 0;
+    min-height: 50px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 3px 2px;
+    font-size: 0.75rem;
+    text-align: center;
+    white-space: normal;
   }
-  .sidebar nav span {
+  .sidebar nav button > svg {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
+  .nav-label-full {
+    display: none;
+  }
+  .nav-label-short {
     display: inline;
-    width: auto;
-    font-size: 1rem;
+  }
+  .sidebar nav i {
+    position: absolute;
+    top: 5px;
+    right: calc(50% - 15px);
+    width: 6px;
+    height: 6px;
+    margin: 0;
   }
   .sidebar-bottom {
-    display: flex;
-    margin-top: 8px;
-    padding: 8px 2px 0;
+    position: absolute;
+    top: 5px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
-  .sidebar-bottom small {
-    max-width: min(54vw, 260px);
+  .sidebar-bottom > span,
+  .sidebar-bottom > div {
+    display: none;
+  }
+  .sidebar-bottom button {
+    min-width: 44px;
+    min-height: 44px;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+  }
+  .sidebar-bottom button > svg {
+    width: 19px;
+    height: 19px;
   }
   .main {
     width: 100%;
     min-height: calc(100vh - 100px);
     margin: 0;
-    padding: 24px 18px 52px;
+    padding: 12px 18px 52px;
   }
   .workspace-header {
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+  .workspace-header .eyebrow,
+  .workspace-header .muted {
+    display: none;
   }
   .workspace-header h1 {
     font-size: clamp(2rem, 8vw, 2.5rem);
-  }
-  .workspace-header .muted {
-    font-size: 0.88rem;
+    margin-bottom: 0;
   }
   .status-pill {
     display: none;
@@ -1159,12 +1209,32 @@ footer a:hover {
   .membership-strip {
     align-items: flex-start;
     flex-direction: column;
-    gap: 14px;
-    margin: 17px 0 24px;
-    padding: 18px;
+    gap: 8px;
+    margin: 12px 0 17px;
+    padding: 14px 16px;
+  }
+  .membership-strip .eyebrow {
+    display: none;
+  }
+  .membership-strip h2 {
+    margin-bottom: 3px;
+    font-size: 1.2rem;
+    line-height: 1.25;
+  }
+  .membership-strip p {
+    margin-bottom: 0;
+    font-size: 0.78rem;
   }
   .membership-strip .button {
     width: 100%;
+  }
+  .membership-strip .button[data-checkout-closed="true"] {
+    display: none;
+  }
+  .membership-terms summary {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
   .list-toolbar {
     align-items: flex-start;

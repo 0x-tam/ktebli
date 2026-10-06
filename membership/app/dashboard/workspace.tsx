@@ -492,6 +492,7 @@ export default function Dashboard({
               {
                 id: "discover",
                 label: "Discover",
+                shortLabel: "Discover",
                 icon: (
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <circle cx="10.8" cy="10.8" r="6.7" />
@@ -502,6 +503,7 @@ export default function Dashboard({
               {
                 id: "saved",
                 label: "Saved opportunities",
+                shortLabel: "Saved",
                 icon: (
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M6.2 4.5h11.6v15l-5.8-3.7-5.8 3.7v-15Z" />
@@ -511,6 +513,7 @@ export default function Dashboard({
               {
                 id: "alerts",
                 label: "Alerts",
+                shortLabel: "Alerts",
                 icon: (
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M18 9.8a6 6 0 0 0-12 0c0 7-2.4 7-2.4 8.4h16.8c0-1.4-2.4-1.4-2.4-8.4ZM9.4 21h5.2" />
@@ -520,6 +523,7 @@ export default function Dashboard({
               {
                 id: "profile",
                 label: "Your profile",
+                shortLabel: "Profile",
                 icon: (
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <circle cx="12" cy="8" r="3.3" />
@@ -532,6 +536,8 @@ export default function Dashboard({
             <button
               key={item.id}
               className={tab === item.id ? "selected" : ""}
+              aria-label={item.label}
+              aria-current={tab === item.id ? "page" : undefined}
               onClick={() => {
                 setTab(item.id);
                 if ((item.id === "saved" && active) || item.id === "discover")
@@ -545,7 +551,8 @@ export default function Dashboard({
               }}
             >
               {item.icon}
-              {item.label}
+              <span className="nav-label-full">{item.label}</span>
+              <span className="nav-label-short">{item.shortLabel}</span>
               {item.id === "alerts" && data.alerts.some((a) => !a.read_at) && (
                 <i />
               )}
@@ -572,7 +579,9 @@ export default function Dashboard({
               })
             }
           >
-            ↗
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10 4H5v16h10v-5M10 12h10m-4-4 4 4-4 4" />
+            </svg>
           </button>
         </div>
       </aside>
@@ -668,6 +677,9 @@ export default function Dashboard({
           <button
             disabled={busy || (!active && !billingEnabled)}
             className="button"
+            data-checkout-closed={
+              !active && !billingEnabled ? "true" : undefined
+            }
             onClick={() =>
               void act(async () => {
                 const r = await api(
