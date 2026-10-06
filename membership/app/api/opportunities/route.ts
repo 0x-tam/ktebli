@@ -1,18 +1,35 @@
 import { handle, requireUser, json, HttpError } from "@/lib/http";
-import { dashboardData } from "@/lib/dashboard";
+import { catalogueFiltersSchema, dashboardData } from "@/lib/dashboard";
 export const GET = (request: Request) =>
   handle(async () => {
     const user = await requireUser();
     const url = new URL(request.url);
-    const query = url.searchParams.get("q") ?? "",
-      cursor = url.searchParams.get("cursor") ?? "";
-    if (query.length > 200 || cursor.length > 500)
-      throw new HttpError(400, "Invalid search");
+    const allowed = new Set([
+      "q",
+      "cursor",
+      "saved",
+      "kind",
+      "source",
+      "status",
+      "deadline",
+    ]);
+    if ([...url.searchParams.keys()].some((key) => !allowed.has(key)))
+      throw new HttpError(400, "Invalid catalogue filter");
+    const saved = url.searchParams.get("saved");
+    if (saved !== null && saved !== "1")
+      throw new HttpError(400, "Invalid saved filter");
     return json(
-      await dashboardData(user.id, {
-        query,
-        cursor,
-        saved: url.searchParams.get("saved") === "1",
-      }),
+      await dashboardData(
+        user.id,
+        catalogueFiltersSchema.parse({
+          query: url.searchParams.get("q") ?? "",
+          cursor: url.searchParams.get("cursor") || undefined,
+          kind: url.searchParams.get("kind") ?? "all",
+          source: url.searchParams.get("source") ?? "all",
+          status: url.searchParams.get("status") ?? "all",
+          deadline: url.searchParams.get("deadline") ?? "all",
+          saved: saved === "1",
+        }),
+      ),
     );
   });

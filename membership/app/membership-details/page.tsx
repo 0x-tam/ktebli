@@ -25,20 +25,21 @@ export default function MembershipDetails() {
           <span className="number">01</span>
           <h2>What you receive</h2>
           <p>
-            During an active paid period, you can use the opportunity board,
-            save notices, and see available in-app alerts. A completed profile
-            can be used to assess fit when matching is enabled. Always confirm
-            dates and eligibility on the publisher’s original notice.
+            A verified free account can browse imported public notices. During
+            an active paid period, you can save notices and see available in-app
+            alerts. A completed profile can be used to assess fit when matching
+            is enabled. Always confirm dates and eligibility on the publisher’s
+            original notice.
           </p>
         </article>
         <article>
           <span className="number">02</span>
           <h2>One proposal credit</h2>
           <p>
-            Each paid monthly cycle provides one $20 credit toward a $149, $299,
-            or $449 Ktebli proposal package. The credit expires with its paid
-            cycle. Credits do not stack or roll over, and an unused credit has
-            no cash value.
+            Each paid monthly cycle provides one $20 credit toward an eligible
+            Ktebli proposal package. The credit expires with its paid cycle.
+            Credits do not stack or roll over, and an unused credit has no cash
+            value.
           </p>
         </article>
         <article>

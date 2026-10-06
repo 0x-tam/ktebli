@@ -764,6 +764,128 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
     await admin.query(
       "UPDATE membership.subscriptions SET state='inactive' WHERE user_id='alice'",
     );
+    await admin.query(
+      `INSERT INTO membership.opportunities(source,source_key,source_url,title,kind,source_content_hash,content_hash,fetched_at,deadline,detail_status,geography_status,application_status)
+       SELECT 'ppa','board-fixture-'||n,'https://www.ppa.gov.lb/en/'||n,
+         'Board fixture '||n,CASE WHEN n%2=1 THEN 'grant' ELSE 'procurement' END,
+         repeat('e',64),'board-hash-'||n,now(),
+         CASE WHEN n=61 THEN NULL WHEN n<=40 THEN CURRENT_DATE+1 ELSE CURRENT_DATE-1 END,
+         'verified','lebanon_confirmed',CASE WHEN n%5=0 THEN 'closed' ELSE 'needs_verification' END
+       FROM generate_series(1,61) n`,
+    );
+    const freeFirst = await dashboardData("alice", { query: "Board fixture" });
+    assert.equal(
+      freeFirst.filteredCount,
+      61,
+      "free account sees entire filtered catalogue",
+    );
+    assert.equal(freeFirst.opportunities.length, 50);
+    assert.ok(freeFirst.nextCursor);
+    assert.equal(freeFirst.alerts.length, 0);
+    assert.ok(
+      freeFirst.opportunities.every((row) => row.fit === null && !row.saved),
+    );
+    const freeSecond = await dashboardData("alice", {
+      query: "Board fixture",
+      cursor: freeFirst.nextCursor!,
+    });
+    assert.equal(
+      freeSecond.filteredCount,
+      61,
+      "count is independent of cursor",
+    );
+    assert.equal(freeSecond.opportunities.length, 11);
+    assert.equal(freeSecond.nextCursor, null);
+    assert.equal(
+      new Set(
+        [...freeFirst.opportunities, ...freeSecond.opportunities].map(
+          (row) => row.id,
+        ),
+      ).size,
+      61,
+    );
+    assert.equal(
+      (await dashboardData("alice", { query: "Board fixture", kind: "grant" }))
+        .filteredCount,
+      31,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          status: "current",
+        })
+      ).filteredCount,
+      32,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          status: "closed",
+        })
+      ).filteredCount,
+      28,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          deadline: "past",
+        })
+      ).filteredCount,
+      20,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          deadline: "unknown",
+        })
+      ).filteredCount,
+      1,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          source: "worldbank",
+        })
+      ).filteredCount,
+      0,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          kind: "grant",
+          status: "current",
+          deadline: "future",
+        })
+      ).filteredCount,
+      16,
+    );
+    await assert.rejects(
+      dashboardData("alice", { saved: true }),
+      /active paid membership/,
+    );
+    const freeAlias = await dashboardData("alice", { query: "Next" });
+    assert.equal(
+      freeAlias.opportunities.find((row) => row.source_key === "next")?.saved,
+      false,
+    );
+    assert.equal(
+      (await dashboardData("alice", { query: "Next", source: "worldbank" }))
+        .filteredCount,
+      1,
+      "source filter includes an official cross-listed alias",
+    );
+    assert.equal(
+      (await dashboardData("alice", { query: "Same exact notice" }))
+        .filteredCount,
+      1,
+      "search includes a cross-listed alias title",
+    );
     assert.equal(
       (
         await tx(worker, "membership_worker", "", (db) =>

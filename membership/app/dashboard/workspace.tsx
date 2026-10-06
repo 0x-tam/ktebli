@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
@@ -27,6 +27,7 @@ type Opportunity = {
   geography_status: "lebanon_confirmed" | "regional_includes_lebanon";
   source_aliases: { source: string; source_url: string; title: string }[];
   group_conflict: boolean;
+  board_status: "current" | "needs_review" | "closed";
 };
 type Profile = {
   past_work: string;
@@ -47,6 +48,7 @@ type Profile = {
 };
 type Data = {
   nextCursor: string | null;
+  filteredCount: number;
   profile: Profile | null;
   subscription: {
     state: string;
@@ -93,6 +95,19 @@ export default function Dashboard({
     "discover",
   );
   const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState({
+    query: "",
+    kind: "all",
+    source: "all",
+    status: "all",
+    deadline: "all",
+  });
+  const [boardBusy, setBoardBusy] = useState(false);
+  const [boardResetting, setBoardResetting] = useState(false);
+  const [boardError, setBoardError] = useState("");
+  const boardRequest = useRef(0);
+  const boardAbort = useRef<AbortController | null>(null);
+  const lastRequestedFilters = useRef(filters);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [profile, setProfile] = useState<Profile>(
@@ -137,38 +152,62 @@ export default function Dashboard({
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-  async function loadMore(reset = false, saved = tab === "saved") {
-    await act(async () => {
+  async function loadMore(
+    reset = false,
+    saved = tab === "saved",
+    nextFilters = filters,
+  ) {
+    const requestId = ++boardRequest.current;
+    boardAbort.current?.abort();
+    const controller = new AbortController();
+    boardAbort.current = controller;
+    lastRequestedFilters.current = nextFilters;
+    setBoardBusy(true);
+    setBoardError("");
+    setNotice("");
+    if (reset) setBoardResetting(true);
+    const params = new URLSearchParams({
+      q: nextFilters.query,
+      kind: nextFilters.kind,
+      source: nextFilters.source,
+      status: nextFilters.status,
+      deadline: nextFilters.deadline,
+    });
+    if (saved) params.set("saved", "1");
+    if (!reset && data.nextCursor) params.set("cursor", data.nextCursor);
+    try {
       const response = await fetch(
-        accountPath("/api/opportunities") +
-          "?q=" +
-          encodeURIComponent(query) +
-          (saved ? "&saved=1" : "") +
-          (reset || !data.nextCursor
-            ? ""
-            : "&cursor=" + encodeURIComponent(data.nextCursor)),
+        `${accountPath("/api/opportunities")}?${params}`,
+        { signal: controller.signal },
       );
       const result = await response.json();
       if (!response.ok)
         throw new Error(result.error ?? "Could not load opportunities");
-      setData({
+      if (requestId !== boardRequest.current) return;
+      if (reset) setFilters(nextFilters);
+      setData((previous) => ({
+        ...previous,
         ...result,
         opportunities: reset
           ? result.opportunities
-          : [...data.opportunities, ...result.opportunities],
-      });
-    });
+          : [...previous.opportunities, ...result.opportunities],
+      }));
+    } catch (error) {
+      if (requestId === boardRequest.current && !controller.signal.aborted)
+        setBoardError(
+          error instanceof Error ? error.message : "Please try again",
+        );
+    } finally {
+      if (requestId === boardRequest.current) {
+        setBoardBusy(false);
+        setBoardResetting(false);
+      }
+    }
   }
   const active =
     data.subscription &&
     isMembershipActive(data.subscription.state, data.subscription.paid_until);
-  const visible = data.opportunities.filter(
-    (o) =>
-      (tab !== "saved" || o.saved) &&
-      `${o.title} ${o.description} ${o.source}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
+  const visible = data.opportunities;
   async function api(path: string, body?: unknown, method = "POST") {
     const response = await fetch(accountPath(path as `/${string}`), {
       method,
@@ -238,8 +277,14 @@ export default function Dashboard({
               className={tab === item.id ? "selected" : ""}
               onClick={() => {
                 setTab(item.id);
-                if (item.id === "saved" || item.id === "discover")
+                if ((item.id === "saved" && active) || item.id === "discover")
                   void loadMore(true, item.id === "saved");
+                else {
+                  boardRequest.current++;
+                  boardAbort.current?.abort();
+                  setBoardBusy(false);
+                  setBoardResetting(false);
+                }
               }}
             >
               <span>{item.icon}</span>
@@ -341,17 +386,26 @@ export default function Dashboard({
             <h2>
               {active
                 ? "Make the most of your next move."
-                : "A smarter shortlist. $20 / month."}
+                : "$20/month. Get $20 off one proposal each month."}
             </h2>
             <p>
               {data.credit
                 ? `$20 proposal credit ${data.credit.state === "reserved" ? "reserved" : "available"} · expires ${date(data.credit.expires_at)}`
-                : "One $20 proposal credit each paid month. Use it on a $149, $299, or $449 package."}
+                : active
+                  ? "Your next credit arrives with your next paid month."
+                  : billingEnabled
+                    ? "Browse the board for free before you join."
+                    : "Membership opening soon. Browse the board for free today."}
             </p>
-            <small>
-              No stacking or rollover. In-app alerts. Fit scores are guidance,
-              never odds of winning.
-            </small>
+            <details className="membership-terms">
+              <summary>Credit and membership details</summary>
+              <p>
+                One credit per paid cycle toward an eligible Ktebli proposal.
+                Credits expire with that cycle and do not stack or roll over.
+                Fit scores are guidance, never odds of winning.{" "}
+                <Link href="/membership-details">Read membership details</Link>.
+              </p>
+            </details>
           </div>
           <button
             disabled={busy || (!active && !billingEnabled)}
@@ -563,7 +617,16 @@ export default function Dashboard({
           </section>
         ) : tab === "alerts" ? (
           <section className="alerts-panel">
-            {data.alerts.length ? (
+            {!active ? (
+              <div className="empty">
+                <span>◉</span>
+                <h2>Alerts come with membership.</h2>
+                <p>
+                  You can browse the public opportunity board with your free
+                  account now.
+                </p>
+              </div>
+            ) : data.alerts.length ? (
               data.alerts.map((alert) => (
                 <article key={alert.id} className="alert">
                   <div>
@@ -614,6 +677,23 @@ export default function Dashboard({
               </div>
             )}
           </section>
+        ) : tab === "saved" && !active ? (
+          <section className="empty">
+            <span>◇</span>
+            <h2>Saved notices come with membership.</h2>
+            <p>
+              You can browse every imported public notice in Discover with your
+              free account.
+            </p>
+            <button
+              onClick={() => {
+                setTab("discover");
+                void loadMore(true, false);
+              }}
+            >
+              Open opportunity board ↗
+            </button>
+          </section>
         ) : (
           <>
             <div className="list-toolbar">
@@ -622,15 +702,21 @@ export default function Dashboard({
                   {tab === "saved" ? "Your shortlist" : "Opportunity board"}
                 </h2>
                 <p className="muted">
-                  {visible.length} notices · Always confirm dates and
-                  eligibility with the issuer.
+                  {boardResetting
+                    ? "Loading filtered notices…"
+                    : boardError
+                      ? "Results unavailable. Previous results are hidden."
+                      : `${data.filteredCount} matching notices · Showing ${visible.length}. Always confirm dates and eligibility with the issuer.`}
                 </p>
               </div>
               <form
-                className="search"
+                className="search catalogue-search"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  void loadMore(true);
+                  void loadMore(true, tab === "saved", {
+                    ...filters,
+                    query: query.trim(),
+                  });
                 }}
               >
                 <label>
@@ -641,196 +727,329 @@ export default function Dashboard({
                     onChange={(e) => setQuery(e.target.value)}
                   />
                 </label>
-                <button disabled={busy}>Search all notices</button>
+                <button disabled={boardBusy}>Search notices</button>
               </form>
             </div>
-            <section className="opportunity-grid">
-              {visible.length ? (
-                visible.map((o) => (
-                  <article className="opportunity" key={o.id}>
-                    <div className="card-top">
-                      <span className="source-tag">
-                        {o.source.toUpperCase()} ·{" "}
-                        {o.kind === "unknown" ? "NOTICE" : o.kind.toUpperCase()}
-                      </span>
-                      <button
-                        disabled={busy}
-                        aria-label={
-                          o.saved ? "Remove from saved" : "Save opportunity"
-                        }
-                        aria-pressed={o.saved}
-                        className="save-button"
-                        onClick={() =>
-                          void act(async () => {
-                            await api("/api/saved", {
-                              opportunityId: o.id,
-                              saved: !o.saved,
-                            });
-                            setData({
-                              ...data,
-                              opportunities: data.opportunities.map((item) =>
-                                item.id === o.id
-                                  ? { ...item, saved: !item.saved }
-                                  : item,
-                              ),
-                            });
-                          })
-                        }
-                      >
-                        {o.saved ? "◆" : "◇"}
-                      </button>
-                    </div>
-                    <h2 dir="auto">{o.title}</h2>
-                    <p dir="auto" className="description">
-                      {o.description ||
-                        "Read the original notice for the full scope and requirements."}
-                    </p>
-                    <div className="card-meta">
-                      <span>
-                        {o.geography_status === "lebanon_confirmed"
-                          ? "Lebanon scope confirmed"
-                          : "Regional call including Lebanon"}
-                      </span>
-                      <span>
-                        {o.deadline_conflict
-                          ? "Conflicting dates — check source"
-                          : o.deadline
-                            ? "Listed deadline " + date(o.deadline)
-                            : "Deadline needs review"}
-                      </span>
-                      <span>Checked {date(o.fetched_at)}</span>
-                    </div>
-                    {o.group_conflict && (
-                      <p className="notice">
-                        Official postings disagree on the deadline or status.
-                        Check each source before acting; fit assessment is
-                        paused.
-                      </p>
-                    )}
-                    {(o.detail_status !== "verified" ||
-                      now - new Date(o.fetched_at).getTime() >
-                        24 * 60 * 60 * 1000) && (
-                      <p className="notice">
-                        {o.detail_status !== "verified"
-                          ? "Notice details still need verification."
-                          : "This notice has not been checked in the past day."}
-                      </p>
-                    )}
-                    <div className="fit-row">
-                      {o.fit !== null ? (
-                        <>
-                          <strong>{Math.round(Number(o.fit))}/100 fit</strong>
-                          <span>
-                            {Math.round(Number(o.confidence) * 100)}% assessment
-                            confidence
-                          </span>
-                        </>
-                      ) : (
-                        <span>Fit assessment pending</span>
-                      )}
-                    </div>
-                    {o.eligibility === "excluded" && (
-                      <p className="notice">
-                        A possible eligibility conflict needs review.
-                      </p>
-                    )}
-                    {(o.reasons?.length || o.evidence.length) > 0 && (
-                      <details>
-                        <summary>View source evidence</summary>
-                        {(o.reasons ?? o.evidence).slice(0, 5).map((e, i) => (
-                          <p dir="auto" key={i}>
-                            <strong>{e.label}</strong>
-                            <br />
-                            {e.text.slice(0, 700)}{" "}
-                            <a href={e.url} target="_blank" rel="noreferrer">
-                              Source ↗
-                            </a>
-                          </p>
-                        ))}
-                      </details>
-                    )}
-                    <div className="locale-links">
-                      {o.locales?.map((l) => (
-                        <a
-                          key={l.locale}
-                          href={l.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
+            <div
+              className="catalogue-filters"
+              aria-label="Filter opportunity board"
+            >
+              <label>
+                Type
+                <select
+                  value={filters.kind}
+                  disabled={boardBusy}
+                  onChange={(e) =>
+                    void loadMore(true, tab === "saved", {
+                      ...filters,
+                      kind: e.target.value,
+                    })
+                  }
+                >
+                  <option value="all">All types</option>
+                  <option value="procurement">Procurement</option>
+                  <option value="grant">Grants</option>
+                  <option value="unknown">Other notices</option>
+                </select>
+              </label>
+              <label>
+                Source
+                <select
+                  value={filters.source}
+                  disabled={boardBusy}
+                  onChange={(e) =>
+                    void loadMore(true, tab === "saved", {
+                      ...filters,
+                      source: e.target.value,
+                    })
+                  }
+                >
+                  <option value="all">All sources</option>
+                  <option value="ppa">PPA</option>
+                  <option value="ungm">UNGM</option>
+                  <option value="mawred">Mawred</option>
+                  <option value="worldbank">World Bank</option>
+                  <option value="cdr">CDR</option>
+                </select>
+              </label>
+              <label>
+                Status
+                <select
+                  value={filters.status}
+                  disabled={boardBusy}
+                  onChange={(e) =>
+                    void loadMore(true, tab === "saved", {
+                      ...filters,
+                      status: e.target.value,
+                    })
+                  }
+                >
+                  <option value="all">All statuses</option>
+                  <option value="current">Current, source checked</option>
+                  <option value="needs_review">Needs review</option>
+                  <option value="closed">Closed or past deadline</option>
+                </select>
+              </label>
+              <label>
+                Deadline
+                <select
+                  value={filters.deadline}
+                  disabled={boardBusy}
+                  onChange={(e) =>
+                    void loadMore(true, tab === "saved", {
+                      ...filters,
+                      deadline: e.target.value,
+                    })
+                  }
+                >
+                  <option value="all">Any deadline</option>
+                  <option value="future">After today</option>
+                  <option value="today">Today — verify time</option>
+                  <option value="past">Past</option>
+                  <option value="unknown">Not listed</option>
+                </select>
+              </label>
+            </div>
+            {boardBusy && (
+              <p role="status" className="muted">
+                Loading notices…
+              </p>
+            )}
+            {boardError && (
+              <div role="alert" className="notice">
+                {boardError}{" "}
+                <button
+                  type="button"
+                  onClick={() =>
+                    void loadMore(
+                      true,
+                      tab === "saved",
+                      lastRequestedFilters.current,
+                    )
+                  }
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            {!boardResetting && !boardError && (
+              <section className="opportunity-grid">
+                {visible.length ? (
+                  visible.map((o) => (
+                    <article className="opportunity" key={o.id}>
+                      <div className="card-top">
+                        <span className="source-tag">
+                          {o.source.toUpperCase()} ·{" "}
+                          {o.kind === "unknown"
+                            ? "NOTICE"
+                            : o.kind.toUpperCase()}
+                        </span>
+                        <span
+                          className={`board-status board-status-${o.board_status}`}
                         >
-                          {l.locale === "ar" ? "العربية" : "English"} ↗{" "}
-                        </a>
-                      ))}
-                    </div>
-                    <a
-                      className="source-link"
-                      href={`${proposalOrigin}/?membership=1&opportunity=${encodeURIComponent(o.source_url)}`}
-                    >
-                      Prepare a proposal with your credit <span>↗</span>
-                    </a>
-                    <a
-                      className="source-link"
-                      href={o.source_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Read original notice <span>↗</span>
-                    </a>
-                    {o.source_aliases?.length > 1 && (
-                      <details>
-                        <summary>
-                          Also published by {o.source_aliases.length - 1}{" "}
-                          source(s)
-                        </summary>
-                        {o.source_aliases
-                          .filter((alias) => alias.source_url !== o.source_url)
-                          .map((alias) => (
-                            <p key={`${alias.source}:${alias.source_url}`}>
-                              <a
-                                href={alias.source_url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {alias.source.toUpperCase()}: {alias.title} ↗
+                          {o.board_status === "current"
+                            ? "Current — verify eligibility"
+                            : o.board_status === "closed"
+                              ? "Closed or past deadline"
+                              : "Needs review"}
+                        </span>
+                        {active && (
+                          <button
+                            disabled={busy}
+                            aria-label={
+                              o.saved ? "Remove from saved" : "Save opportunity"
+                            }
+                            aria-pressed={o.saved}
+                            className="save-button"
+                            onClick={() =>
+                              void act(async () => {
+                                await api("/api/saved", {
+                                  opportunityId: o.id,
+                                  saved: !o.saved,
+                                });
+                                setData({
+                                  ...data,
+                                  opportunities: data.opportunities.map(
+                                    (item) =>
+                                      item.id === o.id
+                                        ? { ...item, saved: !item.saved }
+                                        : item,
+                                  ),
+                                });
+                              })
+                            }
+                          >
+                            {o.saved ? "◆" : "◇"}
+                          </button>
+                        )}
+                      </div>
+                      <h2 dir="auto">{o.title}</h2>
+                      <p dir="auto" className="description">
+                        {o.description ||
+                          "Read the original notice for the full scope and requirements."}
+                      </p>
+                      <div className="card-meta">
+                        <span>
+                          {o.geography_status === "lebanon_confirmed"
+                            ? "Lebanon scope confirmed"
+                            : o.geography_status === "regional_includes_lebanon"
+                              ? "Regional call including Lebanon"
+                              : o.geography_status === "outside_lebanon"
+                                ? "Outside Lebanon — check scope"
+                                : "Lebanon eligibility not confirmed"}
+                        </span>
+                        <span>
+                          {o.deadline_conflict
+                            ? "Conflicting dates — check source"
+                            : o.deadline
+                              ? "Listed deadline " + date(o.deadline)
+                              : "Deadline needs review"}
+                        </span>
+                        <span>Checked {date(o.fetched_at)}</span>
+                      </div>
+                      {o.group_conflict && (
+                        <p className="notice">
+                          Official postings disagree on the deadline or status.
+                          Check each source before acting; fit assessment is
+                          paused.
+                        </p>
+                      )}
+                      {(o.detail_status !== "verified" ||
+                        now - new Date(o.fetched_at).getTime() >
+                          24 * 60 * 60 * 1000) && (
+                        <p className="notice">
+                          {o.detail_status !== "verified"
+                            ? "Notice details still need verification."
+                            : "This notice has not been checked in the past day."}
+                        </p>
+                      )}
+                      {active && (
+                        <div className="fit-row">
+                          {o.fit !== null ? (
+                            <>
+                              <strong>
+                                {Math.round(Number(o.fit))}/100 fit
+                              </strong>
+                              <span>
+                                {Math.round(Number(o.confidence) * 100)}%
+                                assessment confidence
+                              </span>
+                            </>
+                          ) : (
+                            <span>Fit assessment pending</span>
+                          )}
+                        </div>
+                      )}
+                      {o.eligibility === "excluded" && (
+                        <p className="notice">
+                          A possible eligibility conflict needs review.
+                        </p>
+                      )}
+                      {(o.reasons?.length || o.evidence.length) > 0 && (
+                        <details>
+                          <summary>View source evidence</summary>
+                          {(o.reasons ?? o.evidence).slice(0, 5).map((e, i) => (
+                            <p dir="auto" key={i}>
+                              <strong>{e.label}</strong>
+                              <br />
+                              {e.text.slice(0, 700)}{" "}
+                              <a href={e.url} target="_blank" rel="noreferrer">
+                                Source ↗
                               </a>
                             </p>
                           ))}
-                      </details>
-                    )}
-                  </article>
-                ))
-              ) : (
-                <div className="empty">
-                  <span>◇</span>
-                  <h2>
-                    {tab === "saved"
-                      ? "Room for your next big idea."
-                      : !active
-                        ? "Your shortlist starts here."
-                        : "Your opportunity board is taking shape."}
-                  </h2>
-                  <p>
-                    {tab === "saved"
-                      ? "Save interesting notices from Discover and come back when you’re ready."
-                      : !active
-                        ? "An active membership unlocks the opportunity board, personalized matches, and saved alerts. Your profile is free to prepare."
-                        : "Source notices will appear after the first verified import. Complete your profile while we get things ready."}
-                  </p>
-                  <button
-                    onClick={() =>
-                      setTab(tab === "saved" ? "discover" : "profile")
-                    }
-                  >
-                    {tab === "saved"
-                      ? "Explore opportunities ↗"
-                      : "Complete your profile ↗"}
-                  </button>
-                </div>
-              )}
-            </section>
-            {data.nextCursor && (
+                        </details>
+                      )}
+                      <div className="locale-links">
+                        {o.locales?.map((l) => (
+                          <a
+                            key={l.locale}
+                            href={l.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {l.locale === "ar" ? "العربية" : "English"} ↗{" "}
+                          </a>
+                        ))}
+                      </div>
+                      <a className="source-link" href={proposalOrigin}>
+                        Explore proposal help <span>↗</span>
+                      </a>
+                      <a
+                        className="source-link"
+                        href={o.source_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Read original notice <span>↗</span>
+                      </a>
+                      {o.source_aliases?.length > 1 && (
+                        <details>
+                          <summary>
+                            Also published by {o.source_aliases.length - 1}{" "}
+                            source(s)
+                          </summary>
+                          {o.source_aliases
+                            .filter(
+                              (alias) => alias.source_url !== o.source_url,
+                            )
+                            .map((alias) => (
+                              <p key={`${alias.source}:${alias.source_url}`}>
+                                <a
+                                  href={alias.source_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {alias.source.toUpperCase()}: {alias.title} ↗
+                                </a>
+                              </p>
+                            ))}
+                        </details>
+                      )}
+                    </article>
+                  ))
+                ) : (
+                  <div className="empty">
+                    <span>◇</span>
+                    <h2>
+                      {tab === "saved"
+                        ? "Room for your next big idea."
+                        : "No notices match these filters."}
+                    </h2>
+                    <p>
+                      {tab === "saved"
+                        ? "Save interesting notices from Discover and come back when you’re ready."
+                        : "Try another type, source, status, deadline, or search term."}
+                    </p>
+                    <button
+                      onClick={() => {
+                        if (tab === "saved") {
+                          setTab("discover");
+                          void loadMore(true, false);
+                        } else {
+                          setQuery("");
+                          void loadMore(true, false, {
+                            query: "",
+                            kind: "all",
+                            source: "all",
+                            status: "all",
+                            deadline: "all",
+                          });
+                        }
+                      }}
+                    >
+                      {tab === "saved"
+                        ? "Explore opportunities ↗"
+                        : "Clear filters ↗"}
+                    </button>
+                  </div>
+                )}
+              </section>
+            )}
+            {!boardError && !boardResetting && data.nextCursor && (
               <button
                 className="button subtle"
-                disabled={busy}
+                disabled={boardBusy}
                 onClick={() => void loadMore(false)}
               >
                 Load more opportunities
