@@ -6,3 +6,10 @@
 !website.css
 !website.js
 !vercel.json
+# The Git-connected static build needs this one reviewed source file. Vercel
+# still serves only site-dist, which contains the four assets above.
+!tools/
+tools/**
+!tools/release/
+tools/release/**
+!tools/release/build_static.mjs
