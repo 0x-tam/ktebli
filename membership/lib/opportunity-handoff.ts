@@ -13,7 +13,6 @@ export async function loadPublicOpportunityHandoff(db: PoolClient, id: string) {
               WHEN o.application_status IN ('closed','not_open_competition') OR o.deadline<CURRENT_DATE THEN 'closed'
               WHEN o.deadline>CURRENT_DATE AND o.detail_status='verified'
                 AND NOT o.deadline_conflict AND o.fetched_at>now()-interval '24 hours'
-                AND o.geography_status IN ('lebanon_confirmed','regional_includes_lebanon')
                 AND NOT EXISTS (
                   SELECT 1 FROM membership.opportunities sibling
                   WHERE sibling.identity_key=o.identity_key AND sibling.id<>o.id
@@ -22,7 +21,6 @@ export async function loadPublicOpportunityHandoff(db: PoolClient, id: string) {
                     AND (sibling.deadline IS DISTINCT FROM o.deadline
                       OR sibling.kind IS DISTINCT FROM o.kind
                       OR sibling.application_status IN ('closed','not_open_competition')
-                      OR sibling.geography_status='outside_lebanon'
                       OR sibling.deadline_conflict)
                 ) THEN 'current'
               ELSE 'needs_review'

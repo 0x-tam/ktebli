@@ -12,6 +12,7 @@ export const GET = (request: Request) =>
       "source",
       "status",
       "deadline",
+      "country",
     ]);
     if ([...url.searchParams.keys()].some((key) => !allowed.has(key)))
       throw new HttpError(400, "Invalid catalogue filter");
@@ -28,6 +29,7 @@ export const GET = (request: Request) =>
           source: url.searchParams.get("source") ?? "all",
           status: url.searchParams.get("status") ?? "all",
           deadline: url.searchParams.get("deadline") ?? "all",
+          country: url.searchParams.get("country") ?? "all",
           saved: saved === "1",
         }),
       ),

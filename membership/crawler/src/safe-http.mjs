@@ -66,18 +66,63 @@ export function allowedUrl(input) {
       ? /^\/(robots\.txt|(?:en|ar)(?:\/tenders(?:\/details\/\d+)?)?\/?$)/.test(
           u.pathname,
         )
-      : host === "www.cdr.gov.lb"
-        ? /^\/robots\.txt$/.test(u.pathname) ||
-          /^\/en-US\/Procurment\.aspx$/i.test(u.pathname) ||
-          /^\/Procurment(?:\/ProcurementDetail\.aspx)?$/i.test(u.pathname)
-        : host === "search.worldbank.org"
-          ? worldBankQueryAllowed(u)
-          : (host === "www.ungm.org" &&
-              (/^\/robots\.txt$/.test(u.pathname) ||
-                /^\/Public\/Notice\/\d+$/.test(u.pathname))) ||
-            (host === "mawred.org" &&
-              (/^\/robots\.txt$/.test(u.pathname) ||
-                u.pathname === "/artistic-creativity/production-awards/"));
+      : host === "www.grants.gov"
+        ? /^\/(?:robots\.txt|search-results-detail\/\d{1,12})$/.test(u.pathname)
+        : host === "www.cdr.gov.lb"
+          ? /^\/robots\.txt$/.test(u.pathname) ||
+            /^\/en-US\/Procurment\.aspx$/i.test(u.pathname) ||
+            /^\/Procurment(?:\/ProcurementDetail\.aspx)?$/i.test(u.pathname)
+          : host === "search.worldbank.org"
+            ? worldBankQueryAllowed(u)
+            : host === "api.grants.gov"
+              ? !u.search &&
+                /^\/(?:robots\.txt|v1\/api\/(?:search2|fetchOpportunity))$/.test(
+                  u.pathname,
+                )
+              : host === "api.sam.gov"
+                ? (u.pathname === "/robots.txt" && !u.search) ||
+                  (u.pathname === "/opportunities/v2/search" &&
+                    [...u.searchParams.keys()].every((key) =>
+                      [
+                        "api_key",
+                        "postedFrom",
+                        "postedTo",
+                        "limit",
+                        "offset",
+                        "ptype",
+                      ].includes(key),
+                    ) &&
+                    [
+                      "api_key",
+                      "postedFrom",
+                      "postedTo",
+                      "limit",
+                      "offset",
+                    ].every((key) => u.searchParams.getAll(key).length === 1) &&
+                    /^[^\s&]{1,1024}$/.test(
+                      u.searchParams.get("api_key") || "",
+                    ) &&
+                    ["postedFrom", "postedTo"].every((key) =>
+                      /^\d{2}\/\d{2}\/20\d\d$/.test(
+                        u.searchParams.get(key) || "",
+                      ),
+                    ) &&
+                    /^\d{1,4}$/.test(u.searchParams.get("limit") || "") &&
+                    Number(u.searchParams.get("limit")) >= 1 &&
+                    Number(u.searchParams.get("limit")) <= 1000 &&
+                    /^\d{1,9}$/.test(u.searchParams.get("offset") || "") &&
+                    (!u.searchParams.has("ptype") ||
+                      /^[uparsokgi]$/.test(u.searchParams.get("ptype") || "")))
+                : host === "sam.gov"
+                  ? /^\/opp\/[a-f\d]{16,64}\/view$/i.test(u.pathname) &&
+                    !u.search
+                  : (host === "www.ungm.org" &&
+                      (/^\/robots\.txt$/.test(u.pathname) ||
+                        /^\/Public\/Notice\/\d+$/.test(u.pathname))) ||
+                    (host === "mawred.org" &&
+                      (/^\/robots\.txt$/.test(u.pathname) ||
+                        u.pathname ===
+                          "/artistic-creativity/production-awards/"));
   if (!pathOk) throw new CrawlError("url_not_allowed");
   if (host === "www.ungm.org" && u.search)
     throw new CrawlError("query_not_allowed");
@@ -93,6 +138,7 @@ export function allowedUrl(input) {
   for (const key of u.searchParams.keys())
     if (
       host !== "search.worldbank.org" &&
+      host !== "api.sam.gov" &&
       !["page", "id", "lot", "stage"].includes(key) &&
       !(host === "mawred.org" && key === "lang")
     )
@@ -124,18 +170,26 @@ export function blockedBody(text) {
 export function pinnedRequest(
   url,
   address,
-  { maxBytes = 4_000_000, timeoutMs = 25_000, request = https.request } = {},
+  {
+    maxBytes = 4_000_000,
+    timeoutMs = 25_000,
+    request = https.request,
+    method = "GET",
+    headers = {},
+    body,
+  } = {},
 ) {
   return new Promise((resolve, reject) => {
     const req = request(
       url,
       {
-        method: "GET",
+        method,
         agent: false,
         headers: {
           "user-agent": USER_AGENT,
-          accept: "text/html,text/plain",
+          accept: "text/html,text/plain,application/json",
           "accept-encoding": "identity",
+          ...headers,
         },
         lookup(_host, options, callback) {
           callback(
@@ -178,7 +232,7 @@ export function pinnedRequest(
     );
     req.on("close", () => clearTimeout(timer));
     req.on("error", reject);
-    req.end();
+    req.end(body);
   });
 }
 export function decodeBody(bytes, contentType = "") {
@@ -215,10 +269,28 @@ export class SafeHttp {
     this.last = 0;
     this.robots = new Map();
   }
-  async raw(input, { robotsRequest = false } = {}) {
+  async raw(
+    input,
+    {
+      robotsRequest = false,
+      method = "GET",
+      headers = {},
+      body,
+      followRedirects = true,
+    } = {},
+  ) {
     let url = this.urlPolicy(input);
     for (let redirects = 0; redirects <= 4; redirects++) {
-      if (!robotsRequest) await this.assertRobots(url);
+      // Grants.gov documents these exact unauthenticated API paths for public
+      // access; its API host returns HTTP 403 for robots.txt. Keep the
+      // allowlist, DNS pinning, HTTPS, body bounds, pacing and redirect policy.
+      const documentedPublicApi =
+        url.hostname === "api.grants.gov" &&
+        /^\/v1\/api\/(?:search2|fetchOpportunity)$/.test(url.pathname);
+      if (documentedPublicApi && method !== "POST")
+        throw new CrawlError("api_method_not_allowed");
+      if (!robotsRequest && !(documentedPublicApi && method === "POST"))
+        await this.assertRobots(url);
       const address = await resolvePublic(url.hostname, this.resolver);
       await new Promise((r) =>
         setTimeout(r, Math.max(0, this.last + this.minIntervalMs - Date.now())),
@@ -228,6 +300,9 @@ export class SafeHttp {
       for (let attempt = 0; attempt < 3; attempt++) {
         response = await this.transport(url, address, {
           maxBytes: this.maxBytes,
+          method,
+          headers,
+          body,
         });
         if (![429, 500, 502, 503, 504].includes(response.status)) break;
         if (attempt === 2) throw new CrawlError("retry_exhausted");
@@ -241,6 +316,7 @@ export class SafeHttp {
         await new Promise((r) => setTimeout(r, retry));
       }
       if ([301, 302, 303, 307, 308].includes(response.status)) {
+        if (!followRedirects) throw new CrawlError("redirect_forbidden");
         if (!response.headers.location)
           throw new CrawlError("invalid_redirect");
         url = this.urlPolicy(new URL(response.headers.location, url));

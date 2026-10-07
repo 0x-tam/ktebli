@@ -9,6 +9,7 @@ export type GeographyStatus =
 
 type Evidence = Opportunity["evidence"][number];
 type IdentityClaim = NonNullable<Opportunity["identityClaim"]>;
+type Locations = NonNullable<Opportunity["locations"]>;
 
 function normalizedHost(url: string) {
   return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
@@ -48,6 +49,50 @@ function sameEvidence(left: Evidence, right: Evidence) {
     left.text === right.text &&
     left.url === right.url
   );
+}
+
+function knownLocations(record: Opportunity): Locations {
+  if (record.locations) return record.locations;
+
+  // PPA is Lebanon's public procurement portal. This identifies procurement
+  // jurisdiction for browsing; it does not claim a project delivery site.
+  if (record.source === "ppa") {
+    return {
+      countryCodes: ["LB"],
+      scope: "countries",
+      evidence: [
+        {
+          label: "Procurement jurisdiction",
+          text: "Lebanon Public Procurement Authority official portal",
+          url: record.sourceUrl,
+        },
+      ],
+    };
+  }
+
+  // Preserve only legacy claims with explicit project/beneficiary geography.
+  // Publisher jurisdiction and applicant eligibility are not project locations.
+  const explicitLebanon = record.evidence.find(
+    (item) =>
+      /^(project country|country of implementation|beneficiary countries or territories)$/i.test(
+        item.label.trim(),
+      ) &&
+      (item.text.trim() === "Lebanon" ||
+        (/^beneficiary countries or territories$/i.test(item.label.trim()) &&
+          /(^|[,;\s])Lebanon($|[,;\s])/i.test(item.text))),
+  );
+  if (
+    explicitLebanon &&
+    (record.geography?.status === "lebanon_confirmed" ||
+      record.geography?.status === "regional_includes_lebanon")
+  ) {
+    return {
+      countryCodes: ["LB"],
+      scope: "countries",
+      evidence: [explicitLebanon],
+    };
+  }
+  return { countryCodes: [], scope: "unknown", evidence: [] };
 }
 
 function knownGeography(record: Opportunity): {
@@ -177,6 +222,7 @@ export function exactIdentityKey(record: Opportunity): {
 
 export function catalogueQualification(record: Opportunity) {
   const geography = knownGeography(record);
+  const locations = knownLocations(record);
   const identity = exactIdentityKey(record);
   const contentHash = createHash("sha256")
     .update(
@@ -185,12 +231,14 @@ export function catalogueQualification(record: Opportunity) {
         record.contentHash,
         geography.status,
         geography.evidence,
+        locations,
         identity.key,
       ]),
     )
     .digest("hex");
   return {
     geography,
+    locations,
     identity,
     sourceContentHash: record.contentHash,
     contentHash,

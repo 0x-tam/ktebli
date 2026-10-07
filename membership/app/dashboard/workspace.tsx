@@ -33,6 +33,11 @@ type Opportunity = {
   source_aliases: { source: string; source_url: string; title: string }[];
   group_conflict: boolean;
   board_status: "current" | "needs_review" | "closed";
+  locations: {
+    countryCodes: string[];
+    scope: "countries" | "worldwide" | "unknown";
+    evidence: { label: string; text: string; url: string }[];
+  };
 };
 type Profile = {
   past_work: string;
@@ -52,6 +57,7 @@ type Profile = {
   opportunity_types: string[];
 };
 type Data = {
+  countries: string[];
   nextCursor: string | null;
   filteredCount: number;
   profile: Profile | null;
@@ -70,6 +76,19 @@ type Data = {
     read_at: string | null;
   }[];
 };
+const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
+const countryName = (code: string) => countryNames.of(code) ?? code;
+const sourceLabels: Record<string, string> = {
+  ppa: "PPA",
+  ungm: "UNGM",
+  mawred: "Mawred",
+  worldbank: "World Bank",
+  cdr: "CDR",
+  "grants-gov": "Grants.gov",
+  "sam-gov": "SAM.gov",
+};
+const sourceName = (source: string) =>
+  sourceLabels[source] ?? source.toUpperCase();
 const date = (value: string) =>
   new Date(
     value.length === 10 ? value + "T12:00:00" : value,
@@ -123,20 +142,18 @@ function OpportunityRow({
     : o.deadline
       ? "Listed deadline " + date(o.deadline)
       : "Deadline needs review";
-  const geographyLabel =
-    o.geography_status === "lebanon_confirmed"
-      ? "Lebanon scope"
-      : o.geography_status === "regional_includes_lebanon"
-        ? "Regional, including Lebanon"
-        : o.geography_status === "outside_lebanon"
-          ? "Outside Lebanon — check scope"
-          : "Lebanon scope unconfirmed";
+  const locationLabel =
+    o.locations.scope === "worldwide"
+      ? "Worldwide scope"
+      : o.locations.scope === "countries" && o.locations.countryCodes.length
+        ? o.locations.countryCodes.map(countryName).join(", ")
+        : "Country not listed";
   return (
     <article className="opportunity opportunity-row">
       <div className="opportunity-row-main">
         <div className="opportunity-row-kicker">
           <span className="source-tag">
-            {o.source.toUpperCase()} ·{" "}
+            {sourceName(o.source)} ·{" "}
             {o.kind === "unknown" ? "NOTICE" : o.kind.toUpperCase()}
           </span>
           <span className={`board-status board-status-${o.board_status}`}>
@@ -150,7 +167,7 @@ function OpportunityRow({
         <h2 dir="auto">{o.title}</h2>
         <div className="opportunity-row-meta">
           <span>{deadlineLabel}</span>
-          <span>{geographyLabel}</span>
+          <span>Opportunity country: {locationLabel}</span>
           {active && o.fit !== null && (
             <span>{Math.round(Number(o.fit))}/100 fit</span>
           )}
@@ -206,7 +223,7 @@ function OpportunityRow({
         <div className="opportunity-details-dialog-header">
           <div>
             <p className="eyebrow">
-              {o.source.toUpperCase()} · OPPORTUNITY DETAILS
+              {sourceName(o.source)} · OPPORTUNITY DETAILS
             </p>
             <h2 id={`opportunity-details-${o.id}`} dir="auto">
               {o.title}
@@ -225,7 +242,7 @@ function OpportunityRow({
         </div>
         <div className="opportunity-details-summary">
           <p>{deadlineLabel}</p>
-          <p>{geographyLabel}</p>
+          <p>Opportunity country: {locationLabel}</p>
           <p>
             {o.board_status === "current"
               ? "Deadline ahead — verify with the issuer"
@@ -259,6 +276,19 @@ function OpportunityRow({
             ))}
           </div>
         )}
+        {o.locations.evidence.length > 0 && (
+          <div className="opportunity-row-evidence">
+            <strong>Location evidence</strong>
+            {o.locations.evidence.map((item, index) => (
+              <p dir="auto" key={index}>
+                <strong>{item.label}</strong> — {item.text}{" "}
+                <a href={item.url} target="_blank" rel="noreferrer">
+                  Source <ExternalLinkIcon />
+                </a>
+              </p>
+            ))}
+          </div>
+        )}
         {o.locales?.length > 0 && (
           <div className="locale-links">
             {o.locales.map((locale) => (
@@ -282,7 +312,7 @@ function OpportunityRow({
               .map((alias) => (
                 <p key={`${alias.source}:${alias.source_url}`}>
                   <a href={alias.source_url} target="_blank" rel="noreferrer">
-                    {alias.source.toUpperCase()}: {alias.title}{" "}
+                    {sourceName(alias.source)}: {alias.title}{" "}
                     <ExternalLinkIcon />
                   </a>
                 </p>
@@ -335,6 +365,7 @@ export default function Dashboard({
     source: "all",
     status: "all",
     deadline: "all",
+    country: "all",
   });
   const activeSecondaryFilters =
     Number(filters.source !== "all") + Number(filters.deadline !== "all");
@@ -353,7 +384,7 @@ export default function Dashboard({
         "select[data-filter]",
       ) ?? []) {
         const key = element.dataset.filter as
-          "kind" | "source" | "status" | "deadline";
+          "kind" | "source" | "status" | "deadline" | "country";
         element.value = filters[key];
       }
       if (searchInput.current) searchInput.current.value = query;
@@ -461,6 +492,7 @@ export default function Dashboard({
       source: nextFilters.source,
       status: nextFilters.status,
       deadline: nextFilters.deadline,
+      country: nextFilters.country,
     });
     if (saved) params.set("saved", "1");
     if (!reset && data.nextCursor) params.set("cursor", data.nextCursor);
@@ -713,7 +745,7 @@ export default function Dashboard({
                   ? "New matches appear here when matching and alerts are available."
                   : tab === "saved"
                     ? "Your saved public opportunities."
-                    : "Browse public opportunities in Lebanon."}
+                    : "Browse opportunities across the countries represented in the catalogue. Eligibility varies by notice."}
             </p>
           </div>
           <span className="status-pill">
@@ -1242,6 +1274,30 @@ export default function Dashboard({
             >
               <div className="catalogue-primary-filters">
                 <label>
+                  Opportunity country
+                  <select
+                    data-filter="country"
+                    value={filters.country}
+                    onChange={(e) =>
+                      void loadMore(true, tab === "saved", {
+                        ...filters,
+                        country: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="all">Worldwide · all opportunities</option>
+                    {[...data.countries]
+                      .sort((a, b) =>
+                        countryName(a).localeCompare(countryName(b)),
+                      )
+                      .map((code) => (
+                        <option key={code} value={code}>
+                          {countryName(code)}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label>
                   Type
                   <select
                     data-filter="kind"
@@ -1278,6 +1334,10 @@ export default function Dashboard({
                   </select>
                 </label>
               </div>
+              <p className="board-location-hint">
+                Opportunity country reflects the notice scope; eligibility
+                varies by notice.
+              </p>
               <details className="catalogue-secondary-filters">
                 <summary>
                   More filters
@@ -1304,6 +1364,8 @@ export default function Dashboard({
                       <option value="mawred">Mawred</option>
                       <option value="worldbank">World Bank</option>
                       <option value="cdr">CDR</option>
+                      <option value="grants-gov">Grants.gov</option>
+                      <option value="sam-gov">SAM.gov</option>
                     </select>
                   </label>
                   <label>
@@ -1396,7 +1458,7 @@ export default function Dashboard({
                   <p>
                     {tab === "saved"
                       ? "Save interesting notices from Discover and come back when you’re ready."
-                      : "Try another type, source, status, deadline, or search term."}
+                      : "Try another country, type, source, status, deadline, or search term."}
                   </p>
                   <button
                     onClick={() => {
@@ -1411,6 +1473,7 @@ export default function Dashboard({
                           source: "all",
                           status: "all",
                           deadline: "all",
+                          country: "all",
                         });
                       }
                     }}
@@ -1436,6 +1499,19 @@ export default function Dashboard({
               >
                 Load more opportunities
               </button>
+            )}
+            {(filters.source === "grants-gov" ||
+              visible.some(
+                (o) =>
+                  o.source === "grants-gov" ||
+                  o.source_aliases.some(
+                    (alias) => alias.source === "grants-gov",
+                  ),
+              )) && (
+              <p className="catalogue-attribution">
+                This product uses the Grants.gov API but is not endorsed or
+                certified by the U.S. Department of Health and Human Services.
+              </p>
             )}
           </>
         )}

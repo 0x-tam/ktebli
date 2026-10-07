@@ -1339,9 +1339,15 @@ footer a:hover {
 .board-filter-controls {
   margin-bottom: 15px;
 }
+.board-location-hint {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
 .catalogue-primary-filters {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 220px));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 220px));
   gap: 12px;
   margin: 0 0 8px;
 }
@@ -1382,6 +1388,13 @@ footer a:hover {
 }
 .catalogue-secondary-filters .catalogue-filters {
   margin-bottom: 12px;
+}
+.catalogue-attribution {
+  max-width: 760px;
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 .checkbox {
   display: flex;

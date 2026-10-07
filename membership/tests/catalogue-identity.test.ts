@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { opportunitySchema } from "../lib/contracts";
 import { catalogueQualification } from "../lib/catalogue-identity";
-import { worldBankBatchSchema } from "../lib/catalogue";
+import { catalogueBatchSchema, worldBankBatchSchema } from "../lib/catalogue";
 
 const rawPpa = JSON.parse(
   await readFile("tests/fixtures/ppa-matching.json", "utf8"),
@@ -132,6 +132,119 @@ test("source-backed geography changes matching version; title mention alone prov
       ),
     /Geography evidence must be copied/,
   );
+});
+
+test("worldwide source locations need ISO codes and copied location evidence", () => {
+  const sourceUrl = "https://www.grants.gov/search-results-detail/123456";
+  const locationEvidence = {
+    label: "Opportunity country",
+    text: "United States",
+    url: sourceUrl,
+  };
+  const record = opportunitySchema.parse({
+    ...rawPpa,
+    source: "grants-gov",
+    sourceKey: "grants-gov:123456",
+    sourceUrl,
+    evidence: [locationEvidence],
+    locales: [],
+    locations: {
+      countryCodes: ["US"],
+      scope: "countries",
+      evidence: [locationEvidence],
+    },
+  });
+  assert.deepEqual(catalogueQualification(record).locations.countryCodes, [
+    "US",
+  ]);
+  const partial = catalogueBatchSchema.parse({
+    records: [record],
+    coverage: {
+      status: "incomplete",
+      uniqueRecords: 1,
+      selectedSources: ["grants-gov"],
+      selectedStatus: "incomplete",
+      streams: {
+        "grants-gov": {
+          status: "incomplete",
+          uniqueRecords: 1,
+          expectedTotal: 100,
+          cursor: 10,
+          cursorUnit: "offset",
+        },
+      },
+    },
+  });
+  assert.equal(partial.records.length, 1);
+  const worldwideEvidence = {
+    label: "Opportunity geography",
+    text: "Worldwide",
+    url: sourceUrl,
+  };
+  const worldwide = opportunitySchema.parse({
+    ...record,
+    evidence: [worldwideEvidence],
+    locations: {
+      countryCodes: [],
+      scope: "worldwide",
+      evidence: [worldwideEvidence],
+    },
+  });
+  assert.equal(catalogueQualification(worldwide).locations.scope, "worldwide");
+  assert.throws(() =>
+    opportunitySchema.parse({
+      ...worldwide,
+      locations: { countryCodes: [], scope: "worldwide", evidence: [] },
+    }),
+  );
+  assert.throws(() =>
+    catalogueBatchSchema.parse({
+      records: [{ ...record, detailStatus: "partial" }],
+      coverage: {
+        status: "incomplete",
+        uniqueRecords: 1,
+        selectedSources: ["grants-gov"],
+        selectedStatus: "incomplete",
+        streams: {
+          "grants-gov": {
+            status: "incomplete",
+            uniqueRecords: 1,
+            expectedTotal: 100,
+            cursor: 10,
+            cursorUnit: "offset",
+          },
+        },
+      },
+    }),
+  );
+  assert.throws(() =>
+    opportunitySchema.parse({
+      ...record,
+      locations: {
+        countryCodes: ["ZZ"],
+        scope: "countries",
+        evidence: [locationEvidence],
+      },
+    }),
+  );
+  assert.throws(() =>
+    opportunitySchema.parse({
+      ...record,
+      locations: {
+        countryCodes: ["US"],
+        scope: "countries",
+        evidence: [{ ...locationEvidence, text: "Canada" }],
+      },
+    }),
+  );
+});
+
+test("legacy PPA geography is labeled as procurement jurisdiction", () => {
+  const ppa = opportunitySchema.parse(rawPpa);
+  const locations = catalogueQualification(ppa).locations;
+  assert.deepEqual(locations.countryCodes, ["LB"]);
+  assert.match(locations.evidence[0].label, /procurement jurisdiction/i);
+  assert.doesNotMatch(locations.evidence[0].label, /project country/i);
 });
 
 test("official World Bank Lebanon notice passes bounded central import contract", async () => {

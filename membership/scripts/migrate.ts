@@ -56,6 +56,15 @@ try {
     );
     await db.query("INSERT INTO membership.migrations(version) VALUES('004')");
   }
+  if (
+    !(await db.query("SELECT 1 FROM membership.migrations WHERE version='005'"))
+      .rowCount
+  ) {
+    await db.query(
+      await readFile(resolve("db/005_worldwide_catalogue.sql"), "utf8"),
+    );
+    await db.query("INSERT INTO membership.migrations(version) VALUES('005')");
+  }
   await db.query("COMMIT");
   console.log(
     "Membership schema applied. Runtime login grants remain a separate provisioning step.",

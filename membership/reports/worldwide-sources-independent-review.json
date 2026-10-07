@@ -1,0 +1,70 @@
+{
+  "review": "Independent worldwide catalogue security, data, and release review",
+  "atUtc": "2026-10-07T11:26:17.521796+00:00",
+  "disposition": "PASS_FOR_CODE_QUALIFICATION",
+  "baselineCommit": "57a3c1e2e2458c9a42195423a0bb80d5bda1b3b5",
+  "reviewedCheckout": "/private/tmp/ktebli-membership-catalogue-publish",
+  "rootWorkspace": "/Users/Tamam/Projects/ktebli",
+  "rootAndPublishedBytesMatch": true,
+  "sha256ByPath": {
+    "membership/README.md": "868c66780b0a459e275bedf4b31e678e070325ce9e8dc7b3ffcaeb4d6124f643",
+    "membership/app/api/opportunities/route.ts": "9c097d314c793539b3e0a5ebb5cd3b5b5bd230921421cede24076033f3471d3b",
+    "membership/app/dashboard/workspace.tsx": "63fb28bee460a8b698a767df96ef576abde3e587f403497b956aa539110d10b9",
+    "membership/app/globals.css": "92e235482ccbf9e973b2cee46d5934dccc22a45a95bf72b870e49dd551fac0bb",
+    "membership/crawler/README.md": "c8f3a41827e994aff4c8c9859528ca309365fe383ecf3ebf91a01aaac320b5b6",
+    "membership/crawler/package.json": "4c8097245b76463aae3d9f3bd9ab572698a1ee0c8e48fcef5124e4b5f0e708b1",
+    "membership/crawler/src/grants-gov.mjs": "96f17c2ec1718f9fa385616f572201aed13bd47b6865194dfc07a8f3a40456b8",
+    "membership/crawler/src/public-catalog.mjs": "bdde54431b460bab0c95a7cb9a6dc36dcd235fd63e0f8709470760ff2a1ae75d",
+    "membership/crawler/src/safe-http.mjs": "1b28d1fa61f023974dbe7727c5cb4e9b3663ac0a9872beabbdeddc0315eba553",
+    "membership/crawler/src/sam-gov.mjs": "79036e0861f1745027ba5981d24e816c4c8bb8065b4d3fd96a5beccdb8536792",
+    "membership/crawler/src/worldwide-cli.mjs": "4074a2dacc97f7ab516cae0e4a7a72d6b8507b486eba79a13ca7e8704b7a3385",
+    "membership/crawler/test/worldwide.test.mjs": "7dd3c1632f8ad2a6e3b53e3ac0b498ca87101145b97679285c66d2616cfacbcc",
+    "membership/db/005_worldwide_catalogue.sql": "58e0af6c5ef587cfbd18a69ae2d43fe83580fda6bd60c3acad43a5019e041160",
+    "membership/lib/catalogue-identity.ts": "b06c00273013fbbfe8005cd2352a70004e8a0a41fb828da592ef925a68ed11cc",
+    "membership/lib/catalogue.ts": "889782f770f0dd158d3ff1328056353f305488f4b6f4b6510fb8fc09f8e6f610",
+    "membership/lib/contracts.ts": "4ed4a38ce595e8fc03ae04634b8c4577583193ddb378298061fa60f7fb266b34",
+    "membership/lib/crawler-checkpoint.ts": "395e02e9c34ef4894a0b607a87955e42494956fba4e0d15f5d14e39ec6aa927f",
+    "membership/lib/dashboard.ts": "72307f0eebdd7209a27c16f1ee14ad933f0c082df32f26f07f9731acef63a8ab",
+    "membership/lib/opportunity-handoff.ts": "80d67d580a4a0219b074b776ec97a5a7f7304a2138fb6d8dea390effaa1f3b24",
+    "membership/scripts/import-catalog.ts": "d6035d1493a8e7cc7768468e9f892968ff0ac70d67371f0719b3b98c86cd464e",
+    "membership/scripts/migrate.ts": "c99fadc026eeea0b4e69bbfae6492332e20203ddb7fe9b44444adacd70511a06",
+    "membership/scripts/run-catalogue.ts": "c5b0484e2073e01210b1b2494e64b8bfdc428c1b0063651a6b68f6d5ecd3fd4f",
+    "membership/tests/catalogue-identity.test.ts": "ec5ecbb5742702527709295571e5120a5c55181779695b56a72df1d94c2fe29a",
+    "membership/tests/checkpoint.test.ts": "19ff4ebc4aa977c76d3b02fc26ae972c197703f1aadc659fd923ff6c1c46adf2",
+    "membership/tests/db.integration.ts": "64d4a14c26c2daf42e18f70804a671cbff1fe09822d2b9dda2576cd149097a62"
+  },
+  "checksObservedByReviewer": {
+    "crawlerSuite": "40 passed, 1 pre-existing Chromium loopback test skipped, 0 failed",
+    "membershipUnitSuite": "26 passed, 0 failed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "formatCheck": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "checksReportedByImplementerOrParent": {
+    "nextBuild": "passed in clean published checkout",
+    "disposablePostgresIntegration": "passed migrations 001–005, catalogue DB integration, and 3 scheduled-runner checks",
+    "childMigration": "parent reports migration 005 applied on isolated Neon child with 1186 pre-existing rows preserved",
+    "childGrantsImport": "backend report records 20 verified Grants.gov rows, unknown locations, incomplete coverage (847 expected; cursor 20) and zero deletions"
+  },
+  "reviewFindings": [
+    "Grants.gov robots exception is limited to POST on exact documented API paths; URL allowlist, HTTPS, DNS public-IP pinning, TLS, pacing, response size limit, and redirect denial remain enforced.",
+    "SAM.gov API key remains server-side; no keyed redirect is followed; missing key disables SAM without affecting Grants.gov.",
+    "Source country and worldwide claims require copied explicit geographic evidence; applicant eligibility does not set location. Expired and forecast notices are not presented as open.",
+    "Page limits, cursor units, checkpoint persistence, schema checks, and incomplete coverage prevent partial ingestion from being reported as a complete feed; the importer upserts without deleting absent rows.",
+    "Country filtering and search pagination bind to all active filters through a fixed-length cursor fingerprint. Unknown locations remain visible only in Worldwide/all; private saved and paid data retain the existing user transaction and RLS controls.",
+    "Migration 005 adds source values, a constrained locations column, conservative Lebanon backfill, and an index; it makes no deletes, billing changes, role grants, or RLS changes."
+  ],
+  "qualificationLimits": [
+    "SAM.gov was not live-qualified because no SAM_GOV_API_KEY was configured; it remains opt-in and absent from the default runner.",
+    "The daily GitHub source schedule remains inactive; no production migration or deployment is covered by this review.",
+    "The independent Chromium loopback test is skipped in the present environment.",
+    "Paid matching remains scoped to confirmed Lebanon geography and does not consume new unknown-location records.",
+    "A drifting publisher count can leave a partial checkpoint incomplete; documented --refresh starts a new bounded listing pass while existing database records remain preserved."
+  ],
+  "primaryApiReferences": [
+    "https://www.grants.gov/api/common/search2",
+    "https://www.grants.gov/api/common/fetchopportunity",
+    "https://open.gsa.gov/api/get-opportunities-public-api/"
+  ]
+}

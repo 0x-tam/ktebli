@@ -3,13 +3,25 @@ import { userTransaction } from "./db";
 import { HttpError } from "./http";
 import { z } from "zod";
 import type { PoolClient } from "pg";
+import { ISO_COUNTRY_CODES, isoCountryCodeSchema } from "./contracts";
+import { createHash } from "node:crypto";
 
 export const catalogueFiltersSchema = z.object({
   query: z.string().trim().max(200).default(""),
   kind: z.enum(["all", "procurement", "grant", "unknown"]).default("all"),
   source: z
-    .enum(["all", "ppa", "ungm", "mawred", "worldbank", "cdr"])
+    .enum([
+      "all",
+      "ppa",
+      "ungm",
+      "mawred",
+      "worldbank",
+      "cdr",
+      "grants-gov",
+      "sam-gov",
+    ])
     .default("all"),
+  country: z.union([z.literal("all"), isoCountryCodeSchema]).default("all"),
   status: z.enum(["all", "current", "needs_review", "closed"]).default("all"),
   deadline: z
     .enum(["all", "future", "today", "past", "unknown"])
@@ -21,6 +33,7 @@ export type CatalogueFilters = z.input<typeof catalogueFiltersSchema>;
 const cursorSchema = z.object({
   at: z.string().datetime({ offset: true }),
   id: z.string().uuid(),
+  filterKey: z.string().max(1000),
 });
 
 // The representative is selected before filters so a filtered page cannot display
@@ -54,7 +67,6 @@ const catalogueCte = `WITH ranked AS (
         AND (conflict.deadline IS DISTINCT FROM o.deadline
           OR conflict.kind IS DISTINCT FROM o.kind
           OR conflict.application_status IN ('closed','not_open_competition')
-          OR conflict.geography_status='outside_lebanon'
           OR conflict.deadline_conflict)
     )) AS group_conflict
   FROM membership.opportunities o
@@ -62,8 +74,7 @@ const catalogueCte = `WITH ranked AS (
   SELECT o.*,
     CASE
       WHEN o.application_status IN ('closed','not_open_competition') OR o.deadline<CURRENT_DATE THEN 'closed'
-      WHEN o.geography_status IN ('lebanon_confirmed','regional_includes_lebanon')
-        AND o.detail_status='verified' AND NOT o.deadline_conflict AND NOT o.group_conflict
+      WHEN o.detail_status='verified' AND NOT o.deadline_conflict AND NOT o.group_conflict
         AND o.fetched_at>now()-interval '24 hours' AND o.deadline>CURRENT_DATE THEN 'current'
       ELSE 'needs_review'
     END AS board_status
@@ -78,15 +89,36 @@ const catalogueCte = `WITH ranked AS (
     AND ($4='all' OR EXISTS(
       SELECT 1 FROM membership.opportunities source_alias
       WHERE source_alias.id=ANY(o.alias_ids) AND source_alias.source=$4))
-    AND ($5='all' OR o.board_status=$5)
-    AND ($6='all' OR ($6='future' AND o.deadline>CURRENT_DATE)
-      OR ($6='today' AND o.deadline=CURRENT_DATE)
-      OR ($6='past' AND o.deadline<CURRENT_DATE)
-      OR ($6='unknown' AND o.deadline IS NULL))
-    AND ($7::boolean=false OR EXISTS(
+    AND ($5='all' OR EXISTS(
+      SELECT 1 FROM membership.opportunities location_alias
+      WHERE location_alias.id=ANY(o.alias_ids)
+        AND (location_alias.locations->>'scope'='worldwide'
+          OR location_alias.locations->'countryCodes' ? $5)))
+    AND ($6='all' OR o.board_status=$6)
+    AND ($7='all' OR ($7='future' AND o.deadline>CURRENT_DATE)
+      OR ($7='today' AND o.deadline=CURRENT_DATE)
+      OR ($7='past' AND o.deadline<CURRENT_DATE)
+      OR ($7='unknown' AND o.deadline IS NULL))
+    AND ($8::boolean=false OR EXISTS(
       SELECT 1 FROM membership.saved_opportunities s
       WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids)))
 )`;
+
+function cursorFilterKey(options: z.infer<typeof catalogueFiltersSchema>) {
+  return createHash("sha256")
+    .update(
+      JSON.stringify([
+        options.query,
+        options.kind,
+        options.source,
+        options.country,
+        options.status,
+        options.deadline,
+        options.saved,
+      ]),
+    )
+    .digest("hex");
+}
 
 async function queryCatalogue(
   db: PoolClient,
@@ -94,12 +126,14 @@ async function queryCatalogue(
   raw: CatalogueFilters = {},
 ) {
   const options = catalogueFiltersSchema.parse(raw);
-  let cursor: { at: string; id: string } | undefined;
+  const filterKey = cursorFilterKey(options);
+  let cursor: z.infer<typeof cursorSchema> | undefined;
   if (options.cursor) {
     try {
       cursor = cursorSchema.parse(
         JSON.parse(Buffer.from(options.cursor, "base64url").toString("utf8")),
       );
+      if (cursor.filterKey !== filterKey) throw new Error("Filter changed");
     } catch {
       throw new HttpError(400, "Invalid page cursor");
     }
@@ -109,6 +143,7 @@ async function queryCatalogue(
     options.query,
     options.kind,
     options.source,
+    options.country,
     options.status,
     options.deadline,
     options.saved,
@@ -144,7 +179,7 @@ async function queryCatalogue(
        FROM filtered o
        LEFT JOIN membership.matches m ON entitlement.paid AND m.opportunity_id=o.id AND m.user_id=$1
        LEFT JOIN membership.profiles p ON entitlement.paid AND p.user_id=$1
-       WHERE ($8::timestamptz IS NULL OR (o.fetched_at,o.id)<($8::timestamptz,$9::uuid))
+       WHERE ($9::timestamptz IS NULL OR (o.fetched_at,o.id)<($9::timestamptz,$10::uuid))
        ORDER BY o.fetched_at DESC,o.id DESC LIMIT 51
      ) page ON true`,
     values,
@@ -167,17 +202,37 @@ async function queryCatalogue(
     nextCursor:
       more && last
         ? Buffer.from(
-            JSON.stringify({ at: last.cursor_at, id: last.id }),
+            JSON.stringify({ at: last.cursor_at, id: last.id, filterKey }),
           ).toString("base64url")
         : null,
   };
+}
+
+async function catalogueCountries(db: PoolClient) {
+  const result = await db.query<{ countries: string[] }>(
+    `SELECT CASE WHEN EXISTS (
+         SELECT 1 FROM membership.opportunities WHERE locations->>'scope'='worldwide'
+       ) THEN $1::text[] ELSE (
+         SELECT COALESCE(array_agg(DISTINCT country ORDER BY country), ARRAY[]::text[])
+         FROM membership.opportunities o
+         CROSS JOIN LATERAL jsonb_array_elements_text(o.locations->'countryCodes') AS countries(country)
+       ) END AS countries`,
+    [ISO_COUNTRY_CODES],
+  );
+  return result.rows[0]?.countries ?? [];
 }
 
 export async function catalogueData(
   userId: string,
   raw: CatalogueFilters = {},
 ) {
-  return userTransaction(userId, (db) => queryCatalogue(db, userId, raw));
+  return userTransaction(userId, async (db) => {
+    const [catalogue, countries] = await Promise.all([
+      queryCatalogue(db, userId, raw),
+      catalogueCountries(db),
+    ]);
+    return { ...catalogue, countries };
+  });
 }
 
 export async function dashboardData(
@@ -198,6 +253,7 @@ export async function dashboardData(
       [userId],
     );
     const catalogue = await queryCatalogue(db, userId, raw);
+    const countries = await catalogueCountries(db);
     const paid = catalogue.paid;
     const alerts = paid
       ? await db.query(
@@ -248,6 +304,7 @@ export async function dashboardData(
       subscription: subscription.rows[0] ?? null,
       credit: credits.rows[0] ?? null,
       opportunities: catalogue.opportunities,
+      countries,
       alerts: alerts.rows,
       filteredCount: catalogue.filteredCount,
       nextCursor: catalogue.nextCursor,

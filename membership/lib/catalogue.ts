@@ -6,6 +6,7 @@ const stream = z
     uniqueRecords: z.number().int().nonnegative(),
     expectedTotal: z.number().int().nonnegative().nullable(),
     cursor: z.unknown(),
+    cursorUnit: z.enum(["offset", "page"]).optional(),
   })
   .passthrough();
 export const catalogueBatchSchema = z
@@ -21,14 +22,59 @@ export const catalogueBatchSchema = z
       if (source === "ppa") continue;
       const records = batch.records.filter((r) => r.source === source);
       const streams = Object.entries(batch.coverage.streams)
-        .filter(([name]) => name.startsWith(source + ":"))
+        .filter(([name]) => name === source || name.startsWith(source + ":"))
         .map(([, value]) => value);
+      if (source === "grants-gov" || source === "sam-gov") {
+        const s = streams[0];
+        const uniqueKeys = new Set(records.map((r) => r.sourceKey));
+        const validCursor =
+          s?.status === "incomplete"
+            ? (s.cursorUnit === "offset" || s.cursorUnit === "page") &&
+              Number.isSafeInteger(s.cursor) &&
+              Number(s.cursor) >= 0
+            : s?.status === "complete" &&
+              s.expectedTotal !== null &&
+              Number.isSafeInteger(s.cursor) &&
+              (s.cursorUnit === "page"
+                ? s.cursor === Math.ceil(s.expectedTotal / 100)
+                : s.cursorUnit === "offset" && s.cursor === s.expectedTotal);
+        const validCoverage =
+          (s?.status === "complete" &&
+            batch.coverage.status === "complete" &&
+            s.expectedTotal === s.uniqueRecords) ||
+          (s?.status === "incomplete" &&
+            batch.coverage.status === "incomplete" &&
+            (s.expectedTotal === null || s.uniqueRecords <= s.expectedTotal));
+        if (
+          streams.length !== 1 ||
+          !validCursor ||
+          !validCoverage ||
+          !s ||
+          batch.coverage.uniqueRecords !== records.length ||
+          !Array.isArray(batch.coverage.selectedSources) ||
+          batch.coverage.selectedSources.length !== 1 ||
+          batch.coverage.selectedSources[0] !== source ||
+          batch.coverage.selectedStatus !== s.status ||
+          s.uniqueRecords !== records.length ||
+          records.length !== uniqueKeys.size ||
+          records.some(
+            (r) => r.source !== source || r.detailStatus !== "verified",
+          )
+        )
+          return false;
+        continue;
+      }
       if (
         !streams.length ||
         streams.some(
           (s) =>
             s.status !== "complete" ||
-            s.cursor !== null ||
+            (s.cursor !== null &&
+              !(
+                ["grants-gov", "sam-gov"].includes(source) &&
+                Number.isSafeInteger(s.cursor) &&
+                s.cursor === s.expectedTotal
+              )) ||
             s.expectedTotal !== s.uniqueRecords,
         ) ||
         streams.reduce((total, s) => total + s.uniqueRecords, 0) !==

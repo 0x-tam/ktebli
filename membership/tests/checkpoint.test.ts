@@ -57,3 +57,38 @@ test("a later-day backlog checkpoint refreshes current listings before retrying 
   assert.equal(ppaNeedsListingRefresh("backlog", today, today), false);
   assert.equal(ppaNeedsListingRefresh("imported", today, today), true);
 });
+
+test("worldwide source checkpoints require resumable pagination state", () => {
+  const state = {
+    version: 1,
+    sources: {
+      "grants-gov": {
+        status: "incomplete",
+        cursor: 0,
+        cursorUnit: "offset",
+        pages: 0,
+        fingerprints: [],
+        seenIds: [],
+        expectedTotal: null,
+        pendingPage: null,
+        records: {},
+        updatedAt: "2026-10-07T00:00:00.000Z",
+      },
+    },
+  };
+  const encoded = encodeCrawlerState("grants-gov", state);
+  assert.deepEqual(
+    decodeCrawlerState("grants-gov", encoded.gzip, encoded.sha256),
+    state,
+  );
+  assert.throws(
+    () =>
+      encodeCrawlerState("sam-gov", {
+        ...state,
+        sources: {
+          "sam-gov": { status: "incomplete", seenIds: [], records: {} },
+        },
+      }),
+    /Invalid crawler checkpoint state/,
+  );
+});
