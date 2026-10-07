@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-07T12:18:06.874711+00:00",
+  "provider": "TypeSafe official",
+  "model": "jev-1.13.0",
+  "answer": {
+    "type": "choice",
+    "choice": "ESCALATE",
+    "confidence": 0.97,
+    "probabilities": {
+      "MEDIUM": 0.0,
+      "HIGH": 0.02,
+      "SMALL": 0.0,
+      "ESCALATE": 0.98
+    }
+  },
+  "usage": {
+    "input_tokens": 562,
+    "output_tokens": 51
+  }
+}

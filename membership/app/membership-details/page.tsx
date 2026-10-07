@@ -1,15 +1,25 @@
 import Link from "next/link";
+import { safeAccountReturn } from "@/lib/navigation";
 
-export default function MembershipDetails() {
+export default async function MembershipDetails({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
   const checkoutOpen = process.env.MEMBERSHIP_BILLING_ENABLED === "true";
+  const returnTo = safeAccountReturn((await searchParams).returnTo);
+  const accountHref = (returnTo ?? "/account/dashboard").slice(
+    "/account".length,
+  );
   return (
     <main className="landing">
       <nav className="topbar">
-        <Link className="brand" href="https://ktebli.vercel.app">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a className="brand" href="/">
           ktebli
-        </Link>
-        <Link className="button subtle" href="/auth">
-          Account ↗
+        </a>
+        <Link className="button subtle" href={accountHref}>
+          Back to opportunities
         </Link>
       </nav>
       <section className="hero">
@@ -54,8 +64,8 @@ export default function MembershipDetails() {
         </article>
       </section>
       <footer>
-        <Link href="https://ktebli.vercel.app">Home</Link> ·{" "}
-        <Link href="/data-use">Account data</Link>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a href="/">Home</a> · <Link href="/data-use">Account data</Link>
       </footer>
     </main>
   );

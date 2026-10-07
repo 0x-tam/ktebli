@@ -15,7 +15,7 @@ class Element {
 const elements = new Map();
 const document = {createElement:()=>new Element(),querySelector:()=>new Element(),getElementById:(id)=>{if(!elements.has(id)){const e=new Element();e.id=id;elements.set(id,e);}return elements.get(id);}};
 let input='https://example.org/tender', response, requests=[], timers=[], delays=[];
-const ctx = {document,URL,console, catalogueHandoffPending:false, catalogueHandoffEpoch:0, Event:class {constructor(type){this.type=type;}}, FN:'https://backend.example', wiz:{step:0,val:()=>input},cb:(id)=>!!document.getElementById(id).checked,updateDeadlineField(){},clearTimeout(){},setTimeout(fn,delay){timers.push(fn);delays.push(delay);return timers.length;},fetch:async(url,options)=>{requests.push(JSON.parse(options.body));return {json:async()=>response};}};
+const ctx = {document,URL,console, catalogueHandoffPending:false, catalogueHandoffEpoch:0, handoffConflict:false, Event:class {constructor(type){this.type=type;}}, FN:'https://backend.example', wiz:{step:0,val:()=>input,invalidateCheckout(){}},cb:(id)=>!!document.getElementById(id).checked,updateDeadlineField(){},clearTimeout(){},setTimeout(fn,delay){timers.push(fn);delays.push(delay);return timers.length;},fetch:async(url,options)=>{requests.push(JSON.parse(options.body));return {json:async()=>response};}};
 vm.createContext(ctx);
 vm.runInContext(html.slice(html.indexOf('function proposalCurrency()'),html.indexOf("document.getElementById('w-currency').addEventListener('change'")),ctx);
 vm.runInContext(html.slice(html.indexOf('var lastAnalyzed ='),html.indexOf('function updateDeadlineField()')),ctx);
@@ -233,7 +233,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
  ctx.analyzeGrant=()=>{sourceReviews++;};ctx.fetch=()=>{throw Error('Checkout must not send intake while source review is pending');};
  const checkout={step:6,pendingToken:'stale',val:()=>input,render(){},validate(){validations++;}};
  ctx.analysisOk=false;ctx.analysisBackground=true;ctx.analyzing=true;ctx.checkoutGate.pay.call(checkout);
- assert.equal(checkout.step,0);assert.equal(sourceReviews,1);
+ assert.equal(checkout.step,6,'source recheck keeps the current review step');assert.equal(sourceReviews,0,'an in-flight source check is not restarted');
  ctx.analysisOk=true;ctx.lastAnalyzed=input;ctx.deadlineRequiresManual=true;ctx.cb=()=>false;
  let payments=0;ctx.goToPayment=()=>{payments++;};ctx.checkoutGate.pay.call(checkout);assert.equal(validations,0);assert.equal(payments,1);
 

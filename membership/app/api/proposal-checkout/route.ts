@@ -169,7 +169,7 @@ export const POST = (request: Request) =>
         membership_credit_cents: "2000",
       },
       success_url: `${site}/orders/session/{CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appOrigin()}${accountPath("/dashboard")}`,
+      cancel_url: `${appOrigin()}${accountPath("/proposal-checkout")}?payment=canceled`,
       expires_at: Number(credit.checkout_expires_at),
     } as const;
     const stored = await billingTransaction(

@@ -1,11 +1,25 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { runBoundedAuthCall } from "@/lib/auth/flow";
 import { isMembershipActive } from "@/lib/contracts";
 import { accountPath } from "@/lib/paths";
+import {
+  boardPath,
+  defaultBoardFilters,
+  parseBoardView,
+  safeAccountReturn,
+  type BoardFilters,
+  type BoardTab,
+} from "@/lib/navigation";
+import {
+  profileDraftKey,
+  readProfileDraft,
+  saveProfileDraft,
+  type ProfileDraftFields,
+} from "@/lib/profile-draft";
 type Opportunity = {
   detail_status: string;
   deadline_conflict: boolean;
@@ -98,6 +112,28 @@ const date = (value: string) =>
     year: "numeric",
   });
 
+function sessionGet(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function sessionSet(key: string, value: string) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // The current navigation still works without a remembered return view.
+  }
+}
+function sessionRemove(key: string) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // Session storage can be disabled by the browser.
+  }
+}
+
 function ExternalLinkIcon() {
   return (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -125,6 +161,7 @@ function OpportunityRow({
   busy,
   now,
   proposalOrigin,
+  returnTo,
   onSave,
 }: {
   opportunity: Opportunity;
@@ -132,6 +169,7 @@ function OpportunityRow({
   busy: boolean;
   now: number;
   proposalOrigin: string;
+  returnTo: string;
   onSave: () => void;
 }) {
   const detailsDialog = useRef<HTMLDialogElement | null>(null);
@@ -185,9 +223,9 @@ function OpportunityRow({
       <div className="opportunity-row-actions">
         <a
           className="button"
-          href={`${proposalOrigin}/?prepare=${encodeURIComponent(o.id)}`}
+          href={`${proposalOrigin}/start?prepare=${encodeURIComponent(o.id)}&returnTo=${encodeURIComponent(returnTo)}`}
         >
-          Prepare proposal <ExternalLinkIcon />
+          Prepare proposal
         </a>
         <div className="opportunity-row-secondary">
           <a href={o.source_url} target="_blank" rel="noreferrer">
@@ -322,9 +360,9 @@ function OpportunityRow({
         <div className="opportunity-details-dialog-actions">
           <a
             className="button"
-            href={`${proposalOrigin}/?prepare=${encodeURIComponent(o.id)}`}
+            href={`${proposalOrigin}/start?prepare=${encodeURIComponent(o.id)}&returnTo=${encodeURIComponent(returnTo)}`}
           >
-            Prepare proposal <ExternalLinkIcon />
+            Prepare proposal
           </a>
           <a href={o.source_url} target="_blank" rel="noreferrer">
             Open original notice <ExternalLinkIcon />
@@ -344,6 +382,7 @@ export default function Dashboard({
   verified,
   billingEnabled,
   proposalOrigin,
+  initialView,
 }: {
   initial: Data;
   name: string;
@@ -351,22 +390,14 @@ export default function Dashboard({
   verified: boolean;
   billingEnabled: boolean;
   proposalOrigin: string;
+  initialView: { tab: BoardTab; filters: BoardFilters };
 }) {
   const router = useRouter();
   const [now] = useState(() => Date.now());
   const [data, setData] = useState(initial);
-  const [tab, setTab] = useState<"discover" | "saved" | "profile" | "alerts">(
-    "discover",
-  );
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState({
-    query: "",
-    kind: "all",
-    source: "all",
-    status: "all",
-    deadline: "all",
-    country: "all",
-  });
+  const [tab, setTab] = useState<BoardTab>(initialView.tab);
+  const [query, setQuery] = useState(initialView.filters.query);
+  const [filters, setFilters] = useState<BoardFilters>(initialView.filters);
   const activeSecondaryFilters =
     Number(filters.source !== "all") + Number(filters.deadline !== "all");
   const [boardBusy, setBoardBusy] = useState(false);
@@ -464,96 +495,254 @@ export default function Dashboard({
   const [languagesText, setLanguagesText] = useState(
     initial.profile?.languages?.join(", ") ?? "",
   );
+  const profileFields: ProfileDraftFields = useMemo(
+    () => ({
+      profile,
+      sectorsText,
+      locationsText,
+      qualificationsText,
+      interestsText,
+      exclusionsText,
+      languagesText,
+    }),
+    [
+      profile,
+      sectorsText,
+      locationsText,
+      qualificationsText,
+      interestsText,
+      exclusionsText,
+      languagesText,
+    ],
+  );
+  const profileBaseline = useRef<string | null>(null);
+  const profileFieldsRef = useRef(profileFields);
+  const [profileDraftRestored, setProfileDraftRestored] = useState(false);
+  useEffect(() => {
+    profileFieldsRef.current = profileFields;
+  }, [profileFields]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (profileBaseline.current !== null) return;
+      profileBaseline.current = JSON.stringify(profileFields);
+      let draft: ProfileDraftFields | null = null;
+      try {
+        draft = readProfileDraft(window.sessionStorage, email);
+      } catch {
+        // Storage access can fail before the helper is called.
+      }
+      if (draft) {
+        setProfile(draft.profile);
+        setSectorsText(draft.sectorsText);
+        setLocationsText(draft.locationsText);
+        setQualificationsText(draft.qualificationsText);
+        setInterestsText(draft.interestsText);
+        setExclusionsText(draft.exclusionsText);
+        setLanguagesText(draft.languagesText);
+      }
+      setProfileDraftRestored(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [email, profileFields]);
+  useEffect(() => {
+    if (!profileDraftRestored) return;
+    const timer = window.setTimeout(() => {
+      if (JSON.stringify(profileFields) === profileBaseline.current)
+        sessionRemove(profileDraftKey);
+      else {
+        try {
+          saveProfileDraft(window.sessionStorage, email, profileFields);
+        } catch {
+          // Keep the form usable when browser storage is unavailable.
+        }
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [email, profileDraftRestored, profileFields]);
   const values = (text: string) =>
     text
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-  async function loadMore(
-    reset = false,
-    saved = tab === "saved",
-    nextFilters = filters,
-  ) {
-    const requestId = ++boardRequest.current;
-    boardAbort.current?.abort();
-    const controller = new AbortController();
-    boardAbort.current = controller;
-    lastRequestedFilters.current = nextFilters;
-    setBoardBusy(true);
-    setBoardError("");
-    setNotice("");
-    if (reset) {
-      setBoardResetting(true);
-      setFilters(nextFilters);
-    }
-    const params = new URLSearchParams({
-      q: nextFilters.query,
-      kind: nextFilters.kind,
-      source: nextFilters.source,
-      status: nextFilters.status,
-      deadline: nextFilters.deadline,
-      country: nextFilters.country,
-    });
-    if (saved) params.set("saved", "1");
-    if (!reset && data.nextCursor) params.set("cursor", data.nextCursor);
-    const cacheKey = params.toString();
-    const cached =
-      reset && !saved && !active
-        ? publicFilterCache.current.get(cacheKey)
-        : null;
-    if (cached && Date.now() - cached.at < 30_000) {
-      setData((previous) => ({ ...previous, ...cached.result }));
-      setFilters(nextFilters);
-      setBoardBusy(false);
-      setBoardResetting(false);
-      return;
-    }
-    try {
-      const response = await fetch(
-        `${accountPath("/api/opportunities")}?${params}`,
-        { signal: controller.signal },
-      );
-      const result = await response.json();
-      if (!response.ok)
-        throw new Error(result.error ?? "Could not load opportunities");
-      if (requestId !== boardRequest.current) return;
-      if (result.paid === true) publicFilterCache.current.clear();
-      if (reset && !saved && !active && result.paid === false) {
-        publicFilterCache.current.set(cacheKey, {
-          at: Date.now(),
-          result: {
-            opportunities: result.opportunities,
-            filteredCount: result.filteredCount,
-            nextCursor: result.nextCursor,
-          },
-        });
-        if (publicFilterCache.current.size > 12)
-          publicFilterCache.current.delete(
-            publicFilterCache.current.keys().next().value!,
-          );
-      }
-      setData((previous) => ({
-        ...previous,
-        ...result,
-        opportunities: reset
-          ? result.opportunities
-          : [...previous.opportunities, ...result.opportunities],
-      }));
-    } catch (error) {
-      if (requestId === boardRequest.current && !controller.signal.aborted)
-        setBoardError(
-          error instanceof Error ? error.message : "Please try again",
-        );
-    } finally {
-      if (requestId === boardRequest.current) {
-        setBoardBusy(false);
-        setBoardResetting(false);
-      }
-    }
-  }
   const active =
     data.subscription !== null &&
     isMembershipActive(data.subscription.state, data.subscription.paid_until);
+  const loadMore = useCallback(
+    async function loadMore(
+      reset = false,
+      saved = tab === "saved",
+      nextFilters = filters,
+      viewTab: BoardTab = tab,
+      pushHistory = true,
+    ) {
+      const requestId = ++boardRequest.current;
+      boardAbort.current?.abort();
+      const controller = new AbortController();
+      boardAbort.current = controller;
+      lastRequestedFilters.current = nextFilters;
+      setBoardBusy(true);
+      setBoardError("");
+      setNotice("");
+      if (reset) {
+        setBoardResetting(true);
+        setFilters(nextFilters);
+        if (pushHistory) {
+          const nextPath = boardPath(viewTab, nextFilters);
+          if (
+            `${window.location.pathname}${window.location.search}` !== nextPath
+          )
+            window.history.pushState(null, "", nextPath);
+        }
+      }
+      const params = new URLSearchParams({
+        q: nextFilters.query,
+        kind: nextFilters.kind,
+        source: nextFilters.source,
+        status: nextFilters.status,
+        deadline: nextFilters.deadline,
+        country: nextFilters.country,
+      });
+      if (saved) params.set("saved", "1");
+      if (!reset && data.nextCursor) params.set("cursor", data.nextCursor);
+      const cacheKey = params.toString();
+      const cached =
+        reset && !saved && !active
+          ? publicFilterCache.current.get(cacheKey)
+          : null;
+      if (cached && Date.now() - cached.at < 30_000) {
+        setData((previous) => ({ ...previous, ...cached.result }));
+        setFilters(nextFilters);
+        setBoardBusy(false);
+        setBoardResetting(false);
+        return;
+      }
+      try {
+        const response = await fetch(
+          `${accountPath("/api/opportunities")}?${params}`,
+          { signal: controller.signal },
+        );
+        const result = await response.json();
+        if (!response.ok)
+          throw new Error(result.error ?? "Could not load opportunities");
+        if (requestId !== boardRequest.current) return;
+        if (result.paid === true) publicFilterCache.current.clear();
+        if (reset && !saved && !active && result.paid === false) {
+          publicFilterCache.current.set(cacheKey, {
+            at: Date.now(),
+            result: {
+              opportunities: result.opportunities,
+              filteredCount: result.filteredCount,
+              nextCursor: result.nextCursor,
+            },
+          });
+          if (publicFilterCache.current.size > 12)
+            publicFilterCache.current.delete(
+              publicFilterCache.current.keys().next().value!,
+            );
+        }
+        setData((previous) => ({
+          ...previous,
+          ...result,
+          opportunities: reset
+            ? result.opportunities
+            : [...previous.opportunities, ...result.opportunities],
+        }));
+      } catch (error) {
+        if (requestId === boardRequest.current && !controller.signal.aborted)
+          setBoardError(
+            error instanceof Error ? error.message : "Please try again",
+          );
+      } finally {
+        if (requestId === boardRequest.current) {
+          setBoardBusy(false);
+          setBoardResetting(false);
+        }
+      }
+    },
+    [tab, filters, data.nextCursor, active],
+  );
+  const initialLoad = useRef(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (initialLoad.current) return;
+      initialLoad.current = true;
+      const params = new URLSearchParams(window.location.search);
+      const billing = params.get("billing");
+      let view = initialView;
+      let billingNotice = "";
+      if (
+        billing === "success" ||
+        billing === "canceled" ||
+        billing === "portal"
+      ) {
+        const stored = safeAccountReturn(sessionGet("ktebli-board-return"));
+        sessionRemove("ktebli-board-return");
+        if (stored?.startsWith(accountPath("/dashboard"))) {
+          window.history.replaceState(null, "", stored);
+          view = parseBoardView(
+            new URL(stored, window.location.origin).searchParams,
+          );
+          setTab(view.tab);
+          setQuery(view.filters.query);
+          setFilters(view.filters);
+        } else {
+          window.history.replaceState(
+            null,
+            "",
+            boardPath(view.tab, view.filters),
+          );
+        }
+        billingNotice =
+          billing === "success"
+            ? "Payment submitted. Your membership status will update when it is confirmed."
+            : billing === "canceled"
+              ? "Checkout canceled. Your opportunities are still here."
+              : "Back from membership settings.";
+      }
+      if (
+        (view.tab === "saved" && active) ||
+        (view.tab === "discover" &&
+          JSON.stringify(view.filters) !== JSON.stringify(defaultBoardFilters))
+      ) {
+        void loadMore(
+          true,
+          view.tab === "saved",
+          view.filters,
+          view.tab,
+          false,
+        );
+      }
+      if (billingNotice) {
+        setNoticeKind("success");
+        setNotice(billingNotice);
+      }
+    }, 0);
+    const onPopState = () => {
+      const next = parseBoardView(new URLSearchParams(window.location.search));
+      setTab(next.tab);
+      setQuery(next.filters.query);
+      setFilters(next.filters);
+      if (next.tab === "discover" || (next.tab === "saved" && active))
+        void loadMore(
+          true,
+          next.tab === "saved",
+          next.filters,
+          next.tab,
+          false,
+        );
+      else {
+        boardRequest.current++;
+        boardAbort.current?.abort();
+        setBoardBusy(false);
+        setBoardResetting(false);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [active, initialView, loadMore]);
   const visible = data.opportunities;
   async function api(path: string, body?: unknown, method = "POST") {
     const response = await fetch(accountPath(path as `/${string}`), {
@@ -591,6 +780,7 @@ export default function Dashboard({
   }
   function saveProfile(event: React.FormEvent) {
     event.preventDefault();
+    const submitted = JSON.stringify(profileFields);
     void act(async () => {
       await api(
         "/api/profile",
@@ -614,6 +804,9 @@ export default function Dashboard({
         "PUT",
       );
       publicFilterCache.current.clear();
+      profileBaseline.current = submitted;
+      if (JSON.stringify(profileFieldsRef.current) === submitted)
+        sessionRemove(profileDraftKey);
       setNoticeKind("success");
       setNotice("Profile saved. Fresh matches will use these details.");
     }, "profile");
@@ -621,9 +814,10 @@ export default function Dashboard({
   return (
     <div className="workspace">
       <aside className="sidebar">
-        <Link className="brand" href={proposalOrigin} aria-label="Ktebli home">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a className="brand" href="/" aria-label="Ktebli home">
           KTEBLI<span className="brand-mark">!</span>
-        </Link>
+        </a>
         <p className="nav-label">YOUR WORKSPACE</p>
         <nav>
           {(
@@ -671,32 +865,46 @@ export default function Dashboard({
                 ),
               },
             ] as const
-          ).map((item) => (
-            <button
-              key={item.id}
-              className={tab === item.id ? "selected" : ""}
-              aria-label={item.label}
-              aria-current={tab === item.id ? "page" : undefined}
-              onClick={() => {
-                setTab(item.id);
-                if ((item.id === "saved" && active) || item.id === "discover")
-                  void loadMore(true, item.id === "saved");
-                else {
-                  boardRequest.current++;
-                  boardAbort.current?.abort();
-                  setBoardBusy(false);
-                  setBoardResetting(false);
-                }
-              }}
-            >
-              {item.icon}
-              <span className="nav-label-full">{item.label}</span>
-              <span className="nav-label-short">{item.shortLabel}</span>
-              {item.id === "alerts" && data.alerts.some((a) => !a.read_at) && (
-                <i />
-              )}
-            </button>
-          ))}
+          )
+            .filter(
+              (item) => active || (item.id !== "saved" && item.id !== "alerts"),
+            )
+            .map((item) => (
+              <button
+                key={item.id}
+                className={tab === item.id ? "selected" : ""}
+                aria-label={item.label}
+                aria-current={tab === item.id ? "page" : undefined}
+                onClick={() => {
+                  setTab(item.id);
+                  window.history.pushState(
+                    null,
+                    "",
+                    boardPath(item.id, filters),
+                  );
+                  if ((item.id === "saved" && active) || item.id === "discover")
+                    void loadMore(
+                      true,
+                      item.id === "saved",
+                      filters,
+                      item.id,
+                      false,
+                    );
+                  else {
+                    boardRequest.current++;
+                    boardAbort.current?.abort();
+                    setBoardBusy(false);
+                    setBoardResetting(false);
+                  }
+                }}
+              >
+                {item.icon}
+                <span className="nav-label-full">{item.label}</span>
+                <span className="nav-label-short">{item.shortLabel}</span>
+                {item.id === "alerts" &&
+                  data.alerts.some((a) => !a.read_at) && <i />}
+              </button>
+            ))}
         </nav>
         <div className="sidebar-bottom">
           <span className="avatar">
@@ -715,7 +923,11 @@ export default function Dashboard({
               void act(async () => {
                 const result = await authClient.signOut();
                 if (result.error) throw new Error(result.error.message);
-                router.replace("/");
+                sessionRemove("ktebli-member-checkout");
+                sessionRemove("ktebli-board-return");
+                sessionRemove("ktebli-proposal-task-v1");
+                sessionRemove(profileDraftKey);
+                router.replace("/auth");
                 router.refresh();
               }, "signout")
             }
@@ -902,7 +1114,9 @@ export default function Dashboard({
                   One credit per paid cycle toward an eligible Ktebli proposal.
                   Credits expire with that cycle and do not stack or roll over.
                   Fit scores are guidance, never odds of winning.{" "}
-                  <Link href="/membership-details">
+                  <Link
+                    href={`/membership-details?returnTo=${encodeURIComponent(boardPath(tab, filters))}`}
+                  >
                     Read membership details
                   </Link>
                   .
@@ -916,6 +1130,7 @@ export default function Dashboard({
               onClick={() =>
                 void act(async () => {
                   const r = await api("/api/billing/portal");
+                  sessionSet("ktebli-board-return", boardPath(tab, filters));
                   window.location.assign(r.url);
                 }, "portal")
               }
@@ -1426,6 +1641,7 @@ export default function Dashboard({
                     busy={busy}
                     now={now}
                     proposalOrigin={proposalOrigin}
+                    returnTo={boardPath(tab, filters)}
                     onSave={() =>
                       void act(async () => {
                         await api("/api/saved", {
@@ -1523,7 +1739,11 @@ export default function Dashboard({
                 ? "$20/month checkout is open."
                 : "Checkout is not open yet."}{" "}
               Browse public opportunities for free.{" "}
-              <Link href="/membership-details">Details</Link>
+              <Link
+                href={`/membership-details?returnTo=${encodeURIComponent(boardPath(tab, filters))}`}
+              >
+                Details
+              </Link>
             </p>
             {billingEnabled && (
               <button
@@ -1533,6 +1753,7 @@ export default function Dashboard({
                 onClick={() =>
                   void act(async () => {
                     const r = await api("/api/billing/checkout");
+                    sessionSet("ktebli-board-return", boardPath(tab, filters));
                     window.location.assign(r.url);
                   }, "checkout")
                 }

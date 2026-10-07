@@ -411,6 +411,24 @@ footer a:hover {
 .auth-card .button {
   width: 100%;
 }
+.checkout-summary {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--green-soft);
+}
+.checkout-summary strong {
+  display: block;
+  margin-bottom: 10px;
+}
+.checkout-summary p {
+  margin: 3px 0;
+}
+.checkout-summary small {
+  display: block;
+  margin-top: 10px;
+}
 .checkout-recovery {
   display: grid;
   gap: 10px;

@@ -31,7 +31,7 @@ export const POST = (request: Request) =>
     const session = await api.billingPortal.sessions.create({
       customer,
       configuration: configurationId,
-      return_url: `${appOrigin()}${accountPath("/dashboard")}`,
+      return_url: `${appOrigin()}${accountPath("/dashboard")}?billing=portal`,
     });
     return json({ url: session.url });
   });

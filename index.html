@@ -7,6 +7,7 @@ var ownerTestInvite = '';
 (function () {
   var match = /^#owner-test=([0-9a-f]{64})$/.exec(window.location.hash);
   if (match) { ownerTestInvite = match[1]; history.replaceState(null, '', window.location.pathname + window.location.search); }
+  if (window.location.pathname === '/start' || window.location.pathname === '/start/') document.documentElement.classList.add('focused-start');
 })();
 </script>
 <meta charset="UTF-8">
@@ -333,7 +334,7 @@ footer a:hover{color:var(--coral)}
       <a href="#membership">Find opportunities</a>
       <a href="#how">How it works</a>
       <a href="#pricing">Pricing</a>
-      <a href="/account/auth" class="account-link">Account</a>
+      <a href="/account/dashboard" class="account-link">Account</a>
       <a href="#start" class="btn">Start a proposal</a>
     </div>
   </div>
@@ -347,7 +348,7 @@ footer a:hover{color:var(--coral)}
       <p class="lede">Paste a grant, tender or client brief. We turn your experience into a proposal package. <b>Our four-lock system keeps your proposal distinct from others we write for the same opportunity.</b></p>
       <div class="cta-row">
         <a href="#start" class="btn big">Start a proposal</a>
-        <a href="/account/auth" class="btn plain big">Browse opportunities</a>
+        <a href="/account/dashboard" class="btn plain big">Browse opportunities</a>
       </div>
       <p class="undercta">One-time proposal packages from <b style="color:var(--ink)">$149</b>. No membership needed.</p>
     </div>
@@ -363,7 +364,7 @@ footer a:hover{color:var(--coral)}
 <section id="membership" class="membership-path mintbg" aria-labelledby="membership-title">
   <div class="wrap browse-band" id="opportunities">
     <div><div class="kicker">Looking for opportunities?</div><h2 class="disp" id="membership-title">Browse sourced notices in Lebanon.</h2><p>Create a free account to explore. Membership and personalized matching are not open yet; check each original notice.</p></div>
-    <div><a href="/account/auth" class="btn">Browse opportunities</a><p class="membership-credit"><a href="/account/membership-details">Membership details ↗</a></p></div>
+    <div><a href="/account/dashboard" class="btn">Browse opportunities</a><p class="membership-credit"><a href="/account/membership-details">Membership details ↗</a></p></div>
   </div>
 </section>
 
@@ -479,14 +480,16 @@ footer a:hover{color:var(--coral)}
 <details><summary>How do payment and submission work?</summary><p>Pay once through Stripe after the intake checks. Download your editable documents when they clear delivery checks, review them, add required official attachments and submit them yourself. Ktebli does not sign documents or submit applications on your behalf.</p></details>
 </div></div></section>
 <section class="mintbg" id="start"><div class="wrap"><div class="kicker">Ready to begin?</div><h2 class="disp">Bring the brief. We’ll guide you through.</h2><p class="sub">Share the opportunity first. You can choose a package after we check the source.</p><a href="#start" class="btn big">Start a proposal</a></div></section>
-<footer><div class="wrap"><div class="frow"><div><a href="/" class="stamp">KTEBLI<span class="dot">!</span></a><p class="fdisc">Find opportunities in Lebanon and build a proposal that sounds like you.<br>Write it for me. So we do.</p></div><div class="fnav"><div><a href="#membership">Find opportunities</a></div><div><a href="/account/auth">Account</a></div><div><a href="/account/data-use">Account data use</a></div><div><a href="#inside">Inside a proposal</a></div><div><a href="#pricing">Proposal packages</a></div></div></div></div></footer>
+<footer><div class="wrap"><div class="frow"><div><a href="/" class="stamp">KTEBLI<span class="dot">!</span></a><p class="fdisc">Find opportunities in Lebanon and build a proposal that sounds like you.<br>Write it for me. So we do.</p></div><div class="fnav"><div><a href="#membership">Find opportunities</a></div><div><a href="/account/dashboard">Account</a></div><div><a href="/account/data-use">Account data use</a></div><div><a href="#inside">Inside a proposal</a></div><div><a href="#pricing">Proposal packages</a></div></div></div></div></footer>
 <div class="wiz-overlay" id="wiz" aria-hidden="true">
   <div class="wiz" role="dialog" aria-modal="true" aria-labelledby="wiz-title">
     <div class="wiz-head">
       <span class="wt" id="wiz-title">START YOUR PROPOSAL</span>
+      <a id="wiz-return" class="wiz-return" href="/" hidden>Back to Ktebli</a>
       <button class="wiz-x" id="wiz-close" aria-label="Close"><svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
     </div>
     <div class="wiz-dots" id="wiz-dots"></div>
+    <div class="wiz-context" id="wiz-context" role="status" aria-live="polite"></div>
     <div class="wiz-body">
 
       <div class="wiz-step" data-step="1">
@@ -562,7 +565,13 @@ footer a:hover{color:var(--coral)}
     </div>
     <div class="wiz-foot">
       <button class="wiz-back" id="wiz-back">Back</button>
+      <button class="wiz-reset" id="wiz-reset" type="button">Start a different proposal</button>
       <button class="btn" id="wiz-next">Continue</button>
+      <div class="wiz-reset-confirm" id="wiz-reset-confirm" role="group" aria-labelledby="wiz-reset-title" hidden>
+        <p id="wiz-reset-title" tabindex="-1">Start a different proposal? The details entered for this one will be discarded.</p>
+        <button type="button" id="wiz-keep-current">Keep working</button>
+        <button type="button" id="wiz-confirm-reset">Start a new proposal</button>
+      </div>
     </div>
   </div>
 </div>
@@ -576,6 +585,92 @@ var MEMBERSHIP_CHECKOUT_PATH = "";
 var prepareReference = new URLSearchParams(window.location.search).get('prepare') || '';
 var hasPrepareReference = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(prepareReference);
 var memberIntent = !hasPrepareReference && new URLSearchParams(window.location.search).get('membership') === '1';
+var focusedStart = window.location.pathname === '/start' || window.location.pathname === '/start/';
+function safeReturnTo(value) {
+  if(typeof value!=='string'||value.length>1024||!/^\/account\/dashboard(?:\?|$)/.test(value)||/[\\#\u0000-\u001f\u007f]/.test(value))return '';
+  try{
+    var parsed=new URL(value,window.location.origin||'https://ktebli.local');
+    if(parsed.pathname!=='/account/dashboard'||parsed.hash)return '';
+    var query=new URLSearchParams(), input=parsed.searchParams;
+    var allowed={tab:['discover','saved','alerts','profile'],kind:['all','procurement','grant','unknown'],source:['all','ppa','ungm','mawred','worldbank','cdr','grants-gov','sam-gov'],status:['all','current','needs_review','closed'],deadline:['all','future','today','past','unknown']};
+    Object.keys(allowed).forEach(function(key){var choice=input.get(key);if(choice&&allowed[key].includes(choice)&&choice!=='all'&&choice!=='discover')query.set(key,choice);});
+    var search=input.get('q');if(search&&search.length<=180&&!/[\u0000-\u001f\u007f]/.test(search))query.set('q',search);
+    var country=input.get('country');if(country&&/^[A-Z]{2}$/.test(country))query.set('country',country);
+    return '/account/dashboard'+(query.toString()?'?'+query.toString():'');
+  }catch(_){return '';}
+}
+var requestedReturnTo = safeReturnTo(new URLSearchParams(window.location.search).get('returnTo'));
+var returnTo = requestedReturnTo;
+var activePrepareReference = '';
+var TASK_DRAFT_KEY = 'ktebli-proposal-task-v1', TASK_DRAFT_AGE = 6 * 60 * 60 * 1000;
+var taskDraft = null, taskActive = false;
+function readTaskDraft() {
+  if (ownerTestInvite) return null;
+  try {
+    var raw=sessionStorage.getItem(TASK_DRAFT_KEY);if(!raw||raw.length>300000){sessionStorage.removeItem(TASK_DRAFT_KEY);return null;}
+    var saved = JSON.parse(raw);
+    if (!validTaskDraft(saved)) { sessionStorage.removeItem(TASK_DRAFT_KEY); return null; }
+    return saved;
+  } catch (_) { try{sessionStorage.removeItem(TASK_DRAFT_KEY);}catch(__){} return null; }
+}
+function validTaskDraft(saved){
+  if(!saved||saved.version!==1||!Number.isFinite(saved.savedAt)||saved.savedAt>Date.now()||Date.now()-saved.savedAt>TASK_DRAFT_AGE||!Number.isInteger(saved.step)||saved.step<0||saved.step>3||!['draft','competitive','full'].includes(saved.tier))return false;
+  if(!saved.fields||typeof saved.fields!=='object'||Array.isArray(saved.fields)||Object.keys(saved.fields).length>100)return false;
+  for(var id in saved.fields){var field=document.getElementById(id),value=saved.fields[id];if(!field||!document.getElementById('wiz').contains(field)||!field.matches('input,textarea,select')||typeof value!=='string'||value.length>(id==='w-grant'?200000:5000)||field.type==='file')return false;}
+  if(saved.checks&&(!saved.checks||typeof saved.checks!=='object'||Array.isArray(saved.checks)||Object.keys(saved.checks).length>50))return false;
+  for(var check in saved.checks||{}){var control=document.getElementById(check);if(!control||!document.getElementById('wiz').contains(control)||control.type!=='checkbox'||typeof saved.checks[check]!=='boolean')return false;}
+  if(saved.rows&&(!saved.rows||typeof saved.rows!=='object'||Array.isArray(saved.rows)))return false;
+  for(var kind in saved.rows||{}){if(!Object.prototype.hasOwnProperty.call(REP,kind)||!Array.isArray(saved.rows[kind])||saved.rows[kind].length>20)return false;for(var row of saved.rows[kind]){if(typeof row==='string'){if(row.length>2000)return false;}else if(row&&typeof row==='object'&&!Array.isArray(row)){for(var key in row)if(!REP[kind].fields.some(function(pair){return pair[0]===key;})||typeof row[key]!=='string'||row[key].length>2000)return false;}else return false;}}
+  return true;
+}
+function clearTaskDraft() { taskDraft = null; taskActive = false; try { sessionStorage.removeItem(TASK_DRAFT_KEY); } catch (_) {} }
+function updateReturnLink() {
+  var link = document.getElementById('wiz-return');
+  if (!link) return;
+  link.href = returnTo || '/';
+  link.textContent = returnTo ? 'Back to opportunities' : 'Back to Ktebli';
+  link.hidden = !focusedStart && !returnTo;
+}
+function saveTaskDraft() {
+  if (ownerTestInvite || !taskActive) return;
+  var fields = {}, checks = {}, selected = {};
+  document.querySelectorAll('#wiz input[id],#wiz textarea[id],#wiz select[id]').forEach(function(field) {
+    if (field.type === 'file' || field.type === 'radio' || field.type === 'hidden') return;
+    if (field.type === 'checkbox') checks[field.id] = field.checked;
+    else { fields[field.id] = field.value; if (field.dataset.userSelected || field.dataset.userEdited) selected[field.id] = {userSelected:field.dataset.userSelected==='true',userEdited:field.dataset.userEdited==='true'}; }
+  });
+  var rows = {};
+  Object.keys(REP).forEach(function(kind) { rows[kind] = collectRep(kind); });
+  var disclosures = {};
+  document.querySelectorAll('#wiz details').forEach(function(item,index) { disclosures[index] = item.open; });
+  taskDraft = {version:1,savedAt:Date.now(),step:wiz.step,tier:wiz.tier,tierChosen:wiz.tierChosen,packageExplicit:wiz.packageExplicit,
+    fields:fields,checks:checks,selected:selected,rows:rows,disclosures:disclosures,prepare:activePrepareReference,returnTo:returnTo,memberIntent:memberIntent};
+  try { sessionStorage.setItem(TASK_DRAFT_KEY, JSON.stringify(taskDraft)); } catch (_) {}
+}
+function restoreTaskDraft(saved) {
+  if (!saved) return false;
+  taskActive = true;
+  activePrepareReference = /^[0-9a-f-]{36}$/i.test(saved.prepare || '') ? saved.prepare : '';
+  returnTo = requestedReturnTo || safeReturnTo(saved.returnTo);
+  memberIntent = !hasPrepareReference && (memberIntent || saved.memberIntent === true);
+  Object.keys(saved.fields || {}).forEach(function(id) { var field=document.getElementById(id); if (field && (field.matches('input,textarea,select')) && field.type !== 'file' && field.type !== 'hidden') { field.value=saved.fields[id]; if (saved.selected && saved.selected[id]) {if(saved.selected[id].userSelected)field.dataset.userSelected='true';if(saved.selected[id].userEdited)field.dataset.userEdited='true';} } });
+  Object.keys(saved.checks || {}).forEach(function(id) { var field=document.getElementById(id); if (field && field.type==='checkbox') field.checked=saved.checks[id]===true; });
+  Object.keys(REP).forEach(function(kind) {
+    var container=document.getElementById(REP[kind].c), rows=(saved.rows||{})[kind];
+    if (!container || !Array.isArray(rows)) return;
+    container.replaceChildren();
+    rows.forEach(function(value) { var row=repRow(kind); row.querySelectorAll('[data-k]').forEach(function(input) { input.value=typeof value==='string'?value:String(value[input.dataset.k]||''); }); container.appendChild(row); });
+  });
+  document.querySelectorAll('#wiz details').forEach(function(item,index) { if (saved.disclosures && Object.prototype.hasOwnProperty.call(saved.disclosures,index)) item.open=saved.disclosures[index]===true; });
+  wiz.step = Number.isInteger(saved.step) ? Math.max(0,Math.min(wiz.last,saved.step)) : 0;
+  wiz.tier = ['draft','competitive','full'].includes(saved.tier) ? saved.tier : 'competitive';
+  wiz.tierChosen = saved.tierChosen === true;
+  wiz.packageExplicit = saved.packageExplicit === true;
+  document.getElementById('w-deadline-confirm').checked=false;
+  syncCurrencyOther();
+  updateReturnLink();
+  return true;
+}
 
 // Server-owned Stripe tier links. Activate prepared links only after launch acceptance.
 var PAYLINKS = {
@@ -687,11 +782,17 @@ function renderSuff(j) {
 function goToPayment(email, token) {
   if (ownerTestInvite) {
     var testButton = document.getElementById('wiz-next'); testButton.disabled = true; testButton.textContent = 'Starting your Full test…';
-    fetch(FN + '/owner-test-checkout', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({invite:ownerTestInvite,checkout_token:token})})
+    var source=wiz.val('w-grant'),tier=wiz.tier,generation=++wiz.checkoutGeneration,controller=new AbortController();wiz.checkoutController=controller;wiz.checkoutPending=true;
+    function stillCurrent(){return wiz.checkoutGeneration===generation&&!controller.signal.aborted&&wiz.el.classList.contains('open')&&wiz.val('w-grant')===source&&wiz.tier===tier;}
+    fetch(FN + '/owner-test-checkout', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({invite:ownerTestInvite,checkout_token:token}),signal:controller.signal})
     .then(function(r) { return r.json(); }).then(function(result) {
+      if(!stillCurrent())return;
+      wiz.checkoutPending=false;wiz.checkoutController=null;
       if (!result.ok || !/^[0-9a-f-]{36}$/.test(result.order_token || '')) throw new Error('not_authorized');
       ownerTestInvite = ''; window.location.href = '/orders/' + result.order_token;
     }).catch(function() {
+      if(!stillCurrent())return;
+      wiz.checkoutPending=false;wiz.checkoutController=null;
       renderSuff({cleared:false,message:{headline:'We could not start this owner test.',intro:'The invitation may have expired, been revoked, or the intake may need another check. Nothing has been charged.'}});
       testButton.disabled = false; testButton.textContent = 'Try starting the Full test again';
     });
@@ -756,13 +857,19 @@ function renderReviewPackage(tier, type) {
   document.getElementById('review-package').innerHTML = h;
 }
 
-var catalogueHandoffEpoch = 0, catalogueHandoffPending = false, catalogueContextTitle = '';
+var catalogueHandoffEpoch = 0, catalogueHandoffPending = false, catalogueContextTitle = '', handoffConflict = false;
 var wiz = {
   el: document.getElementById('wiz'),
   returnFocus: null,
   closeTimer: null,
-  step: 0, last: 3, tier: 'competitive', tierChosen: false, files: [], intakeId: null, pendingToken: null, pendingEmail: null,
+  step: 0, last: 3, tier: 'competitive', tierChosen: false, packageExplicit: false, files: [], intakeId: null, pendingToken: null, pendingEmail: null, checkoutGeneration: 0, checkoutController: null, checkoutPending: false,
+  invalidateCheckout: function () {
+    this.checkoutGeneration++;
+    if (this.checkoutController) this.checkoutController.abort();
+    this.checkoutController=null;this.checkoutPending=false;this.pendingToken=null;this.pendingEmail=null;
+  },
   open: function (tier) {
+    hideResetConfirm(false);
     if (!this.el.classList.contains('open') && document.activeElement && document.activeElement !== document.body) this.returnFocus = document.activeElement;
     clearTimeout(this.closeTimer);
     this.el.classList.remove('closing');
@@ -770,18 +877,36 @@ var wiz = {
     this.el.setAttribute('aria-hidden', 'false');
     catalogueHandoffEpoch++;
     if(catalogueHandoffPending){catalogueHandoffPending=false;var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
-    this.tier = ownerTestInvite ? 'full' : (tier || 'competitive');
-    this.tierChosen = !!tier || !!ownerTestInvite;
-    // Source discovery comes first even when a package has been preselected.
-    this.step = 0;
+    if (!taskActive || ownerTestInvite) {
+      this.tier = ownerTestInvite ? 'full' : (tier || 'competitive');
+      this.tierChosen = !!tier || !!ownerTestInvite;
+      this.packageExplicit = !!tier || !!ownerTestInvite;
+      this.step = 0;
+    } else if (tier && !ownerTestInvite) {
+      this.invalidateCheckout();
+      this.tier = tier;
+      this.tierChosen = true;
+      this.packageExplicit = true;
+      this.pendingToken = null;
+      if (this.step === 1) this.step = 0;
+    }
+    taskActive = true;
     seedRepeaters();
     this.el.classList.add('open');
     document.body.style.overflow = 'hidden';
     this.render();
-    var firstField = document.getElementById('w-grant');
-    if (firstField) firstField.focus();
+    var firstField = this.step === 0 ? document.getElementById('w-grant') : this.el.querySelector('.wiz-step.on h3');
+    if (firstField) { if (firstField.tagName==='H3') firstField.tabIndex=-1; firstField.focus(); }
+    if (this.val('w-grant') && !analysisOk && !analyzing && (!hasPrepareReference || prepareReference===activePrepareReference)) analyzeGrant(false);
+    if (hasPrepareReference && prepareReference!==activePrepareReference && !catalogueHandoffPending) setTimeout(loadCatalogueHandoff,0);
+    updateReturnLink();
+    saveTaskDraft();
   },
   close: function () {
+    hideResetConfirm(false);
+    this.invalidateCheckout();
+    saveTaskDraft();
+    if (focusedStart) { window.location.replace(returnTo || '/'); return; }
     catalogueHandoffEpoch++;
     if(catalogueHandoffPending){var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
     catalogueHandoffPending = false;
@@ -867,12 +992,18 @@ var wiz = {
     };
   },
   render: function (moveFocus) {
+    hideResetConfirm(false);
     var steps = this.el.querySelectorAll('.wiz-step');
     for (var i=0;i<steps.length;i++) steps[i].classList.toggle('on', Number(steps[i].dataset.step) === this.step);
     var dots = document.getElementById('wiz-dots'); dots.innerHTML = '';
     var stepNames = ['Opportunity','Package','Your details','Review & pay'];
     dots.setAttribute('aria-label', 'Step ' + (this.step + 1) + ' of ' + (this.last + 1) + ': ' + stepNames[this.step]);
     for (var d=0; d<=this.last; d++){ var el=document.createElement('span'); el.className='d'+(d<=this.step?' on':''); el.textContent=stepNames[d]; el.setAttribute('aria-current', d===this.step?'step':'false'); dots.appendChild(el); }
+    var context=document.getElementById('wiz-context');context.replaceChildren();
+    if(this.tierChosen && !ownerTestInvite && this.step!==1){
+      var packageNote=document.createElement('span');packageNote.textContent=NAMES[this.tier]+' package · '+PRICES[this.tier];context.appendChild(packageNote);
+      var change=document.createElement('button');change.type='button';change.className='wiz-change';change.textContent='Change package';change.addEventListener('click',function(){wiz.step=1;wiz.packageExplicit=false;wiz.render(true);saveTaskDraft();});context.appendChild(change);
+    }
     var pk = this.el.querySelectorAll('.pkg label');
     for (var k=0;k<pk.length;k++) {
       var selected = this.tierChosen && pk[k].getAttribute('data-tier') === this.tier;
@@ -881,6 +1012,7 @@ var wiz = {
       if (radio) radio.checked = selected;
     }
     document.getElementById('wiz-back').style.visibility = this.step === 0 ? 'hidden' : 'visible';
+    document.getElementById('wiz-reset').hidden=!!ownerTestInvite;
     document.getElementById('wiz-back').textContent = 'Back';
     document.getElementById('wiz-title').textContent = ownerTestInvite ? 'OWNER TEST · FULL · NO PAYMENT' : this.step === 0 ? 'START YOUR PROPOSAL' : this.step === 1 ? 'CHOOSE A PACKAGE' : this.step === 2 ? 'YOUR DETAILS' : 'REVIEW & PAY';
     renderSuff(null); // a stale gate result never lingers across navigation
@@ -891,7 +1023,7 @@ var wiz = {
       this.summary();
       next.textContent = !analysisOk ? 'Check source status' : ownerTestInvite ? 'Start my Full test — no payment' : 'Pay ' + PRICES[this.tier] + ' — Ktebli gets to work';
     } else {
-      next.textContent = this.step === 0 ? 'Choose a package' : this.step === 1 ? 'Add your details' : 'Review order';
+      next.textContent = this.step === 0 ? (this.tierChosen && this.packageExplicit ? 'Add your details' : 'Choose a package') : this.step === 1 ? 'Add your details' : 'Review order';
     }
     if (moveFocus) {
       this.el.scrollTop = 0;
@@ -901,6 +1033,7 @@ var wiz = {
         stepFocus.focus({ preventScroll: true });
       }
     }
+    saveTaskDraft();
   },
   summary: function () {
     var rows = reviewRows(this);
@@ -920,7 +1053,14 @@ var wiz = {
     pn.textContent = ownerTestInvite ? 'Owner testing: no payment will be taken. The same source, evidence, originality and Full-tier quality checks apply. One test is available per private invitation.' : note;
   },
   pay: function () {
-    if (!analysisOk || lastAnalyzed !== this.val('w-grant')) { this.step = 0; this.render(); analyzeGrant(false); return; }
+    if (this.checkoutPending) return;
+    if (handoffConflict) { this.step=0; this.render(true); return; }
+    if (!analysisOk || lastAnalyzed !== this.val('w-grant')) {
+      if(!analyzing)analyzeGrant(false);
+      renderSuff({cleared:false,message:{headline:analyzing?'Rechecking the opportunity':'The opportunity needs another check.',intro:analyzing?'Your details remain here. Continue once the source check finishes.':'Use Back to review the source, then return to checkout.'}});
+      if(!analyzing){this.step=0;this.render(true);}
+      return;
+    }
 
     // Second click after a clearance that carried "to confirm" self-certs: the
     // customer has seen the list, proceed straight to the gated checkout.
@@ -928,11 +1068,16 @@ var wiz = {
     var data = this.collect();
     if (ownerTestInvite) data.owner_test_invite = ownerTestInvite;
     var self = this;
+    var source=data.grant, tier=data.tier, generation=++this.checkoutGeneration;
+    var controller=new AbortController();this.checkoutController=controller;this.checkoutPending=true;
+    function stillCurrent(){return self.checkoutGeneration===generation && !controller.signal.aborted && self.el.classList.contains('open') && self.val('w-grant')===source && self.tier===tier && !handoffConflict;}
     var btn = document.getElementById('wiz-next');
     btn.disabled = true; btn.textContent = 'Checking your answers…';
-    fetch(FN + '/save-intake', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) })
+    fetch(FN + '/save-intake', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data),signal:controller.signal })
       .then(function (r) { return r.json(); })
       .then(function (j) {
+        if(!stillCurrent())return;
+        self.checkoutPending=false;self.checkoutController=null;
         if (j && j.id) self.intakeId = j.id;
         if (j && j.reason === 'opportunity_analysis_required') { analysisOk = false; lastAnalyzed = ''; self.pendingToken = null; }
         if (j && j.cleared && j.checkout_token) {
@@ -957,6 +1102,8 @@ var wiz = {
         }
       })
       .catch(function () {
+        if(!stillCurrent())return;
+        self.checkoutPending=false;self.checkoutController=null;
         btn.disabled = false;
         btn.textContent = 'Pay ' + PRICES[wiz.tier] + ' — Ktebli gets to work';
         renderSuff({ cleared: false, message: { headline: 'We could not reach the checkout just now.', intro: 'Nothing has been charged. Please check your connection and try again.', items: [], reassurance: '' } });
@@ -977,7 +1124,7 @@ document.querySelectorAll('a[href="#start"]').forEach(function (a) {
 // A public check creates a source reference or reads an existing cache entry.
 // Paid source review starts only after checkout or an authorized owner test.
 var lastAnalyzed = "", analyzing = false, analysisOk = false, analysisReady = false, analysisBackground = false, analyzedDeadline = "";
-function canContinueIntake() { return analysisOk && !!opportunityExtractionId && !!opportunityExtractionToken; }
+function canContinueIntake() { return !handoffConflict && analysisOk && !!opportunityExtractionId && !!opportunityExtractionToken; }
 var deadlineRequiresManual = false, deadlineNeedsVerification = false, deadlinePreviewPrefill = false;
 function deadlineForSubmission() {
   var field = document.getElementById('w-deadline'), value = field.value.trim();
@@ -1326,7 +1473,9 @@ document.getElementById('w-deadline-confirm').addEventListener('change',function
 document.getElementById('w-deadline').addEventListener('input',function(){ delete this.dataset.autoDetected; this.dataset.userSelected='true'; deadlinePreviewPrefill=false; document.getElementById('w-deadline-confirm').checked=false; wiz.pendingToken=null; updateDeadlineField(); if(wiz.step===0)setContinueEnabled(canContinueIntake()); });
 var debounceT = null;
 var catalogueContextSource = '';
-document.getElementById('w-grant').addEventListener('input', function () {
+document.getElementById('w-grant').addEventListener('input', function (event) {
+  wiz.invalidateCheckout();
+  if(event.isTrusted){handoffConflict=false;activePrepareReference='';hasPrepareReference=false;prepareReference='';if(window.location.pathname==='/start'||window.location.pathname==='/start/'||window.location.pathname==='/')history.replaceState(null,'',window.location.pathname+(returnTo?'?returnTo='+encodeURIComponent(returnTo):''));}
   if (catalogueHandoffPending) { catalogueHandoffPending=false; catalogueHandoffEpoch++; var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren(); }
   if (catalogueContextSource && this.value.trim() !== catalogueContextSource) { catalogueContextSource='';catalogueContextTitle='';var catalogueContext=document.getElementById('catalogue-context');catalogueContext.hidden=true;catalogueContext.replaceChildren(); }
   if(/^https?:\/\//i.test(this.value.trim())){opportunityPasteSource='';var reference=document.getElementById('opportunity-paste-source');reference.hidden=true;reference.replaceChildren();this.placeholder='https://... or paste the guidelines here';}
@@ -1367,7 +1516,7 @@ document.getElementById('wiz-close').addEventListener('click', function(){ wiz.c
 document.getElementById('wiz').addEventListener('click', function(e){ if (e.target === wiz.el) wiz.close(); });
 document.addEventListener('keydown', function(e){
   if (!wiz.el.classList.contains('open')) return;
-  if (e.key === 'Escape') { e.preventDefault(); wiz.close(); return; }
+  if (e.key === 'Escape') { e.preventDefault(); if(!document.getElementById('wiz-reset-confirm').hidden){hideResetConfirm(true);return;} wiz.close(); return; }
   if (e.key !== 'Tab') return;
   var focusable = wiz.el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])');
   var visible = Array.prototype.filter.call(focusable, function(el){
@@ -1387,15 +1536,49 @@ document.addEventListener('keydown', function(e){
   if (e.shiftKey && (document.activeElement === first || !wiz.el.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
   else if (!e.shiftKey && (document.activeElement === last || !wiz.el.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
 });
-document.getElementById('wiz-back').addEventListener('click', function(){ if (wiz.step>0){ wiz.step--; wiz.render(true); } });
+document.getElementById('wiz-back').addEventListener('click', function(){ if (wiz.step>0){ wiz.invalidateCheckout();wiz.step = wiz.step===2 && wiz.packageExplicit ? 0 : wiz.step-1; wiz.render(true); } });
 document.getElementById('wiz-next').addEventListener('click', function(){
   if (wiz.step === wiz.last) { wiz.pay(); return; }
   if (!wiz.validate()) return;
-  wiz.step++; wiz.render(true);
+  wiz.invalidateCheckout();
+  wiz.step = wiz.step===0 && wiz.tierChosen && wiz.packageExplicit ? 2 : wiz.step+1; wiz.render(true);
 });
 document.querySelectorAll('.pkg label').forEach(function (l) {
-  l.addEventListener('click', function(){ wiz.tier = ownerTestInvite ? 'full' : l.getAttribute('data-tier'); wiz.tierChosen = true; wiz.render(); });
+  l.addEventListener('click', function(){ wiz.invalidateCheckout();wiz.tier = ownerTestInvite ? 'full' : l.getAttribute('data-tier'); wiz.tierChosen = true; wiz.packageExplicit=false; wiz.render(); });
 });
+function hideResetConfirm(restoreFocus){
+  var panel=document.getElementById('wiz-reset-confirm');if(!panel)return;
+  panel.hidden=true;if(restoreFocus)document.getElementById('wiz-reset').focus();
+}
+function resetProposalTask(){
+  hideResetConfirm(false);
+  wiz.invalidateCheckout();
+  clearTaskDraft();
+  clearTimeout(analysisPoll);analysisSequence++;analysisOk=false;analysisReady=false;analysisBackground=false;analyzing=false;lastAnalyzed='';analyzedDeadline='';opportunityExtractionId='';opportunityExtractionToken='';opportunityDetails=null;deadlineRequiresManual=false;deadlineNeedsVerification=false;deadlinePreviewPrefill=false;
+  catalogueHandoffEpoch++;catalogueHandoffPending=false;handoffConflict=false;catalogueContextSource='';catalogueContextTitle='';activePrepareReference='';prepareReference='';hasPrepareReference=false;memberIntent=false;
+  document.querySelectorAll('#wiz input,#wiz textarea,#wiz select').forEach(function(field){if(field.type==='checkbox'||field.type==='radio')field.checked=false;else if(field.type!=='file')field.value=field.tagName==='SELECT' ? (field.querySelector('option[selected]')||field.options[0]||{}).value||'' : '';delete field.dataset.userSelected;delete field.dataset.userEdited;delete field.dataset.detected;});
+  Object.keys(REP).forEach(function(kind){document.getElementById(REP[kind].c).replaceChildren();});seedRepeaters();
+  document.querySelectorAll('#wiz details').forEach(function(item){item.open=false;});
+  document.getElementById('gpreview').replaceChildren();document.getElementById('gpreview').style.display='none';document.getElementById('catalogue-context').hidden=true;document.getElementById('catalogue-context').replaceChildren();
+  document.getElementById('opportunity-paste-source').hidden=true;document.getElementById('opportunity-paste-source').replaceChildren();
+  wiz.step=0;wiz.tier='competitive';wiz.tierChosen=false;wiz.packageExplicit=false;wiz.files=[];wiz.intakeId=null;wiz.pendingToken=null;wiz.pendingEmail=null;
+  if(focusedStart)history.replaceState(null,'','/start'+(returnTo?'?returnTo='+encodeURIComponent(returnTo):''));
+  updateDeadlineField();syncCurrencyOther();taskActive=true;wiz.render(true);
+}
+document.getElementById('wiz-reset').addEventListener('click',function(){
+  var hasWork=wiz.tierChosen||Array.prototype.some.call(document.querySelectorAll('#wiz input,#wiz textarea,#wiz select'),function(field){return field.type==='checkbox'?field.checked:field.type==='radio'||field.tagName==='SELECT'?false:!!field.value.trim();});
+  if(!hasWork){resetProposalTask();return;}
+  var panel=document.getElementById('wiz-reset-confirm');panel.hidden=false;document.getElementById('wiz-reset-title').focus();
+});
+document.getElementById('wiz-keep-current').addEventListener('click',function(){hideResetConfirm(true);});
+document.getElementById('wiz-confirm-reset').addEventListener('click',resetProposalTask);
+function changedTaskField(event){
+  if(event.target && event.target.matches && event.target.matches('input,textarea,select') && (wiz.checkoutPending||wiz.pendingToken)) wiz.invalidateCheckout();
+  saveTaskDraft();
+}
+document.getElementById('wiz').addEventListener('input',changedTaskField);
+document.getElementById('wiz').addEventListener('change',changedTaskField);
+document.getElementById('wiz').addEventListener('toggle',saveTaskDraft,true);
 
 // repeater "add" buttons for the list-shaped named facts
 [['add-people','people'],['add-programmes','programmes'],['add-results','results'],['add-partners','partners'],['add-links','links']].forEach(function (p) {
@@ -1425,11 +1608,10 @@ document.getElementById('w-web').addEventListener('blur',async function(){
 });
 document.getElementById('w-applicant-type').addEventListener('change',function(event){if(event.isTrusted)this.dataset.userSelected='true';document.querySelector('label[for="w-org"]').firstChild.textContent=this.value==='individual'?'Name to use on the proposal ':'Organisation name ';});
 
-if (ownerTestInvite) wiz.open('full');
-else if (hasPrepareReference) {
-  var prepareId=prepareReference;
-  var contextBox=document.getElementById('catalogue-context');
-  wiz.open(null);contextBox.hidden=false;contextBox.textContent='Loading the selected public notice…';
+function loadCatalogueHandoff() {
+  if (!hasPrepareReference || catalogueHandoffPending || prepareReference===activePrepareReference || !wiz.el.classList.contains('open')) return;
+  var prepareId=prepareReference, contextBox=document.getElementById('catalogue-context');
+  contextBox.hidden=false;contextBox.textContent='Loading the selected public notice…';
   var handoffEpoch=catalogueHandoffEpoch, handoffInitialSource=document.getElementById('w-grant').value;
   catalogueHandoffPending=true;
   var handoffController=new AbortController();
@@ -1439,16 +1621,31 @@ else if (hasPrepareReference) {
     .then(function(item){
       if(handoffEpoch!==catalogueHandoffEpoch||!catalogueHandoffPending||!wiz.el.classList.contains('open')||document.getElementById('w-grant').value!==handoffInitialSource)return;
       if(!item||typeof item.sourceUrl!=='string'||!/^https:\/\/[^\s]+$/.test(item.sourceUrl)||item.sourceUrl.length>2000)throw new Error('handoff_invalid');
-      catalogueHandoffPending=false;contextBox.replaceChildren();
+      catalogueHandoffPending=false;handoffConflict=false;activePrepareReference=prepareId;memberIntent=false;contextBox.replaceChildren();
       var heading=document.createElement('strong');heading.textContent=item.title||'Selected opportunity';contextBox.appendChild(heading);
       var meta=document.createElement('p');meta.textContent=(item.source||'Official source').toUpperCase()+' · '+(item.kind==='grant'?'Grant':item.kind==='procurement'?'Procurement':'Notice')+(item.deadline?' · Listed deadline '+item.deadline:' · Deadline not confirmed');contextBox.appendChild(meta);
       if(item.description){var brief=document.createElement('p');brief.textContent=item.description;contextBox.appendChild(brief);}
       var warning=document.createElement('p');warning.className='catalogue-warning';warning.textContent=item.status==='closed'?'This notice appears closed or past its listed deadline. Check the issuer before preparing a response.':item.deadlineConflict?'Published dates conflict. Check the issuer before continuing.':'Source context is a starting point. Verify the deadline and eligibility with the issuer before payment.';contextBox.appendChild(warning);
       var original=document.createElement('a');original.href=item.sourceUrl;original.target='_blank';original.rel='noreferrer';original.textContent='Read original notice ↗';contextBox.appendChild(original);
-      var field=document.getElementById('w-grant');catalogueContextSource=item.sourceUrl;catalogueContextTitle=item.title||'';field.value=item.sourceUrl;field.dispatchEvent(new Event('input',{bubbles:true}));
-    }).catch(function(){if(handoffEpoch!==catalogueHandoffEpoch||!catalogueHandoffPending||!wiz.el.classList.contains('open'))return;catalogueHandoffPending=false;contextBox.replaceChildren();contextBox.textContent='Could not load this notice. Paste its original link below, or sign in again and retry.';})
-    .finally(function(){clearTimeout(handoffTimeout);});
+      var field=document.getElementById('w-grant');catalogueContextSource=item.sourceUrl;catalogueContextTitle=item.title||'';
+      if(field.value!==item.sourceUrl){field.value=item.sourceUrl;field.dispatchEvent(new Event('input',{bubbles:true}));}
+      else {analyzeGrant(false);saveTaskDraft();}
+    }).catch(function(){
+      if(handoffEpoch!==catalogueHandoffEpoch||!catalogueHandoffPending||!wiz.el.classList.contains('open'))return;
+      catalogueHandoffPending=false;handoffConflict=true;wiz.step=0;wiz.render(true);contextBox.replaceChildren();
+      var message=document.createElement('p');message.textContent=handoffInitialSource?'Could not load this selected notice. Your earlier proposal is still here. Continue it, or try loading the notice again.':'Could not load this notice. Try again, or paste its original link below.';contextBox.appendChild(message);
+      var retry=document.createElement('button');retry.type='button';retry.className='text-link';retry.textContent='Try loading the selected notice';retry.addEventListener('click',loadCatalogueHandoff);contextBox.appendChild(retry);
+      if(handoffInitialSource){
+        var earlier=document.createElement('button');earlier.type='button';earlier.className='text-link';earlier.textContent='Continue earlier proposal';earlier.addEventListener('click',function(){handoffConflict=false;hasPrepareReference=false;prepareReference=activePrepareReference;history.replaceState(null,'',window.location.pathname+(returnTo?'?returnTo='+encodeURIComponent(returnTo):''));contextBox.hidden=true;contextBox.replaceChildren();analyzeGrant(false);saveTaskDraft();});contextBox.appendChild(earlier);
+      }
+    }).finally(function(){clearTimeout(handoffTimeout);});
 }
+taskDraft=readTaskDraft();
+if (taskDraft) restoreTaskDraft(taskDraft);
+handoffConflict=hasPrepareReference && prepareReference!==activePrepareReference;
+updateReturnLink();
+if (ownerTestInvite) wiz.open('full');
+else if (hasPrepareReference || focusedStart) wiz.open(null);
 else if (memberIntent) {
   var memberSource=new URLSearchParams(window.location.search).get('opportunity')||'';
   if (/^https:\/\/[^\s]+$/.test(memberSource) && memberSource.length<=2000) {

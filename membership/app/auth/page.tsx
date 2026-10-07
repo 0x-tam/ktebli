@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/client";
 import { accountPath } from "@/lib/paths";
+import { safeAccountReturn } from "@/lib/navigation";
 import {
   AuthRequestTimeoutError,
   codeErrorMessage,
@@ -48,6 +49,7 @@ export default function AuthPage() {
   const [phase, setPhase] = useState<Phase | null>(null);
   const [message, setMessage] = useState("");
   const [codeError, setCodeError] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
   const inFlight = useRef(false);
   const mounted = useRef(false);
   const codeInput = useRef<HTMLInputElement>(null);
@@ -55,7 +57,21 @@ export default function AuthPage() {
 
   useEffect(() => {
     mounted.current = true;
+    let cancelled = false;
+    void runBoundedAuthCall(
+      (signal) => authClient.getSession({ fetchOptions: { signal } }),
+      5_000,
+    )
+      .then((session) => {
+        if (cancelled || !mounted.current) return;
+        if (session.data?.user?.emailVerified) openAccount();
+        else setCheckingSession(false);
+      })
+      .catch(() => {
+        if (!cancelled && mounted.current) setCheckingSession(false);
+      });
     return () => {
+      cancelled = true;
       mounted.current = false;
     };
   }, []);
@@ -80,13 +96,10 @@ export default function AuthPage() {
 
   function openAccount() {
     setPhase("redirecting");
-    window.location.assign(
-      accountPath(
-        sessionStorage.getItem("ktebli-member-checkout")
-          ? "/proposal-checkout"
-          : "/dashboard",
-      ),
+    const returnTo = safeAccountReturn(
+      new URLSearchParams(window.location.search).get("returnTo"),
     );
+    window.location.assign(returnTo ?? accountPath("/dashboard"));
   }
   function selectMode(nextMode: "signIn" | "signUp") {
     setMode(nextMode);
@@ -265,214 +278,218 @@ export default function AuthPage() {
   return (
     <main className="auth-shell">
       <header className="auth-topbar">
-        <Link
-          className="brand"
-          href="https://ktebli.vercel.app"
-          aria-label="Ktebli home"
-        >
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a className="brand" href="/" aria-label="Ktebli home">
           KTEBLI<span className="brand-mark">!</span>
-        </Link>
-        <Link className="auth-back" href="https://ktebli.vercel.app">
+        </a>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a className="auth-back" href="/">
           Back to Ktebli
-        </Link>
+        </a>
       </header>
-      <div className="auth-layout">
-        <aside className="auth-intro">
-          <h2>Find opportunities in Lebanon.</h2>
-          <p className="muted">
-            Browse grants, tenders, and procurement notices. Choose a notice to
-            start a proposal.
-          </p>
-        </aside>
-        <section className="auth-card">
-          <h1>
-            {mode === "signUp"
-              ? "Create your account."
-              : mode === "verify"
-                ? "Verify your email."
-                : mode === "otp"
-                  ? sent
-                    ? "Check your inbox."
-                    : "Sign in by email code."
-                  : "Sign in to browse opportunities."}
-          </h1>
-          <p className="muted">
-            {mode === "signUp"
-              ? "Create a free account to browse public opportunities."
-              : mode === "verify"
-                ? "Enter the code sent to your email address."
-                : "Browse grants, tenders, and procurement notices in Lebanon."}
-          </p>
-          <div className="tabs" role="group" aria-label="Account access">
-            {(["signIn", "signUp"] as const).map((value) => (
-              <button
-                className={mode === value ? "active" : ""}
-                key={value}
-                type="button"
-                aria-pressed={mode === value}
-                disabled={busy}
-                onClick={() => selectMode(value)}
-              >
-                {value === "signIn" ? "Sign in" : "Create account"}
-              </button>
-            ))}
-          </div>
-          <form onSubmit={submit} aria-busy={busy}>
-            {mode === "signUp" && (
+      {checkingSession ? (
+        <p className="auth-progress" role="status">
+          Checking your account…
+        </p>
+      ) : (
+        <div className="auth-layout">
+          <aside className="auth-intro">
+            <h2>Find opportunities in Lebanon.</h2>
+            <p className="muted">
+              Browse grants, tenders, and procurement notices. Choose a notice
+              to start a proposal.
+            </p>
+          </aside>
+          <section className="auth-card">
+            <h1>
+              {mode === "signUp"
+                ? "Create your account."
+                : mode === "verify"
+                  ? "Verify your email."
+                  : mode === "otp"
+                    ? sent
+                      ? "Check your inbox."
+                      : "Sign in by email code."
+                    : "Sign in to browse opportunities."}
+            </h1>
+            <p className="muted">
+              {mode === "signUp"
+                ? "Create a free account to browse public opportunities."
+                : mode === "verify"
+                  ? "Enter the code sent to your email address."
+                  : "Browse grants, tenders, and procurement notices in Lebanon."}
+            </p>
+            <div className="tabs" role="group" aria-label="Account access">
+              {(["signIn", "signUp"] as const).map((value) => (
+                <button
+                  className={mode === value ? "active" : ""}
+                  key={value}
+                  type="button"
+                  aria-pressed={mode === value}
+                  disabled={busy}
+                  onClick={() => selectMode(value)}
+                >
+                  {value === "signIn" ? "Sign in" : "Create account"}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={submit} aria-busy={busy}>
+              {mode === "signUp" && (
+                <label>
+                  Your name
+                  <input
+                    required
+                    disabled={busy}
+                    maxLength={120}
+                    autoComplete="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </label>
+              )}
               <label>
-                Your name
+                Email address
                 <input
                   required
                   disabled={busy}
-                  maxLength={120}
-                  autoComplete="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </label>
-            )}
-            <label>
-              Email address
-              <input
-                required
-                disabled={busy}
-                type="email"
-                maxLength={254}
-                autoComplete="email"
-                readOnly={mode === "verify"}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setSent(false);
-                  setCode("");
-                  setCodeError("");
-                  setMessage("");
-                }}
-              />
-            </label>
-            {mode !== "otp" && mode !== "verify" && (
-              <label>
-                Password
-                <input
-                  required
-                  disabled={busy}
-                  type="password"
-                  minLength={8}
-                  maxLength={128}
-                  autoComplete={
-                    mode === "signUp" ? "new-password" : "current-password"
-                  }
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </label>
-            )}
-            {((mode === "otp" && sent) || mode === "verify") && (
-              <label>
-                {mode === "verify" ? "Verification code" : "Email code"}
-                <input
-                  ref={codeInput}
-                  required
-                  disabled={busy}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={12}
-                  aria-invalid={Boolean(codeError)}
-                  aria-describedby={codeError ? "auth-code-error" : undefined}
-                  value={code}
+                  type="email"
+                  maxLength={254}
+                  autoComplete="email"
+                  readOnly={mode === "verify"}
+                  value={email}
                   onChange={(e) => {
-                    setCode(e.target.value);
+                    setEmail(e.target.value);
+                    setSent(false);
+                    setCode("");
                     setCodeError("");
                     setMessage("");
                   }}
                 />
-                {codeError && (
-                  <span
-                    className="auth-code-error"
-                    id="auth-code-error"
-                    role="alert"
-                  >
-                    {codeError}
-                  </span>
-                )}
               </label>
-            )}
-            <button className="button auth-submit" disabled={busy}>
-              {busy
-                ? phaseMessage[phase]
-                : mode === "signUp"
-                  ? "Create account"
-                  : mode === "otp" && !sent
-                    ? "Send sign-in code"
-                    : mode === "otp"
-                      ? "Sign in with code"
-                      : mode === "verify"
-                        ? "Verify email"
-                        : "Sign in"}{" "}
-              {busy ? (
-                <span className="auth-spinner" aria-hidden="true" />
-              ) : (
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M11.5 3.5h5v5M16.2 3.8 9 11" />
-                  <path d="M15 10.5v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h4" />
-                </svg>
+              {mode !== "otp" && mode !== "verify" && (
+                <label>
+                  Password
+                  <input
+                    required
+                    disabled={busy}
+                    type="password"
+                    minLength={8}
+                    maxLength={128}
+                    autoComplete={
+                      mode === "signUp" ? "new-password" : "current-password"
+                    }
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </label>
               )}
-            </button>
-            {busy && (
-              <p className="auth-progress" role="status" aria-live="polite">
-                {phaseMessage[phase]}
-              </p>
+              {((mode === "otp" && sent) || mode === "verify") && (
+                <label>
+                  {mode === "verify" ? "Verification code" : "Email code"}
+                  <input
+                    ref={codeInput}
+                    required
+                    disabled={busy}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={12}
+                    aria-invalid={Boolean(codeError)}
+                    aria-describedby={codeError ? "auth-code-error" : undefined}
+                    value={code}
+                    onChange={(e) => {
+                      setCode(e.target.value);
+                      setCodeError("");
+                      setMessage("");
+                    }}
+                  />
+                  {codeError && (
+                    <span
+                      className="auth-code-error"
+                      id="auth-code-error"
+                      role="alert"
+                    >
+                      {codeError}
+                    </span>
+                  )}
+                </label>
+              )}
+              <button className="button auth-submit" disabled={busy}>
+                {busy
+                  ? phaseMessage[phase]
+                  : mode === "signUp"
+                    ? "Create account"
+                    : mode === "otp" && !sent
+                      ? "Send sign-in code"
+                      : mode === "otp"
+                        ? "Sign in with code"
+                        : mode === "verify"
+                          ? "Verify email"
+                          : "Sign in"}{" "}
+                {busy ? (
+                  <span className="auth-spinner" aria-hidden="true" />
+                ) : (
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M11.5 3.5h5v5M16.2 3.8 9 11" />
+                    <path d="M15 10.5v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h4" />
+                  </svg>
+                )}
+              </button>
+              {busy && (
+                <p className="auth-progress" role="status" aria-live="polite">
+                  {phaseMessage[phase]}
+                </p>
+              )}
+              {mode === "signUp" && (
+                <p className="fine">
+                  Before creating an account, read how your{" "}
+                  <Link href="/data-use">account data is used</Link>.
+                </p>
+              )}
+              {message && (
+                <p role="status" className="notice">
+                  {message}
+                </p>
+              )}
+            </form>
+            {mode === "verify" && (
+              <button
+                className="text-button"
+                type="button"
+                disabled={busy}
+                onClick={resendVerification}
+              >
+                Send a new code
+              </button>
             )}
-            {mode === "signUp" && (
-              <p className="fine">
-                Before creating an account, read how your{" "}
-                <Link href="/data-use">account data is used</Link>.
-              </p>
+            {mode === "signIn" && (
+              <button
+                className="text-button auth-alternative"
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setMode("otp");
+                  setSent(false);
+                  setCode("");
+                  setMessage("");
+                  setCodeError("");
+                }}
+              >
+                Sign in with an email code
+              </button>
             )}
-            {message && (
-              <p role="status" className="notice">
-                {message}
-              </p>
+            {mode === "otp" && (
+              <button
+                className="text-button auth-alternative"
+                type="button"
+                disabled={busy}
+                onClick={() => selectMode("signIn")}
+              >
+                Use your password instead
+              </button>
             )}
-          </form>
-          {mode === "verify" && (
-            <button
-              className="text-button"
-              type="button"
-              disabled={busy}
-              onClick={resendVerification}
-            >
-              Send a new code
-            </button>
-          )}
-          {mode === "signIn" && (
-            <button
-              className="text-button auth-alternative"
-              type="button"
-              disabled={busy}
-              onClick={() => {
-                setMode("otp");
-                setSent(false);
-                setCode("");
-                setMessage("");
-                setCodeError("");
-              }}
-            >
-              Sign in with an email code
-            </button>
-          )}
-          {mode === "otp" && (
-            <button
-              className="text-button auth-alternative"
-              type="button"
-              disabled={busy}
-              onClick={() => selectMode("signIn")}
-            >
-              Use your password instead
-            </button>
-          )}
-        </section>
-      </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
