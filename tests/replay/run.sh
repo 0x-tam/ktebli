@@ -43,6 +43,11 @@ for f in "$REPO"/supabase/migrations/*.sql; do
 done
 
 echo
+echo "==> atomic revision requests and concurrent retry checks"
+psql_ "-d $DB -q -f $REPO/tests/revision/atomic_test.sql"
+# The concurrency helper requires a disposable local replay socket.
+PGHOST="$RUNDIR" PGPORT="$PORT" PGBIN="$PGBIN" PGDATABASE="$DB" python3 "$REPO/tests/revision/concurrency_test.py"
+
 echo "==> schema fingerprint (must match what the migration history produces)"
 EXPECTED="$REPO/tests/replay/expected-fingerprint.txt"
 ACTUAL="$RUNDIR/actual-fingerprint.txt"

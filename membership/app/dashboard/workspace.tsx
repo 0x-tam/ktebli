@@ -460,8 +460,8 @@ export default function Dashboard({
   const verificationCodeInput = useRef<HTMLInputElement | null>(null);
   const [profile, setProfile] = useState<Profile>(
     initial.profile ?? {
-      organization_name: "",
-      organization_type: "company",
+      organization_name: name || "",
+      organization_type: "individual",
       sectors: [],
       capabilities: "",
       locations: ["Lebanon"],
@@ -927,6 +927,14 @@ export default function Dashboard({
                 sessionRemove("ktebli-board-return");
                 sessionRemove("ktebli-proposal-task-v1");
                 sessionRemove(profileDraftKey);
+                try {
+                  localStorage.setItem(
+                    "ktebli-account-signout",
+                    String(Date.now()),
+                  );
+                } catch {
+                  // Sign-out still succeeds when browser storage is unavailable.
+                }
                 router.replace("/auth");
                 router.refresh();
               }, "signout")
@@ -1147,6 +1155,11 @@ export default function Dashboard({
         ) : null}
         {tab === "profile" ? (
           <section className="profile-panel">
+            <p className="muted">
+              Save your professional or organization name to reuse it when you
+              start a proposal. Sectors and locations help describe your work;
+              everything under “More about your work” is optional.
+            </p>
             <form onSubmit={saveProfile}>
               <label>
                 Organization or professional name
@@ -1163,7 +1176,7 @@ export default function Dashboard({
                 />
               </label>
               <label>
-                Organization type
+                Applying as
                 <select
                   value={profile.organization_type}
                   onChange={(e) =>

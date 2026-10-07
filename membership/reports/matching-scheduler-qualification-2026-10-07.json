@@ -1,0 +1,90 @@
+{
+  "at": "2026-10-07T15:43:42.081426+00:00",
+  "status": "LOCAL_VERIFICATION_PASSED_LIVE_MATCHING_AND_SCHEDULE_UNQUALIFIED",
+  "changes": [
+    "A later UTC day restarts PPA listing discovery after both listing-phase and backlog-phase failures; same-day checkpoints still resume.",
+    "Manual workflow inputs select all or one reviewed source and bounded PPA detail counts. Daily defaults and disabled activation gate remain unchanged."
+  ],
+  "checks": {
+    "membership_unit_tests": {
+      "passed": 34
+    },
+    "postgres_integration": "passed on disposable local membership_test after sandbox socket EPERM retry with approved access",
+    "catalogue_runner_integration": {
+      "passed": 3
+    },
+    "crawler_tests": {
+      "passed": 40,
+      "skipped": 1,
+      "skipped_reason": "opt-in Chromium isolation test not enabled"
+    },
+    "typecheck": "passed",
+    "lint": "passed",
+    "changed_files_prettier": "passed",
+    "workflow_yaml": "parsed and checked source choices, bounds, unchanged environment/gate/schedule and absence of input-to-shell interpolation"
+  },
+  "matching_covered_by_deterministic_tests": [
+    "source and profile changes between candidate selection, reservation and write",
+    "stale detail freshness",
+    "canceled entitlement",
+    "fresh conflicting aliases",
+    "changed sibling evidence invalidates displayed fit and alerts",
+    "weighted provider score validation and malformed response rejection",
+    "one exact-version claim across 12 concurrent workers",
+    "unknown/outside-Lebanon geography excluded",
+    "oversized input blocked before spend"
+  ],
+  "serving_read_only": {
+    "verified_worker_host": "ep-autumn-feather-b1fk17te-pooler.c-5.eu-central-1.aws.neon.tech",
+    "matching_spend_rows": 0,
+    "subscription_rows": 0,
+    "counts": {
+      "ppa": 1165,
+      "ungm": 11,
+      "mawred": 1,
+      "worldbank": 9,
+      "grants-gov": 20
+    },
+    "fresh_verified_under_24_hours": {
+      "ppa": 0,
+      "ungm": 0,
+      "mawred": 0,
+      "worldbank": 0,
+      "grants-gov": 20
+    },
+    "ppa_checkpoint": {
+      "phase": "listing",
+      "last_status": "incomplete",
+      "last_error": "ppa_listing_incomplete",
+      "revision": "81"
+    }
+  },
+  "github_observed": {
+    "activation_variable_present": false,
+    "latest_scheduled_run": "https://github.com/0x-tam/ktebli/actions/runs/37596298347",
+    "latest_scheduled_conclusion": "skipped",
+    "last_manual_run": "https://github.com/0x-tam/ktebli/actions/runs/37457203933",
+    "last_manual_conclusion": "failure"
+  },
+  "provider_calls": 0,
+  "serving_writes": 0,
+  "dispatches": 0,
+  "deployments": 0,
+  "blockers": [
+    "MEMBERSHIP_TYPESAFE_API_KEY is empty; engineering TypeSafe and customer OpenRouter keys are not substitutes.",
+    "Matching configured disabled with cumulative allocation 0. No additional allocation or reset performed.",
+    "No live provider-quality positive/negative pilot occurred; deterministic checks are not model-quality qualification.",
+    "The scheduler changes need independent review and publication before manual dispatch. No live scheduled freshness promise is established."
+  ],
+  "next_reviewed_manual_dispatch": {
+    "sources": "ppa",
+    "recent_details": "20",
+    "backlog_details": "1",
+    "qualification_scope": "bounded recent/historical locale detail refresh plus complete bilingual listing; not all-source or complete detail coverage"
+  },
+  "official_docs": [
+    "https://docs.typesafe.ai/api",
+    "https://docs.typesafe.ai/models",
+    "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs"
+  ]
+}

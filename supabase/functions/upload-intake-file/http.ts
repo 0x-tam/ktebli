@@ -56,12 +56,12 @@ export async function rateLimit(
     });
     if (!r.ok) {
       // Fail CLOSED, loudly. A limiter that cannot answer has not said yes.
-      console.error(JSON.stringify({ rl_hit: "http_" + r.status, key }));
+      console.error(JSON.stringify({ rl_hit: "http_" + r.status }));
       return false;
     }
     return (await r.json()) === true;
-  } catch (e) {
-    console.error(JSON.stringify({ rl_hit: "unreachable", key, err: String(e).slice(0, 120) }));
+  } catch {
+    console.error(JSON.stringify({ rl_hit: "unreachable" }));
     return false;
   }
 }

@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-07",
+  "upload_test": {
+    "status": "pass",
+    "compatibility_fix": "Wrapped asynchronous test body in an async IIFE; no top-level await under Node CJS transformation.",
+    "commands": [
+      {
+        "command": "/private/tmp/ktebli-intake-test-runtime/node_modules/deno/deno run --check tests/upload/logging_test.ts",
+        "runtime": "Deno 2.9.5, TypeScript 6.0.3",
+        "exit_code": 0
+      },
+      {
+        "command": "node --import ./membership/node_modules/tsx/dist/loader.mjs tests/upload/logging_test.ts",
+        "runtime": "Node v20.19.4, tsx 4.23.15",
+        "exit_code": 0
+      }
+    ],
+    "sha256": "bd61ba312c51779a2d93b9fe3e8c1ac947b0dfb984196e99dc9a61ca556dc7d9",
+    "synchronized_main_and_clean": true
+  },
+  "fresh_paid_full_test": {
+    "can_start_safely_now": false,
+    "no_new_calls_made": true,
+    "reported_provider_limit_usd": 25,
+    "reported_provider_usage_usd": 16.559189622,
+    "provider_remaining_before_hold_usd": 8.440810378,
+    "unresolved_historical_hold_usd": 1,
+    "conservative_remaining_after_hold_usd": 7.440810378,
+    "budget_numbers_source": "Parent read-only provider preflight; no new provider query by helper.",
+    "blockers": [
+      "Authoritative /private/tmp campaign ledger absent. Existing guard would create a new empty ledger on first reservation; forbidden without conservative durable reconciliation.",
+      "Default Budget.reserve rejects any pending outcome. Restoring the unknown $1 hold therefore still prevents new spending; do not mark it settled or omit it.",
+      "Current fixture cannot qualify fresh generation or repair; copied prior Full documents are held on two semantic findings.",
+      "No verified bound on total fresh Full generation, audit, repair and visual-review cost under available after-hold balance. Provider limit alone does not establish concurrent or in-flight bounds."
+    ],
+    "prerequisites": [
+      "Recover durable historical campaign records without changing original files. Reconcile known completed receipts against a fresh read-only provider usage value. Restore a conservative baseline equal to already-observed lifetime spend without double-counting imported receipt costs, and preserve the separate unresolved $1 hold; record provenance and immutable reconciliation evidence.",
+      "Keep cap $25 and existing per-run ceiling at most $4. For every text/vision/reasoning request reserve a proven upper cost bound before dispatch, under a single-writer lock. Keep actual usage and unknown outcomes durable; stop before the next request when budget or outcome cannot be bounded. Never fall back providers or reset the ledger.",
+      "Resolve the unknown outcome with provider evidence, or use only an already-explicitly-authorized independent-reservation path that preserves the hold and all existing bounds. The default runner currently uses reserve(), which blocks on any pending hold.",
+      "Use a newly isolated synthetic Full-tier order and fully specified source, applicant facts, costs and constraints. Trace checkout clearance, private brief, all generation stages, independent quality gates, Full deliverables and final links. Keep test source facts independently checkable; do not override findings, relabel held quality as passing, or reuse a completed checkpoint as fresh-generation evidence.",
+      "For live customer-flow qualification, also verify a valid free owner invitation, current backend versions, intended private execution controls, and the authorized recipient/captured-mail policy. A local real-model run alone does not prove production checkout, ownership or delivery.",
+      "Before a real run, inspect the exact runner diff, destination allowlist, provenance and recovery behavior, then get the required independent high-risk review. A limited test may legitimately stop at the spending ceiling and must remain reported incomplete."
+    ]
+  }
+}

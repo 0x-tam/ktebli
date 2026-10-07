@@ -50,11 +50,13 @@ test("compressed public-source checkpoints round-trip and reject corruption or m
   assert.throws(() => encodeCrawlerState("ungm-curated", state), /Invalid/);
 });
 
-test("a later-day backlog checkpoint refreshes current listings before retrying history", () => {
+test("a later-day checkpoint refreshes listings even when recent details never finished", () => {
   const today = new Date("2026-10-06T02:17:00Z");
   const prior = new Date("2026-10-05T23:50:00Z");
   assert.equal(ppaNeedsListingRefresh("backlog", prior, today), true);
   assert.equal(ppaNeedsListingRefresh("backlog", today, today), false);
+  assert.equal(ppaNeedsListingRefresh("listing", prior, today), true);
+  assert.equal(ppaNeedsListingRefresh("listing", today, today), false);
   assert.equal(ppaNeedsListingRefresh("imported", today, today), true);
 });
 

@@ -490,6 +490,7 @@ footer a:hover{color:var(--coral)}
     </div>
     <div class="wiz-dots" id="wiz-dots"></div>
     <div class="wiz-context" id="wiz-context" role="status" aria-live="polite"></div>
+    <div id="profile-loading" class="field-help" role="status" aria-live="polite" hidden style="padding:24px 32px"><span id="profile-loading-message">Loading your saved details…</span> <button id="profile-retry" class="text-link" type="button" hidden>Try again</button></div>
     <div class="wiz-body">
 
       <div class="wiz-step" data-step="1">
@@ -505,6 +506,7 @@ footer a:hover{color:var(--coral)}
       <div class="wiz-step" data-step="2">
         <h3>Your details</h3>
         <p class="ws-sub">Your name and email are required. Organization and contact details are optional.</p>
+        <p id="profile-prefill-note" class="field-help" role="status" aria-live="polite" hidden></p>
         <fieldset class="intake-group">
           <legend>Your contact details</legend>
           <div class="two">
@@ -604,6 +606,88 @@ var returnTo = requestedReturnTo;
 var activePrepareReference = '';
 var TASK_DRAFT_KEY = 'ktebli-proposal-task-v1', TASK_DRAFT_AGE = 6 * 60 * 60 * 1000;
 var taskDraft = null, taskActive = false;
+var accountProfileReady = false, accountProfile = null, taskOwner = null, pendingProfileOpen = null, accountSessionEpoch = 0, accountRefreshPromise = null, accountNeedsRefresh = false, accountProofUnavailable = false, accountStartupPending = true;
+function profileLoading(loading) {
+  document.getElementById('profile-loading-message').textContent='Loading your saved details…';
+  document.getElementById('profile-retry').hidden=true;
+  document.getElementById('profile-loading').hidden = !loading;
+  ['.wiz-body','.wiz-foot','#wiz-dots','#wiz-context'].forEach(function(selector) { var panel=document.querySelector(selector);panel.hidden=loading;panel.style.display=loading?'none':''; });
+}
+function showProfileRetry() {
+  profileLoading(true);
+  document.getElementById('profile-loading-message').textContent='Could not check your account. Your saved details are kept private until we reconnect.';
+  document.getElementById('profile-retry').hidden=false;
+}
+function hasOwnedTaskDraft() {
+  try {
+    var raw=sessionStorage.getItem(TASK_DRAFT_KEY);if(!raw || raw.length>300000)return false;
+    var draft=JSON.parse(raw), now=Date.now();
+    return draft && draft.version===1 && typeof draft.owner==='string' && draft.owner.length>0 && Number.isFinite(draft.savedAt) && draft.savedAt<=now && now-draft.savedAt<=TASK_DRAFT_AGE;
+  } catch (_) { return false; }
+}
+function applyAccountProfile() {
+  var note=document.getElementById('profile-prefill-note');note.hidden=true;note.textContent='';
+  if (!accountProfile || ownerTestInvite) return;
+  var account=accountProfile.account, profile=accountProfile.profile || {}, filled=[];
+  [['w-name',account.name],['w-email',account.email],['w-org',profile.organization_name]].forEach(function(pair) {
+    var field=document.getElementById(pair[0]);
+    if(typeof pair[1]==='string' && pair[1].trim() && !field.value.trim() && !field.dataset.userEdited) {
+      field.value=pair[1].slice(0,5000); filled.push(pair[0]);
+    }
+  });
+  var applicant=document.getElementById('w-applicant-type');
+  if(!applicant.dataset.userSelected && !applicant.dataset.userEdited && !taskDraft && ['individual','company','ngo','public_body'].includes(profile.organization_type)) {
+    applicant.value=profile.organization_type==='individual'?'individual':'organisation';
+    applicant.dataset.userSelected='true';
+    applicant.dispatchEvent(new Event('change'));
+  }
+  note.hidden=!filled.length;
+  note.textContent=filled.length?'Saved account details added. Review or edit them for this proposal.':'';
+}
+async function loadAccountProfile() {
+  if(ownerTestInvite) return null;
+  var controller=new AbortController(), timeout;
+  try {
+    return await Promise.race([
+      fetch('/account/api/profile',{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async function(response) {
+        if(response.status===401)return null;
+        if(!response.ok)throw new Error('profile_unavailable');
+        var data=await response.json();
+        if(!data || !data.account || typeof data.account.id!=='string' || !data.account.id || data.account.id.length>200 || typeof data.account.email!=='string')throw new Error('profile_invalid');
+        return data;
+      }),
+      new Promise(function(_,reject){timeout=setTimeout(function(){controller.abort();reject(new Error('profile_timeout'));},5000);})
+    ]);
+  } catch (_) { return undefined; }
+  finally { clearTimeout(timeout); }
+}
+function suspendAccountProfile() {
+  if(ownerTestInvite)return;
+  accountNeedsRefresh=true;
+  // Conceal retained contact details until this tab verifies the session again.
+  profileLoading(true);
+}
+function revalidateAccountProfile() {
+  if(ownerTestInvite || document.visibilityState==='hidden' || !accountNeedsRefresh || accountRefreshPromise)return;
+  if(!accountProfileReady && !accountProofUnavailable)return; // Startup performs its own authenticated read first.
+  accountNeedsRefresh=false;accountProofUnavailable=false;
+  var previousOwner=taskOwner, epoch=++accountSessionEpoch;
+  saveTaskDraft();accountProfileReady=false;profileLoading(true);wiz.invalidateCheckout();
+  accountRefreshPromise=loadAccountProfile().then(function(data) {
+    if(epoch!==accountSessionEpoch)return;
+    if(accountStartupPending){finishAccountProfileStartup(data);return;}
+    if(data===undefined){accountProofUnavailable=true;return;}
+    accountProfile=data;taskOwner=data?data.account.id:null;
+    if(previousOwner!==taskOwner){clearTaskDraft();resetProposalTask();}
+  }).finally(function() {
+    accountRefreshPromise=null;
+    if(accountProofUnavailable){accountNeedsRefresh=true;showProfileRetry();return;}
+    accountProfileReady=true;
+    if(accountNeedsRefresh){revalidateAccountProfile();if(accountRefreshPromise || document.visibilityState==='hidden')return;}
+    profileLoading(false);
+    if(pendingProfileOpen){var tier=pendingProfileOpen.tier;pendingProfileOpen=null;wiz.open(tier);}
+  });
+}
 function readTaskDraft() {
   if (ownerTestInvite) return null;
   try {
@@ -614,7 +698,7 @@ function readTaskDraft() {
   } catch (_) { try{sessionStorage.removeItem(TASK_DRAFT_KEY);}catch(__){} return null; }
 }
 function validTaskDraft(saved){
-  if(!saved||saved.version!==1||!Number.isFinite(saved.savedAt)||saved.savedAt>Date.now()||Date.now()-saved.savedAt>TASK_DRAFT_AGE||!Number.isInteger(saved.step)||saved.step<0||saved.step>3||!['draft','competitive','full'].includes(saved.tier))return false;
+  if(!saved||saved.version!==1||!Object.prototype.hasOwnProperty.call(saved,'owner')||saved.owner!==taskOwner||!Number.isFinite(saved.savedAt)||saved.savedAt>Date.now()||Date.now()-saved.savedAt>TASK_DRAFT_AGE||!Number.isInteger(saved.step)||saved.step<0||saved.step>3||!['draft','competitive','full'].includes(saved.tier))return false;
   if(!saved.fields||typeof saved.fields!=='object'||Array.isArray(saved.fields)||Object.keys(saved.fields).length>100)return false;
   for(var id in saved.fields){var field=document.getElementById(id),value=saved.fields[id];if(!field||!document.getElementById('wiz').contains(field)||!field.matches('input,textarea,select')||typeof value!=='string'||value.length>(id==='w-grant'?200000:5000)||field.type==='file')return false;}
   if(saved.checks&&(!saved.checks||typeof saved.checks!=='object'||Array.isArray(saved.checks)||Object.keys(saved.checks).length>50))return false;
@@ -632,7 +716,7 @@ function updateReturnLink() {
   link.hidden = !focusedStart && !returnTo;
 }
 function saveTaskDraft() {
-  if (ownerTestInvite || !taskActive) return;
+  if (ownerTestInvite || !taskActive || !accountProfileReady) return;
   var fields = {}, checks = {}, selected = {};
   document.querySelectorAll('#wiz input[id],#wiz textarea[id],#wiz select[id]').forEach(function(field) {
     if (field.type === 'file' || field.type === 'radio' || field.type === 'hidden') return;
@@ -643,7 +727,7 @@ function saveTaskDraft() {
   Object.keys(REP).forEach(function(kind) { rows[kind] = collectRep(kind); });
   var disclosures = {};
   document.querySelectorAll('#wiz details').forEach(function(item,index) { disclosures[index] = item.open; });
-  taskDraft = {version:1,savedAt:Date.now(),step:wiz.step,tier:wiz.tier,tierChosen:wiz.tierChosen,packageExplicit:wiz.packageExplicit,
+  taskDraft = {version:1,owner:taskOwner,savedAt:Date.now(),step:wiz.step,tier:wiz.tier,tierChosen:wiz.tierChosen,packageExplicit:wiz.packageExplicit,
     fields:fields,checks:checks,selected:selected,rows:rows,disclosures:disclosures,prepare:activePrepareReference,returnTo:returnTo,memberIntent:memberIntent};
   try { sessionStorage.setItem(TASK_DRAFT_KEY, JSON.stringify(taskDraft)); } catch (_) {}
 }
@@ -869,6 +953,12 @@ var wiz = {
     this.checkoutController=null;this.checkoutPending=false;this.pendingToken=null;this.pendingEmail=null;
   },
   open: function (tier) {
+    if (!accountProfileReady) {
+      pendingProfileOpen={tier:tier};
+      if(document.activeElement && document.activeElement!==document.body)this.returnFocus=document.activeElement;
+      this.el.classList.add('open');this.el.classList.remove('closing');this.el.removeAttribute('inert');this.el.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+      profileLoading(true);if(accountProofUnavailable)showProfileRetry();document.getElementById('wiz-close').focus();return;
+    }
     hideResetConfirm(false);
     if (!this.el.classList.contains('open') && document.activeElement && document.activeElement !== document.body) this.returnFocus = document.activeElement;
     clearTimeout(this.closeTimer);
@@ -903,6 +993,7 @@ var wiz = {
     saveTaskDraft();
   },
   close: function () {
+    pendingProfileOpen=null;
     hideResetConfirm(false);
     this.invalidateCheckout();
     saveTaskDraft();
@@ -1563,7 +1654,7 @@ function resetProposalTask(){
   document.getElementById('opportunity-paste-source').hidden=true;document.getElementById('opportunity-paste-source').replaceChildren();
   wiz.step=0;wiz.tier='competitive';wiz.tierChosen=false;wiz.packageExplicit=false;wiz.files=[];wiz.intakeId=null;wiz.pendingToken=null;wiz.pendingEmail=null;
   if(focusedStart)history.replaceState(null,'','/start'+(returnTo?'?returnTo='+encodeURIComponent(returnTo):''));
-  updateDeadlineField();syncCurrencyOther();taskActive=true;wiz.render(true);
+  updateDeadlineField();syncCurrencyOther();applyAccountProfile();taskActive=true;wiz.render(true);
 }
 document.getElementById('wiz-reset').addEventListener('click',function(){
   var hasWork=wiz.tierChosen||Array.prototype.some.call(document.querySelectorAll('#wiz input,#wiz textarea,#wiz select'),function(field){return field.type==='checkbox'?field.checked:field.type==='radio'||field.tagName==='SELECT'?false:!!field.value.trim();});
@@ -1573,6 +1664,7 @@ document.getElementById('wiz-reset').addEventListener('click',function(){
 document.getElementById('wiz-keep-current').addEventListener('click',function(){hideResetConfirm(true);});
 document.getElementById('wiz-confirm-reset').addEventListener('click',resetProposalTask);
 function changedTaskField(event){
+  if(event.target && event.target.matches("input,textarea,select") && event.isTrusted)event.target.dataset.userEdited="true";
   if(event.target && event.target.matches && event.target.matches('input,textarea,select') && (wiz.checkoutPending||wiz.pendingToken)) wiz.invalidateCheckout();
   saveTaskDraft();
 }
@@ -1640,9 +1732,36 @@ function loadCatalogueHandoff() {
       }
     }).finally(function(){clearTimeout(handoffTimeout);});
 }
-taskDraft=readTaskDraft();
-if (taskDraft) restoreTaskDraft(taskDraft);
-handoffConflict=hasPrepareReference && prepareReference!==activePrepareReference;
+window.addEventListener('storage',function(event) {
+  if(event.key!=='ktebli-account-signout')return;
+  accountSessionEpoch++;accountProfile=null;taskOwner=null;clearTaskDraft();
+  accountProofUnavailable=false;accountNeedsRefresh=false;accountProfileReady=true;accountStartupPending=false;
+  resetProposalTask();profileLoading(false);
+});
+document.getElementById('profile-retry').addEventListener('click',function(){accountNeedsRefresh=true;revalidateAccountProfile();});
+window.addEventListener('blur',suspendAccountProfile);
+window.addEventListener('focus',revalidateAccountProfile);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')suspendAccountProfile();else revalidateAccountProfile();});
+// Recheck the session instead of exposing a previous account from the browser's page cache.
+window.addEventListener('pageshow',function(event){if(event.persisted)window.location.reload();});
+var initialAccountEpoch=accountSessionEpoch;
+function finishAccountProfileStartup(data) {
+  if(data===undefined && hasOwnedTaskDraft()){
+    accountProofUnavailable=true;accountNeedsRefresh=true;showProfileRetry();return;
+  }
+  accountStartupPending=false;accountProofUnavailable=false;
+  data=data || null;
+  accountProfile=data;taskOwner=data?data.account.id:null;accountProfileReady=true;
+  taskDraft=readTaskDraft();
+  if(taskDraft)restoreTaskDraft(taskDraft);
+  applyAccountProfile();
+  handoffConflict=hasPrepareReference && prepareReference!==activePrepareReference;
+  updateReturnLink();
+  if(accountNeedsRefresh){revalidateAccountProfile();if(accountRefreshPromise || document.visibilityState==='hidden')return;}
+  profileLoading(false);
+  if(pendingProfileOpen){var tier=pendingProfileOpen.tier;pendingProfileOpen=null;wiz.open(tier);}
+}
+loadAccountProfile().then(function(data){if(initialAccountEpoch!==accountSessionEpoch)data=null;finishAccountProfileStartup(data);});
 updateReturnLink();
 if (ownerTestInvite) wiz.open('full');
 else if (hasPrepareReference || focusedStart) wiz.open(null);

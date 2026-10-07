@@ -12,8 +12,7 @@ export function ppaNeedsListingRefresh(
 ): boolean {
   return (
     phase === "imported" ||
-    (phase === "backlog" &&
-      lastRunAt.toISOString().slice(0, 10) !== now.toISOString().slice(0, 10))
+    lastRunAt.toISOString().slice(0, 10) !== now.toISOString().slice(0, 10)
   );
 }
 export const MAX_RAW_STATE_BYTES = 256 * 1024 * 1024;

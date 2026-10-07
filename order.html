@@ -275,12 +275,12 @@ function validOrderDraft(saved){
   if(saved.intake.touched&&(typeof saved.intake.touched!=='object'||Array.isArray(saved.intake.touched)))return false;
  }
  if(saved.revisions&&(!saved.revisions||typeof saved.revisions!=='object'||Array.isArray(saved.revisions)||Object.keys(saved.revisions).length>50))return false;
- for(var pid in saved.revisions||{}){var revision=saved.revisions[pid];if(pid.length>100||!revision||typeof revision.marker!=='string'||revision.marker.length>100||typeof revision.details!=='string'||revision.details.length>10000||!Array.isArray(revision.opts)||revision.opts.length>REV_OPTIONS.length||revision.opts.some(function(option){return !REV_OPTIONS.includes(option);})||(revision.uncertain!==undefined&&typeof revision.uncertain!=='boolean'))return false;}
+ for(var pid in saved.revisions||{}){var revision=saved.revisions[pid];if(pid.length>100||!revision||typeof revision.marker!=='string'||revision.marker.length>100||typeof revision.details!=='string'||revision.details.length>10000||!Array.isArray(revision.opts)||revision.opts.length>REV_OPTIONS.length||revision.opts.some(function(option){return !REV_OPTIONS.includes(option);})||(revision.uncertain!==undefined&&typeof revision.uncertain!=='boolean')||(revision.requestId!==undefined&&!/^[0-9a-f-]{36}$/i.test(revision.requestId)))return false;}
  return true;
 }
 function saveOrderDraft(){
  if(!orderDraftKey)return;
- var revisions={};Object.keys(formState).forEach(function(pid){var state=formState[pid];if(state&&!state.sent&&(state.details||state.opts.length))revisions[pid]={marker:state.requestMarker||revisionMarker(latestOrderData,pid),opts:state.opts.slice(),details:state.details,open:state.open,uncertain:state.pending===true||state.uncertain===true};});
+ var revisions={};Object.keys(formState).forEach(function(pid){var state=formState[pid];if(state&&!state.sent&&(state.details||state.opts.length))revisions[pid]={marker:state.requestMarker||revisionMarker(latestOrderData,pid),opts:state.opts.slice(),details:state.details,open:state.open,uncertain:state.pending===true||state.uncertain===true,requestId:state.requestId};});
  Object.keys(orderDraft&&orderDraft.revisions||{}).forEach(function(pid){if(!formState[pid]&&!revisions[pid]&&orderDraft.revisions[pid].marker!==revisionMarker(latestOrderData,pid))revisions[pid]=orderDraft.revisions[pid];});
  var intake=intakeDraft&&!intakeSaved?{revision:intakeServerRevision,facts:intakeDraft.facts,directions:intakeDraft.directions,rows:intakeRows,touched:intakeTouched}:!intakeSaved&&orderDraft?orderDraft.intake:null;
  orderDraft={version:1,savedAt:Date.now(),returnTo:orderReturnTo,intake:intake,revisions:revisions};
@@ -432,9 +432,9 @@ function render(d){
         var currentRevisionMarker=revisionMarker(d,p.id);
         var savedRevision=orderDraft&&orderDraft.revisions&&orderDraft.revisions[p.id];
         var hasStaleSavedRevision=!formState[p.id]&&savedRevision&&savedRevision.marker!==currentRevisionMarker;
-        if(!formState[p.id]&&savedRevision&&savedRevision.marker===currentRevisionMarker)formState[p.id]={opts:savedRevision.opts||[],details:savedRevision.details||'',open:savedRevision.open===true,pending:false,sent:false,requestMarker:savedRevision.marker,uncertain:savedRevision.uncertain===true,message:savedRevision.uncertain?'This request may still be processing. Check the latest order status before trying again.':'',messageType:savedRevision.uncertain?'pending':''};
+        if(!formState[p.id]&&savedRevision&&savedRevision.marker===currentRevisionMarker)formState[p.id]={opts:savedRevision.opts||[],details:savedRevision.details||'',open:savedRevision.open===true,pending:false,sent:false,requestMarker:savedRevision.marker,requestId:savedRevision.requestId,uncertain:savedRevision.uncertain===true,message:savedRevision.uncertain?'This request may still be processing. Check the latest order status before trying again.':'',messageType:savedRevision.uncertain?'pending':''};
         var revisionState=formState[p.id]||{opts:[],details:'',open:false,pending:false,sent:false,message:'',messageType:''};
-        if(revisionState.sent&&revisionState.requestMarker&&revisionState.requestMarker!==currentRevisionMarker){revisionState.sent=false;revisionState.requestMarker='';revisionState.opts=[];revisionState.details='';revisionState.open=false;revisionState.message='';revisionState.messageType='';}
+        if(revisionState.sent&&revisionState.requestMarker&&revisionState.requestMarker!==currentRevisionMarker){revisionState.sent=false;revisionState.requestMarker='';revisionState.requestId=undefined;revisionState.opts=[];revisionState.details='';revisionState.open=false;revisionState.message='';revisionState.messageType='';}
         if(!revisionState.sent&&(revisionState.details||revisionState.opts.length)&&revisionState.requestMarker&&revisionState.requestMarker!==currentRevisionMarker){revisionState.stale=true;revisionState.uncertain=false;revisionState.message='A newer order version is ready. Review it before sending these changes.';revisionState.messageType='pending';}
         if(hasStaleSavedRevision)h+='<p class="order-next">Your earlier change request was saved for an older version. Review it against the latest files before sending.</p><button type="button" class="revbtn" data-recover-revision="'+esc(p.id)+'">Review saved request</button>';
         h += (hasStaleSavedRevision?'':'<button class="revbtn" data-open="' + esc(p.id) + '" aria-expanded="'+(revisionState.open?'true':'false')+'" aria-controls="rf-'+esc(p.id)+'"><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M11.5 4.5 15.5 8.5M4 16l3.5-.7L16.2 6.6a1.8 1.8 0 0 0-2.5-2.5L5 12.8 4 16Z"/></svg><span>Request changes</span></button>') +
@@ -442,12 +442,12 @@ function render(d){
           '<div class="revform' + (revisionState.open ? ' open':'') + '" id="rf-' + esc(p.id) + '"'+(revisionState.pending?' aria-busy="true"':'')+'>' +
           '<div style="font-weight:700;margin-top:6px">What kind of changes?</div><div class="opts">' +
           REV_OPTIONS.map(function(op){ var sel = revisionState.opts.indexOf(op)>=0;
-            return '<button type="button" class="opt'+(sel?' sel':'')+'" aria-pressed="'+(sel?'true':'false')+'" data-pid="'+esc(p.id)+'" data-op="'+esc(op)+'"'+(revisionState.pending||revisionState.sent||revisionState.blocked?' disabled':'')+'>'+esc(op)+'</button>'; }).join('') +
+            return '<button type="button" class="opt'+(sel?' sel':'')+'" aria-pressed="'+(sel?'true':'false')+'" data-pid="'+esc(p.id)+'" data-op="'+esc(op)+'"'+(revisionState.pending||revisionState.sent||revisionState.blocked||revisionState.uncertain?' disabled':'')+'>'+esc(op)+'</button>'; }).join('') +
           '</div>' +
-          '<textarea id="rd-' + esc(p.id) + '"'+(revisionState.pending||revisionState.sent||revisionState.blocked?' disabled':'')+' placeholder="Tell us exactly what you want changed.">' + esc(revisionState.details) + '</textarea>' +
+          '<textarea id="rd-' + esc(p.id) + '"'+(revisionState.pending||revisionState.sent||revisionState.blocked||revisionState.uncertain?' disabled':'')+' placeholder="Tell us exactly what you want changed.">' + esc(revisionState.details) + '</textarea>' +
           '<p id="rm-' + esc(p.id) + '" class="revmessage '+esc(revisionState.messageType)+'" role="status" aria-live="polite">'+esc(revisionState.message)+'</p>' +
           (revisionState.stale?'<button type="button" class="revbtn" data-review-revision="'+esc(p.id)+'">I reviewed the latest version</button>':'') +
-          (revisionState.uncertain&&!revisionState.retryAllowed?'<button type="button" class="revbtn" data-check-revision="'+esc(p.id)+'"'+(revisionState.checking?' disabled':'')+'>'+(revisionState.checking?'Checking status…':revisionState.retryChecked?'I understand — allow retry':'Check status before retrying')+'</button>':'') +
+          (revisionState.uncertain&&!revisionState.retryAllowed?'<button type="button" class="revbtn" data-check-revision="'+esc(p.id)+'"'+(revisionState.checking?' disabled':'')+'>'+(revisionState.checking?'Checking status…':revisionState.retryChecked?'Allow safe retry':'Check status before retrying')+'</button>':'') +
           '<button class="revsend" id="rs-' + esc(p.id) + '" data-send="' + esc(p.id) + '"'+(revisionState.pending||revisionState.sent||revisionState.stale||(revisionState.uncertain&&!revisionState.retryAllowed)?' disabled':'')+'><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M3 10h13m-5-5 5 5-5 5"/></svg><span>' + (revisionState.pending?'Sending…':revisionState.sent?'Request sent':'Send revision request') + '</span></button>' +
           '</div>';
       } else {
@@ -501,8 +501,8 @@ function render(d){
       state.sent=false;if(!state.uncertain&&!state.stale){state.message='';state.messageType='';}
       var selected=state.opts.indexOf(op)>=0;el.classList.toggle('sel',selected);el.setAttribute('aria-pressed',selected?'true':'false');
       var send=document.getElementById('rs-'+pid);if(send){send.disabled=state.pending||state.stale||(state.uncertain&&!state.retryAllowed);setControlLabel(send,state.pending?'Sending…':'Send revision request');}
-      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked;});
-      if(state.sent||state.blocked){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked||state.uncertain;});
+      if(state.sent||state.blocked||state.uncertain){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
       var message=document.getElementById('rm-'+pid);if(message){message.textContent=state.message;message.className='revmessage '+state.messageType;}
       saveOrderDraft();
     });
@@ -510,7 +510,7 @@ function render(d){
   app.querySelectorAll('[data-send]').forEach(function(b){
     b.addEventListener('click', function(){ submitRevision(b.getAttribute('data-send')); });
   });
-  app.querySelectorAll('[data-review-revision]').forEach(function(b){b.addEventListener('click',function(){var pid=b.getAttribute('data-review-revision'),state=formState[pid];if(!state)return;state.stale=false;state.requestMarker=revisionMarker(latestOrderData,pid);state.message='Latest version reviewed. Your draft is ready when you are.';state.messageType='success';lastRenderKey=null;render(latestOrderData);saveOrderDraft();});});
+  app.querySelectorAll('[data-review-revision]').forEach(function(b){b.addEventListener('click',function(){var pid=b.getAttribute('data-review-revision'),state=formState[pid];if(!state)return;state.stale=false;state.requestId=undefined;state.requestMarker=revisionMarker(latestOrderData,pid);state.message='Latest version reviewed. Your draft is ready when you are.';state.messageType='success';lastRenderKey=null;render(latestOrderData);saveOrderDraft();});});
   app.querySelectorAll('[data-recover-revision]').forEach(function(b){b.addEventListener('click',function(){var pid=b.getAttribute('data-recover-revision'),saved=orderDraft&&orderDraft.revisions&&orderDraft.revisions[pid];if(!saved)return;formState[pid]={opts:saved.opts.slice(),details:saved.details,open:true,pending:false,sent:false,requestMarker:saved.marker,stale:true,uncertain:false,message:'Review your saved request against the latest version before sending.',messageType:'pending'};lastRenderKey=null;render(latestOrderData);saveOrderDraft();});});
   app.querySelectorAll('[data-check-revision]').forEach(function(b){b.addEventListener('click',function(){checkRevisionBeforeRetry(b.getAttribute('data-check-revision'));});});
 
@@ -522,8 +522,8 @@ function render(d){
       state.details = t.value;if(!state.requestMarker)state.requestMarker=revisionMarker(latestOrderData,pid);state.sent=false;
       if(state.messageType==='success'){state.message='';state.messageType='';}
       var send=document.getElementById('rs-'+pid);if(send){send.disabled=state.pending||state.stale||(state.uncertain&&!state.retryAllowed);setControlLabel(send,state.pending?'Sending…':'Send revision request');}
-      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked;});
-      if(state.sent||state.blocked){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked||state.uncertain;});
+      if(state.sent||state.blocked||state.uncertain){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
       var message=document.getElementById('rm-'+pid);if(message&&state.messageType===''){message.textContent='';message.className='revmessage';}
       saveOrderDraft();
     });
@@ -544,21 +544,22 @@ function submitRevision(pid){
     var emptyMessage=document.getElementById('rm-'+pid);if(emptyMessage){emptyMessage.textContent=state.message;emptyMessage.className='revmessage error';}
     var emptyField=document.getElementById('rd-'+pid);if(emptyField)emptyField.focus();return;
   }
-  state.details=details;state.requestMarker=revisionMarker(latestOrderData,pid);state.pending=true;state.uncertain=true;state.retryChecked=false;state.retryAllowed=false;state.message='Sending your request…';state.messageType='pending';
+  state.requestId=state.requestId||crypto.randomUUID();state.details=details;state.requestMarker=revisionMarker(latestOrderData,pid);state.pending=true;state.uncertain=true;state.retryChecked=false;state.retryAllowed=false;state.message='Sending your request…';state.messageType='pending';
   saveOrderDraft();
   var button=document.getElementById('rs-'+pid),message=document.getElementById('rm-'+pid);
   if(button){button.disabled=true;setControlLabel(button,'Sending…');button.setAttribute('aria-busy','true');}
   app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=true;});
   var field=document.getElementById('rd-'+pid);if(field)field.disabled=true;
   if(message){message.textContent=state.message;message.className='revmessage pending';}
-  boundedJson(FN + '/request-revision', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:path[1],proposal_id:pid,options:state.opts.slice(),details:details})}, ACTION_TIMEOUT)
+  boundedJson(FN + '/request-revision', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:path[1],proposal_id:pid,request_id:state.requestId,expected_revision:Number(state.requestMarker.split(':')[0]),options:state.opts.slice(),details:details})}, ACTION_TIMEOUT)
     .then(function(j){
+      if(!j||(!j.ok&&!['no_revisions_left','stale_revision','not_complete','request_conflict'].includes(j.reason)))throw new Error('Request outcome unavailable');
       state.pending=false;state.uncertain=false;
       if(j&&j.ok){state.sent=true;state.uncertain=false;state.message='Your change request was sent.';state.messageType='success';if(!timer)timer=setInterval(function(){refreshStageDurations();tick(false);},3500);tick(true);}
       else if(j&&j.reason==='no_revisions_left'){state.blocked=true;state.message='All included rounds of changes have been used. Contact support for help.';state.messageType='error';}
-      else {state.message='Could not send your request. Your answers are still here; please try again.';state.messageType='error';}
+      else if(j&&['stale_revision','not_complete','request_conflict'].includes(j.reason)){state.stale=true;state.message='The order or this request changed. Refresh and review the latest version before sending changes.';state.messageType='pending';}
       var currentButton=document.getElementById('rs-'+pid),currentMessage=document.getElementById('rm-'+pid);
-      if(currentButton){currentButton.disabled=state.sent||state.blocked;setControlLabel(currentButton,state.sent?'Request sent':state.blocked?'No rounds left':'Send revision request');currentButton.removeAttribute('aria-busy');}
+      if(currentButton){currentButton.disabled=state.sent||state.blocked||state.stale;setControlLabel(currentButton,state.sent?'Request sent':state.blocked?'No rounds left':'Send revision request');currentButton.removeAttribute('aria-busy');}
       app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.sent||state.blocked;});
       var currentField=document.getElementById('rd-'+pid);if(currentField)currentField.disabled=state.sent||state.blocked;
       if(currentMessage){currentMessage.textContent=state.message;currentMessage.className='revmessage '+state.messageType;}
@@ -568,8 +569,8 @@ function submitRevision(pid){
       state.pending=false;state.message=error&&error.name==='AbortError'?'No response arrived before the request timed out. Check the order before trying again; your answers are still here.':'Connection interrupted. Your answers are still here; please try again.';state.messageType='error';
       var currentButton=document.getElementById('rs-'+pid),currentMessage=document.getElementById('rm-'+pid);
       if(currentButton){currentButton.disabled=true;setControlLabel(currentButton,'Send revision request');currentButton.removeAttribute('aria-busy');}
-      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=false;});
-      var currentField=document.getElementById('rd-'+pid);if(currentField)currentField.disabled=false;
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=true;});
+      var currentField=document.getElementById('rd-'+pid);if(currentField)currentField.disabled=true;
       if(currentMessage){currentMessage.textContent=state.message;currentMessage.className='revmessage error';}
       saveOrderDraft();
       if(!timer)timer=setInterval(function(){refreshStageDurations();tick(false);},3500);
@@ -579,13 +580,13 @@ function submitRevision(pid){
 
 function checkRevisionBeforeRetry(pid){
  var state=formState[pid];if(!state||!state.uncertain||state.pending||state.checking)return;
- if(state.retryChecked){state.retryAllowed=true;state.retryChecked=false;state.message='Retry enabled. Send again only if your first request was not received.';state.messageType='pending';lastRenderKey=null;render(latestOrderData);saveOrderDraft();return;}
+ if(state.retryChecked){state.retryAllowed=true;state.retryChecked=false;state.message='Retry enabled. The same request will be safely retried without using another round.';state.messageType='pending';lastRenderKey=null;render(latestOrderData);saveOrderDraft();return;}
  state.checking=true;state.message='Checking the latest order status…';state.messageType='pending';lastRenderKey=null;render(latestOrderData);
  boundedJson(FN+'/order-status?'+query,null,ORDER_STATUS_TIMEOUT).then(function(d){
   state.checking=false;if(!d||!d.order||!Array.isArray(d.proposals))throw new Error('Invalid order status');
   var marker=revisionMarker(d,pid);latestOrderData=d;
   if(marker!==state.requestMarker){state.stale=true;state.uncertain=false;state.message='The order changed since this request. Review the latest version before sending anything else.';state.messageType='pending';}
-  else {state.retryChecked=true;state.message='No change is showing yet. If the first request did not arrive, choose “I understand — allow retry”.';state.messageType='pending';}
+  else {state.retryChecked=true;state.message='No change is showing yet. You can safely retry this saved request.';state.messageType='pending';}
   lastRenderKey=null;render(d);saveOrderDraft();
  }).catch(function(){state.checking=false;state.message='Could not confirm the latest status. Your request remains paused; try checking again.';state.messageType='error';lastRenderKey=null;render(latestOrderData);});
 }

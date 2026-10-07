@@ -1,5 +1,5 @@
 // Customer revision request from the order page. Token-authorised, cap-enforced
-// ATOMICALLY via claim_revision (no concurrent over-cap). Rate limited.
+// ATOMICALLY via submit_revision_request, including retry deduplication. Rate limited.
 // v3: revisions re-run the exclusivity gate — a revised narrative must never
 // drift closer to another customer's proposal on the same grant, so a `check`
 // stage now runs between revise and package (contract parts 42/49).
@@ -10,16 +10,13 @@ const SB = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const H = { "content-type": "application/json", apikey: KEY, authorization: `Bearer ${KEY}` };
 
-async function sel(path: string) {
-  const r = await fetch(`${SB}/rest/v1/${path}`, { headers: H });
-  if (!r.ok) throw new Error(`sel ${path}`);
-  return await r.json();
-}
 async function rpc(name: string, args: Record<string, unknown>) {
-  const r = await fetch(`${SB}/rest/v1/rpc/${name}`, { method: "POST", headers: H, body: JSON.stringify(args) });
-  if (!r.ok) return null;
-  const t = await r.text();
-  return t ? JSON.parse(t) : null;
+  try {
+    const r = await fetch(`${SB}/rest/v1/rpc/${name}`, { method: "POST", headers: H, body: JSON.stringify(args) });
+    if (!r.ok) return null;
+    const t = await r.text();
+    return t ? JSON.parse(t) : null;
+  } catch { return null; }
 }
 
 Deno.serve(async (req) => {
@@ -31,12 +28,16 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ ok: false }, 405);
 
   let b: Record<string, unknown> = {};
-  try { b = await req.json(); } catch { /* noop */ }
+  try { const parsed = await req.json(); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) b = parsed; } catch { /* noop */ }
   const token = String(b.token ?? "");
   const proposalId = String(b.proposal_id ?? "");
+  const requestId = String(b.request_id ?? "");
+  const expectedRevision = b.expected_revision;
   const options = (Array.isArray(b.options) ? b.options : []).slice(0, 8).map((o) => String(o).slice(0, 60));
   const details = String(b.details ?? "").slice(0, 4000);
-  if (!/^[0-9a-f-]{36}$/.test(token) || !/^[0-9a-f-]{36}$/.test(proposalId)) return json({ ok: false, reason: "bad_input" }, 400);
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuid.test(token) || !uuid.test(proposalId)) return json({ ok: false, reason: "bad_input" }, 400);
+  if (!uuid.test(requestId) || !Number.isSafeInteger(expectedRevision) || Number(expectedRevision) < 0) return json({ ok: false, reason: "bad_input" }, 400);
   if (!options.length && !details.trim()) return json({ ok: false, reason: "empty" }, 400);
 
   const ip = clientIp(req);
@@ -45,55 +46,19 @@ Deno.serve(async (req) => {
     return json({ ok: false, reason: "rate_limited" }, 429);
   }
 
-  const orders = await sel(`orders?token=eq.${token}&select=id`);
-  if (!orders.length) return json({ ok: false, reason: "not_found" }, 404);
-
-  // WS4a 2026-08-28: the revision_requests insert used to run AFTER claim_revision
-  // with its response unchecked. If it failed, the customer's revision slot was
-  // already burned, the revise stage found no request row, and worker/index.ts:1836
-  // fell back to "General improvement pass." — a revision that silently ignores
-  // what the customer asked for. The request is now stored FIRST and verified;
-  // only then is the slot claimed. An orphan row from a refused claim is harmless:
-  // the worker reads the latest row, and every later claim is preceded by its own
-  // insert.
-  //
-  // Because the insert now precedes claim_revision's own ownership check, the
-  // token->proposal ownership is verified explicitly first — otherwise any valid
-  // token could write revision instructions onto another order's proposal.
-  const owned = await sel(`order_proposals?id=eq.${proposalId}&order_id=eq.${orders[0].id}&select=id`);
-  if (!owned.length) return json({ ok: false, reason: "not_found" }, 404);
-
-  const insReq = await fetch(`${SB}/rest/v1/revision_requests`, {
-    method: "POST", headers: { ...H, prefer: "return=minimal" },
-    body: JSON.stringify({ proposal_id: proposalId, options, details: details || null }),
+  // One transaction authenticates ownership, deduplicates, claims the allowance,
+  // stores the exact instructions, and queues every stage. Transport failure is
+  // safely retryable with the same request id and expected revision.
+  const claim = await rpc("submit_revision_request", {
+    p_token: token, p_proposal: proposalId, p_request: requestId,
+    p_expected_revision: expectedRevision, p_options: options, p_details: details,
   });
-  if (!insReq.ok) return json({ ok: false, reason: "request_store_failed" }, 500);
-
-  const claim = await rpc("claim_revision", { p_proposal: proposalId, p_order: orders[0].id });
-  if (!claim || claim.ok !== true) {
-    const reason = claim?.reason ?? "not_found";
-    const code = reason === "not_found" ? 404 : 400;
-    return json({ ok: false, reason, remaining: claim?.remaining ?? undefined }, code);
+  if (!claim) return json({ ok: false, reason: "temporarily_unavailable" }, 503);
+  if (claim.ok !== true) {
+    const code = claim.reason === "not_found" ? 404 :
+      ["request_conflict", "stale_revision", "not_complete"].includes(claim.reason) ? 409 : 400;
+    return json(claim, code);
   }
-
-  const stages = await sel(`job_stages?proposal_id=eq.${proposalId}&select=seq&order=seq.desc&limit=1`);
-  const base = (stages[0]?.seq ?? 0) as number;
-  const version = claim.revisions_used + 1;
-  const newStages = [
-    { proposal_id: proposalId, seq: base + 1, key: "revise", label: "Making your requested changes" },
-    { proposal_id: proposalId, seq: base + 2, key: "check", label: "Checking it against every other proposal on this grant" },
-    { proposal_id: proposalId, seq: base + 3, key: "package", label: `Preparing your Version ${version} files` },
-    { proposal_id: proposalId, seq: base + 4, key: "deliver", label: `Delivering Version ${version}` },
-  ];
-  const insR = await fetch(`${SB}/rest/v1/job_stages`, {
-    method: "POST", headers: { ...H, prefer: "return=minimal" }, body: JSON.stringify(newStages),
-  });
-  if (!insR.ok) return json({ ok: false, reason: "stage_insert" }, 500);
-
-  await fetch(`${SB}/rest/v1/orders?id=eq.${orders[0].id}`, {
-    method: "PATCH", headers: { ...H, prefer: "return=minimal" },
-    body: JSON.stringify({ status: "processing", completion_email_sent: false }),
-  });
 
   const wsec = await rpc("get_secret", { p_name: "worker_secret" });
   if (wsec) {
@@ -101,5 +66,5 @@ Deno.serve(async (req) => {
       method: "POST", headers: { "content-type": "application/json", "x-worker-secret": wsec }, body: "{}",
     }).catch(() => {});
   }
-  return json({ ok: true, remaining: claim.remaining, version });
+  return json(claim);
 });

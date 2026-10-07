@@ -25,13 +25,13 @@ const fields = new Map([
 const wizRoot = { contains: field => [...fields.values()].includes(field) };
 const publicDocument = { getElementById: id => id === 'wiz' ? wizRoot : fields.get(id) };
 const publicCtx = { document:publicDocument, window:{location:{origin:'https://ktebli.example'}}, URL, URLSearchParams, Date, sessionStorage,
-  ownerTestInvite:'', TASK_DRAFT_AGE:6*60*60*1000, TASK_DRAFT_KEY:'ktebli-proposal-task-v1', REP:{people:{fields:[['name','Name']]}} };
+  ownerTestInvite:'', taskOwner:null, TASK_DRAFT_AGE:6*60*60*1000, TASK_DRAFT_KEY:'ktebli-proposal-task-v1', REP:{people:{fields:[['name','Name']]}} };
 vm.createContext(publicCtx);
 vm.runInContext(home.slice(home.indexOf('function safeReturnTo('),home.indexOf('var requestedReturnTo')),publicCtx);
 vm.runInContext(home.slice(home.indexOf('function readTaskDraft('),home.indexOf('function clearTaskDraft(')),publicCtx);
 assert.equal(publicCtx.safeReturnTo('/account/dashboard?tab=saved&q=cedar&unknown=x'),'/account/dashboard?tab=saved&q=cedar');
 for(const unsafe of ['https://evil.example/account/dashboard','//evil.example/account/dashboard','/account/dashboard#x','/account/dashboard\nevil','/account/dashboard\\evil'])assert.equal(publicCtx.safeReturnTo(unsafe),'');
-const valid={version:1,savedAt:Date.now(),step:2,tier:'full',fields:{'w-grant':'https://issuer.example/call','w-name':'Mira'},checks:{'w-deadline-confirm':false},rows:{people:[{name:'Mira'}]}};
+const valid={version:1,owner:null,savedAt:Date.now(),step:2,tier:'full',fields:{'w-grant':'https://issuer.example/call','w-name':'Mira'},checks:{'w-deadline-confirm':false},rows:{people:[{name:'Mira'}]}};
 assert.equal(publicCtx.validTaskDraft(valid),true);
 sessionStorage.setItem('ktebli-proposal-task-v1',JSON.stringify(valid));
 assert.equal(publicCtx.readTaskDraft().fields['w-name'],'Mira');
