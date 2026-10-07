@@ -1,0 +1,53 @@
+{
+  "deployments": {
+    "public": "dpl_GaGAwjWLHmY7k6T1CUDuXkz1FBcn",
+    "account": "dpl_5Fx5nDdhffReG2nNrLv8u54HXhvK"
+  },
+  "commit": "6b642b1",
+  "checks": [
+    {
+      "route": "/",
+      "status": 200,
+      "hash_match": true
+    },
+    {
+      "route": "/start",
+      "status": 200,
+      "hash_match": true
+    },
+    {
+      "route": "/order.html",
+      "status": 200,
+      "hash_match": true
+    },
+    {
+      "route": "/website.css",
+      "status": 200,
+      "hash_match": true
+    },
+    {
+      "route": "/website.js",
+      "status": 200,
+      "hash_match": true
+    },
+    {
+      "route": "/account/api/profile",
+      "anonymous_status": 401
+    },
+    {
+      "route": "/account/api/saved",
+      "anonymous_status": 405
+    },
+    {
+      "route": "/account/api/alerts",
+      "anonymous_status": 405
+    }
+  ],
+  "browser_checks": [
+    "verified-session continuation to filtered dashboard",
+    "same-tab real notice handoff to focused /start",
+    "board return preserves filters",
+    "profile then Back restores board",
+    "375px live board visual inspection"
+  ]
+}
