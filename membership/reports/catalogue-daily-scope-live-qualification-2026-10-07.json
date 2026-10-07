@@ -1,0 +1,488 @@
+{
+  "status": "PASS: combined manual scope qualified; daily schedule enabled",
+  "observedAtUtc": "2026-10-07T17:09:07.307814+00:00",
+  "run": {
+    "url": "https://github.com/0x-tam/ktebli/actions/runs/37654797658",
+    "headSha": "292bc70806d2084a92ff1efb55f425f1e08a415c",
+    "headBranch": "main",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "createdAt": "2026-10-07T16:47:26Z"
+  },
+  "jobCompletedAtUtc": "2026-10-07T17:06:35Z",
+  "inputs": {
+    "sources": "lebanon",
+    "recent_details": "20",
+    "backlog_details": "1"
+  },
+  "selectedSources": ["worldbank", "mawred", "ungm-curated", "ppa"],
+  "qualification": {
+    "freshImports": true,
+    "selectedScopesComplete": true,
+    "selectedLastErrors": null,
+    "checkpointDigestsValid": true,
+    "ppaFreshDetailRequests": {
+      "recent": 20,
+      "historical": 1,
+      "verified": 21,
+      "failed": 0
+    }
+  },
+  "checkpoints": [
+    {
+      "source": "grants-gov",
+      "phase": "listing",
+      "last_status": "incomplete",
+      "last_run_at": "2026-10-07T16:36:01.410Z",
+      "last_import_at": "2026-10-07T16:36:01.410Z",
+      "last_error": "grants_gov_incomplete",
+      "revision": "7",
+      "state_sha256": "673db9a715f559339e1708e4ce3ca22f4a03615ba9c2040fab1b36160da72361",
+      "coverage": {
+        "scope": "Selected official public-source catalogue slices; each source reports its own search window and completeness",
+        "status": "incomplete",
+        "streams": {
+          "grants-gov": {
+            "error": "page_limit_reached",
+            "pages": 10,
+            "cursor": 100,
+            "status": "incomplete",
+            "cursorUnit": "offset",
+            "expectedTotal": 851,
+            "uniqueRecords": 100
+          }
+        },
+        "updatedAt": "2026-10-07T16:35:44.134Z",
+        "uniqueRecords": 100,
+        "selectedStatus": "incomplete",
+        "selectedSources": ["grants-gov"]
+      },
+      "checkpointDigestValid": true,
+      "detailProgress": null,
+      "progress": {
+        "grants-gov": {
+          "status": "incomplete",
+          "pages": 10,
+          "seen": 100,
+          "expectedTotal": 851,
+          "cursor": 100,
+          "pendingPage": false
+        }
+      }
+    },
+    {
+      "source": "mawred",
+      "phase": "imported",
+      "last_status": "imported",
+      "last_run_at": "2026-10-07T16:48:44.451Z",
+      "last_import_at": "2026-10-07T16:48:44.451Z",
+      "last_error": null,
+      "revision": "13",
+      "state_sha256": "1fb31ea10dde258bcee6923a69cca3fa24de543b66151ef88d2d67d03b1dd6a7",
+      "coverage": {
+        "error": null,
+        "scope": "One official Culture Resource Production Awards page; no wider grant discovery claim",
+        "status": "complete",
+        "updatedAt": "2026-10-07T16:48:39.082Z",
+        "pendingPages": 0,
+        "selectedPages": 1,
+        "attemptedThisRun": 1,
+        "freshVerifiedRecords": 1
+      },
+      "checkpointDigestValid": true,
+      "detailProgress": null,
+      "progress": null
+    },
+    {
+      "source": "ppa",
+      "phase": "imported",
+      "last_status": "imported",
+      "last_run_at": "2026-10-07T17:06:29.522Z",
+      "last_import_at": "2026-10-07T17:06:29.522Z",
+      "last_error": null,
+      "revision": "129",
+      "state_sha256": "86318778071b5fae77ba6141073b8ba06efe91f1302dbc53d067b9c4312b87e1",
+      "coverage": {
+        "scope": "listing discovery; detailed eligibility and submission dates require detail enrichment",
+        "status": "incomplete",
+        "details": {
+          "status": "incomplete",
+          "attempted": 1,
+          "haltedAfter": null,
+          "totalLocales": 2330,
+          "scopedLocales": 2050,
+          "pendingLocales": 2048,
+          "publishedSince": null,
+          "publishedBefore": "2026-09-07",
+          "verifiedLocales": 30,
+          "totalPendingLocales": 2288,
+          "freshVerifiedLocales": 2,
+          "staleVerifiedLocales": 28
+        },
+        "streams": {
+          "cdr:en": {
+            "error": "access_blocked",
+            "pages": 0,
+            "cursor": "https://www.cdr.gov.lb/en-US/Procurment.aspx",
+            "status": "blocked",
+            "expectedTotal": null,
+            "uniqueRecords": 0
+          },
+          "ppa:ar": {
+            "error": null,
+            "pages": 24,
+            "cursor": null,
+            "status": "complete",
+            "expectedTotal": 1165,
+            "uniqueRecords": 1165
+          },
+          "ppa:en": {
+            "error": null,
+            "pages": 24,
+            "cursor": null,
+            "status": "complete",
+            "expectedTotal": 1165,
+            "uniqueRecords": 1165
+          },
+          "cdr:Ongoing": {
+            "error": null,
+            "pages": 0,
+            "cursor": "https://www.cdr.gov.lb/en-US/Procurment.aspx?stage=Ongoing",
+            "status": "pending",
+            "expectedTotal": null,
+            "uniqueRecords": 0
+          }
+        },
+        "updatedAt": "2026-10-07T17:03:32.817Z",
+        "uniqueRecords": 1165,
+        "selectedStatus": "complete",
+        "selectedSources": ["ppa"]
+      },
+      "checkpointDigestValid": true,
+      "detailProgress": {
+        "attemptedSinceRun": 21,
+        "verifiedSinceRun": 21,
+        "failedSinceRun": 0
+      },
+      "progress": {
+        "ppa:en": {
+          "status": "complete",
+          "pages": 24,
+          "seen": 1165,
+          "expectedTotal": 1165,
+          "error": null
+        },
+        "ppa:ar": {
+          "status": "complete",
+          "pages": 24,
+          "seen": 1165,
+          "expectedTotal": 1165,
+          "error": null
+        }
+      }
+    },
+    {
+      "source": "ungm-curated",
+      "phase": "imported",
+      "last_status": "imported",
+      "last_run_at": "2026-10-07T16:48:48.766Z",
+      "last_import_at": "2026-10-07T16:48:48.766Z",
+      "last_error": null,
+      "revision": "10",
+      "state_sha256": "a8821fa7a109b5ad283985b7989a10bfc9fae46a1371cb0f7ca1bd73f382df0b",
+      "coverage": {
+        "scope": "Curated official UNGM notice detail URLs only; public discovery coverage is unavailable",
+        "errors": {},
+        "status": "complete",
+        "updatedAt": "2026-10-07T16:48:45.190Z",
+        "pendingNotices": 0,
+        "attemptedThisRun": 0,
+        "selectedNoticeIds": 11,
+        "freshVerifiedNotices": 11
+      },
+      "checkpointDigestValid": true,
+      "detailProgress": null,
+      "progress": null
+    },
+    {
+      "source": "worldbank",
+      "phase": "imported",
+      "last_status": "imported",
+      "last_run_at": "2026-10-07T16:48:38.336Z",
+      "last_import_at": "2026-10-07T16:48:38.336Z",
+      "last_error": null,
+      "revision": "10",
+      "state_sha256": "94d78a086cf84a57e3bb39f8ef82bd15d6408aa007f8ff63c68ccebd5bff2962",
+      "coverage": {
+        "error": null,
+        "pages": 1,
+        "scope": "Current World Bank procurement notices explicitly assigned to project country Lebanon; bidder eligibility remains unverified",
+        "status": "complete",
+        "apiSeen": 7,
+        "apiTotal": 7,
+        "queryDate": "2026-10-07",
+        "updatedAt": "2026-10-07T16:27:05.072Z",
+        "pendingNotices": 0,
+        "excludedRecords": 0,
+        "selectedRecords": 7
+      },
+      "checkpointDigestValid": true,
+      "detailProgress": null,
+      "progress": null
+    }
+  ],
+  "persistedCatalogueCounts": [
+    {
+      "source": "grants-gov",
+      "application_status": "needs_verification",
+      "detail_status": "verified",
+      "notices": 100,
+      "last_checked": "2026-10-07T16:35:44.087Z"
+    },
+    {
+      "source": "mawred",
+      "application_status": "needs_verification",
+      "detail_status": "verified",
+      "notices": 1,
+      "last_checked": "2026-10-07T16:48:39.082Z"
+    },
+    {
+      "source": "ppa",
+      "application_status": "not_open_competition",
+      "detail_status": "not_fetched",
+      "notices": 78,
+      "last_checked": "2026-10-07T16:54:05.607Z"
+    },
+    {
+      "source": "ppa",
+      "application_status": "needs_verification",
+      "detail_status": "not_fetched",
+      "notices": 942,
+      "last_checked": "2026-10-07T16:57:21.536Z"
+    },
+    {
+      "source": "ppa",
+      "application_status": "needs_verification",
+      "detail_status": "partial",
+      "notices": 134,
+      "last_checked": "2026-10-07T16:50:32.826Z"
+    },
+    {
+      "source": "ppa",
+      "application_status": "needs_verification",
+      "detail_status": "verified",
+      "notices": 22,
+      "last_checked": "2026-10-07T17:03:33.359Z"
+    },
+    {
+      "source": "ungm",
+      "application_status": "needs_verification",
+      "detail_status": "verified",
+      "notices": 11,
+      "last_checked": "2026-10-07T16:30:32.875Z"
+    },
+    {
+      "source": "worldbank",
+      "application_status": "needs_verification",
+      "detail_status": "verified",
+      "notices": 9,
+      "last_checked": "2026-10-07T16:27:05.072Z"
+    }
+  ],
+  "importRunsSinceManualRunStart": [
+    {
+      "coverage": {
+        "error": null,
+        "pages": 1,
+        "scope": "Current World Bank procurement notices explicitly assigned to project country Lebanon; bidder eligibility remains unverified",
+        "status": "complete",
+        "apiSeen": 7,
+        "apiTotal": 7,
+        "queryDate": "2026-10-07",
+        "updatedAt": "2026-10-07T16:27:05.072Z",
+        "pendingNotices": 0,
+        "excludedRecords": 0,
+        "selectedRecords": 7
+      },
+      "imported_at": "2026-10-07T16:48:36.458Z"
+    },
+    {
+      "coverage": {
+        "error": null,
+        "scope": "One official Culture Resource Production Awards page; no wider grant discovery claim",
+        "status": "complete",
+        "updatedAt": "2026-10-07T16:48:39.082Z",
+        "pendingPages": 0,
+        "selectedPages": 1,
+        "attemptedThisRun": 1,
+        "freshVerifiedRecords": 1
+      },
+      "imported_at": "2026-10-07T16:48:43.457Z"
+    },
+    {
+      "coverage": {
+        "scope": "Curated official UNGM notice detail URLs only; public discovery coverage is unavailable",
+        "errors": {},
+        "status": "complete",
+        "updatedAt": "2026-10-07T16:48:45.190Z",
+        "pendingNotices": 0,
+        "attemptedThisRun": 0,
+        "selectedNoticeIds": 11,
+        "freshVerifiedNotices": 11
+      },
+      "imported_at": "2026-10-07T16:48:46.550Z"
+    },
+    {
+      "coverage": {
+        "scope": "listing discovery; detailed eligibility and submission dates require detail enrichment",
+        "status": "incomplete",
+        "details": {
+          "status": "incomplete",
+          "attempted": 20,
+          "haltedAfter": null,
+          "totalLocales": 2330,
+          "scopedLocales": 280,
+          "pendingLocales": 240,
+          "publishedSince": "2026-09-07",
+          "publishedBefore": null,
+          "verifiedLocales": 280,
+          "totalPendingLocales": 2289,
+          "freshVerifiedLocales": 40,
+          "staleVerifiedLocales": 240
+        },
+        "streams": {
+          "cdr:en": {
+            "error": "access_blocked",
+            "pages": 0,
+            "cursor": "https://www.cdr.gov.lb/en-US/Procurment.aspx",
+            "status": "blocked",
+            "expectedTotal": null,
+            "uniqueRecords": 0
+          },
+          "ppa:ar": {
+            "error": null,
+            "pages": 24,
+            "cursor": null,
+            "status": "complete",
+            "expectedTotal": 1165,
+            "uniqueRecords": 1165
+          },
+          "ppa:en": {
+            "error": null,
+            "pages": 24,
+            "cursor": null,
+            "status": "complete",
+            "expectedTotal": 1165,
+            "uniqueRecords": 1165
+          },
+          "cdr:Ongoing": {
+            "error": null,
+            "pages": 0,
+            "cursor": "https://www.cdr.gov.lb/en-US/Procurment.aspx?stage=Ongoing",
+            "status": "pending",
+            "expectedTotal": null,
+            "uniqueRecords": 0
+          }
+        },
+        "updatedAt": "2026-10-07T16:57:22.173Z",
+        "uniqueRecords": 1165,
+        "selectedStatus": "complete",
+        "selectedSources": ["ppa"]
+      },
+      "imported_at": "2026-10-07T17:00:46.410Z"
+    },
+    {
+      "coverage": {
+        "scope": "listing discovery; detailed eligibility and submission dates require detail enrichment",
+        "status": "incomplete",
+        "details": {
+          "status": "incomplete",
+          "attempted": 1,
+          "haltedAfter": null,
+          "totalLocales": 2330,
+          "scopedLocales": 2050,
+          "pendingLocales": 2048,
+          "publishedSince": null,
+          "publishedBefore": "2026-09-07",
+          "verifiedLocales": 30,
+          "totalPendingLocales": 2288,
+          "freshVerifiedLocales": 2,
+          "staleVerifiedLocales": 28
+        },
+        "streams": {
+          "cdr:en": {
+            "error": "access_blocked",
+            "pages": 0,
+            "cursor": "https://www.cdr.gov.lb/en-US/Procurment.aspx",
+            "status": "blocked",
+            "expectedTotal": null,
+            "uniqueRecords": 0
+          },
+          "ppa:ar": {
+            "error": null,
+            "pages": 24,
+            "cursor": null,
+            "status": "complete",
+            "expectedTotal": 1165,
+            "uniqueRecords": 1165
+          },
+          "ppa:en": {
+            "error": null,
+            "pages": 24,
+            "cursor": null,
+            "status": "complete",
+            "expectedTotal": 1165,
+            "uniqueRecords": 1165
+          },
+          "cdr:Ongoing": {
+            "error": null,
+            "pages": 0,
+            "cursor": "https://www.cdr.gov.lb/en-US/Procurment.aspx?stage=Ongoing",
+            "status": "pending",
+            "expectedTotal": null,
+            "uniqueRecords": 0
+          }
+        },
+        "updatedAt": "2026-10-07T17:03:32.817Z",
+        "uniqueRecords": 1165,
+        "selectedStatus": "complete",
+        "selectedSources": ["ppa"]
+      },
+      "imported_at": "2026-10-07T17:03:47.545Z"
+    }
+  ],
+  "environment": {
+    "name": "membership-catalogue",
+    "allowedBranches": ["main"],
+    "activationVariable": {
+      "name": "MEMBERSHIP_CATALOG_REFRESH_ENABLED",
+      "updatedAt": "2026-10-07T17:08:14Z",
+      "value": "true"
+    }
+  },
+  "schedule": {
+    "cron": "17 2 * * *",
+    "timezone": "UTC",
+    "nominalNextSlotUtc": "2026-10-08T02:17:00Z",
+    "enabled": true,
+    "scheduledRunObserved": false,
+    "nominalNextSlotBeirut": "2026-10-08T05:17:00+03:00"
+  },
+  "coverageLimits": [
+    "PPA listings cover 1,165 current paired bilingual records, 24 pages per locale. Persisted catalogue retains 1,176 PPA rows across snapshots. Detail and PDF enrichment remains incomplete.",
+    "World Bank selected snapshot contains 7 current Lebanon-project-country notices. Persisted catalogue retains 9 World Bank rows across snapshots. Bidder eligibility remains unverified.",
+    "Mawred covers one fixed official Culture Resource Production Awards page.",
+    "Curated UNGM covers 11 allowlisted official notice detail URLs; public discovery coverage is unavailable.",
+    "Grants.gov is excluded from the daily scope. Its independent partial import remains 100 of 851 with cursor 100 and page_limit_reached; no catch-up invocation was performed.",
+    "CDR remains blocked and is unselected. No complete worldwide discovery claim is made.",
+    "No scheduled refresh has been observed; the next nominal cron slot is 2026-10-08 at 02:17 UTC / 05:17 Beirut. GitHub scheduling can be delayed."
+  ],
+  "safety": {
+    "directDatabaseMutations": false,
+    "matchingCalls": 0,
+    "billingChanges": false,
+    "repositoryMutation": "Only the user-authorized schedule activation variable was set after qualification"
+  },
+  "independentReview": "catalogue-daily-scope-independent-review-2026-10-07.json (PASS before activation)"
+}
