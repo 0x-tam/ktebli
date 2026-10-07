@@ -15,95 +15,156 @@
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
-:root{--bg:#FBFAF7;--mint:#EAF7EF;--green:#1F9E5A;--forest:#14532D;--coral:#FF6B5A;--ink:#1A1A1A;--grey:#5F6B63;--line:#E2E0D8}
+:root{--bg:#FAF8F2;--mint:#E9EFE4;--green:#356347;--forest:#284D39;--coral:#C45141;--ink:#20392F;--grey:#59695F;--line:#D9DED4;--surface:#FFFEFA}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
-.wrap{max-width:760px;margin:0 auto;padding:0 22px 80px}
-nav{border-bottom:1px solid var(--line);background:rgba(251,250,247,.95)}
-nav .wrap{display:flex;align-items:center;height:72px;padding-bottom:0}
-.stamp{font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:var(--green);border:2.5px solid var(--green);border-radius:6px;padding:3px 11px 4px;transform:rotate(-3deg);text-decoration:none}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:0 24px 76px}
+nav{border-bottom:1px solid var(--line);background:rgba(250,248,242,.96)}
+nav .wrap{display:flex;align-items:center;height:68px;padding-bottom:0}
+.order-return{margin-left:auto;color:var(--forest);font-weight:700;font-size:.88rem;text-underline-offset:3px}
+.stamp{font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:var(--forest);border:1.5px solid var(--forest);border-radius:6px;padding:4px 11px 5px;transform:rotate(-2deg);text-decoration:none;letter-spacing:.02em}
 .stamp .dot{color:var(--coral)}
-h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,40px);margin:46px 0 8px;letter-spacing:-.01em}
-.meta{color:var(--grey);margin-bottom:4px}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,42px);margin:34px 0 8px;letter-spacing:-.035em;line-height:1.14}
+.meta{color:var(--grey);margin-bottom:4px;font-size:.9rem}
 .ordno{font-weight:700;color:var(--ink)}
-.chip{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 12px;border-radius:100px;margin:10px 0 30px}
-.chip.processing{background:#FFF3C9;color:#7a5b00}
+.chip{min-height:30px;display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:100px;margin:10px 0 24px}
+.chip.processing{background:#F7EFD9;color:#76571F}
 .chip.complete{background:var(--mint);color:var(--forest)}
-.chip.attention{background:#FFE3DF;color:#8a2418}
-.comfort{background:var(--mint);border:1.5px solid var(--green);border-radius:12px;padding:12px 16px;font-size:14.5px;color:var(--forest);margin:-14px 0 26px}
-.buyer-notice{background:#fff;border:1.5px solid var(--green);border-radius:12px;padding:18px 20px;margin:0 0 26px}
-.buyer-notice h2{font-family:'Fraunces',serif;font-size:22px;margin-bottom:7px}
-.buyer-notice p{font-size:14.5px;margin:9px 0}
-.buyer-notice ul{margin:8px 0 12px 21px;font-size:14.5px}
-.buyer-notice a{color:var(--forest);font-weight:700;overflow-wrap:anywhere}
-.pcard{background:#fff;border:2px solid var(--ink);border-radius:16px;margin-bottom:26px;overflow:hidden;box-shadow:6px 6px 0 var(--green)}
-.pcard.attention{box-shadow:6px 6px 0 var(--coral)}
-.phead{background:var(--ink);color:#fff;padding:14px 22px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;gap:12px}
-.pbody{padding:10px 22px 20px}
-.stage{display:flex;align-items:flex-start;gap:13px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:15.5px}
+.chip.attention{background:#F8E9E4;color:#773D34}
+.comfort{background:var(--mint);border:1px solid #cbd8c8;border-radius:10px;padding:13px 16px;font-size:.88rem;color:var(--forest);margin:-10px 0 22px}
+.buyer-notice{background:var(--surface);border:1px solid #ccd8c9;border-radius:11px;padding:18px 20px;margin:0 0 22px}
+.buyer-notice h2{font-family:'Fraunces',serif;font-size:1.35rem;line-height:1.25;margin-bottom:7px}
+.buyer-notice p{font-size:.9rem;margin:9px 0}
+.buyer-notice ul{margin:8px 0 12px 21px;font-size:.9rem}
+.buyer-notice a{color:var(--forest);font-weight:700;overflow-wrap:anywhere;text-underline-offset:3px}
+.pcard{background:var(--surface);border:1px solid var(--ink);border-radius:14px;margin-bottom:22px;overflow:hidden;box-shadow:5px 5px 0 var(--green)}
+.pcard.attention{box-shadow:5px 5px 0 var(--coral)}
+.phead{background:var(--forest);color:#fff;padding:13px 20px;font-weight:700;font-size:.92rem;display:flex;justify-content:space-between;gap:12px}
+.pbody{padding:9px 20px 18px}
+.stage{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
 .stage:last-child{border-bottom:none}
-.ic{flex:0 0 22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px}
+.ic{flex:0 0 22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;margin-top:1px}
 .ic.done{background:var(--mint);color:var(--forest)}
-.ic.running{border:2.5px solid var(--line);border-top-color:var(--green);animation:sp 1s linear infinite}
+.ic.running{border:2px solid var(--line);border-top-color:var(--green);animation:sp 1s linear infinite}
 .ic.pending{border:2px solid var(--line)}
-.ic.held,.ic.failed{background:#FFF3C9;color:#7a5b00}
+.ic.held,.ic.failed{background:#F7EFD9;color:#76571F}
 @keyframes sp{to{transform:rotate(360deg)}}
 .stage .lbl{flex:1}
-.stage.pending .lbl{color:#A8AFA9}
-.stage .note{display:block;font-size:13.5px;color:#7a5b00}
-.stage .t{font-size:13px;color:var(--grey);flex:0 0 auto}
-.files{background:var(--mint);border-top:2px solid var(--ink);padding:16px 22px}
+.stage.pending .lbl{color:#66756B}
+.stage .note{display:block;font-size:.8rem;color:#76571F}
+.stage .t{font-size:.78rem;color:var(--grey);flex:0 0 auto}
+.files{background:var(--mint);border-top:1px solid var(--line);padding:16px 20px}
 .files .ft{font-weight:700;margin:10px 0 8px;color:var(--forest)}
 .files .ft:first-child{margin-top:0}
-.fbtn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:9px 16px;border-radius:100px;margin:0 8px 8px 0;box-shadow:0 2px 0 var(--forest)}
-.fbtn:hover{background:#23b366}
-.revzone{border-top:2px solid var(--ink);padding:16px 22px;background:#fff}
-.revbtn{background:transparent;color:var(--ink);border:2px solid var(--ink);font-weight:700;font-size:14.5px;padding:10px 18px;border-radius:100px;cursor:pointer;font-family:inherit}
-.revbtn:hover{background:var(--ink);color:#fff}
-.revleft{font-size:13.5px;color:var(--grey);margin-top:8px}
+.fbtn{min-height:44px;display:inline-flex;align-items:center;background:var(--forest);color:#fff;text-decoration:none;font-weight:700;font-size:.85rem;padding:9px 16px;border-radius:8px;margin:0 8px 8px 0;box-shadow:0 2px 0 #183B2A}
+.fbtn:hover{background:#193c2b}
+.revzone{border-top:1px solid var(--line);padding:16px 20px;background:var(--surface)}
+.revbtn{min-height:44px;background:transparent;color:var(--ink);border:1px solid #849488;font-weight:700;font-size:.88rem;padding:9px 17px;border-radius:8px;cursor:pointer;font-family:inherit}
+.revbtn{display:inline-flex;align-items:center;gap:9px}
+.revbtn:hover{background:var(--forest);border-color:var(--forest);color:#fff}
+.revleft{font-size:.84rem;color:var(--grey);margin-top:8px}
 .revform{display:none;margin-top:16px}
 .revform.open{display:block}
 .opts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
-.opt{font-size:13.5px;border:2px solid var(--line);border-radius:100px;padding:6px 13px;cursor:pointer;user-select:none}
+.opt{min-height:44px;display:inline-flex;align-items:center;font-size:.82rem;border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;user-select:none}
 .opt.sel{border-color:var(--green);background:var(--mint);color:var(--forest);font-weight:700}
-.revform textarea{width:100%;border:2px solid var(--ink);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:15px;min-height:90px;resize:vertical}
-.revform textarea:focus{outline:none;border-color:var(--green)}
-.revsend{margin-top:10px;background:var(--green);color:#fff;border:none;font-weight:700;font-size:15px;padding:11px 20px;border-radius:100px;cursor:pointer;font-family:inherit;box-shadow:0 2px 0 var(--forest)}
-.bigmsg{background:#fff;border:2px solid var(--ink);border-radius:16px;padding:34px;text-align:center;box-shadow:6px 6px 0 var(--green)}
-.bigmsg h2{font-family:'Fraunces',serif;font-size:24px;margin-bottom:8px}
+.revform textarea{width:100%;border:1px solid #9eaa9f;border-radius:9px;padding:11px 13px;font-family:inherit;font-size:16px;min-height:100px;resize:vertical;background:#fff}
+.revform textarea:focus{outline:3px solid #8C5739;outline-offset:2px;border-color:var(--green)}
+.revsend{min-height:46px;display:inline-flex;align-items:center;gap:9px;margin-top:10px;background:var(--forest);color:#fff;border:1px solid var(--forest);font-weight:700;font-size:.9rem;padding:10px 19px;border-radius:8px;cursor:pointer;font-family:inherit;box-shadow:0 2px 0 #183B2A}
+.revsend:hover{background:#193c2b}
+.bigmsg{background:var(--surface);border:1px solid var(--ink);border-radius:14px;padding:30px;text-align:center;box-shadow:5px 5px 0 var(--green)}
+.bigmsg h2{font-family:'Fraunces',serif;font-size:1.5rem;margin-bottom:8px}
 .bigmsg p{color:var(--grey)}
 .spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:sp 1s linear infinite;margin-bottom:14px}
-.foot{margin-top:34px;font-size:14px;color:var(--grey)}
-.foot a{color:var(--forest)}
-.paid-intake h3{font-family:'Fraunces',serif;font-size:23px;margin:22px 0 12px}.paid-intake .field{margin:16px 0}.paid-intake label{display:block;font-size:14px;font-weight:600;margin-bottom:7px}.paid-intake input:not([type=checkbox]),.paid-intake select,.paid-intake textarea{width:100%;font:inherit;border:1px solid #aaaFA9;border-radius:8px;padding:12px;min-height:46px;background:white}.paid-intake textarea{min-height:100px}.paid-intake .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.paid-intake .checkrow{display:flex;gap:10px;margin:15px 0;align-items:start}.paid-intake .checkrow input{margin-top:4px}.paid-intake .checkrow label{font-weight:400}.paid-intake .optional,.paid-intake .pill{font-size:12px;color:var(--grey);font-weight:400}.paid-intake .hint{display:block;font-size:13px;color:var(--grey);font-weight:400}.paid-intake details{border-top:1px solid var(--line);padding:18px 0}.paid-intake summary{cursor:pointer;font-weight:700}.paid-intake .rep-row{display:flex;gap:8px;margin-bottom:8px}.paid-intake .rep-fields{display:flex;flex:1;gap:8px;flex-wrap:wrap}.paid-intake .rep-fields input{flex:1;min-width:120px}.paid-intake button{cursor:pointer}.paid-intake .field-help{font-size:13px;color:var(--grey)}@media(max-width:600px){.paid-intake .two{grid-template-columns:1fr;gap:0}.paid-intake .rep-row{flex-wrap:wrap}}
+.foot{margin-top:27px;font-size:.86rem;color:var(--grey)}
+.foot a{color:var(--forest);text-underline-offset:3px}
+.paid-intake h3{font-family:'Fraunces',serif;font-size:1.4rem;line-height:1.25;margin:22px 0 12px}
+.paid-intake .field{margin:16px 0}
+.paid-intake label{display:block;font-size:.88rem;font-weight:600;margin-bottom:7px}
+.paid-intake input:not([type=checkbox]),.paid-intake select,.paid-intake textarea{width:100%;font:inherit;font-size:16px;border:1px solid #9eaa9f;border-radius:8px;padding:11px 12px;min-height:48px;background:white;color:var(--ink)}
+.paid-intake textarea{min-height:100px}
+.paid-intake input:focus-visible,.paid-intake select:focus-visible,.paid-intake textarea:focus-visible{outline:3px solid #8C5739;outline-offset:2px;border-color:var(--green)}
+.paid-intake .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.paid-intake .checkrow{min-height:44px;display:flex;gap:10px;margin:15px 0;align-items:center}
+.paid-intake .checkrow input{width:20px;height:20px;min-height:20px;margin:4px 0 0;accent-color:var(--forest)}
+.paid-intake .checkrow label{font-weight:400}
+.paid-intake .optional,.paid-intake .pill{font-size:.75rem;color:var(--grey);font-weight:400}
+.paid-intake .hint{display:block;font-size:.82rem;color:var(--grey);font-weight:400}
+.paid-intake details{border-top:1px solid var(--line);padding:16px 0}
+.paid-intake summary{min-height:44px;display:inline-flex;align-items:center;cursor:pointer;font-weight:700}
+.paid-intake summary{gap:10px;list-style:none}
+.paid-intake summary::-webkit-details-marker{display:none}
+.paid-intake summary::after{width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;content:"";transform:rotate(45deg) translateY(-2px);transition:transform .16s ease}
+.paid-intake details[open]>summary::after{transform:rotate(225deg) translateY(-2px)}
+.paid-intake .rep-row{display:flex;gap:8px;margin-bottom:8px}
+.paid-intake .rep-fields{display:flex;flex:1;gap:8px;flex-wrap:wrap}
+.paid-intake .rep-fields input{flex:1;min-width:120px}
+.paid-intake button{cursor:pointer}
+.paid-intake .field-help{font-size:.82rem;color:var(--grey)}
+.paid-intake .rep-add,.paid-intake .rep-x{min-height:44px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--forest);font:600 .84rem 'DM Sans',sans-serif}
+.paid-intake .rep-add:hover,.paid-intake .rep-x:hover{background:var(--mint)}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #8C5739;outline-offset:3px}
+.order-next{margin:0 0 14px;padding:12px 14px;border-left:3px solid var(--green);background:var(--mint);color:var(--forest);font-size:.9rem}
+.source-summary{margin-top:18px}
+.deadline-alert{margin:0 0 16px;padding:12px 14px;border-left:3px solid var(--coral);background:#f8e9e4;color:#773d34;font-size:.88rem}
+.source-details{margin:0 0 22px;padding:0 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.source-details>summary{min-height:48px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;color:var(--forest);font-weight:700}
+.source-details>summary::-webkit-details-marker{display:none}
+.source-details>summary::after{width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;content:"";transform:rotate(45deg) translateY(-2px)}
+.source-details[open]>summary::after{transform:rotate(225deg) translateY(-2px)}
+.source-details>.buyer-notice{padding:14px 0;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent}
+.poll-error{display:flex;align-items:flex-start;gap:10px;margin:14px 0;padding:12px 14px;border:1px solid #dfb8ad;border-radius:9px;background:#fbefeb;color:#773d34;font-size:.88rem}
+.poll-error[hidden]{display:none}
+.poll-error svg{width:18px;height:18px;flex:0 0 auto;margin-top:2px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.revmessage{min-height:1.5em;margin:8px 0 0;font-size:.84rem;color:var(--grey)}
+.revmessage.error{color:#8d3e32}
+.revmessage.success{color:var(--forest)}
+.revmessage.pending{color:var(--grey)}
+.opts .opt{appearance:none;background:transparent;color:var(--ink);font-family:inherit;text-align:left;transition:color .18s ease,background-color .18s ease,border-color .18s ease,transform .12s ease}
+.opts .opt:hover{background:var(--mint);border-color:var(--green)}
+.opts .opt:active{transform:translateY(1px)}
+.opts .opt.sel{border-color:var(--green);background:var(--mint);color:var(--forest);font-weight:700}
+.fbtn,.revbtn,.revsend,.paid-intake summary,.stamp{transition:color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .12s ease}
+.fbtn:active,.revbtn:active,.revsend:active{transform:translateY(1px)}
+.fbtn svg,.revbtn svg,.revsend svg,.rep-x svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.fbtn{gap:8px}
+.paid-intake details[open]:not(.poll-restored)>:not(summary),.source-details[open]:not(.poll-restored)>.buyer-notice{animation:details-enter .18s ease-out both}
+@keyframes details-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+button,a,summary{transition:color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .12s ease}
+button:active:not(:disabled),.fbtn:active,.stamp:active{transform:translateY(1px)}
+button:disabled{cursor:not-allowed;opacity:.64}
+@media(prefers-reduced-motion:reduce){.paid-intake details[open]>:not(summary),.source-details[open]>.buyer-notice{animation:none}}
+
+@media(max-width:600px){.wrap{padding-right:18px;padding-left:18px}.paid-intake .two{grid-template-columns:1fr;gap:0}.paid-intake .rep-row{flex-wrap:wrap}.phead,.pbody,.files,.revzone{padding-right:16px;padding-left:16px}.stage{gap:9px;font-size:.85rem}.stage .t{font-size:.7rem}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<template id="paid-intake-template"><section class="buyer-notice paid-intake" id="paid-intake"><h2>A little about the work you want to propose</h2><p>We can read the opportunity while you complete this. Your scope, proposal type and currency are needed before writing starts. The other details help us be specific; leave anything unknown blank.</p><form id="intake-form"><div class="two"><div class="field"><label for="w-proposal-type">Proposal type · Required</label><select id="w-proposal-type" required><option value="">Choose…</option><option value="grant">Grant application</option><option value="government_tender">Government tender</option><option value="procurement">Procurement / RFP</option><option value="business">Business / service proposal</option></select></div><div class="field"><label for="w-currency">Proposal currency · Required</label><select id="w-currency" required><option value="">Choose…</option><option value="USD">USD — US dollar</option><option value="LBP">LBP — Lebanese pound</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British pound</option><option value="other">Other currency</option></select><div id="paid-currency-other" hidden><label for="w-currency-other">Three-letter currency code</label><input id="w-currency-other" maxlength="3" pattern="[A-Za-z]{3}" placeholder="e.g. AED" disabled></div><p id="source-field-note" class="field-help"></p></div></div><div class="field"><label for="w-response-language">Proposal and document language · Required</label><select id="w-response-language" required><option value="">Choose English or Arabic…</option><option value="en">English</option><option value="ar">العربية — Arabic</option></select><p id="language-help" class="field-help">The issuer’s required submission language takes priority. If none is stated, choose English or Arabic.</p></div>      <section>
-        <h3>Your proposed work — the specifics</h3>
-        <p class="ws-sub">This is what turns a template into a proposal only you could have written. Real names, please — we write exactly what you tell us and invent nothing.</p>
-        <div class="field"><label for="w-place">Where will you deliver the work? <span class="optional">Optional</span></label><input type="text" id="w-place" placeholder="e.g. Tripoli municipal offices, a client site in Beirut, or online"></div>
-        <div class="field"><label for="w-venue">Where does it actually happen? <span class="optional">Optional</span><span class="hint">Name the client site, facility, service area or delivery setting. Choose online if the work is remote.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
-          <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
-            <select id="w-venue-escape">
-              <option value="">There is a fixed venue (named above)</option>
-              <option value="homes">We work in people's own homes</option>
-              <option value="street">We do street-based outreach</option>
-              <option value="outdoors">We work outdoors</option>
-              <option value="mobile">We work from a vehicle</option>
-              <option value="online">We work online</option>
-            </select>
+<template id="paid-intake-template"><section class="buyer-notice paid-intake" id="paid-intake"><h2>A little about the work you want to propose</h2><p>We can read the opportunity while you complete this. Your proposal type, currency and work description are required before writing starts. Leave anything else blank if you do not know it.</p><form id="intake-form"><div class="two"><div class="field"><label for="w-proposal-type">Proposal type · Required</label><select id="w-proposal-type" required><option value="">Choose…</option><option value="grant">Grant application</option><option value="government_tender">Government tender</option><option value="procurement">Procurement / RFP</option><option value="business">Business / service proposal</option></select></div><div class="field"><label for="w-currency">Proposal currency · Required</label><select id="w-currency" required><option value="">Choose…</option><option value="USD">USD — US dollar</option><option value="LBP">LBP — Lebanese pound</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — British pound</option><option value="other">Other currency</option></select><div id="paid-currency-other" hidden><label for="w-currency-other">Three-letter currency code</label><input id="w-currency-other" maxlength="3" pattern="[A-Za-z]{3}" placeholder="e.g. AED" disabled></div><p id="source-field-note" class="field-help"></p></div></div><div class="field"><label for="w-response-language">Proposal and document language · Required</label><select id="w-response-language" required><option value="">Choose English or Arabic…</option><option value="en">English</option><option value="ar">العربية — Arabic</option></select><p id="language-help" class="field-help">The issuer’s required submission language takes priority. If none is stated, choose English or Arabic.</p></div>
+        <div class="field"><label for="w-activity">What work do you intend to propose? <span class="rq">Required</span></label><input type="text" id="w-activity" minlength="20" required aria-describedby="w-activity-help" placeholder="e.g. survey three public buildings and produce a phased retrofit plan"><p class="field-help" id="w-activity-help">Describe the work you will deliver. Add background below if useful.</p></div>
+        <details class="work-background" data-poll-key="work-background"><summary>Delivery setting and past work <span class="optional">Optional</span></summary>
+          <div class="field"><label for="w-place">Where will you deliver the work? <span class="optional">Optional</span></label><input type="text" id="w-place" placeholder="e.g. Tripoli municipal offices, a client site in Beirut, or online"></div>
+          <div class="field"><label for="w-venue">Where does it actually happen? <span class="optional">Optional</span><span class="hint">Name the client site, facility, service area or delivery setting. Choose online if the work is remote.</span></label><input type="text" id="w-venue" placeholder="e.g. the New Horizons Centre on Hazel Road">
+            <div style="margin-top:8px"><label style="font-weight:400;font-size:14px;color:var(--grey)">…or, if there is no fixed venue:</label>
+              <select id="w-venue-escape">
+                <option value="">There is a fixed venue (named above)</option>
+                <option value="homes">We work in people's own homes</option>
+                <option value="street">We do street-based outreach</option>
+                <option value="outdoors">We work outdoors</option>
+                <option value="mobile">We work from a vehicle</option>
+                <option value="online">We work online</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="field"><label for="w-activity">What work do you intend to propose? <span class="rq">Required</span></label><input type="text" id="w-activity" minlength="20" required placeholder="e.g. survey three public buildings and produce a phased retrofit plan"></div>
-        <div class="field"><label for="w-last-what">The last work you or your organisation delivered — what was it called? <span class="optional">Optional</span></label><input type="text" id="w-last-what" placeholder="e.g. the Cedar Office refurbishment or the Harbour training programme">
-          <div class="checkrow" style="margin-top:8px"><input type="checkbox" id="w-never"><label for="w-never">I / we have not delivered a project yet — write it as our first, with no track record.</label></div>
-        </div>
-        <div class="field"><label for="w-last-when">Roughly when was that? <span class="optional">Optional</span></label><input type="text" id="w-last-when" placeholder="e.g. winter 2024; since March 2023"></div>
-        <div class="field"><label for="w-trigger">What need or problem does this work address? <span class="optional">Optional</span><span class="hint">Explain the client’s need, the procurement objective or the community issue in your own words.</span></label><textarea id="w-trigger" placeholder="e.g. the client needs to reduce building energy use while keeping offices open throughout the works."></textarea></div>
-      </section>
+          <div class="field"><label for="w-last-what">The last work you or your organisation delivered — what was it called? <span class="optional">Optional</span></label><input type="text" id="w-last-what" placeholder="e.g. the Cedar Office refurbishment or the Harbour training programme">
+            <div class="checkrow" style="margin-top:8px"><input type="checkbox" id="w-never"><label for="w-never">I / we have not delivered a project yet — write it as our first, with no track record.</label></div>
+          </div>
+          <div class="field"><label for="w-last-when">Roughly when was that? <span class="optional">Optional</span></label><input type="text" id="w-last-when" placeholder="e.g. winter 2024; since March 2023"></div>
+          <div class="field"><label for="w-trigger">What need or problem does this work address? <span class="optional">Optional</span><span class="hint">Explain the client’s need, the procurement objective or the community issue in your own words.</span></label><textarea id="w-trigger" placeholder="e.g. the client needs to reduce building energy use while keeping offices open throughout the works."></textarea></div>
+        </details>
 
-      <details><summary>Governance &amp; assurances <span class="optional">Optional</span></summary>
+      <details data-poll-key="governance"><summary>Governance &amp; assurances <span class="optional">Optional</span></summary>
         <h3>Governance &amp; assurances</h3>
         <p class="ws-sub">Confirm only facts that are true and relevant to your opportunity. A grant, tender or client brief may require different assurances. Leave anything unconfirmed blank; these answers do not replace required certificates or signatures.</p>
         <div class="checkrow"><input type="checkbox" id="w-sg-policy"><label for="w-sg-policy"><b>We have a written safeguarding policy in place.</b></label></div>
@@ -123,7 +184,7 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,40px);m
         <div class="field"><label for="w-lived">People with lived experience in your governance <span class="pill">optional</span></label><input type="text" id="w-lived" placeholder="e.g. three trustees are former service users"></div>
       </details>
 
-      <details><summary>People, projects &amp; track record <span class="optional">Optional</span></summary>
+      <details data-poll-key="track-record"><summary>People, projects &amp; track record <span class="optional">Optional</span></summary>
         <h3>Your people, projects &amp; track record</h3>
         <p class="ws-sub">The named facts that let us write about your organisation without inventing anyone. Add as many as are true — leave the rest blank.</p>
         <div class="field"><label>Key people <span class="pill">optional</span><span class="hint">Directors, specialists, project leads and coordinators your proposal can name.</span></label>
@@ -155,7 +216,7 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,40px);m
       </div>
       </details>
 
-        <details class="intake-extra">
+        <details class="intake-extra" data-poll-key="organization-details">
           <summary>Additional organisation details <span class="optional">Optional</span></summary>
           <p class="field-help">Useful when the opportunity asks about your legal status or financial capacity.</p>
           <div class="two">
@@ -173,9 +234,10 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5vw,40px);m
             </select>
             </div>
           </div>
-        </details><p class="field-help">A named person, a past project or a clear delivery setting helps us write a more specific proposal. Add what you know; it is fine to skip the rest. Issuer-required evidence may still need confirmation after source review.</p><p id="intake-message" role="status" aria-live="polite"></p><button class="revsend" type="submit">Save details and start writing</button></form></section></template>
-<nav><div class="wrap"><a class="stamp" href="/">KTEBLI<span class="dot">!</span></a></div></nav>
+        </details><p class="field-help">A named person, a past project or a clear delivery setting helps us write a more specific proposal. Add what you know; it is fine to skip the rest. Issuer-required evidence may still need confirmation after source review.</p><p id="intake-message" class="revmessage" role="status" aria-live="polite"></p><button class="revsend" type="submit" id="save-intake-button"><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M10 2v10m0 0 4-4m-4 4-4-4M3 13v4h14v-4"/></svg><span>Save details and start writing</span></button></form></section></template>
+<nav><div class="wrap"><a class="stamp" href="/">KTEBLI<span class="dot">!</span></a><a id="order-return" class="order-return" href="/account/dashboard">Browse opportunities</a></div></nav>
 <div class="wrap">
+  <div id="order-poll-error" class="poll-error" role="status" aria-live="polite" hidden><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M10 2.5 18 17H2L10 2.5Z"/><path d="M10 7v4m0 2.5v.1"/></svg><span></span></div>
   <div id="app">
     <div class="bigmsg" style="margin-top:60px"><span class="spin"></span><h2>Finding your order…</h2><p>One moment.</p></div>
   </div>
@@ -187,8 +249,50 @@ var path = location.pathname.split('/').filter(Boolean);
 var query = path[1] === 'session' ? ('session=' + encodeURIComponent(path[2] || ''))
                                   : ('token=' + encodeURIComponent(path[1] || ''));
 var app = document.getElementById('app');
-var timer = null, misses = 0, formState = {};
-var intakeDraft=null, latestOrderData=null, intakeTouched={}; // per-proposal open form + selections
+var timer = null, misses = 0, formState = {}, lastRenderKey = null;
+var pollActive = false, pollAgain = false, pollSequence = 0;
+var intakeDraft=null, intakeRows=null, intakeServerRevision=null, deferredOrderData=null, latestOrderData=null, intakeTouched={}, intakeSubmitting=false, intakeSaved=false, intakeStatus=''; // per-proposal open form + selections
+var ORDER_DRAFT_AGE=6*60*60*1000, orderDraftKey='', orderDraft=null, orderReturnTo='', orderDraftHydrating=false;
+function safeOrderReturnTo(value){
+ if(typeof value!=='string'||value.length>1024||!/^\/account\/dashboard(?:\?|$)/.test(value)||/[\\#\u0000-\u001f\u007f]/.test(value))return '';
+ try{var parsed=new URL(value,location.origin||'https://ktebli.local');if(parsed.pathname!=='/account/dashboard'||parsed.hash)return '';
+  var input=parsed.searchParams,query=new URLSearchParams(),allowed={tab:['discover','saved','alerts','profile'],kind:['all','procurement','grant','unknown'],source:['all','ppa','ungm','mawred','worldbank','cdr','grants-gov','sam-gov'],status:['all','current','needs_review','closed'],deadline:['all','future','today','past','unknown']};
+  Object.keys(allowed).forEach(function(key){var choice=input.get(key);if(choice&&allowed[key].includes(choice)&&choice!=='all'&&choice!=='discover')query.set(key,choice);});
+  var search=input.get('q');if(search&&search.length<=180&&!/[\u0000-\u001f\u007f]/.test(search))query.set('q',search);
+  var country=input.get('country');if(country&&/^[A-Z]{2}$/.test(country))query.set('country',country);
+  return '/account/dashboard'+(query.toString()?'?'+query.toString():'');
+ }catch(_){return '';}
+}
+function readOrderDraft(){
+ if(!orderDraftKey)return null;
+ try{var raw=sessionStorage.getItem(orderDraftKey);if(!raw||raw.length>200000){sessionStorage.removeItem(orderDraftKey);return null;}var saved=JSON.parse(raw);if(validOrderDraft(saved))return saved;sessionStorage.removeItem(orderDraftKey);}catch(_){try{sessionStorage.removeItem(orderDraftKey);}catch(__){}}return null;
+}
+function validOrderDraft(saved){
+ if(!saved||saved.version!==1||!Number.isFinite(saved.savedAt)||saved.savedAt>Date.now()||Date.now()-saved.savedAt>ORDER_DRAFT_AGE||!safeOrderReturnTo(saved.returnTo||'')&&saved.returnTo)return false;
+ if(saved.intake){if(typeof saved.intake!=='object'||!(typeof saved.intake.revision==='string'&&saved.intake.revision.length<=120||Number.isSafeInteger(saved.intake.revision)&&saved.intake.revision>=0)||!saved.intake.facts||typeof saved.intake.facts!=='object'||Array.isArray(saved.intake.facts)||typeof saved.intake.directions!=='string'||saved.intake.directions.length>10000||!saved.intake.rows||typeof saved.intake.rows!=='object'||Array.isArray(saved.intake.rows))return false;
+  for(var fact in saved.intake.facts){var value=saved.intake.facts[fact];if(Object.prototype.hasOwnProperty.call(INTAKE_FIELDS,fact)){if(typeof value!=='string'||value.length>10000)return false;}else if(Object.prototype.hasOwnProperty.call(INTAKE_CHECKS,fact)){if(value!==true&&value!==false&&value!==null)return false;}else if(Object.prototype.hasOwnProperty.call(INTAKE_LISTS,fact)){if(!Array.isArray(value)||value.length>20)return false;}else return false;}
+  for(var kind in saved.intake.rows){var rows=saved.intake.rows[kind],repKind=INTAKE_LISTS[kind];if(!Object.prototype.hasOwnProperty.call(INTAKE_LISTS,kind)||!Array.isArray(rows)||rows.length>20)return false;for(var row of rows){if(typeof row==='string'){if(row.length>2000)return false;}else if(row&&typeof row==='object'&&!Array.isArray(row)){for(var field in row)if(!REP[repKind].fields.some(function(pair){return pair[0]===field;})||typeof row[field]!=='string'||row[field].length>2000)return false;}else return false;}}
+  if(saved.intake.touched&&(typeof saved.intake.touched!=='object'||Array.isArray(saved.intake.touched)))return false;
+ }
+ if(saved.revisions&&(!saved.revisions||typeof saved.revisions!=='object'||Array.isArray(saved.revisions)||Object.keys(saved.revisions).length>50))return false;
+ for(var pid in saved.revisions||{}){var revision=saved.revisions[pid];if(pid.length>100||!revision||typeof revision.marker!=='string'||revision.marker.length>100||typeof revision.details!=='string'||revision.details.length>10000||!Array.isArray(revision.opts)||revision.opts.length>REV_OPTIONS.length||revision.opts.some(function(option){return !REV_OPTIONS.includes(option);})||(revision.uncertain!==undefined&&typeof revision.uncertain!=='boolean')||(revision.requestId!==undefined&&!/^[0-9a-f-]{36}$/i.test(revision.requestId)))return false;}
+ return true;
+}
+function saveOrderDraft(){
+ if(!orderDraftKey)return;
+ var revisions={};Object.keys(formState).forEach(function(pid){var state=formState[pid];if(state&&!state.sent&&(state.details||state.opts.length))revisions[pid]={marker:state.requestMarker||revisionMarker(latestOrderData,pid),opts:state.opts.slice(),details:state.details,open:state.open,uncertain:state.pending===true||state.uncertain===true,requestId:state.requestId};});
+ Object.keys(orderDraft&&orderDraft.revisions||{}).forEach(function(pid){if(!formState[pid]&&!revisions[pid]&&orderDraft.revisions[pid].marker!==revisionMarker(latestOrderData,pid))revisions[pid]=orderDraft.revisions[pid];});
+ var intake=intakeDraft&&!intakeSaved?{revision:intakeServerRevision,facts:intakeDraft.facts,directions:intakeDraft.directions,rows:intakeRows,touched:intakeTouched}:!intakeSaved&&orderDraft?orderDraft.intake:null;
+ orderDraft={version:1,savedAt:Date.now(),returnTo:orderReturnTo,intake:intake,revisions:revisions};
+ try{sessionStorage.setItem(orderDraftKey,JSON.stringify(orderDraft));}catch(_){}
+}
+function clearPublicTaskOnOrder(){try{var saved=JSON.parse(sessionStorage.getItem('ktebli-proposal-task-v1')||'null');orderReturnTo=safeOrderReturnTo(saved&&saved.returnTo)||orderReturnTo;sessionStorage.removeItem('ktebli-proposal-task-v1');}catch(_){}var link=document.getElementById('order-return');if(link&&orderReturnTo)link.href=orderReturnTo;}
+function ensureOrderDraftKey(token){
+ if(orderDraftKey)return Promise.resolve();
+ var subtle=window.crypto&&window.crypto.subtle;if(!subtle||!token)return Promise.resolve();
+ return subtle.digest('SHA-256',new TextEncoder().encode(token)).then(function(bytes){orderDraftKey='ktebli-order-draft-v1:'+Array.from(new Uint8Array(bytes)).map(function(byte){return byte.toString(16).padStart(2,'0');}).join('');orderDraft=readOrderDraft();orderReturnTo=safeOrderReturnTo(orderDraft&&orderDraft.returnTo)||orderReturnTo;var link=document.getElementById('order-return');if(link&&orderReturnTo)link.href=orderReturnTo;}).catch(function(){});
+}
+if(app.addEventListener)app.addEventListener('click',function(event){var summary=event.target.closest&&event.target.closest('summary');if(summary&&app.contains(summary)&&summary.parentElement.classList)summary.parentElement.classList.remove('poll-restored');});
 
 var REV_OPTIONS = ["Tone / writing style","Make it more concise","Add more detail",
   "Change positioning / messaging","Strengthen a specific section","Correct organisation information",
@@ -198,16 +302,67 @@ function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':S
 function pdfPageUrl(raw,page){ var u=new URL(raw); u.hash='page='+page; return u.href; }
 function fmtDur(a,b){ if(!a)return ''; var ms=(b?new Date(b):new Date())-new Date(a);
   var s=Math.max(1,Math.round(ms/1000)); return s<60? s+'s' : Math.round(s/60)+'m'; }
+function setControlLabel(button,label){var text=button.querySelector&&button.querySelector('span');if(text)text.textContent=label;else button.textContent=label;}
+function boundedJson(url,options,timeoutMs){
+  var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},timeoutMs);
+  var requestOptions=Object.assign({},options||{},{signal:controller.signal});
+  return fetch(url,requestOptions).then(function(response){return response.json();}).finally(function(){clearTimeout(timer);});
+}
+
+function captureOrderView(){
+  var detailStates=Array.prototype.map.call(app.querySelectorAll('details'),function(node,index){return {key:node.getAttribute('data-poll-key')||node.id||('details-'+index),open:node.open};});
+  var active=document.activeElement, focus=null;
+  if(active&&app.contains(active)){
+    focus={id:active.id||'',selectionStart:typeof active.selectionStart==='number'?active.selectionStart:null,selectionEnd:typeof active.selectionEnd==='number'?active.selectionEnd:null,selectionDirection:active.selectionDirection||'none'};
+    if(!focus.id&&active.tagName==='SUMMARY'&&active.parentElement&&active.parentElement.tagName==='DETAILS')focus.detailKey=active.parentElement.getAttribute('data-poll-key')||active.parentElement.id||('details-'+Array.prototype.indexOf.call(app.querySelectorAll('details'),active.parentElement));
+    if(!focus.id&&!focus.detailKey){['data-send','data-open','data-op'].some(function(name){var value=active.getAttribute&&active.getAttribute(name);if(value){focus.attribute=name;focus.value=value;return true;}return false;});}
+  }
+  return {details:detailStates,focus:focus,scrollY:window.scrollY||window.pageYOffset||0};
+}
+function restoreOrderView(state){
+  if(!state)return;
+  var details=app.querySelectorAll('details');
+  state.details.forEach(function(saved){Array.prototype.some.call(details,function(node,index){var key=node.getAttribute('data-poll-key')||node.id||('details-'+index);if(key===saved.key){node.open=saved.open;if(saved.open&&node.classList)node.classList.add('poll-restored');return true;}return false;});});
+  var target=null,focus=state.focus;
+  if(focus){
+    if(focus.id){var candidate=document.getElementById(focus.id);if(candidate&&app.contains(candidate))target=candidate;}
+    else if(focus.detailKey)Array.prototype.some.call(details,function(node,index){var key=node.getAttribute('data-poll-key')||node.id||('details-'+index);if(key===focus.detailKey){target=node.querySelector(':scope > summary');return true;}return false;});
+    else if(focus.attribute)Array.prototype.some.call(app.querySelectorAll('['+focus.attribute+']'),function(node){if(node.getAttribute(focus.attribute)===focus.value){target=node;return true;}return false;});
+  }
+  if(target&&!target.disabled){try{target.focus({preventScroll:true});}catch(_){target.focus();}if(focus.selectionStart!==null&&target.setSelectionRange)try{target.setSelectionRange(focus.selectionStart,focus.selectionEnd,focus.selectionDirection);}catch(_){}}
+  if(Number.isFinite(state.scrollY)&&window.scrollTo)window.scrollTo(0,state.scrollY);
+}
+function refreshStageDurations(){
+  app.querySelectorAll('.stage .t[data-start]').forEach(function(node){node.textContent=fmtDur(node.getAttribute('data-start'),node.getAttribute('data-finish')||null);});
+}
+function orderRenderSignature(d){
+  var comparable=JSON.parse(JSON.stringify(d));
+  (comparable.proposals||[]).forEach(function(proposal){(proposal.files||[]).forEach(function(file){delete file.url;});});
+  return JSON.stringify(comparable);
+}
+function refreshSignedLinks(d){
+  app.querySelectorAll('[data-proposal-index][data-file-index]').forEach(function(link){
+    var proposal=(d.proposals||[])[Number(link.getAttribute('data-proposal-index'))],file=proposal&&(proposal.files||[])[Number(link.getAttribute('data-file-index'))];
+    if(file&&file.url)link.href=file.url;
+  });
+}
+function revisionMarker(d,pid){
+  var proposal=((d&&d.proposals)||[]).find(function(item){return String(item.id)===String(pid);});
+  if(!proposal)return '';
+  var fileVersion=Math.max(0,...(proposal.files||[]).map(function(file){return Number(file.version)||1;}));
+  return String(proposal.revisions_used||0)+':'+String(fileVersion);
+}
 
 function render(d){
   var support = d.support || 'hello@ktebli.com';
   if (d.pending){
     misses++;
-    app.innerHTML = '<div class="bigmsg" style="margin-top:60px"><span class="spin"></span>' +
+    var pendingKey='pending:'+String(misses>8);
+    if(lastRenderKey!==pendingKey){app.innerHTML = '<div class="bigmsg" style="margin-top:60px"><span class="spin"></span>' +
       '<h2>Payment confirmed. Setting up your order…</h2>' +
       '<p>This takes a few seconds. We\'ll also email you a tracking link shortly.' +
       (misses>8 ? '<br>Taking longer than usual — this page keeps trying on its own. If no email arrives either, contact <b>' + esc(support) + '</b>.' : '') +
-      '</p></div>';
+      '</p></div>';lastRenderKey=pendingKey;}
     return;
   }
   if (d.order && d.order.token && path[1]==='session'){
@@ -215,48 +370,37 @@ function render(d){
     path = ['orders', d.order.token];
     query = 'token=' + d.order.token;
   }
+  if(d.order)clearPublicTaskOnOrder();
+  var renderKey=orderRenderSignature(d);
+  if(renderKey===lastRenderKey){refreshSignedLinks(d);refreshStageDurations();return;}
+  var viewState=captureOrderView();
   var o = d.order;
   document.getElementById('foot').innerHTML =
     'Keep this page\'s link — it works from any device. Need help? Write to <a href="mailto:' + esc(support) + '">' + esc(support) + '</a> and quote <b>Order ' + esc(o.order_no) + '</b>.';
   var h = '<h1>' + (d.intake && d.intake.required ? 'Your order is in. Add your proposed work.' : o.status==='complete' ? 'Everything is ready.' : o.status==='attention' ? 'Still working — final checks in progress.' : 'Ktebli is writing.') + '</h1>';
   h += '<div class="meta"><span class="ordno">Order ' + esc(o.order_no) + '</span> · ' + esc(o.org_name) + ' · ' + esc(o.tier.charAt(0).toUpperCase()+o.tier.slice(1)) + ' package</div>';
   h += '<span class="chip ' + esc(o.status) + '">' + (o.status==='processing'?'In progress':o.status==='complete'?'Complete':'Final checks') + '</span>';
-  if(d.intake && d.intake.required) h+='<p>Source reading can continue now. Proposal writing starts after you save the essential details below.</p>';
+  if(d.intake && d.intake.required) h+='<p class="order-next">Source reading continues while you add the required details. Writing starts after you save them.</p>';
   var mailTo = o.email ? ' to <b>' + esc(o.email) + '</b>' : ' to your email';
   h += o.is_owner_test
-    ? '<div class="comfort">Owner test · Full package · No payment taken. All evidence, originality and quality checks still apply. This page shows your progress and any information needed.</div>'
+    ? '<div class="comfort">Owner test · Full package · No payment taken. Evidence and quality checks still apply.</div>'
     : o.status === 'complete'
-    ? '<div class="comfort">Your order confirmation and the "everything is ready" email were sent' + mailTo + '. Can\'t find them? Check spam, or write to <b>' + esc(support) + '</b> quoting Order ' + esc(o.order_no) + '.</div>'
-    : '<div class="comfort">Your order confirmation with this tracking link has been emailed' + mailTo + '. This page shows progress as we review the source documents and prepare your proposal. You can close it anytime — the work continues on its own, and we\'ll email you when everything is ready.</div>';
+    ? '<div class="comfort">Your ready email was sent' + mailTo + '. Check spam or contact <b>' + esc(support) + '</b> with your order number if needed.</div>'
+    : '<div class="comfort">Your order link was emailed' + mailTo + '. Work continues while you are away; we’ll email you when it is ready.</div>';
   h += '<p class="field-help">Delivery is within 4 hours of payment and receiving your essential details. We aim to deliver sooner, with every package checked before it reaches you. Track progress here.</p>';
-
-  if (d.buyer_notice_sources && d.buyer_notice_sources.length){
-    h += '<section class="buyer-notice"><h2>You\'re in. We\'re preparing your proposal.</h2>' +
-      '<p>We\'re reviewing the opportunity and its attachments, including:</p><ul>';
-    d.buyer_notice_sources.forEach(function(s){
-      var pages = s.kind === 'page' ? 'source page' : 'PDF · ' + s.page_count + (s.page_count === 1 ? ' page' : ' pages');
-      h += '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.label) + '</a> (' + pages + ')';
-      if (s.drawing_pages && s.drawing_pages.length){
-        h += '<br>Drawing pages: ' + s.drawing_pages.map(function(page){ return '<a href="' + esc(pdfPageUrl(s.url,page)) + '" target="_blank" rel="noopener noreferrer">' + page + '</a>'; }).join(', ');
-      }
-      h += '</li>';
-    });
-    h += '</ul><p>We\'re using those documents to identify what your response needs to cover. We\'ll use those requirements alongside your organisation\'s experience and approach to build your proposal.</p>' +
-      '<p>If we need a detail from your team, we\'ll point you to the exact page and make the request specific.</p></section>';
+  if(d.source_summary&&(d.source_summary.deadline_needs_verification||d.source_summary.deadline_requires_manual_entry)){
+    var deadlineWarning=d.source_summary.deadline_warning||'Please double-check the deadline with the issuer. The date is not fully verified.';
+    h+='<p class="deadline-alert" role="alert">'+esc(deadlineWarning)+(d.source_summary.deadline_requires_manual_entry?' No reliable deadline has been confirmed. Contact support with the date you verify; we will not invent one.':' Where dates differ, we plan around the earliest readable source date until confirmed.')+'</p>';
   }
 
   if(d.source_summary){
     var summary=d.source_summary;
-    h+='<section class="buyer-notice"><h2>Opportunity source review</h2><p>'+esc(summary.title||'Your opportunity')+'</p><p>Submission deadline: '+esc(summary.deadline||'Not confirmed from the source')+'</p><p>Funding or contract value: '+esc(summary.amount||'Not stated clearly in the source')+'</p>';
-    if(summary.deadline_needs_verification||summary.deadline_requires_manual_entry)h+='<p role="alert">'+esc(summary.deadline_warning||'Please double-check the deadline with the issuer. The date is not fully verified.')+(summary.deadline_requires_manual_entry?' No reliable deadline has been confirmed. Contact support with the date you verify; we will not invent one.':' Where dates differ, we plan around the earliest readable source date until confirmed.')+'</p>';
+    h+='<section class="buyer-notice source-summary"><h2>'+esc(summary.title||'Opportunity source review')+'</h2><p>Submission deadline: '+esc(summary.deadline||'Not confirmed from the source')+'</p><p>Funding or contract value: '+esc(summary.amount||'Not stated clearly in the source')+'</p>';
     h+='</section>';
   }
-  if(d.pdf_answers && d.pdf_answers.length){
-    h += '<section class="buyer-notice"><h2>From your source documents</h2><p>These passages help guide the proposal. They do not replace the complete requirement checks. Review dates and amounts in their original context.</p>';
-    d.pdf_answers.forEach(function(answer){h+='<h3>'+esc(answer.label)+'</h3>';if(answer.status==='unknown')h+='<p>No clear answer in the reviewed shortlist.</p>';else (answer.passages||[]).forEach(function(p){var url;try{url=new URL(p.source_url);if(!['http:','https:'].includes(url.protocol))return;}catch{return;}if(p.page)url.hash='page='+p.page;h+='<blockquote>'+esc(p.quote)+'</blockquote><p><a href="'+esc(url.href)+'" target="_blank" rel="noopener noreferrer">View source'+(p.page?' · page '+esc(p.page):'')+'</a></p>';});});
-    h+='</section>';
-  }
+
   if(d.intake && d.intake.required) h += document.getElementById("paid-intake-template").innerHTML;
+
   d.proposals.forEach(function(p){
     h += '<div class="pcard ' + esc(p.status) + '"><div class="phead"><span>' + esc(p.title) + '</span><span>' +
       (p.status==='complete'?'✓ Done':p.status==='attention'?'Final checks':'Working…') + '</span></div><div class="pbody">';
@@ -265,7 +409,7 @@ function render(d){
       h += '<div class="stage ' + esc(s.status) + '"><div class="ic ' + esc(s.status) + '">' + ic + '</div>' +
         '<div class="lbl">' + esc(s.label) +
         (s.note? '<span class="note">' + esc(s.note) + '</span>':'') + '</div>' +
-        '<div class="t">' + (s.status==='done'? fmtDur(s.started_at,s.finished_at) : s.status==='running'? fmtDur(s.started_at,null):'') + '</div></div>';
+        '<div class="t" data-start="' + esc(s.started_at||'') + '" data-finish="' + esc(s.finished_at||'') + '">' + (s.status==='done'? fmtDur(s.started_at,s.finished_at) : s.status==='running'? fmtDur(s.started_at,null):'') + '</div></div>';
     });
     h += '</div>';
 
@@ -276,7 +420,7 @@ function render(d){
         var vf = p.files.filter(function(f){ return (f.version||1) === v; });
         if (!vf.length) continue;
         h += '<div class="ft">' + (maxV>1 ? 'Version ' + v + (v===maxV?' — latest':'') : 'Your files') + '</div>';
-        vf.forEach(function(f){ h += '<a class="fbtn" href="' + f.url + '">⬇ ' + esc(f.name) + '</a>'; });
+        vf.forEach(function(f){ h += '<a class="fbtn" data-proposal-index="'+d.proposals.indexOf(p)+'" data-file-index="'+p.files.indexOf(f)+'" href="' + esc(f.url) + '"><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M10 2v10m0 0 4-4m-4 4-4-4M3 13v4h14v-4"/></svg><span>' + esc(f.name) + '</span></a>'; });
       }
       h += '</div>';
     }
@@ -285,15 +429,26 @@ function render(d){
       var left = p.revisions_cap - p.revisions_used;
       h += '<div class="revzone" data-pid="' + esc(p.id) + '">';
       if (left > 0) {
-        h += '<button class="revbtn" data-open="' + esc(p.id) + '">Request changes</button>' +
+        var currentRevisionMarker=revisionMarker(d,p.id);
+        var savedRevision=orderDraft&&orderDraft.revisions&&orderDraft.revisions[p.id];
+        var hasStaleSavedRevision=!formState[p.id]&&savedRevision&&savedRevision.marker!==currentRevisionMarker;
+        if(!formState[p.id]&&savedRevision&&savedRevision.marker===currentRevisionMarker)formState[p.id]={opts:savedRevision.opts||[],details:savedRevision.details||'',open:savedRevision.open===true,pending:false,sent:false,requestMarker:savedRevision.marker,requestId:savedRevision.requestId,uncertain:savedRevision.uncertain===true,message:savedRevision.uncertain?'This request may still be processing. Check the latest order status before trying again.':'',messageType:savedRevision.uncertain?'pending':''};
+        var revisionState=formState[p.id]||{opts:[],details:'',open:false,pending:false,sent:false,message:'',messageType:''};
+        if(revisionState.sent&&revisionState.requestMarker&&revisionState.requestMarker!==currentRevisionMarker){revisionState.sent=false;revisionState.requestMarker='';revisionState.requestId=undefined;revisionState.opts=[];revisionState.details='';revisionState.open=false;revisionState.message='';revisionState.messageType='';}
+        if(!revisionState.sent&&(revisionState.details||revisionState.opts.length)&&revisionState.requestMarker&&revisionState.requestMarker!==currentRevisionMarker){revisionState.stale=true;revisionState.uncertain=false;revisionState.message='A newer order version is ready. Review it before sending these changes.';revisionState.messageType='pending';}
+        if(hasStaleSavedRevision)h+='<p class="order-next">Your earlier change request was saved for an older version. Review it against the latest files before sending.</p><button type="button" class="revbtn" data-recover-revision="'+esc(p.id)+'">Review saved request</button>';
+        h += (hasStaleSavedRevision?'':'<button class="revbtn" data-open="' + esc(p.id) + '" aria-expanded="'+(revisionState.open?'true':'false')+'" aria-controls="rf-'+esc(p.id)+'"><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M11.5 4.5 15.5 8.5M4 16l3.5-.7L16.2 6.6a1.8 1.8 0 0 0-2.5-2.5L5 12.8 4 16Z"/></svg><span>Request changes</span></button>') +
           '<div class="revleft">' + left + ' round' + (left>1?'s':'') + ' of changes included in your package.</div>' +
-          '<div class="revform' + (formState[p.id] ? ' open':'') + '" id="rf-' + esc(p.id) + '">' +
+          '<div class="revform' + (revisionState.open ? ' open':'') + '" id="rf-' + esc(p.id) + '"'+(revisionState.pending?' aria-busy="true"':'')+'>' +
           '<div style="font-weight:700;margin-top:6px">What kind of changes?</div><div class="opts">' +
-          REV_OPTIONS.map(function(op,i){ var sel = (formState[p.id]&&formState[p.id].opts||[]).indexOf(op)>=0;
-            return '<div class="opt'+(sel?' sel':'')+'" data-pid="'+esc(p.id)+'" data-op="'+esc(op)+'">'+esc(op)+'</div>'; }).join('') +
+          REV_OPTIONS.map(function(op){ var sel = revisionState.opts.indexOf(op)>=0;
+            return '<button type="button" class="opt'+(sel?' sel':'')+'" aria-pressed="'+(sel?'true':'false')+'" data-pid="'+esc(p.id)+'" data-op="'+esc(op)+'"'+(revisionState.pending||revisionState.sent||revisionState.blocked||revisionState.uncertain?' disabled':'')+'>'+esc(op)+'</button>'; }).join('') +
           '</div>' +
-          '<textarea id="rd-' + esc(p.id) + '" placeholder="Tell us exactly what you want changed.">' + esc((formState[p.id]&&formState[p.id].details)||'') + '</textarea>' +
-          '<br><button class="revsend" data-send="' + esc(p.id) + '">Send revision request</button>' +
+          '<textarea id="rd-' + esc(p.id) + '"'+(revisionState.pending||revisionState.sent||revisionState.blocked||revisionState.uncertain?' disabled':'')+' placeholder="Tell us exactly what you want changed.">' + esc(revisionState.details) + '</textarea>' +
+          '<p id="rm-' + esc(p.id) + '" class="revmessage '+esc(revisionState.messageType)+'" role="status" aria-live="polite">'+esc(revisionState.message)+'</p>' +
+          (revisionState.stale?'<button type="button" class="revbtn" data-review-revision="'+esc(p.id)+'">I reviewed the latest version</button>':'') +
+          (revisionState.uncertain&&!revisionState.retryAllowed?'<button type="button" class="revbtn" data-check-revision="'+esc(p.id)+'"'+(revisionState.checking?' disabled':'')+'>'+(revisionState.checking?'Checking status…':revisionState.retryChecked?'Allow safe retry':'Check status before retrying')+'</button>':'') +
+          '<button class="revsend" id="rs-' + esc(p.id) + '" data-send="' + esc(p.id) + '"'+(revisionState.pending||revisionState.sent||revisionState.stale||(revisionState.uncertain&&!revisionState.retryAllowed)?' disabled':'')+'><svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="M3 10h13m-5-5 5 5-5 5"/></svg><span>' + (revisionState.pending?'Sending…':revisionState.sent?'Request sent':'Send revision request') + '</span></button>' +
           '</div>';
       } else {
         h += '<div class="revleft">All included rounds of changes for this package have been used. Need more? Write to ' + esc(support) + ' quoting Order ' + esc(o.order_no) + '.</div>';
@@ -302,57 +457,141 @@ function render(d){
     }
     h += '</div>';
   });
-  app.innerHTML = h;
+  if ((d.buyer_notice_sources && d.buyer_notice_sources.length) || (d.pdf_answers && d.pdf_answers.length)){
+    h += '<details class="source-details" data-poll-key="source-details"><summary>Source documents and reviewed passages</summary>';
+  }
+  if (d.buyer_notice_sources && d.buyer_notice_sources.length){
+    h += '<section class="buyer-notice"><h2>Documents being reviewed</h2><ul>';
+    d.buyer_notice_sources.forEach(function(s){
+      var pages = s.kind === 'page' ? 'source page' : 'PDF · ' + s.page_count + (s.page_count === 1 ? ' page' : ' pages');
+      h += '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.label) + '</a> (' + pages + ')';
+      if (s.drawing_pages && s.drawing_pages.length){
+        h += '<br>Drawing pages: ' + s.drawing_pages.map(function(page){ return '<a href="' + esc(pdfPageUrl(s.url,page)) + '" target="_blank" rel="noopener noreferrer">' + page + '</a>'; }).join(', ');
+      }
+      h += '</li>';
+    });
+    h += '</ul><p>These documents guide the requirement checks. If we need more from your team, we will ask for the specific item.</p></section>';
+  }
+  if(d.pdf_answers && d.pdf_answers.length){
+    h += '<section class="buyer-notice"><h2>Reviewed passages</h2><p>These excerpts help guide the proposal. They do not replace the full requirement checks.</p>';
+    d.pdf_answers.forEach(function(answer){h+='<h3>'+esc(answer.label)+'</h3>';if(answer.status==='unknown')h+='<p>No clear answer in the reviewed shortlist.</p>';else (answer.passages||[]).forEach(function(p){var url;try{url=new URL(p.source_url);if(!['http:','https:'].includes(url.protocol))return;}catch{return;}if(p.page)url.hash='page='+p.page;h+='<blockquote>'+esc(p.quote)+'</blockquote><p><a href="'+esc(url.href)+'" target="_blank" rel="noopener noreferrer">View source'+(p.page?' · page '+esc(p.page):'')+'</a></p>'; });});
+    h+='</section>';
+  }
+  if ((d.buyer_notice_sources && d.buyer_notice_sources.length) || (d.pdf_answers && d.pdf_answers.length)) h += '</details>';
+  app.innerHTML = h;lastRenderKey=renderKey;
   if(d.intake && d.intake.required) setupIntake(d);
 
   // wire revision UI
   app.querySelectorAll('[data-open]').forEach(function(b){
     b.addEventListener('click', function(){
       var pid = b.getAttribute('data-open');
-      formState[pid] = formState[pid] || { opts: [], details: '' };
-      document.getElementById('rf-' + pid).classList.toggle('open');
+      var state=formState[pid]||{opts:[],details:'',open:false,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+      state.open=!state.open;b.setAttribute('aria-expanded',state.open?'true':'false');
+      document.getElementById('rf-' + pid).classList.toggle('open',state.open);
+      saveOrderDraft();
     });
   });
   app.querySelectorAll('.opt').forEach(function(el){
     el.addEventListener('click', function(){
       var pid = el.getAttribute('data-pid'), op = el.getAttribute('data-op');
-      formState[pid] = formState[pid] || { opts: [], details: '' };
-      var i = formState[pid].opts.indexOf(op);
-      if (i >= 0) formState[pid].opts.splice(i,1); else formState[pid].opts.push(op);
-      el.classList.toggle('sel');
+      var state=formState[pid]||{opts:[],details:'',open:true,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+      var i = state.opts.indexOf(op);
+      if (i >= 0) state.opts.splice(i,1); else state.opts.push(op);
+      if(!state.requestMarker)state.requestMarker=revisionMarker(latestOrderData,pid);
+      state.sent=false;if(!state.uncertain&&!state.stale){state.message='';state.messageType='';}
+      var selected=state.opts.indexOf(op)>=0;el.classList.toggle('sel',selected);el.setAttribute('aria-pressed',selected?'true':'false');
+      var send=document.getElementById('rs-'+pid);if(send){send.disabled=state.pending||state.stale||(state.uncertain&&!state.retryAllowed);setControlLabel(send,state.pending?'Sending…':'Send revision request');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked||state.uncertain;});
+      if(state.sent||state.blocked||state.uncertain){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
+      var message=document.getElementById('rm-'+pid);if(message){message.textContent=state.message;message.className='revmessage '+state.messageType;}
+      saveOrderDraft();
     });
   });
   app.querySelectorAll('[data-send]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var pid = b.getAttribute('data-send');
-      var details = (document.getElementById('rd-' + pid) || {}).value || '';
-      var opts = (formState[pid] && formState[pid].opts) || [];
-      if (!opts.length && !details.trim()) { alert('Pick at least one change type or describe what you want changed.'); return; }
-      b.disabled = true; b.textContent = 'Sending…';
-      fetch(FN + '/request-revision', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ token: path[1], proposal_id: pid, options: opts, details: details }) })
-        .then(function(r){ return r.json(); })
-        .then(function(j){
-          if (j.ok) { formState = {}; if (!timer) timer = setInterval(tick, 3500); tick(); }
-          else { b.disabled = false; b.textContent = 'Send revision request';
-                 alert(j.reason === 'no_revisions_left' ? 'All included rounds of changes have been used.' : 'Could not send — try again.'); }
-        })
-        .catch(function(){ b.disabled = false; b.textContent = 'Send revision request'; alert('Could not send — try again.'); });
-    });
+    b.addEventListener('click', function(){ submitRevision(b.getAttribute('data-send')); });
   });
+  app.querySelectorAll('[data-review-revision]').forEach(function(b){b.addEventListener('click',function(){var pid=b.getAttribute('data-review-revision'),state=formState[pid];if(!state)return;state.stale=false;state.requestId=undefined;state.requestMarker=revisionMarker(latestOrderData,pid);state.message='Latest version reviewed. Your draft is ready when you are.';state.messageType='success';lastRenderKey=null;render(latestOrderData);saveOrderDraft();});});
+  app.querySelectorAll('[data-recover-revision]').forEach(function(b){b.addEventListener('click',function(){var pid=b.getAttribute('data-recover-revision'),saved=orderDraft&&orderDraft.revisions&&orderDraft.revisions[pid];if(!saved)return;formState[pid]={opts:saved.opts.slice(),details:saved.details,open:true,pending:false,sent:false,requestMarker:saved.marker,stale:true,uncertain:false,message:'Review your saved request against the latest version before sending.',messageType:'pending'};lastRenderKey=null;render(latestOrderData);saveOrderDraft();});});
+  app.querySelectorAll('[data-check-revision]').forEach(function(b){b.addEventListener('click',function(){checkRevisionBeforeRetry(b.getAttribute('data-check-revision'));});});
 
   // keep textarea edits across polls
   app.querySelectorAll('.revform textarea').forEach(function(t){
     t.addEventListener('input', function(){
       var pid = t.id.slice(3);
-      formState[pid] = formState[pid] || { opts: [], details: '' };
-      formState[pid].details = t.value;
+      var state=formState[pid]||{opts:[],details:'',open:true,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+      state.details = t.value;if(!state.requestMarker)state.requestMarker=revisionMarker(latestOrderData,pid);state.sent=false;
+      if(state.messageType==='success'){state.message='';state.messageType='';}
+      var send=document.getElementById('rs-'+pid);if(send){send.disabled=state.pending||state.stale||(state.uncertain&&!state.retryAllowed);setControlLabel(send,state.pending?'Sending…':'Send revision request');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.pending||state.sent||state.blocked||state.uncertain;});
+      if(state.sent||state.blocked||state.uncertain){var lockedText=document.getElementById('rd-'+pid);if(lockedText)lockedText.disabled=true;}
+      var message=document.getElementById('rm-'+pid);if(message&&state.messageType===''){message.textContent='';message.className='revmessage';}
+      saveOrderDraft();
     });
   });
 
-  if (o.status==='complete' && timer){ clearInterval(timer); timer=null; }
+  if (o.status==='complete' && timer&&!Object.keys(formState).some(function(pid){return formState[pid]&&(formState[pid].pending||formState[pid].sent); })){ clearInterval(timer); timer=null; }
+  restoreOrderView(viewState);
+  saveOrderDraft();
 }
 
+function submitRevision(pid){
+  var state=formState[pid]||{opts:[],details:'',open:true,pending:false,sent:false,message:'',messageType:''};formState[pid]=state;
+  if(state.pending||state.sent||state.blocked||state.stale||(state.uncertain&&!state.retryAllowed))return;
+  if(state.requestMarker&&state.requestMarker!==revisionMarker(latestOrderData,pid)){state.stale=true;state.message='A newer order version is ready. Review it before sending these changes.';state.messageType='pending';lastRenderKey=null;render(latestOrderData);return;}
+  var details=(document.getElementById('rd-'+pid)||{}).value||'';
+  if(!state.opts.length&&!details.trim()){
+    state.message='Choose a change type or describe what you want changed.';state.messageType='error';
+    var emptyMessage=document.getElementById('rm-'+pid);if(emptyMessage){emptyMessage.textContent=state.message;emptyMessage.className='revmessage error';}
+    var emptyField=document.getElementById('rd-'+pid);if(emptyField)emptyField.focus();return;
+  }
+  state.requestId=state.requestId||crypto.randomUUID();state.details=details;state.requestMarker=revisionMarker(latestOrderData,pid);state.pending=true;state.uncertain=true;state.retryChecked=false;state.retryAllowed=false;state.message='Sending your request…';state.messageType='pending';
+  saveOrderDraft();
+  var button=document.getElementById('rs-'+pid),message=document.getElementById('rm-'+pid);
+  if(button){button.disabled=true;setControlLabel(button,'Sending…');button.setAttribute('aria-busy','true');}
+  app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=true;});
+  var field=document.getElementById('rd-'+pid);if(field)field.disabled=true;
+  if(message){message.textContent=state.message;message.className='revmessage pending';}
+  boundedJson(FN + '/request-revision', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:path[1],proposal_id:pid,request_id:state.requestId,expected_revision:Number(state.requestMarker.split(':')[0]),options:state.opts.slice(),details:details})}, ACTION_TIMEOUT)
+    .then(function(j){
+      if(!j||(!j.ok&&!['no_revisions_left','stale_revision','not_complete','request_conflict'].includes(j.reason)))throw new Error('Request outcome unavailable');
+      state.pending=false;state.uncertain=false;
+      if(j&&j.ok){state.sent=true;state.uncertain=false;state.message='Your change request was sent.';state.messageType='success';if(!timer)timer=setInterval(function(){refreshStageDurations();tick(false);},3500);tick(true);}
+      else if(j&&j.reason==='no_revisions_left'){state.blocked=true;state.message='All included rounds of changes have been used. Contact support for help.';state.messageType='error';}
+      else if(j&&['stale_revision','not_complete','request_conflict'].includes(j.reason)){state.stale=true;state.message='The order or this request changed. Refresh and review the latest version before sending changes.';state.messageType='pending';}
+      var currentButton=document.getElementById('rs-'+pid),currentMessage=document.getElementById('rm-'+pid);
+      if(currentButton){currentButton.disabled=state.sent||state.blocked||state.stale;setControlLabel(currentButton,state.sent?'Request sent':state.blocked?'No rounds left':'Send revision request');currentButton.removeAttribute('aria-busy');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=state.sent||state.blocked;});
+      var currentField=document.getElementById('rd-'+pid);if(currentField)currentField.disabled=state.sent||state.blocked;
+      if(currentMessage){currentMessage.textContent=state.message;currentMessage.className='revmessage '+state.messageType;}
+      saveOrderDraft();
+    })
+    .catch(function(error){
+      state.pending=false;state.message=error&&error.name==='AbortError'?'No response arrived before the request timed out. Check the order before trying again; your answers are still here.':'Connection interrupted. Your answers are still here; please try again.';state.messageType='error';
+      var currentButton=document.getElementById('rs-'+pid),currentMessage=document.getElementById('rm-'+pid);
+      if(currentButton){currentButton.disabled=true;setControlLabel(currentButton,'Send revision request');currentButton.removeAttribute('aria-busy');}
+      app.querySelectorAll('[data-pid]').forEach(function(control){if(control.getAttribute('data-pid')===pid)control.disabled=true;});
+      var currentField=document.getElementById('rd-'+pid);if(currentField)currentField.disabled=true;
+      if(currentMessage){currentMessage.textContent=state.message;currentMessage.className='revmessage error';}
+      saveOrderDraft();
+      if(!timer)timer=setInterval(function(){refreshStageDurations();tick(false);},3500);
+      lastRenderKey=null;render(latestOrderData);
+    });
+}
+
+function checkRevisionBeforeRetry(pid){
+ var state=formState[pid];if(!state||!state.uncertain||state.pending||state.checking)return;
+ if(state.retryChecked){state.retryAllowed=true;state.retryChecked=false;state.message='Retry enabled. The same request will be safely retried without using another round.';state.messageType='pending';lastRenderKey=null;render(latestOrderData);saveOrderDraft();return;}
+ state.checking=true;state.message='Checking the latest order status…';state.messageType='pending';lastRenderKey=null;render(latestOrderData);
+ boundedJson(FN+'/order-status?'+query,null,ORDER_STATUS_TIMEOUT).then(function(d){
+  state.checking=false;if(!d||!d.order||!Array.isArray(d.proposals))throw new Error('Invalid order status');
+  var marker=revisionMarker(d,pid);latestOrderData=d;
+  if(marker!==state.requestMarker){state.stale=true;state.uncertain=false;state.message='The order changed since this request. Review the latest version before sending anything else.';state.messageType='pending';}
+  else {state.retryChecked=true;state.message='No change is showing yet. You can safely retry this saved request.';state.messageType='pending';}
+  lastRenderKey=null;render(d);saveOrderDraft();
+ }).catch(function(){state.checking=false;state.message='Could not confirm the latest status. Your request remains paused; try checking again.';state.messageType='error';lastRenderKey=null;render(latestOrderData);});
+}
+
+var ORDER_STATUS_TIMEOUT=12000, ACTION_TIMEOUT=20000;
 var REP = {
   people:     { c: 'rep-people',     fields: [['name', 'Name — e.g. Grace Mbeki'], ['role', 'Role — e.g. Chair']], cls: 'two-col' },
   programmes: { c: 'rep-programmes', fields: [['name', 'Programme — e.g. OpenARMS'], ['what', 'What it does, in a few words']], cls: 'two-col' },
@@ -360,32 +599,40 @@ var REP = {
   partners:   { c: 'rep-partners',   fields: [['v', 'Partner organisation you actually work with']], cls: '' },
   links:      { c: 'rep-links',      fields: [['v', 'https://your-site.org/annual-report']], cls: '' }
 };
-function repRow(kind) {
+function repRow(kind, index) {
   var cfg = REP[kind];
   var row = document.createElement('div'); row.className = 'rep-row';
   var fields = document.createElement('div'); fields.className = 'rep-fields' + (cfg.cls ? (' ' + cfg.cls) : '');
   cfg.fields.forEach(function (f) {
-    var inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = f[1]; inp.setAttribute('data-k', f[0]);
+    var inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = f[1]; inp.id='rep-'+kind+'-'+index+'-'+f[0];inp.setAttribute('data-k', f[0]);
     fields.appendChild(inp);
   });
-  var x = document.createElement('button'); x.type = 'button'; x.className = 'rep-x'; x.setAttribute('aria-label', 'Remove'); x.innerHTML = '&times;';
-  x.addEventListener('click', function () { if (row.parentNode) row.parentNode.removeChild(row); });
+  var x = document.createElement('button'); x.type = 'button'; x.className = 'rep-x'; x.setAttribute('aria-label', 'Remove'); x.innerHTML = '<svg aria-hidden="true" focusable="false" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg>';
+  x.addEventListener('click', function () { if (row.parentNode) {row.parentNode.removeChild(row);renumberRep(kind);}rememberIntakeRows(); });
   row.appendChild(fields); row.appendChild(x);
   return row;
 }
-function addRep(kind) { var c = document.getElementById(REP[kind].c); if (c) c.appendChild(repRow(kind)); }
-function collectRep(kind) {
+function addRep(kind) { var c = document.getElementById(REP[kind].c); if (c) {c.appendChild(repRow(kind,c.querySelectorAll('.rep-row').length));rememberIntakeRows();} }
+function renumberRep(kind){var c=document.getElementById(REP[kind].c);if(!c)return;c.querySelectorAll('.rep-row').forEach(function(row,index){row.querySelectorAll('[data-k]').forEach(function(input){input.id='rep-'+kind+'-'+index+'-'+input.getAttribute('data-k');});});}
+function collectRep(kind, includeEmpty) {
   var cfg = REP[kind], out = [];
   document.querySelectorAll('#' + cfg.c + ' .rep-row').forEach(function (r) {
     var o = {}, any = false;
     r.querySelectorAll('[data-k]').forEach(function (inp) {
       var v = inp.value.trim(); o[inp.getAttribute('data-k')] = v; if (v) any = true;
     });
-    if (!any) return;
+    if (!any&&!includeEmpty) return;
     if (cfg.fields.length === 1 && cfg.fields[0][0] === 'v') out.push(o.v);
     else out.push(o);
   });
   return out;
+}
+function rememberIntakeRows(){
+ if(orderDraftHydrating)return;
+ if(!intakeRows)intakeRows={};
+ Object.keys(INTAKE_LISTS).forEach(function(key){intakeRows[key]=collectRep(INTAKE_LISTS[key],true);});
+ if(document.getElementById('intake-form'))intakeDraft=readIntake();
+ saveOrderDraft();
 }
 function seedRepeaters() {
   Object.keys(REP).forEach(function (k) {
@@ -405,36 +652,80 @@ function readIntake(){
  return {facts:facts,directions:document.getElementById('w-directions').value};
 }
 function syncPaidCurrency(){var other=document.getElementById('w-currency').value==='other';document.getElementById('paid-currency-other').hidden=!other;document.getElementById('w-currency-other').disabled=!other;document.getElementById('w-currency-other').required=other;}
+function completeIntake(token){
+ if(intakeSubmitting||intakeSaved)return;
+ intakeDraft=readIntake();intakeSubmitting=true;intakeStatus='Saving your details…';
+ saveOrderDraft();
+ var button=document.getElementById('save-intake-button'),message=document.getElementById('intake-message');
+ if(button){button.disabled=true;setControlLabel(button,intakeStatus);}if(message){message.textContent=intakeStatus;message.className='revmessage pending';}
+ boundedJson(FN+'/complete-intake',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,revision:intakeServerRevision,facts:intakeDraft.facts,directions:intakeDraft.directions})},ACTION_TIMEOUT)
+  .then(function(result){
+   intakeSubmitting=false;
+   if(!result.ok){intakeStatus=(result.gaps||[]).join(' ')||result.message||'Please try again.';}
+   else {intakeSaved=true;intakeStatus='Saved. Writing will start once the source checks finish.';if(orderDraft)orderDraft.intake=null;saveOrderDraft();}
+   var currentButton=document.getElementById('save-intake-button'),currentMessage=document.getElementById('intake-message');
+   if(currentButton){currentButton.disabled=intakeSaved;setControlLabel(currentButton,intakeSaved?'Details saved':'Save details and start writing');}
+   if(currentMessage){currentMessage.textContent=intakeStatus;currentMessage.className='revmessage '+(intakeSaved?'success':result.ok?'success':'error');}
+   applyDeferredOrderData();
+  })
+  .catch(function(error){
+   intakeSubmitting=false;intakeStatus=error&&error.name==='AbortError'?'No response arrived before the save timed out. Your answers are kept here; check the order before trying again.':'Connection interrupted. Your answers are kept here; please try again.';
+   var currentButton=document.getElementById('save-intake-button'),currentMessage=document.getElementById('intake-message');
+   if(currentButton){currentButton.disabled=false;setControlLabel(currentButton,'Save details and start writing');}
+   if(currentMessage){currentMessage.textContent=intakeStatus;currentMessage.className='revmessage error';}
+   applyDeferredOrderData();
+  });
+}
+function applyDeferredOrderData(){
+ if(deferredOrderData){var data=deferredOrderData;deferredOrderData=null;render(data);}
+ else tick(true);
+}
 function setupIntake(d){
+ orderDraftHydrating=true;
+ if(!intakeDraft&&orderDraft&&orderDraft.intake&&orderDraft.intake.revision===d.intake.revision){intakeDraft={facts:orderDraft.intake.facts||{},directions:orderDraft.intake.directions||''};intakeRows=orderDraft.intake.rows||null;intakeTouched=orderDraft.intake.touched||{};}
  var state=intakeDraft||{facts:d.intake.facts||{},directions:d.intake.directions||''};
+ intakeServerRevision=d.intake.revision;
  var source=d.source_summary||{};['proposal_type','currency','response_language'].forEach(function(k){if(!state.facts[k]&&!intakeTouched[k]&&source[k])state.facts[k]=source[k];});
  Object.keys(INTAKE_FIELDS).forEach(function(k){document.getElementById(INTAKE_FIELDS[k]).value=state.facts[k]||'';});
  var requiredLanguage=source.response_language;if(['en','ar'].includes(requiredLanguage)){state.facts.response_language=requiredLanguage;document.getElementById('w-response-language').value=requiredLanguage;document.getElementById('w-response-language').disabled=true;document.getElementById('language-help').textContent='The issuer requires '+(requiredLanguage==='ar'?'Arabic':'English')+' for this submission.';}else if(/\p{Script=Arabic}/u.test(source.title||'')&&!state.facts.response_language){document.getElementById('w-response-language').required=true;document.getElementById('language-help').textContent='This source includes Arabic. Confirm English or Arabic for your documents; the source language alone does not decide the submission language.';}
  var currency=state.facts.currency||'',standard=['USD','LBP','EUR','GBP'].includes(currency);document.getElementById('w-currency').value=currency?(standard?currency:'other'):'';document.getElementById('w-currency-other').value=currency&&!standard?currency:'';syncPaidCurrency();
  if(source.proposal_type||source.currency)document.getElementById('source-field-note').textContent='Type and currency may be suggested from the source. Confirm both before saving.';
+ document.getElementById('intake-message').textContent=intakeStatus;
+ var saveButton=document.getElementById('save-intake-button');saveButton.disabled=intakeSubmitting||intakeSaved;setControlLabel(saveButton,intakeSubmitting?'Saving details…':intakeSaved?'Details saved':'Save details and start writing');
  document.getElementById('w-currency').addEventListener('change',syncPaidCurrency);document.getElementById('w-currency-other').addEventListener('input',function(){this.value=this.value.replace(/[^a-z]/gi,'').toUpperCase().slice(0,3);intakeTouched.currency=true;intakeDraft=readIntake();});
  Object.keys(INTAKE_CHECKS).forEach(function(k){document.getElementById(INTAKE_CHECKS[k]).checked=state.facts[k]===true;});
  document.getElementById('w-directions').value=state.directions;
- Object.keys(INTAKE_LISTS).forEach(function(k){var kind=INTAKE_LISTS[k],container=document.getElementById(REP[kind].c);(state.facts[k]||[]).forEach(function(value){var row=repRow(kind);row.querySelectorAll('[data-k]').forEach(function(input){input.value=typeof value==='string'?value:value[input.dataset.k]||'';});container.appendChild(row);});});
+ if(!intakeRows)intakeRows={};
+ Object.keys(INTAKE_LISTS).forEach(function(k){var kind=INTAKE_LISTS[k],container=document.getElementById(REP[kind].c),rows=Array.isArray(intakeRows[k])?intakeRows[k]:(state.facts[k]||[]);intakeRows[k]=rows.slice();rows.forEach(function(value,index){var row=repRow(kind,index);row.querySelectorAll('[data-k]').forEach(function(input){input.value=typeof value==='string'?value:value[input.dataset.k]||'';});container.appendChild(row);});});
  seedRepeaters();
  [['add-people','people'],['add-programmes','programmes'],['add-results','results'],['add-partners','partners'],['add-links','links']].forEach(function(pair){document.getElementById(pair[0]).addEventListener('click',function(){addRep(pair[1]);});});
- var form=document.getElementById('intake-form');form.addEventListener('input',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});intakeDraft=readIntake();});form.addEventListener('change',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});intakeDraft=readIntake();});
- form.addEventListener('submit',async function(e){e.preventDefault();intakeDraft=readIntake();var button=form.querySelector('[type="submit"]'),message=document.getElementById('intake-message');button.disabled=true;message.textContent='Saving your details…';
-  try {var r=await fetch(FN+'/complete-intake',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:d.order.token,revision:d.intake.revision,facts:intakeDraft.facts,directions:intakeDraft.directions})});var result=await r.json();
-   if(!result.ok){message.textContent=(result.gaps||[]).join(' ')||result.message||'Please try again.';button.disabled=false;return;}
-   intakeDraft=null;message.textContent='Saved. Writing will start once the source checks finish.';document.activeElement.blur();tick();
-  }catch{message.textContent='Connection interrupted. Your answers are kept on this page; please try again.';button.disabled=false;}
- });
+ var form=document.getElementById('intake-form');form.addEventListener('input',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});rememberIntakeRows();});form.addEventListener('change',function(e){Object.keys(INTAKE_FIELDS).forEach(function(k){if(INTAKE_FIELDS[k]===e.target.id)intakeTouched[k]=true;});rememberIntakeRows();});
+ form.addEventListener('submit',function(e){e.preventDefault();completeIntake(d.order.token);});
+ orderDraftHydrating=false;
+ if(!intakeDraft&&orderDraft&&orderDraft.intake&&orderDraft.intake.revision!==d.intake.revision){
+  var notice=document.createElement('div');notice.className='order-next';notice.setAttribute('role','status');notice.textContent='The source details changed since this draft was saved. Review your earlier answers before submitting.';
+  var recover=document.createElement('button');recover.type='button';recover.className='revbtn';recover.textContent='Review saved draft';recover.addEventListener('click',function(){var saved=orderDraft&&orderDraft.intake;if(!saved)return;intakeDraft={facts:saved.facts||{},directions:saved.directions||''};intakeRows=saved.rows||null;intakeTouched=saved.touched||{};intakeServerRevision=d.intake.revision;lastRenderKey=null;render(d);saveOrderDraft();});notice.appendChild(recover);document.getElementById('paid-intake').prepend(notice);
+ }
 }
 
-function tick(){
-  fetch(FN + '/order-status?' + query)
-    .then(function(r){ return r.json(); })
-    .then(function(d){latestOrderData=d;if(document.activeElement && document.activeElement.closest && document.activeElement.closest("#paid-intake"))return;render(d);})
-    .catch(function(){ /* keep last view; retry next tick */ });
+function tick(force){
+  if(pollActive){if(force!==false)pollAgain=true;return;}
+  pollActive=true;var requestSequence=++pollSequence,requestQuery=query;
+  boundedJson(FN + '/order-status?' + requestQuery,null,ORDER_STATUS_TIMEOUT)
+    .then(function(d){return ensureOrderDraftKey(d&&d.order&&d.order.token).then(function(){
+      if(requestSequence!==pollSequence||requestQuery!==query)return;
+      latestOrderData=d;var error=document.getElementById('order-poll-error');error.hidden=true;error.querySelector('span').textContent='';
+      if(intakeSubmitting){deferredOrderData=d;return;}
+      render(d);
+    });})
+    .catch(function(){
+      if(requestSequence!==pollSequence||requestQuery!==query)return;
+      var error=document.getElementById('order-poll-error');error.hidden=false;error.querySelector('span').textContent='Could not refresh this order. Your current details are still here; we will try again automatically.';
+    })
+    .finally(function(){pollActive=false;if(pollAgain){pollAgain=false;tick(true);}});
 }
-tick();
-timer = setInterval(tick, 3500);
+tick(true);
+timer = setInterval(function(){refreshStageDurations();tick(false);}, 3500);
 </script>
 </body>
 </html>

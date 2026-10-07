@@ -1,20 +1,244 @@
 import "server-only";
 import { userTransaction } from "./db";
+import { HttpError } from "./http";
 import { z } from "zod";
+import type { PoolClient } from "pg";
+import { ISO_COUNTRY_CODES, isoCountryCodeSchema } from "./contracts";
+import { createHash } from "node:crypto";
+
+export const catalogueFiltersSchema = z.object({
+  query: z.string().trim().max(200).default(""),
+  kind: z.enum(["all", "procurement", "grant", "unknown"]).default("all"),
+  source: z
+    .enum([
+      "all",
+      "ppa",
+      "ungm",
+      "mawred",
+      "worldbank",
+      "cdr",
+      "grants-gov",
+      "sam-gov",
+    ])
+    .default("all"),
+  country: z.union([z.literal("all"), isoCountryCodeSchema]).default("all"),
+  status: z.enum(["all", "current", "needs_review", "closed"]).default("all"),
+  deadline: z
+    .enum(["all", "future", "today", "past", "unknown"])
+    .default("all"),
+  saved: z.boolean().default(false),
+  cursor: z.string().max(500).optional(),
+});
+export type CatalogueFilters = z.input<typeof catalogueFiltersSchema>;
 const cursorSchema = z.object({
   at: z.string().datetime({ offset: true }),
   id: z.string().uuid(),
+  filterKey: z.string().max(1000),
 });
+
+// The representative is selected before filters so a filtered page cannot display
+// a stale sibling as though it were an independent notice. Every alias remains in
+// source_aliases and saved state, while matching remains tied to the group version.
+const catalogueCte = `WITH ranked AS (
+  SELECT o.*,
+    CASE WHEN o.identity_key IS NULL THEN o.content_hash ELSE (
+      SELECT md5(string_agg(alias.content_hash,'|' ORDER BY alias.source,alias.source_key))
+      FROM membership.opportunities alias WHERE alias.identity_key=o.identity_key
+    ) END AS group_version,
+    row_number() OVER (PARTITION BY coalesce(o.identity_key,o.id::text)
+      ORDER BY (o.geography_status IN ('lebanon_confirmed','regional_includes_lebanon')
+        AND o.detail_status='verified' AND NOT o.deadline_conflict
+        AND o.fetched_at>now()-interval '24 hours'
+        AND o.application_status NOT IN ('closed','not_open_competition')
+        AND o.deadline>CURRENT_DATE) DESC,
+        (o.geography_status IN ('lebanon_confirmed','regional_includes_lebanon')
+        AND o.application_status NOT IN ('closed','not_open_competition')
+        AND (o.deadline IS NULL OR o.deadline>=CURRENT_DATE)) DESC,
+        (o.detail_status='verified' AND o.fetched_at>now()-interval '24 hours') DESC,
+        o.fetched_at DESC,o.source DESC,o.source_key DESC,o.id DESC) AS group_rank,
+    array_agg(o.id) OVER (PARTITION BY coalesce(o.identity_key,o.id::text)) AS alias_ids,
+    jsonb_agg(jsonb_build_object('source',o.source,'source_url',o.source_url,'title',o.title))
+      OVER (PARTITION BY coalesce(o.identity_key,o.id::text)) AS source_aliases,
+    (o.identity_key IS NOT NULL AND EXISTS (
+      SELECT 1 FROM membership.opportunities conflict
+      WHERE conflict.identity_key=o.identity_key AND conflict.id<>o.id
+        AND conflict.detail_status='verified'
+        AND conflict.fetched_at>now()-interval '24 hours'
+        AND (conflict.deadline IS DISTINCT FROM o.deadline
+          OR conflict.kind IS DISTINCT FROM o.kind
+          OR conflict.application_status IN ('closed','not_open_competition')
+          OR conflict.deadline_conflict)
+    )) AS group_conflict
+  FROM membership.opportunities o
+), selected AS (
+  SELECT o.*,
+    CASE
+      WHEN o.application_status IN ('closed','not_open_competition') OR o.deadline<CURRENT_DATE THEN 'closed'
+      WHEN o.detail_status='verified' AND NOT o.deadline_conflict AND NOT o.group_conflict
+        AND o.fetched_at>now()-interval '24 hours' AND o.deadline>CURRENT_DATE THEN 'current'
+      ELSE 'needs_review'
+    END AS board_status
+  FROM ranked o WHERE o.group_rank=1
+), filtered AS (
+  SELECT o.* FROM selected o
+  WHERE ($2='' OR EXISTS(
+      SELECT 1 FROM membership.opportunities search_alias
+      WHERE search_alias.id=ANY(o.alias_ids)
+        AND strpos(lower(search_alias.title||' '||search_alias.description||' '||search_alias.source),lower($2))>0))
+    AND ($3='all' OR o.kind=$3)
+    AND ($4='all' OR EXISTS(
+      SELECT 1 FROM membership.opportunities source_alias
+      WHERE source_alias.id=ANY(o.alias_ids) AND source_alias.source=$4))
+    AND ($5='all' OR EXISTS(
+      SELECT 1 FROM membership.opportunities location_alias
+      WHERE location_alias.id=ANY(o.alias_ids)
+        AND (location_alias.locations->>'scope'='worldwide'
+          OR location_alias.locations->'countryCodes' ? $5)))
+    AND ($6='all' OR o.board_status=$6)
+    AND ($7='all' OR ($7='future' AND o.deadline>CURRENT_DATE)
+      OR ($7='today' AND o.deadline=CURRENT_DATE)
+      OR ($7='past' AND o.deadline<CURRENT_DATE)
+      OR ($7='unknown' AND o.deadline IS NULL))
+    AND ($8::boolean=false OR EXISTS(
+      SELECT 1 FROM membership.saved_opportunities s
+      WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids)))
+)`;
+
+function cursorFilterKey(options: z.infer<typeof catalogueFiltersSchema>) {
+  return createHash("sha256")
+    .update(
+      JSON.stringify([
+        options.query,
+        options.kind,
+        options.source,
+        options.country,
+        options.status,
+        options.deadline,
+        options.saved,
+      ]),
+    )
+    .digest("hex");
+}
+
+async function queryCatalogue(
+  db: PoolClient,
+  userId: string,
+  raw: CatalogueFilters = {},
+) {
+  const options = catalogueFiltersSchema.parse(raw);
+  const filterKey = cursorFilterKey(options);
+  let cursor: z.infer<typeof cursorSchema> | undefined;
+  if (options.cursor) {
+    try {
+      cursor = cursorSchema.parse(
+        JSON.parse(Buffer.from(options.cursor, "base64url").toString("utf8")),
+      );
+      if (cursor.filterKey !== filterKey) throw new Error("Filter changed");
+    } catch {
+      throw new HttpError(400, "Invalid page cursor");
+    }
+  }
+  const values = [
+    userId,
+    options.query,
+    options.kind,
+    options.source,
+    options.country,
+    options.status,
+    options.deadline,
+    options.saved,
+    cursor?.at ?? null,
+    cursor?.id ?? null,
+  ];
+  const result = await db.query(
+    `${catalogueCte},
+     entitlement AS (
+       SELECT EXISTS(SELECT 1 FROM membership.subscriptions
+         WHERE user_id=$1 AND state='active' AND paid_until>now()) AS paid
+     ), tally AS (SELECT count(*)::int AS total FROM filtered)
+     SELECT tally.total, entitlement.paid, page.*
+     FROM tally CROSS JOIN entitlement
+     LEFT JOIN LATERAL (
+       SELECT o.*,o.published_at::text AS published_at,o.deadline::text AS deadline,
+         to_char(o.fetched_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_at,
+         CASE WHEN entitlement.paid THEN EXISTS(
+           SELECT 1 FROM membership.saved_opportunities s
+           WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids)) ELSE false END AS saved,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.fit END AS fit,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.confidence END AS confidence,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.eligibility END AS eligibility,
+         CASE WHEN entitlement.paid AND m.profile_revision=p.revision AND m.content_hash=o.content_hash
+           AND m.group_version=o.group_version AND o.board_status='current'
+           THEN m.reasons END AS reasons
+       FROM filtered o
+       LEFT JOIN membership.matches m ON entitlement.paid AND m.opportunity_id=o.id AND m.user_id=$1
+       LEFT JOIN membership.profiles p ON entitlement.paid AND p.user_id=$1
+       WHERE ($9::timestamptz IS NULL OR (o.fetched_at,o.id)<($9::timestamptz,$10::uuid))
+       ORDER BY o.fetched_at DESC,o.id DESC LIMIT 51
+     ) page ON true`,
+    values,
+  );
+  const paid = result.rows[0]?.paid === true;
+  if (options.saved && !paid)
+    throw new HttpError(402, "An active paid membership is required");
+  const pages = result.rows.filter((row) => row.id !== null);
+  const more = pages.length > 50;
+  const rows = pages.slice(0, 50).map(({ total, paid: paidFlag, ...row }) => {
+    void total;
+    void paidFlag;
+    return row;
+  });
+  const last = rows.at(-1);
+  return {
+    paid,
+    opportunities: rows,
+    filteredCount: result.rows[0].total as number,
+    nextCursor:
+      more && last
+        ? Buffer.from(
+            JSON.stringify({ at: last.cursor_at, id: last.id, filterKey }),
+          ).toString("base64url")
+        : null,
+  };
+}
+
+async function catalogueCountries(db: PoolClient) {
+  const result = await db.query<{ countries: string[] }>(
+    `SELECT CASE WHEN EXISTS (
+         SELECT 1 FROM membership.opportunities WHERE locations->>'scope'='worldwide'
+       ) THEN $1::text[] ELSE (
+         SELECT COALESCE(array_agg(DISTINCT country ORDER BY country), ARRAY[]::text[])
+         FROM membership.opportunities o
+         CROSS JOIN LATERAL jsonb_array_elements_text(o.locations->'countryCodes') AS countries(country)
+       ) END AS countries`,
+    [ISO_COUNTRY_CODES],
+  );
+  return result.rows[0]?.countries ?? [];
+}
+
+export async function catalogueData(
+  userId: string,
+  raw: CatalogueFilters = {},
+) {
+  return userTransaction(userId, async (db) => {
+    const [catalogue, countries] = await Promise.all([
+      queryCatalogue(db, userId, raw),
+      catalogueCountries(db),
+    ]);
+    return { ...catalogue, countries };
+  });
+}
+
 export async function dashboardData(
   userId: string,
-  options: { query?: string; cursor?: string; saved?: boolean } = {},
+  raw: CatalogueFilters = {},
 ) {
-  const query = (options.query ?? "").trim().slice(0, 200);
-  let cursor: { at: string; id: string } | undefined;
-  if (options.cursor)
-    cursor = cursorSchema.parse(
-      JSON.parse(Buffer.from(options.cursor, "base64url").toString("utf8")),
-    );
   return userTransaction(userId, async (db) => {
     const profile = await db.query(
       "SELECT * FROM membership.profiles WHERE user_id=$1",
@@ -24,79 +248,16 @@ export async function dashboardData(
       "SELECT state,paid_until,cancel_at_period_end FROM membership.subscriptions WHERE user_id=$1",
       [userId],
     );
-    const paid =
-      subscription.rows[0]?.state === "active" &&
-      new Date(subscription.rows[0].paid_until) > new Date();
     const credits = await db.query(
       "SELECT id,amount_cents,expires_at,state FROM membership.credits WHERE user_id=$1 AND expires_at>now() AND valid_from<=now() AND state IN ('available','reserved') ORDER BY expires_at DESC LIMIT 1",
       [userId],
     );
-    const base = {
-      profile: profile.rows[0] ?? null,
-      subscription: subscription.rows[0] ?? null,
-      credit: credits.rows[0] ?? null,
-    };
-    if (!paid)
-      return { ...base, opportunities: [], alerts: [], nextCursor: null };
-    const opportunities = await db.query(
-      `WITH grouped AS (
-         SELECT o.*,
-           CASE WHEN o.identity_key IS NULL THEN o.content_hash ELSE (
-             SELECT md5(string_agg(alias.content_hash,'|' ORDER BY alias.source,alias.source_key))
-             FROM membership.opportunities alias WHERE alias.identity_key=o.identity_key
-           ) END AS group_version,
-           row_number() OVER (PARTITION BY coalesce(o.identity_key,o.id::text)
-             ORDER BY (o.geography_status IN ('lebanon_confirmed','regional_includes_lebanon')
-               AND o.detail_status='verified' AND NOT o.deadline_conflict
-               AND o.fetched_at>now()-interval '24 hours'
-               AND o.application_status NOT IN ('closed','not_open_competition')
-               AND o.deadline>CURRENT_DATE) DESC,
-               (o.geography_status IN ('lebanon_confirmed','regional_includes_lebanon')
-               AND o.application_status NOT IN ('closed','not_open_competition')
-               AND (o.deadline IS NULL OR o.deadline>=CURRENT_DATE)) DESC,
-               (o.detail_status='verified' AND o.fetched_at>now()-interval '24 hours') DESC,
-               o.fetched_at DESC,o.source DESC,o.source_key DESC,o.id DESC) AS group_rank,
-           array_agg(o.id) OVER (PARTITION BY coalesce(o.identity_key,o.id::text)) AS alias_ids,
-           jsonb_agg(jsonb_build_object('source',o.source,'source_url',o.source_url,'title',o.title))
-             OVER (PARTITION BY coalesce(o.identity_key,o.id::text)) AS source_aliases,
-           (o.identity_key IS NOT NULL AND EXISTS (
-             SELECT 1 FROM membership.opportunities conflict
-             WHERE conflict.identity_key=o.identity_key AND conflict.id<>o.id
-               AND conflict.detail_status='verified'
-               AND conflict.fetched_at>now()-interval '24 hours'
-               AND (conflict.deadline IS DISTINCT FROM o.deadline
-                 OR conflict.kind IS DISTINCT FROM o.kind
-                 OR conflict.application_status IN ('closed','not_open_competition')
-                 OR conflict.geography_status='outside_lebanon'
-                 OR conflict.deadline_conflict)
-           )) AS group_conflict
-         FROM membership.opportunities o
-       )
-       SELECT o.*,o.published_at::text AS published_at,o.deadline::text AS deadline,
-   EXISTS(SELECT 1 FROM membership.saved_opportunities s WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids)) AS saved,
-   CASE WHEN m.profile_revision=p.revision AND m.content_hash=o.content_hash AND m.group_version=o.group_version AND NOT o.deadline_conflict AND NOT o.group_conflict AND o.detail_status='verified' AND o.fetched_at>now()-interval '24 hours' THEN m.fit END AS fit,
-   CASE WHEN m.profile_revision=p.revision AND m.content_hash=o.content_hash AND m.group_version=o.group_version AND NOT o.deadline_conflict AND NOT o.group_conflict AND o.detail_status='verified' AND o.fetched_at>now()-interval '24 hours' THEN m.confidence END AS confidence,
-   CASE WHEN m.profile_revision=p.revision AND m.content_hash=o.content_hash AND m.group_version=o.group_version AND NOT o.deadline_conflict AND NOT o.group_conflict AND o.detail_status='verified' AND o.fetched_at>now()-interval '24 hours' THEN m.eligibility END AS eligibility,
-   CASE WHEN m.profile_revision=p.revision AND m.content_hash=o.content_hash AND m.group_version=o.group_version AND NOT o.deadline_conflict AND NOT o.group_conflict AND o.detail_status='verified' AND o.fetched_at>now()-interval '24 hours' THEN m.reasons END AS reasons
-   FROM grouped o
-   LEFT JOIN membership.matches m ON m.opportunity_id=o.id AND m.user_id=$1 LEFT JOIN membership.profiles p ON p.user_id=$1
-   WHERE o.group_rank=1 AND o.geography_status IN ('lebanon_confirmed','regional_includes_lebanon') AND (o.deadline IS NULL OR o.deadline>=CURRENT_DATE) AND o.application_status NOT IN ('not_open_competition','closed') AND (o.deadline IS NOT NULL OR o.fetched_at>now()-interval '30 days')
-    AND ($2='' OR strpos(lower(o.title||' '||o.description),lower($2))>0)
-    AND ($3::timestamptz IS NULL OR (o.fetched_at,o.id)<($3::timestamptz,$4::uuid))
-   AND ($5::boolean=false OR EXISTS(SELECT 1 FROM membership.saved_opportunities s WHERE s.user_id=$1 AND s.opportunity_id=ANY(o.alias_ids))) ORDER BY o.fetched_at DESC,o.id DESC LIMIT 51`,
-      [
-        userId,
-        query,
-        cursor?.at ?? null,
-        cursor?.id ?? null,
-        options.saved ?? false,
-      ],
-    );
-    const more = opportunities.rows.length > 50,
-      rows = opportunities.rows.slice(0, 50),
-      last = rows.at(-1);
-    const alerts = await db.query(
-      `SELECT a.id,a.created_at,a.read_at,o.title,o.source_url FROM membership.alerts a
+    const catalogue = await queryCatalogue(db, userId, raw);
+    const countries = await catalogueCountries(db);
+    const paid = catalogue.paid;
+    const alerts = paid
+      ? await db.query(
+          `SELECT a.id,a.created_at,a.read_at,o.title,o.source_url FROM membership.alerts a
        JOIN membership.opportunities o ON o.id=a.opportunity_id AND o.content_hash=a.content_hash
        JOIN membership.matches m ON m.user_id=a.user_id AND m.opportunity_id=a.opportunity_id AND m.content_hash=a.content_hash AND m.group_version=a.group_version
        JOIN membership.profiles p ON p.user_id=a.user_id AND p.revision=m.profile_revision
@@ -135,21 +296,18 @@ export async function dashboardData(
                OR conflict.deadline_conflict)
          )
        ORDER BY a.created_at DESC LIMIT 30`,
-      [userId],
-    );
+          [userId],
+        )
+      : { rows: [] };
     return {
-      ...base,
-      opportunities: rows,
+      profile: profile.rows[0] ?? null,
+      subscription: subscription.rows[0] ?? null,
+      credit: credits.rows[0] ?? null,
+      opportunities: catalogue.opportunities,
+      countries,
       alerts: alerts.rows,
-      nextCursor:
-        more && last
-          ? Buffer.from(
-              JSON.stringify({
-                at: last.fetched_at.toISOString(),
-                id: last.id,
-              }),
-            ).toString("base64url")
-          : null,
+      filteredCount: catalogue.filteredCount,
+      nextCursor: catalogue.nextCursor,
     };
   });
 }

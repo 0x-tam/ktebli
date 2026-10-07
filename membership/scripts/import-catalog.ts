@@ -42,9 +42,9 @@ try {
   for (const o of records) {
     const qualification = catalogueQualification(o);
     await db.query(
-      `INSERT INTO membership.opportunities(source,source_key,source_url,title,description,kind,published_at,deadline,evidence,locales,source_content_hash,content_hash,fetched_at,detail_status,deadline_conflict,application_status,geography_status,geography_evidence,identity_key,identity_claim)
-       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
-       ON CONFLICT(source,source_key) DO UPDATE SET source_url=EXCLUDED.source_url,title=EXCLUDED.title,description=EXCLUDED.description,kind=EXCLUDED.kind,published_at=EXCLUDED.published_at,deadline=EXCLUDED.deadline,evidence=EXCLUDED.evidence,locales=EXCLUDED.locales,source_content_hash=EXCLUDED.source_content_hash,content_hash=EXCLUDED.content_hash,fetched_at=EXCLUDED.fetched_at,detail_status=EXCLUDED.detail_status,deadline_conflict=EXCLUDED.deadline_conflict,application_status=EXCLUDED.application_status,geography_status=EXCLUDED.geography_status,geography_evidence=EXCLUDED.geography_evidence,identity_key=EXCLUDED.identity_key,identity_claim=EXCLUDED.identity_claim
+      `INSERT INTO membership.opportunities(source,source_key,source_url,title,description,kind,published_at,deadline,evidence,locales,source_content_hash,content_hash,fetched_at,detail_status,deadline_conflict,application_status,geography_status,geography_evidence,identity_key,identity_claim,locations)
+       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+       ON CONFLICT(source,source_key) DO UPDATE SET source_url=EXCLUDED.source_url,title=EXCLUDED.title,description=EXCLUDED.description,kind=EXCLUDED.kind,published_at=EXCLUDED.published_at,deadline=EXCLUDED.deadline,evidence=EXCLUDED.evidence,locales=EXCLUDED.locales,source_content_hash=EXCLUDED.source_content_hash,content_hash=EXCLUDED.content_hash,fetched_at=EXCLUDED.fetched_at,detail_status=EXCLUDED.detail_status,deadline_conflict=EXCLUDED.deadline_conflict,application_status=EXCLUDED.application_status,geography_status=EXCLUDED.geography_status,geography_evidence=EXCLUDED.geography_evidence,identity_key=EXCLUDED.identity_key,identity_claim=EXCLUDED.identity_claim,locations=EXCLUDED.locations
        WHERE membership.opportunities.fetched_at<=EXCLUDED.fetched_at`,
       [
         o.source,
@@ -69,6 +69,7 @@ try {
         qualification.identity.claim
           ? JSON.stringify(qualification.identity.claim)
           : null,
+        JSON.stringify(qualification.locations),
       ],
     );
   }

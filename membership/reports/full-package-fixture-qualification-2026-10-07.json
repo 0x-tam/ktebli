@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-07",
+  "status": "bounded_fixture_attempt_failed_closed",
+  "production_mutations": 0,
+  "new_paid_model_calls": 0,
+  "customer_emails_sent": 0,
+  "historical_campaign_ledger_created_or_reset": false,
+  "unresolved_prior_hold_usd": 1,
+  "source": "retained synthetic Full business package, historical complete run c3aa3779-f466-40f0-8077-d39e90dd5776",
+  "source_dump_sha256": "a020c8c6a29e795d74eba6e6066f26995f89dee8444350d2fddef4ec12e78359",
+  "fixture_scope": "Replays package and delivery from previously generated synthetic documents; does not qualify fresh generation, real model quality or production checkout.",
+  "execution": {
+    "original_worker_source_unchanged": true,
+    "isolated_database": true,
+    "model_responses_simulated": true,
+    "mail_captured": true,
+    "python_external_provider_requests_blocked": true,
+    "renderer_network_allowed_but_package_held_before_render": true,
+    "historical_dump_receipts_preserved": true,
+    "attempt_1": "Copied completed order was ignored by current queue. No stage ran.",
+    "attempt_2": "Reopened only copied fixture order; package attempted validation repair. Unsupported fixture model request refused; durable unknown outcome held delivery.",
+    "final_stages": [
+      {
+        "key": "package",
+        "status": "held",
+        "error": "Error: Paid model outcome unknown; delivery held for reconciliation"
+      },
+      {
+        "key": "deliver",
+        "status": "pending",
+        "error": null
+      }
+    ],
+    "blocking_findings": [
+      "narrative: unsupported factual claim: Venue and tools are client-supplied and carry no charge",
+      "Mandatory requirement unresolved: Keep the main response between 600 and 900 words."
+    ]
+  },
+  "verification": {
+    "workflow_checks": 33,
+    "scoped_ledger_and_paid_journal_tests": 14,
+    "acceptance_guard_tests": 13,
+    "upload_log_privacy": "pass: four limiter failures omit email, IP, key and raw errors",
+    "upload_endpoint_typecheck": "pass with type-only import replacement",
+    "worker_typecheck": "pass",
+    "initial_environment_failures": "Initial npm fetch and localhost test binding restricted; rerun approved with dependencies and read permission passed."
+  },
+  "upload_fix": {
+    "files": [
+      "supabase/functions/upload-intake-file/http.ts",
+      "tests/upload/logging_test.ts"
+    ],
+    "behavior": "Rate-limit errors keep stable failure category only; still fail closed.",
+    "synchronized_to_clean": true,
+    "deployed": false,
+    "independent_review": "pending parent review"
+  },
+  "retained_local_evidence": [
+    "/private/tmp/ktebli-safe-package-fixture",
+    "/private/tmp/ktebli-safe-package-replay.json"
+  ],
+  "next_required": "Qualify an updated full-flow fixture or an explicitly budget-authorized real run without discarding unknown holds; inspect current validation findings before claiming Full workflow ready."
+}

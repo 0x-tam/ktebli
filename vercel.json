@@ -11,6 +11,7 @@
       "source": "/account/:path*",
       "destination": "https://ktebli-membership.vercel.app/account/:path*"
     },
+    { "source": "/start", "destination": "/index.html" },
     { "source": "/orders/session/:sid", "destination": "/order.html" },
     { "source": "/orders/:token", "destination": "/order.html" }
   ]

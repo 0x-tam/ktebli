@@ -46,7 +46,8 @@ const recentDetails = boundedDetails("CATALOGUE_RECENT_DETAILS", 300, 500);
 // today's qualified import and advance older evidence in a smaller daily slice.
 const backlogDetails = boundedDetails("CATALOGUE_BACKLOG_DETAILS", 40, 300);
 const sources = (
-  process.env.CATALOGUE_SOURCES ?? "worldbank,mawred,ungm-curated,ppa"
+  process.env.CATALOGUE_SOURCES ??
+  "worldbank,mawred,ungm-curated,ppa,grants-gov"
 ).split(",");
 const stopAt = Date.now() + 80 * 60 * 1000;
 if (
@@ -57,7 +58,9 @@ if (
       source !== "ppa" &&
       source !== "ungm-curated" &&
       source !== "mawred" &&
-      source !== "worldbank",
+      source !== "worldbank" &&
+      source !== "grants-gov" &&
+      source !== "sam-gov",
   )
 )
   throw new Error("CATALOGUE_SOURCES must name unique approved sources");
@@ -123,6 +126,24 @@ async function checkpoint(source: CrawlSource): Promise<Checkpoint> {
       seen: [],
       total: null,
       status: "incomplete",
+    };
+  } else if (source === "grants-gov" || source === "sam-gov") {
+    state = {
+      version: 1,
+      sources: {
+        [source]: {
+          status: "incomplete",
+          cursor: 0,
+          cursorUnit: source === "sam-gov" ? "page" : "offset",
+          pages: 0,
+          fingerprints: [],
+          seenIds: [],
+          expectedTotal: null,
+          pendingPage: null,
+          records: {},
+          updatedAt: new Date().toISOString(),
+        },
+      },
     };
   } else {
     state = { version: 1 };
@@ -192,12 +213,14 @@ async function runProcess(
   cwd: string,
   args: string[],
   onTick?: () => Promise<void>,
+  extraEnv: Record<string, string> = {},
 ) {
   const environment: NodeJS.ProcessEnv = {
     PATH: process.env.PATH,
     HOME: process.env.HOME,
     TMPDIR: process.env.TMPDIR,
     NODE_ENV: "production",
+    ...extraEnv,
   };
   if (cwd === resolve(".")) environment.INGEST_DATABASE_URL = connectionString;
   const child = spawn(process.execPath, args, {
@@ -246,6 +269,7 @@ async function runProcess(
 async function runSource(source: CrawlSource) {
   const startedAt = Date.now();
   const cp = await checkpoint(source);
+  const refreshPublicCatalog = cp.phase === "imported";
   const statePath = resolve(stateDir, `${source}.json`);
   const outputPath = resolve(stateDir, `${source}-output.json`);
   if (
@@ -449,6 +473,59 @@ async function runSource(source: CrawlSource) {
       throw new Error("worldbank_api_incomplete");
     }
     worldBankBatchSchema.parse(output);
+  }
+  if (source === "grants-gov" || source === "sam-gov") {
+    await rm(outputPath, { force: true });
+    const result = await runProcess(
+      crawlDir,
+      [
+        "src/worldwide-cli.mjs",
+        "--sources",
+        source,
+        "--state",
+        statePath,
+        "--output",
+        outputPath,
+        "--max-pages",
+        "10",
+        ...(refreshPublicCatalog ? ["--refresh"] : []),
+      ],
+      saveProgress,
+      source === "sam-gov" && process.env.SAM_GOV_API_KEY
+        ? { SAM_GOV_API_KEY: process.env.SAM_GOV_API_KEY }
+        : {},
+    );
+    const output = JSON.parse(await readFile(outputPath, "utf8"));
+    if (result.exitCode !== 0) {
+      const partialImport =
+        output.coverage?.status === "incomplete" &&
+        output.coverage?.streams?.[source]?.status === "incomplete" &&
+        Array.isArray(output.records) &&
+        output.records.length > 0;
+      console.error(
+        JSON.stringify({
+          source,
+          status: output.coverage?.streams?.[source]?.status ?? "incomplete",
+        }),
+      );
+      if (partialImport) {
+        catalogueBatchSchema.parse(output);
+        await importArtifact(outputPath);
+      }
+      await persist(
+        cp,
+        "incomplete",
+        output.coverage,
+        source === "sam-gov" &&
+          output.coverage?.streams?.["sam-gov"]?.status ===
+            "disabled_missing_api_key"
+          ? "sam_api_key_missing"
+          : `${source.replaceAll("-", "_")}_incomplete`,
+        partialImport,
+      );
+      throw new Error(`${source.replaceAll("-", "_")}_incomplete`);
+    }
+    catalogueBatchSchema.parse(output);
   }
   await importArtifact(outputPath);
   const output = JSON.parse(await readFile(outputPath, "utf8"));

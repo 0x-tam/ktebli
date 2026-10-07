@@ -1,5 +1,6 @@
 import test from "node:test";
-import { dashboardData } from "../lib/dashboard";
+import { catalogueData, dashboardData } from "../lib/dashboard";
+import { loadPublicOpportunityHandoff } from "../lib/opportunity-handoff";
 import {
   matchingAlertSql,
   matchingCandidatesSql,
@@ -56,6 +57,7 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
     await admin.query(await readFile("db/002_crawler_checkpoint.sql", "utf8"));
     await admin.query(await readFile("db/003_mawred_source.sql", "utf8"));
     await admin.query(await readFile("db/004_central_catalogue.sql", "utf8"));
+    await admin.query(await readFile("db/005_worldwide_catalogue.sql", "utf8"));
     for (const [name, role] of [
       ["membership_test_runtime", "membership_runtime"],
       ["membership_test_billing", "membership_billing"],
@@ -482,6 +484,15 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
     await admin.query(
       "INSERT INTO membership.opportunities(id,source,source_key,source_url,title,kind,source_content_hash,content_hash,fetched_at,first_seen_at,deadline,detail_status,geography_status,identity_key) VALUES('00000000-0000-4000-8000-000000000003','worldbank','worldbank:alias','https://projects.worldbank.org/en/projects-operations/procurement-detail/OP12345','Same exact notice','procurement',repeat('d',64),'alias-hash',now()-interval '1 second',now()+interval '1 second',CURRENT_DATE+1,'verified','lebanon_confirmed',repeat('c',64))",
     );
+    await admin.query(
+      `INSERT INTO membership.opportunities(
+         id,source,source_key,source_url,title,kind,source_content_hash,content_hash,
+         fetched_at,deadline,detail_status,geography_status,locations
+       ) VALUES('00000000-0000-4000-8000-000000000004','sam-gov','sam-gov:us-procurement',
+         'https://sam.gov/opp/12345/view','US procurement','procurement',repeat('e',64),
+         repeat('f',64),now(),CURRENT_DATE+1,'verified','unknown',
+         '{"countryCodes":["US"],"scope":"countries","evidence":[{"label":"Place of performance country","text":"United States","url":"https://sam.gov/opp/12345/view"}]}'::jsonb)`,
+    );
     const candidates = await tx(worker, "membership_worker", "", (db) =>
       db.query(matchingCandidatesSql),
     );
@@ -764,6 +775,169 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
     await admin.query(
       "UPDATE membership.subscriptions SET state='inactive' WHERE user_id='alice'",
     );
+    await admin.query(
+      `INSERT INTO membership.opportunities(source,source_key,source_url,title,kind,source_content_hash,content_hash,fetched_at,deadline,detail_status,geography_status,application_status,locations)
+       SELECT 'ppa','board-fixture-'||n,'https://www.ppa.gov.lb/en/'||n,
+         'Board fixture '||n,CASE WHEN n%2=1 THEN 'grant' ELSE 'procurement' END,
+         repeat('e',64),'board-hash-'||n,now(),
+         CASE WHEN n=61 THEN NULL WHEN n<=40 THEN CURRENT_DATE+1 ELSE CURRENT_DATE-1 END,
+         'verified','lebanon_confirmed',CASE WHEN n%5=0 THEN 'closed' ELSE 'needs_verification' END,
+         jsonb_build_object('countryCodes',ARRAY['LB'],'scope','countries','evidence',
+           jsonb_build_array(jsonb_build_object('label','Procurement jurisdiction',
+             'text','Lebanon Public Procurement Authority official portal',
+             'url','https://www.ppa.gov.lb/en/'||n)))
+       FROM generate_series(1,61) n`,
+    );
+    const freeFirst = await dashboardData("alice", { query: "Board fixture" });
+    const apiFirst = await catalogueData("alice", { query: "Board fixture" });
+    assert.equal(apiFirst.filteredCount, 61);
+    assert.equal(apiFirst.opportunities.length, 50);
+    assert.ok(!("profile" in apiFirst) && !("alerts" in apiFirst));
+    assert.ok(
+      apiFirst.opportunities.every((row) => row.fit === null && !row.saved),
+    );
+    const publicHint = await tx(runtime, "membership_runtime", "alice", (db) =>
+      loadPublicOpportunityHandoff(db, apiFirst.opportunities[0].id),
+    );
+    assert.equal(publicHint.id, apiFirst.opportunities[0].id);
+    assert.ok(publicHint.sourceUrl.startsWith("https://"));
+    assert.ok(!("fit" in publicHint) && !("credit" in publicHint));
+    assert.ok(!("profile" in publicHint) && !("email" in publicHint));
+    const closedId = (
+      await admin.query(
+        "SELECT id FROM membership.opportunities WHERE source_key='board-fixture-50'",
+      )
+    ).rows[0].id as string;
+    const closedHint = await tx(runtime, "membership_runtime", "alice", (db) =>
+      loadPublicOpportunityHandoff(db, closedId),
+    );
+    assert.equal(
+      closedHint.status,
+      "closed",
+      "past or closed notice cannot be presented as open",
+    );
+    const apiEmpty = await catalogueData("alice", {
+      query: "no-such-notice-928374",
+    });
+    assert.equal(apiEmpty.filteredCount, 0);
+    assert.deepEqual(apiEmpty.opportunities, []);
+    assert.equal(apiEmpty.nextCursor, null);
+    await assert.rejects(
+      catalogueData("alice", { cursor: "not-a-cursor" }),
+      /Invalid page cursor/,
+    );
+    assert.equal(
+      freeFirst.filteredCount,
+      61,
+      "free account sees entire filtered catalogue",
+    );
+    assert.equal(freeFirst.opportunities.length, 50);
+    assert.ok(freeFirst.nextCursor);
+    assert.equal(freeFirst.alerts.length, 0);
+    assert.ok(
+      freeFirst.opportunities.every((row) => row.fit === null && !row.saved),
+    );
+    const freeSecond = await dashboardData("alice", {
+      query: "Board fixture",
+      cursor: freeFirst.nextCursor!,
+    });
+    assert.equal(
+      freeSecond.filteredCount,
+      61,
+      "count is independent of cursor",
+    );
+    assert.equal(freeSecond.opportunities.length, 11);
+    assert.equal(freeSecond.nextCursor, null);
+    assert.equal(
+      new Set(
+        [...freeFirst.opportunities, ...freeSecond.opportunities].map(
+          (row) => row.id,
+        ),
+      ).size,
+      61,
+    );
+    assert.equal(
+      (await dashboardData("alice", { query: "Board fixture", kind: "grant" }))
+        .filteredCount,
+      31,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          status: "current",
+        })
+      ).filteredCount,
+      32,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          status: "closed",
+        })
+      ).filteredCount,
+      28,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          deadline: "past",
+        })
+      ).filteredCount,
+      20,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          deadline: "unknown",
+        })
+      ).filteredCount,
+      1,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          source: "worldbank",
+        })
+      ).filteredCount,
+      0,
+    );
+    assert.equal(
+      (
+        await dashboardData("alice", {
+          query: "Board fixture",
+          kind: "grant",
+          status: "current",
+          deadline: "future",
+        })
+      ).filteredCount,
+      16,
+    );
+    await assert.rejects(
+      dashboardData("alice", { saved: true }),
+      /active paid membership/,
+    );
+    const freeAlias = await dashboardData("alice", { query: "Next" });
+    assert.equal(
+      freeAlias.opportunities.find((row) => row.source_key === "next")?.saved,
+      false,
+    );
+    assert.equal(
+      (await dashboardData("alice", { query: "Next", source: "worldbank" }))
+        .filteredCount,
+      1,
+      "source filter includes an official cross-listed alias",
+    );
+    assert.equal(
+      (await dashboardData("alice", { query: "Same exact notice" }))
+        .filteredCount,
+      1,
+      "search includes a cross-listed alias title",
+    );
     assert.equal(
       (
         await tx(worker, "membership_worker", "", (db) =>
@@ -776,6 +950,160 @@ test("real Postgres: tenant isolation, privilege separation, idempotency and con
       ).rowCount,
       0,
       "canceled entitlement cannot receive a paid match",
+    );
+    const countryRecords = [
+      {
+        source: "grants-gov",
+        sourceKey: "grants-gov:country-us-current",
+        sourceUrl: "https://www.grants.gov/search-results-detail/10001",
+        title: "US country opportunity",
+        deadlineOffset: 5,
+        locations: {
+          countryCodes: ["US"],
+          scope: "countries",
+          evidence: [
+            {
+              label: "Project country",
+              text: "United States",
+              url: "https://www.grants.gov/search-results-detail/10001",
+            },
+          ],
+        },
+      },
+      {
+        source: "sam-gov",
+        sourceKey: "sam-gov:country-unknown",
+        sourceUrl: "https://sam.gov/opp/10002/view",
+        title: "Unknown location opportunity",
+        deadlineOffset: 5,
+        locations: { countryCodes: [], scope: "unknown", evidence: [] },
+      },
+      {
+        source: "grants-gov",
+        sourceKey: "grants-gov:worldwide-current",
+        sourceUrl: "https://www.grants.gov/search-results-detail/10003",
+        title: "Worldwide opportunity",
+        deadlineOffset: 5,
+        locations: {
+          countryCodes: [],
+          scope: "worldwide",
+          evidence: [
+            {
+              label: "Opportunity geography",
+              text: "Worldwide",
+              url: "https://www.grants.gov/search-results-detail/10003",
+            },
+          ],
+        },
+      },
+      {
+        source: "grants-gov",
+        sourceKey: "grants-gov:country-us-expired",
+        sourceUrl: "https://www.grants.gov/search-results-detail/10004",
+        title: "Expired US opportunity",
+        deadlineOffset: -1,
+        locations: {
+          countryCodes: ["US"],
+          scope: "countries",
+          evidence: [
+            {
+              label: "Project country",
+              text: "United States",
+              url: "https://www.grants.gov/search-results-detail/10004",
+            },
+          ],
+        },
+      },
+    ];
+    for (const record of countryRecords) {
+      await admin.query(
+        `INSERT INTO membership.opportunities(
+           source,source_key,source_url,title,description,kind,deadline,evidence,
+           content_hash,source_content_hash,fetched_at,detail_status,geography_status,
+           application_status,locations
+         ) VALUES($1,$2,$3,$4,'','grant',CURRENT_DATE+$5::integer,'[]'::jsonb,
+           repeat('a',64),repeat('a',64),now(),'verified','unknown','needs_verification',$6::jsonb)`,
+        [
+          record.source,
+          record.sourceKey,
+          record.sourceUrl,
+          record.title,
+          record.deadlineOffset,
+          JSON.stringify(record.locations),
+        ],
+      );
+    }
+    const usBoard = await dashboardData("alice", { country: "US" });
+    const usKeys = new Set(usBoard.opportunities.map((row) => row.source_key));
+    assert.ok(usKeys.has("grants-gov:country-us-current"));
+    assert.ok(usKeys.has("grants-gov:worldwide-current"));
+    assert.ok(usKeys.has("grants-gov:country-us-expired"));
+    assert.ok(!usKeys.has("sam-gov:country-unknown"));
+    assert.ok(
+      usBoard.countries.includes("LB") && usBoard.countries.includes("US"),
+    );
+    const legacyLebanonBoard = await dashboardData("alice", {
+      query: "Board fixture",
+      country: "LB",
+    });
+    assert.equal(legacyLebanonBoard.filteredCount, 61);
+    assert.ok(
+      legacyLebanonBoard.opportunities.every((row) =>
+        row.locations.countryCodes.includes("LB"),
+      ),
+    );
+    const currentUs = await dashboardData("alice", {
+      country: "US",
+      status: "current",
+    });
+    assert.deepEqual(
+      new Set(currentUs.opportunities.map((row) => row.source_key)),
+      new Set([
+        "grants-gov:country-us-current",
+        "grants-gov:worldwide-current",
+        "sam-gov:us-procurement",
+      ]),
+    );
+    assert.equal(
+      (await dashboardData("alice", { country: "US", status: "closed" }))
+        .opportunities[0]?.source_key,
+      "grants-gov:country-us-expired",
+    );
+    const unknownId = (
+      await admin.query(
+        "SELECT id FROM membership.opportunities WHERE source_key='sam-gov:country-unknown'",
+      )
+    ).rows[0].id as string;
+    const handoff = await tx(runtime, "membership_runtime", "alice", (db) =>
+      loadPublicOpportunityHandoff(db, unknownId),
+    );
+    assert.equal(handoff.status, "current");
+    assert.equal(handoff.source, "sam-gov");
+
+    const longUnicodeQuery = "ع".repeat(200);
+    await admin.query(
+      "UPDATE membership.opportunities SET title=$1||' '||title WHERE source_key LIKE 'board-fixture-%'",
+      [longUnicodeQuery],
+    );
+    const firstLongPage = await catalogueData("alice", {
+      query: longUnicodeQuery,
+      country: "LB",
+    });
+    assert.ok(firstLongPage.nextCursor);
+    assert.ok(firstLongPage.nextCursor!.length < 500);
+    const secondLongPage = await catalogueData("alice", {
+      query: longUnicodeQuery,
+      country: "LB",
+      cursor: firstLongPage.nextCursor!,
+    });
+    assert.equal(secondLongPage.opportunities.length, 11);
+    await assert.rejects(
+      catalogueData("alice", {
+        query: longUnicodeQuery,
+        country: "US",
+        cursor: firstLongPage.nextCursor!,
+      }),
+      /Invalid page cursor/,
     );
     // SQL parameters preserve hostile text without changing the tenant filter.
     const injection = "alice' OR true --";

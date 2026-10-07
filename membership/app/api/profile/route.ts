@@ -8,7 +8,10 @@ export const GET = () =>
     const result = await userTransaction(user.id, (db) =>
       db.query("SELECT * FROM membership.profiles WHERE user_id=$1", [user.id]),
     );
-    return json({ profile: result.rows[0] ?? null });
+    return json({
+      profile: result.rows[0] ?? null,
+      account: { id: user.id, name: user.name ?? "", email: user.email },
+    });
   });
 export const PUT = (request: Request) =>
   handle(async () => {

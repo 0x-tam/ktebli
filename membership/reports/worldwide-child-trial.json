@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-07T11:12:46.364395+00:00",
+  "status": "child_migration_pass",
+  "project": "green-shadow-66380714",
+  "branch": "br-sweet-waterfall-b14yipw6",
+  "expectedHost": "ep-rough-recipe-b1rqjpyf.c-5.eu-central-1.aws.neon.tech",
+  "expiresAt": "2026-10-08T12:00:00Z",
+  "migration": "005",
+  "sha256": "58e0af6c5ef587cfbd18a69ae2d43fe83580fda6bd60c3acad43a5019e041160",
+  "rowsBefore": 1186,
+  "rowsAfter": 1186,
+  "sources": {
+    "ppa": {
+      "rows": 1165,
+      "LB": 1165
+    },
+    "ungm": {
+      "rows": 11,
+      "LB": 11
+    },
+    "worldbank": {
+      "rows": 9,
+      "LB": 9
+    },
+    "mawred": {
+      "rows": 1,
+      "LB": 0
+    }
+  },
+  "servingMutated": false,
+  "privateDataRead": false
+}

@@ -6,7 +6,13 @@
       const active = item === tab;
       item.setAttribute('aria-selected', String(active));
       item.tabIndex = active ? 0 : -1;
-      document.getElementById(item.getAttribute('aria-controls')).hidden = !active;
+      const panel = document.getElementById(item.getAttribute('aria-controls'));
+      panel.hidden = !active;
+      if (active) {
+        panel.classList.remove('is-entering');
+        void panel.offsetWidth;
+        panel.classList.add('is-entering');
+      }
     }
     if (moveFocus) tab.focus();
   }

@@ -16,7 +16,37 @@ npm run crawl:supplemental -- --watch-state .state/watches.json --output .state/
 npm run crawl:ungm-curated -- --state .state/ungm-coverage.json --output .state/ungm-opportunities.json --max-details 12
 npm run crawl:mawred -- --state .state/mawred-coverage.json --output .state/mawred-opportunities.json
 npm run crawl:worldbank -- --state .state/worldbank-coverage.json --output .state/worldbank-opportunities.json --refresh
+npm run crawl:worldwide -- --sources grants-gov --state .state/grants-gov-coverage.json --output .state/grants-gov-opportunities.json --max-pages 10
+npm run crawl:worldwide -- --sources sam-gov --state .state/sam-gov-coverage.json --output .state/sam-gov-opportunities.json --max-pages 10
 ```
+
+The Worldwide runner adds the [Grants.gov public opportunity APIs](https://www.grants.gov/api/common/search2)
+and the [SAM.gov Get Opportunities API](https://open.gsa.gov/api/get-opportunities-public-api/).
+Grants.gov searches posted notices and fetches each selected notice detail before
+emitting it; forecast notices are never marked open. SAM.gov returns each notice
+in its listing response and requires a server-side `SAM_GOV_API_KEY`. SAM requests
+include that key in the API query as required by GSA, never in state or logs, and
+do not follow redirects. Configure it in the server environment or ignored
+`membership/.env.local`; do not pass it as a CLI argument. A missing key produces a
+`disabled_missing_api_key` stream and no SAM records.
+
+The runner accepts a maximum of ten pages per invocation and saves each fully
+validated record as it goes. An incomplete snapshot can emit verified rows for
+safe nondeleting upsert while keeping source coverage incomplete; it must not be
+used as an exhausted-catalogue count or to delete older records. Grants.gov
+searches the public posted catalogue. SAM.gov searches and freezes a rolling
+365-day posted-date window in its checkpoint because the API limits that date
+range to one year. A complete SAM window says nothing about older archived
+notices or other national catalogues. Both sources keep country locations only
+when the notice explicitly states a project or place-of-performance geography;
+funder country and applicant-origin rules do not set opportunity location.
+`locations.scope: "worldwide"` requires explicit opportunity-geography evidence;
+it describes location scope and does not establish that every applicant may
+apply. Grants.gov content must retain visible source attribution when displayed.
+If a publisher total or page order changes during a resumable pass, the crawler
+keeps coverage incomplete; restart that source with `--refresh` to establish a
+new snapshot. Refresh resets only the local checkpoint. The importer upserts
+verified rows without deleting earlier database records.
 
 The same state resumes pending cursors. `--retry-blocked` retries a previously
 blocked/incomplete stream; it does not solve a challenge or ignore robots.

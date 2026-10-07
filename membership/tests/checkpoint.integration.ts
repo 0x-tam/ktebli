@@ -215,6 +215,17 @@ test("failed historical pass retains fresh import and next daily cycle refreshes
       "SELECT phase,last_import_at FROM membership.crawler_checkpoints WHERE source='ppa'",
     );
     assert.equal(refreshed.rows[0].phase, "listing");
+    // A halted recent-detail pass also remains in listing phase. A new UTC
+    // day must not keep reusing yesterday's complete listing ID set.
+    await admin.query(
+      "UPDATE membership.crawler_checkpoints SET phase='listing',last_run_at=now()-interval '2 days' WHERE source='ppa'",
+    );
+    await runner(temp, { stopAfterRefresh: true, expectedExit: 1 });
+    const retry = await admin.query(
+      "SELECT phase,last_run_at FROM membership.crawler_checkpoints WHERE source='ppa'",
+    );
+    assert.equal(retry.rows[0].phase, "listing");
+    assert.ok(Date.now() - +retry.rows[0].last_run_at < 60000);
     assert.equal(
       +refreshed.rows[0].last_import_at,
       +failed.rows[0].last_import_at,

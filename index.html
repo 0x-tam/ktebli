@@ -7,6 +7,7 @@ var ownerTestInvite = '';
 (function () {
   var match = /^#owner-test=([0-9a-f]{64})$/.exec(window.location.hash);
   if (match) { ownerTestInvite = match[1]; history.replaceState(null, '', window.location.pathname + window.location.search); }
+  if (window.location.pathname === '/start' || window.location.pathname === '/start/') document.documentElement.classList.add('focused-start');
 })();
 </script>
 <meta charset="UTF-8">
@@ -26,17 +27,21 @@ var ownerTestInvite = '';
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root{
-  --bg:#FBFAF7;
-  --mint:#EAF7EF;
-  --green:#1F9E5A;
-  --forest:#14532D;
-  --coral:#FF6B5A;
-  --ink:#1A1A1A;
-  --grey:#5F6B63;
-  --line:#E2E0D8;
+  --bg:#FAF8F2;
+  --mint:#E9EFE4;
+  --green:#356347;
+  --forest:#284D39;
+  --coral:#C45141;
+  --ink:#20392F;
+  --grey:#59695F;
+  --line:#D9DED4;
+  --motion-press:120ms;
+  --motion-state:180ms;
+  --motion-surface:240ms;
+  --motion-ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
 body{
   background:var(--bg);color:var(--ink);
   font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -53,25 +58,26 @@ body{
 }
 .stamp .dot{color:var(--coral)}
 
-nav{position:sticky;top:0;z-index:60;background:rgba(251,250,247,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px}
+nav{position:sticky;top:0;z-index:60;background:rgba(250,248,242,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px}
 .navlinks{display:flex;gap:30px;align-items:center}
 .navlinks a{color:var(--grey);text-decoration:none;font-size:15.5px;font-weight:500}
 .navlinks a:hover{color:var(--ink)}
 .btn{
   display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;
-  font-size:15.5px;padding:13px 24px;border-radius:100px;border:none;cursor:pointer;
-  font-family:inherit;transition:transform .14s,box-shadow .14s,background .14s;
+  min-height:48px;font-size:15.5px;padding:13px 24px;border-radius:100px;border:none;cursor:pointer;
+  font-family:inherit;transition:transform var(--motion-press) var(--motion-ease),box-shadow var(--motion-state) var(--motion-ease),background-color var(--motion-state) var(--motion-ease),color var(--motion-state) var(--motion-ease);
   box-shadow:0 3px 0 var(--forest);
 }
-.btn:hover{background:#23b366;transform:translateY(-2px);box-shadow:0 5px 0 var(--forest)}
+.btn:hover{background:#284d39;transform:translateY(-2px);box-shadow:0 5px 0 var(--forest)}
 .btn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--forest)}
 .navlinks a.btn,.navlinks a.btn:hover{color:#fff}
-.btn.coral{background:var(--coral);box-shadow:0 3px 0 #C7412F}
-.btn.coral:hover{background:#ff8071;box-shadow:0 5px 0 #C7412F}
+.btn.coral{background:var(--coral);box-shadow:0 3px 0 #81392F}
+.btn.coral:hover{background:#a94436;box-shadow:0 5px 0 #81392F}
 .btn.plain{background:transparent;color:var(--ink);box-shadow:none;border:2px solid var(--ink)}
 .btn.plain:hover{background:var(--ink);color:var(--bg);box-shadow:none}
 .btn.big{font-size:17.5px;padding:16px 32px}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #8C5739;outline-offset:3px}
 
 header{padding:92px 0 76px}
 .herosplit{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center}
@@ -87,7 +93,7 @@ h1{font-size:clamp(42px,6.6vw,76px);max-width:15ch;margin-bottom:26px}
 .cta-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .undercta{font-size:15px;color:var(--grey);margin-top:20px}
 
-.heroviz{background:#fff;border:2px solid var(--ink);border-radius:18px;box-shadow:8px 8px 0 var(--coral);overflow:hidden}
+.heroviz{background:#fff;border:1px solid var(--ink);border-radius:18px;box-shadow:6px 6px 0 var(--coral);overflow:hidden}
 .heroviz .hv-top{background:var(--forest);color:#fff;padding:14px 20px;font-size:13.5px;font-weight:700;letter-spacing:.04em}
 .heroviz .hv-body{padding:18px 20px 22px}
 .hv-row{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px dashed var(--line)}
@@ -115,7 +121,7 @@ h2{font-size:clamp(32px,4.8vw,50px);max-width:19ch;margin-bottom:18px}
 .row p{color:var(--grey);max-width:62ch;font-size:16.5px}
 
 .split{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
-.card{background:#fff;border:2px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:8px 8px 0 var(--green)}
+.card{background:#fff;border:1px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:6px 6px 0 var(--green)}
 .card .chead{
   background:var(--ink);color:#fff;padding:14px 20px 14px 24px;font-size:14.5px;font-weight:700;
   letter-spacing:.03em;display:flex;align-items:center;justify-content:space-between;gap:14px;
@@ -133,7 +139,7 @@ h2{font-size:clamp(32px,4.8vw,50px);max-width:19ch;margin-bottom:18px}
 }
 .cardnote{margin-top:14px;font-size:14.5px;color:var(--grey);text-align:center}
 
-.lockgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));border:2px solid rgba(255,255,255,.22);border-radius:16px;overflow:hidden;margin-top:8px}
+.lockgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));border:1px solid rgba(255,255,255,.3);border-radius:16px;overflow:hidden;margin-top:8px}
 .lockcell{padding:28px 26px;border-right:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16)}
 .lockcell .n{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:#7FE0A8;margin-bottom:10px;display:block}
 .lockcell h3{font-size:18.5px;font-weight:700;margin-bottom:8px}
@@ -149,7 +155,7 @@ h2{font-size:clamp(32px,4.8vw,50px);max-width:19ch;margin-bottom:18px}
 .pill{display:inline-block;background:var(--mint);color:var(--forest);font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:100px;margin-left:6px;vertical-align:2px}
 
 .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:24px;margin-top:14px}
-.tier{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:30px 28px;display:flex;flex-direction:column}
+.tier{background:#fff;border:1px solid var(--ink);border-radius:18px;padding:30px 28px;display:flex;flex-direction:column}
 .tier.hot{box-shadow:8px 8px 0 var(--coral);position:relative}
 .tier.hot .badge{position:absolute;top:-15px;left:26px;background:var(--coral);color:#fff;font-size:12.5px;font-weight:700;padding:5px 13px;border-radius:100px;border:2px solid var(--ink)}
 .tname{font-size:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grey);margin-bottom:12px}
@@ -184,8 +190,8 @@ form{max-width:660px;margin-top:10px}
 label{display:block;font-size:15px;font-weight:700;margin-bottom:7px}
 label .hint{display:block;font-weight:400;font-size:14.5px;color:var(--grey);margin-top:3px}
 label .rq{color:var(--coral)}
-input,textarea,select{width:100%;background:#fff;border:2px solid var(--ink);border-radius:11px;padding:13px 15px;color:var(--ink);font-family:inherit;font-size:16px}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px var(--mint)}
+input,textarea,select{width:100%;min-height:48px;background:#fff;border:1px solid #9EAA9F;border-radius:9px;padding:12px 14px;color:var(--ink);font-family:inherit;font-size:16px}
+input:focus,textarea:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--mint)}
 textarea{resize:vertical;min-height:112px}
 select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='13' height='9'><path d='M1.5 1.5l5 5 5-5' stroke='%231A1A1A' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 16px center}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -214,6 +220,8 @@ footer a:hover{color:var(--coral)}
   .card{box-shadow:5px 5px 0 var(--green)}
   .tier.hot{box-shadow:5px 5px 0 var(--coral)}
 }
+
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 /* trial strip */
 .trialstrip{
@@ -307,6 +315,13 @@ footer a:hover{color:var(--coral)}
   .trialstrip{padding:18px}
 }
 </style>
+<style>
+.catalogue-context{border:1px solid #d4dfd1;background:#f3f7ef;border-radius:9px;padding:13px 16px;margin:0 0 17px;line-height:1.5}
+.catalogue-context strong{display:block;color:#20392f;overflow-wrap:anywhere}
+.catalogue-context p{margin:5px 0 0;font-size:13px;color:#596b5e}
+.catalogue-context a{text-decoration:underline;text-underline-offset:3px}
+.catalogue-context .catalogue-warning{color:#845329}
+</style>
 <link rel="stylesheet" href="/website.css?v=two-services-2">
 <script src="/website.js" defer></script>
 </head>
@@ -319,7 +334,7 @@ footer a:hover{color:var(--coral)}
       <a href="#membership">Find opportunities</a>
       <a href="#how">How it works</a>
       <a href="#pricing">Pricing</a>
-      <a href="/account/auth" class="account-link">Account</a>
+      <a href="/account/dashboard" class="account-link">Account</a>
       <a href="#start" class="btn">Start a proposal</a>
     </div>
   </div>
@@ -328,86 +343,59 @@ footer a:hover{color:var(--coral)}
 <header>
   <div class="wrap herosplit">
     <div>
-      <span class="tag">FIND THE OPENING · MAKE YOUR CASE</span>
-      <h1 class="disp">Find your next opportunity.<br>Make your proposal yours.</h1>
-      <p class="lede">Find grants, tenders and procurement notices in Lebanon, or bring a brief you already have. Ktebli turns your evidence into a proposal with <b>four locks to keep it distinct.</b></p>
+      <span class="tag">PROPOSALS FOR GRANTS, TENDERS &amp; CLIENT BRIEFS</span>
+      <h1 class="disp">Your next proposal, taken care of.</h1>
+      <p class="lede">Paste a grant, tender or client brief. We turn your experience into a proposal package. <b>Our four-lock system keeps your proposal distinct from others we write for the same opportunity.</b></p>
       <div class="cta-row">
-        <a href="#start" class="btn big">Start with my link</a>
-        <a href="/account/auth" class="btn plain big">Prepare my profile</a>
+        <a href="#start" class="btn big">Start a proposal</a>
+        <a href="/account/dashboard" class="btn plain big">Browse opportunities</a>
       </div>
-      <p class="undercta"><b style="color:var(--ink)">Ktebli</b> means &ldquo;write it for me.&rdquo; One-off proposals start at $149; membership is optional.</p>
+      <p class="undercta">One-time proposal packages from <b style="color:var(--ink)">$149</b>. No membership needed.</p>
     </div>
-
-    <aside class="proposal-problem" aria-label="Four enforced originality checks">
-      <div class="problem-half"><p class="problem-label">BUILT TO KEEP YOUR PROPOSAL DISTINCT</p><h2>Originality has rules here.</h2><ol class="hero-locks"><li><b>Reserve your approach.</b> Record it before drafting begins.</li><li><b>Block a repeat.</b> Refuse the same approach on the same opportunity.</li><li><b>Give it its own shape.</b> Plan a distinct structure and opening where the brief allows.</li><li><b>Keep your wording distinct.</b> Check for overlap and rework passages that are too similar.</li></ol></div>
-      <div class="solution-half"><p class="problem-label">ENFORCED THROUGHOUT THE WORKFLOW</p><h2>Four locks. Enforced rules built into the system.</h2><p>Checks cover other proposals Ktebli writes for the same opportunity. Required issuer wording stays intact.</p><a href="#lock">See how each lock works →</a></div>
+    <aside class="hero-summary" aria-label="Proposal service summary">
+      <p class="problem-label">A straightforward process</p>
+      <ol><li>Share the opportunity brief.</li><li>Choose what you need.</li><li>Add your name and email.</li></ol>
+      <p>After payment, add your proposed work. We draft and check the package before delivery.</p>
+      <a href="#pricing" class="text-link">See packages and prices</a>
     </aside>
   </div>
 </header>
 
 <section id="membership" class="membership-path mintbg" aria-labelledby="membership-title">
-  <div class="wrap">
-    <div class="kicker">Two ways to begin. One Ktebli.</div>
-    <h2 class="disp" id="membership-title">Find a lead. Then make it yours.</h2>
-    <div class="membership-path-grid">
-      <article class="membership-path-card">
-        <span class="membership-path-step">01 · OPPORTUNITIES</span>
-        <h3>See what may fit your work.</h3>
-        <p>Membership opens soon. Create your free profile now, then explore sourced grants, tenders and procurement notices in Lebanon when the $20/month board opens.</p>
-        <a href="/account/auth" class="text-link">Prepare my profile ↗</a>
-      </article>
-      <article class="membership-path-card">
-        <span class="membership-path-step">02 · PROPOSALS</span>
-        <h3>Turn a brief into your proposal.</h3>
-        <p>Bring an opportunity you already found and order without a membership. Choose a $149, $299 or $449 one-off package. Ktebli writes around your evidence and uses four enforced locks to keep proposals for the same opportunity distinct.</p>
-        <a href="#pricing" class="text-link">Compare proposal packages ↘</a>
-      </article>
-    </div>
-    <p class="membership-credit">When membership checkout opens, each paid monthly cycle includes one $20 credit toward a proposal package. It expires with that cycle and does not stack or roll over. <a href="/account/membership-details">Membership details ↗</a></p>
+  <div class="wrap browse-band" id="opportunities">
+    <div><div class="kicker">Looking for opportunities?</div><h2 class="disp" id="membership-title">Browse sourced notices in Lebanon.</h2><p>Create a free account to explore. Membership and personalized matching are not open yet; check each original notice.</p></div>
+    <div><a href="/account/dashboard" class="btn">Browse opportunities</a><p class="membership-credit"><a href="/account/membership-details">Membership details ↗</a></p></div>
   </div>
 </section>
 
-<section id="beyond-chat" class="mintbg">
+<section class="inkbg" id="lock">
   <div class="wrap">
-    <div class="kicker">“Can’t I just give it to ChatGPT or Claude?”</div>
-    <h2 class="disp">You can get a draft.<br>You still have a proposal to check.</h2>
-    <p class="sub">AI can help you write. But a convincing paragraph doesn’t tell you whether every requirement is covered, a claim is supported, or the budget matches the plan. Those checks still need doing.</p>
-    <div class="rows">
-      <div class="row"><div class="mark">01</div><div><h3>It needs facts only you can supply.</h3><p>A model doesn’t automatically know your team’s experience, what you can deliver or which figures are confirmed. Ktebli gathers that evidence before writing and holds delivery when factual gaps remain unresolved.</p></div></div>
-      <div class="row"><div class="mark">02</div><div><h3>The whole package has to agree.</h3><p>The response, costs and delivery plan need to tell the same story. Ktebli builds the documents included in your package around the same brief, then checks requirements and consistency before delivery.</p></div></div>
-      <div class="row"><div class="mark">03</div><div><h3>“Make it unique” isn’t a check.</h3><p>A standalone chat cannot compare your draft with other Ktebli proposals for the same opportunity. Our four locks reserve approaches and check for overlap across those proposals, while preserving wording the issuer requires.</p></div></div>
+    <span id="beyond-chat" class="anchor-alias" aria-hidden="true"></span>
+    <div class="kicker">Four originality locks</div>
+    <h2 class="disp">Four locks. Enforced rules, not requests to the AI.</h2>
+    <p class="sub">The system compares proposals Ktebli prepares for the same opportunity. Required issuer wording stays intact; applications submitted elsewhere are outside these checks.</p>
+    <div class="lockgrid">
+      <div class="lockcell"><span class="n">LOCK ONE</span><h3>Record your approach first</h3><p>We reserve your activity, audience, place and delivery method before drafting.</p></div>
+      <div class="lockcell"><span class="n">LOCK TWO</span><h3>Refuse a repeat approach</h3><p>The system blocks the same approach for the same opportunity and requires a different plan.</p></div>
+      <div class="lockcell"><span class="n">LOCK THREE</span><h3>Plan a distinct structure</h3><p>Where the brief allows, your proposal gets its own shape and opening.</p></div>
+      <div class="lockcell"><span class="n">LOCK FOUR</span><h3>Check the finished wording</h3><p>Overlapping passages are reworked and checked again before delivery.</p></div>
     </div>
-    <p class="cardnote">Ktebli uses AI too. You’re paying for the structured intake, coordinated documents and checks around the writing. You still review the final package and make the submission.</p>
-    <a href="#lock" class="btn" style="margin-top:24px">See how the four locks work</a>
   </div>
 </section>
 
-<section id="opportunities">
-  <div class="wrap">
-    <div class="kicker">What are you preparing?</div>
-    <h2 class="disp">Funding, contracts and your next client.</h2>
-    <p class="sub">Start with the opportunity. The proposal type shapes the response; your package determines how much supporting material is included.</p>
-    <div class="stepgrid">
-      <div class="stepitem"><div class="sn">1</div><h3>Grant applications</h3><p>Connect the need, your evidence and planned outcomes to the funder’s criteria.</p></div>
-      <div class="stepitem"><div class="sn">2</div><h3>Government tenders</h3><p>Address the public authority’s specification, evaluation criteria and delivery requirements.</p></div>
-      <div class="stepitem"><div class="sn">3</div><h3>Procurement &amp; RFPs</h3><p>Explain your technical approach, relevant experience, costs and implementation plan.</p></div>
-      <div class="stepitem"><div class="sn">4</div><h3>Business proposals</h3><p>Turn a client brief into a clear scope of work, deliverables, timeline and commercial rationale.</p></div>
-    </div>
-    <p class="cardnote">Architecture, construction, technology, research, community services and more. Your brief determines the requirements. Professional drawings, signed forms and official certificates must be supplied separately where required.</p>
-  </div>
-</section>
-
+<section id="how"><div class="wrap"><div class="kicker">What happens next</div><h2 class="disp">Four steps, with a clear handoff.</h2><div class="stepgrid"><div class="stepitem"><div class="sn">1</div><h3>Share the brief</h3><p>We check the link and page details. You can paste the requirements if the source cannot be read. Full document reading starts after payment.</p></div><div class="stepitem"><div class="sn">2</div><h3>Choose a package</h3><p>Review the price and included documents before checkout.</p></div><div class="stepitem"><div class="sn">3</div><h3>Add your details</h3><p>Your name and email are required. Organization and background details are optional.</p></div><div class="stepitem"><div class="sn">4</div><h3>Receive your proposal</h3><p>We prepare and check your documents. Then you review and submit them with any required official forms.</p></div></div><a href="#start" class="btn">Start a proposal</a></div></section>
 
 <section class="mintbg inside-section" id="inside">
   <div class="wrap">
     <div class="section-heading"><div><p class="kicker">SAMPLE PACKAGE</p><h2 class="disp">See what you receive.</h2></div><p>A proposal, cost breakdown and delivery plan. Your documents follow your brief and package.</p></div>
     <div class="sample-context"><span class="sample-label">ILLUSTRATIVE PACKAGE</span><p>Public buildings energy assessment</p><span>All names, figures and project details below are fictional.</span></div>
+    <details class="sample-disclosure"><summary>Open an illustrative sample package</summary>
     <div class="sample-workspace">
       <div class="sample-sidebar">
         <div class="sample-tabs" role="tablist" aria-label="Sample package documents" aria-orientation="vertical">
-          <button type="button" role="tab" aria-selected="true" aria-controls="sample-proposal" id="tab-proposal" data-document="proposal"><span>01</span> The proposal <span class="tab-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" role="tab" aria-selected="false" aria-controls="sample-costs" id="tab-costs" data-document="costs" tabindex="-1"><span>02</span> The costs <span class="tab-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" role="tab" aria-selected="false" aria-controls="sample-delivery" id="tab-delivery" data-document="delivery" tabindex="-1"><span>03</span> The delivery plan <span class="tab-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" role="tab" aria-selected="true" aria-controls="sample-proposal" id="tab-proposal" data-document="proposal"><span>01</span> The proposal <span class="tab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="sample-costs" id="tab-costs" data-document="costs" tabindex="-1"><span>02</span> The costs <span class="tab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="sample-delivery" id="tab-delivery" data-document="delivery" tabindex="-1"><span>03</span> The delivery plan <span class="tab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
         </div>
         <p class="sample-guidance">A clear argument.<br>Numbers you can follow.<br>A plan you can work with.</p>
         <p class="sample-scope">Draft includes the main response. Competitive adds costs and supporting documents. Full adds delivery planning.</p>
@@ -439,52 +427,10 @@ footer a:hover{color:var(--coral)}
         </article>
       </div>
     </div>
+    </details>
   </div>
 </section>
 
-
-<section class="inkbg" id="lock">
-  <div class="wrap">
-    <div class="kicker">No two ways about it</div>
-    <h2 class="disp">Four locks, and none of them are a request to the AI. They’re rules enforced by the system.</h2>
-    <p class="sub" style="max-width:64ch">Asking a model nicely to "be different" is not a guarantee, it is a hope. So we do not do that. Your approach is reserved in a database before writing starts, and the finished text is checked against the others before anything reaches you.</p>
-
-    <div class="lockgrid">
-      <div class="lockcell">
-        <span class="n">LOCK ONE</span>
-        <h3>Your approach is written down first</h3>
-        <p>Before any writing, your project is recorded plainly: what the activity is, who it serves, where, and how it is delivered. That record is filed against the opportunity and reserved to your organisation.</p>
-      </div>
-      <div class="lockcell">
-        <span class="n">LOCK TWO</span>
-        <h3>A repeat is refused outright</h3>
-        <p>A second organisation asking for the same combination on the same opportunity is rejected by the system and has to be planned differently. It is not a preference that somebody can override.</p>
-      </div>
-      <div class="lockcell">
-        <span class="n">LOCK THREE</span>
-        <h3>Different shape, different opening</h3>
-        <p>Where the brief allows flexibility, the narrative structure and opening are planned for your response. Required issuer sections and official forms take precedence over stylistic differences.</p>
-      </div>
-      <div class="lockcell">
-        <span class="n">LOCK FOUR</span>
-        <h3>A final check for a voice of your own</h3>
-        <p>Before your proposal reaches you, we compare its wording with other responses we’ve prepared for the same opportunity. Passages that overlap too closely are reworked and checked again, while keeping any wording the issuer requires.</p>
-      </div>
-    </div>
-
-    <div class="callout">
-      <h3>But what if someone already took my idea?</h3>
-      <p>Your response starts with your own team, experience and method. When an approach overlaps with another proposal, the planning stage looks for a distinct way to present your contribution within the brief. We do not invent capabilities or change mandatory specifications to make a bid look different.</p>
-    </div>
-
-    <div class="callout" style="border-left-color:#7FE0A8">
-      <h3>What we will not claim</h3>
-      <p>We cannot speak for the other applicants who never came near us, and we will not pretend otherwise. Our originality checks compare proposals written here for the same opportunity. They do not cover submissions made elsewhere. Required issuer wording is preserved during those checks.</p>
-    </div>
-  </div>
-</section>
-
-<section id="how"><div class="wrap"><div class="kicker">From link to proposal</div><h2 class="disp">Paste the link.<br>Tell us about you.<br>Leave the rest to Ktebli.</h2><p class="sub">One guided intake gets the work started. Ktebli handles the drafting, package assembly and automated checks, and your order page keeps you updated.</p><div class="stepgrid"><div class="stepitem"><div class="sn">1</div><h3>Paste the opportunity link.</h3><p>Share the grant, tender, RFP or client brief. Confirm the opportunity details and supply the requirements if the page cannot be read.</p></div><div class="stepitem"><div class="sn">2</div><h3>Choose your package and add your name.</h3><p>Choose a package, then add your name and email. Apply as an individual or an organisation; a website and registration number are optional.</p></div><div class="stepitem"><div class="sn">3</div><h3>Let Ktebli put it together.</h3><p>After payment, source reading begins. Add the work you propose on your order page, with optional background that helps us be specific. Ktebli then writes, prepares your documents and runs the four locks and quality checks.</p></div></div><p class="cardnote">When the checks pass, download your editable documents, review them and submit. You supply any required signatures, certificates and official attachments.</p></div></section>
 
 <section class="mintbg" id="pricing">
   <div class="wrap">
@@ -493,73 +439,38 @@ footer a:hover{color:var(--coral)}
     <p class="sub">You bring the expertise and the brief. We turn them into a proposal that makes your value clear. Choose the support you need, with no membership required.</p>
 
     <div class="tiers">
-      <div class="tier">
-        <div class="tname">Draft</div>
-        <h3>Get your proposal written.</h3>
-        <div class="price">$149</div>
+      <article class="tier">
+        <div class="tname">Draft</div><h3>Your main proposal.</h3><div class="price">$149</div>
         <p class="price-note">USD · one proposal · one-time payment</p>
-        <p class="tdesc">Turn your knowledge and notes into a clear, persuasive response built around the brief.</p>
-        <p class="tier-fit">For when you need the main proposal.</p>
-        <p class="tier-includes">Your core response, taken care of</p>
-        <ul>
-          <li><b>Your main proposal, written for you</b> — delivered in editable Word format</li>
-          <li>A clear case built from your experience, team and evidence</li>
-          <li>Structure and content checked against the brief</li>
-          <li>Your tone reflected in the writing</li>
-          <li><b>1 round of changes</b> to refine the response</li>
-        </ul>
-        <a href="#start" id="buy-draft" class="btn plain">Write my proposal</a>
-      </div>
-
-      <div class="tier hot">
-        <div class="badge">Recommended</div>
-        <div class="tname">Competitive</div>
-        <h3>Give them the full picture.</h3>
-        <div class="price">$299</div>
+        <p class="tdesc">A clear response built from your experience and evidence.</p>
+        <details class="tier-details"><summary>What's included</summary><ul><li>Your main proposal in editable Word format</li><li>A case built from your experience, team and evidence</li><li>Checks against the brief and your requested tone</li><li>1 round of changes</li></ul></details>
+        <a href="#start" id="buy-draft" class="btn plain">Choose Draft</a>
+      </article>
+      <article class="tier hot">
+        <div class="badge">Recommended</div><div class="tname">Competitive</div><h3>Proposal, costs and context.</h3><div class="price">$299</div>
         <p class="price-note">USD · one proposal · one-time payment</p>
-        <p class="tdesc">Bring your approach, costs and supporting documents together in one coherent pitch.</p>
-        <p class="tier-fit">For when the proposal needs the numbers, too.</p>
-        <p class="tier-includes">Everything in Draft, plus</p>
-        <ul>
-          <li><b>An executive or concept summary</b> that puts your key case up front</li>
-          <li><b>An editable Excel budget or cost breakdown</b>, with formulas and a written rationale</li>
-          <li>Closer voice matching using your past proposals</li>
-          <li>A covering email to introduce your response</li>
-          <li><b>3 rounds of changes</b> to get the details right</li>
-        </ul>
-        <a href="#start" id="buy-competitive" class="btn">Build my proposal package</a>
-      </div>
-
-      <div class="tier">
-        <div class="tname">Full</div>
-        <h3>Show how you’ll deliver.</h3>
-        <div class="price">$449</div>
+        <p class="tdesc">For a fuller case with costs and supporting documents.</p>
+        <details class="tier-details"><summary>What's included</summary><ul><li>Everything in Draft</li><li>Executive or concept summary</li><li>Editable Excel budget or cost breakdown with formulas and rationale</li><li>Closer voice matching from past proposals</li><li>Covering email and 3 rounds of changes</li></ul></details>
+        <a href="#start" id="buy-competitive" class="btn">Choose Competitive</a>
+      </article>
+      <article class="tier">
+        <div class="tname">Full</div><h3>Plan how you will deliver.</h3><div class="price">$449</div>
         <p class="price-note">USD · one proposal · one-time payment</p>
-        <p class="tdesc">Back your pitch with a practical delivery plan, clear measures of success and a deeper review.</p>
-        <p class="tier-fit">For complex work with more to demonstrate.</p>
-        <p class="tier-includes">Everything in Competitive, plus</p>
-        <ul>
-          <li><b>A workplan and timeline</b> showing how the work comes together</li>
-          <li><b>Results or acceptance criteria</b> that define what success looks like</li>
-          <li>A risk register with owners and mitigation</li>
-          <li>A one-page summary for decision-makers</li>
-          <li><b>A deeper review and written report</b> covering requirements, consistency and unresolved gaps</li>
-          <li><b>10 rounds of changes within two weeks</b></li>
-        </ul>
-        <a href="#start" id="buy-full" class="btn plain">Build my full package</a>
-      </div>
+        <p class="tdesc">For complex work that needs a delivery plan and deeper review.</p>
+        <details class="tier-details"><summary>What's included</summary><ul><li>Everything in Competitive</li><li>Workplan and timeline</li><li>Results or acceptance criteria</li><li>Risk register and one-page decision-maker summary</li><li>Deeper review report</li><li>10 rounds of changes within two weeks</li></ul></details>
+        <a href="#start" id="buy-full" class="btn plain">Choose Full</a>
+      </article>
     </div>
 
     <div class="pricing-assurance">
-      <h3>Every package has to earn its way to delivery.</h3>
-      <p>Evidence-grounded writing. Checks against your brief. Originality checks. Quality review. Quality targets rise with your package: <b>70/100 for Draft, 80/100 for Competitive and 90/100 for Full.</b> Every package must also pass its required checks before delivery.</p>
-      <p>You choose how much supporting material you need. The quality bar applies to all three. Required signatures, official forms and certificates remain yours to supply.</p>
+      <h3>Every package is checked before delivery.</h3>
+      <p>We check the response against the brief, your evidence, and the package’s quality target: <b>70/100 for Draft, 80/100 for Competitive and 90/100 for Full.</b> Required checks must pass. Required signatures, official forms, certificates and submission remain yours.</p>
     </div>
   </div>
 </section>
 
 <section class="faq-section"><div class="wrap"><div><p class="kicker">THE PRACTICAL QUESTIONS</p><h2 class="disp">Before you start.</h2></div><div class="faq">
-<details><summary>Do I need a membership to order a proposal?</summary><p>No. Bring a brief you already found and choose a one-off package. You can also create a free opportunity profile. The membership board and automatic matching are not open yet; coverage will be limited, so always check the publisher’s original notice.</p></details>
+<details><summary>Do I need a membership to order a proposal?</summary><p>No. Bring a brief you already found and choose a one-off package. A free account can browse the opportunity board now. Membership checkout and automatic matching are not open yet; coverage is limited, so always check the publisher’s original notice.</p></details>
 <details><summary>What kinds of proposals can I prepare?</summary><p>Grant applications, government tenders, procurement and RFP responses, and business or service proposals. Your brief determines the requirements. Ktebli prepares the written proposal using the technical inputs you supply; engineering designs, calculations and quantity surveying are not included. Official forms, professional drawings, signatures, certificates and bid securities must come from you where required.</p></details>
 <details><summary>What do I need to bring?</summary><p>Start with the opportunity link or brief, your name and email. You can apply as an individual or an organisation. After payment, confirm the proposal type and currency and describe your proposed work. Team, experience, location and governance details are optional unless the opportunity itself requires them.</p></details>
 <details><summary>What if I need changes?</summary><p>Request changes from your order page. Draft includes one round, Competitive includes three, and Full includes ten within two weeks. We check revised work before delivery.</p></details>
@@ -568,20 +479,23 @@ footer a:hover{color:var(--coral)}
 <details><summary>When will I receive my documents?</summary><p>Within 4 hours of payment and receiving your essential details. We aim to deliver sooner, with every package checked before it reaches you. Track progress on your order page. Missing evidence, provider outages or a failed check can pause delivery; deadlines do not override the quality bar. A hold does not trigger an automatic refund.</p></details>
 <details><summary>How do payment and submission work?</summary><p>Pay once through Stripe after the intake checks. Download your editable documents when they clear delivery checks, review them, add required official attachments and submit them yourself. Ktebli does not sign documents or submit applications on your behalf.</p></details>
 </div></div></section>
-<section class="mintbg" id="start"><div class="wrap"><div class="kicker">The next opportunity is yours.</div><h2 class="disp">Give it a stronger case.</h2><p class="sub">Choose a package. Bring your brief. Let’s put it into words.</p><a href="#pricing" class="btn big">Find my package</a></div></section>
-<footer><div class="wrap"><div class="frow"><div><a href="/" class="stamp">KTEBLI<span class="dot">!</span></a><p class="fdisc">Find opportunities in Lebanon and build a proposal that sounds like you.<br>Write it for me. So we do.</p></div><div class="fnav"><div><a href="#membership">Find opportunities</a></div><div><a href="/account/auth">Account</a></div><div><a href="/account/data-use">Account data use</a></div><div><a href="#inside">Inside a proposal</a></div><div><a href="#pricing">Proposal packages</a></div></div></div></div></footer>
-<div class="wiz-overlay" id="wiz">
-  <div class="wiz" role="dialog" aria-modal="true" aria-label="Start your proposal">
+<section class="mintbg" id="start"><div class="wrap"><div class="kicker">Ready to begin?</div><h2 class="disp">Bring the brief. We’ll guide you through.</h2><p class="sub">Share the opportunity first. You can choose a package after we check the source.</p><a href="#start" class="btn big">Start a proposal</a></div></section>
+<footer><div class="wrap"><div class="frow"><div><a href="/" class="stamp">KTEBLI<span class="dot">!</span></a><p class="fdisc">Find opportunities in Lebanon and build a proposal that sounds like you.<br>Write it for me. So we do.</p></div><div class="fnav"><div><a href="#membership">Find opportunities</a></div><div><a href="/account/dashboard">Account</a></div><div><a href="/account/data-use">Account data use</a></div><div><a href="#inside">Inside a proposal</a></div><div><a href="#pricing">Proposal packages</a></div></div></div></div></footer>
+<div class="wiz-overlay" id="wiz" aria-hidden="true">
+  <div class="wiz" role="dialog" aria-modal="true" aria-labelledby="wiz-title">
     <div class="wiz-head">
       <span class="wt" id="wiz-title">START YOUR PROPOSAL</span>
-      <button class="wiz-x" id="wiz-close" aria-label="Close">&times;</button>
+      <a id="wiz-return" class="wiz-return" href="/" hidden>Back to Ktebli</a>
+      <button class="wiz-x" id="wiz-close" aria-label="Close"><svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
     </div>
     <div class="wiz-dots" id="wiz-dots"></div>
+    <div class="wiz-context" id="wiz-context" role="status" aria-live="polite"></div>
+    <div id="profile-loading" class="field-help" role="status" aria-live="polite" hidden style="padding:24px 32px"><span id="profile-loading-message">Loading your saved details…</span> <button id="profile-retry" class="text-link" type="button" hidden>Try again</button></div>
     <div class="wiz-body">
 
       <div class="wiz-step" data-step="1">
         <h3>Your package</h3>
-        <p class="ws-sub">You can change this later. Nothing is charged until the last step.</p>
+        <p class="ws-sub">Choose the documents and support you need. Prices are one-time payments in USD; nothing is charged until checkout.</p>
         <div class="pkg" id="pkg">
           <label data-tier="draft"><span><span class="pk-n">Draft</span><span class="pk-d">Your main proposal, written for you.</span></span><span class="pk-p">$149</span><input type="radio" name="tier" value="draft"></label>
           <label data-tier="competitive"><span><span class="pk-n">Competitive</span><span class="pk-d">Your proposal, costs and supporting documents.</span></span><span class="pk-p">$299</span><input type="radio" name="tier" value="competitive"></label>
@@ -590,34 +504,32 @@ footer a:hover{color:var(--coral)}
       </div>
 
       <div class="wiz-step" data-step="2">
-        <h3>Who is applying?</h3>
-        <p class="ws-sub">The name on your proposal, and the person we’ll keep in touch with.</p>
-        <fieldset class="intake-group">
-          <legend>Applicant details</legend>
-          <div class="field"><label for="w-applicant-type">Applying as</label><select id="w-applicant-type"><option value="individual" selected>An individual</option><option value="organisation">An organisation</option></select></div>
-          <div class="two">
-            <div class="field"><label for="w-org">Applicant or organisation name <span class="optional">Optional</span></label><input type="text" id="w-org" autocomplete="organization" placeholder="Organisation name"></div>
-            <div class="field"><label for="w-reg">Registration number <span class="optional">Optional</span></label><input type="text" id="w-reg" aria-describedby="registration-help" placeholder="e.g. 1187734 · Lebanon"><p class="field-help" id="registration-help">Leave blank if you are not registered.</p></div>
-          </div>
-          <div class="field"><label for="w-web">Website <span class="optional">Optional</span></label><input type="text" id="w-web" inputmode="url" autocomplete="url" placeholder="www.yourorganisation.org"><div id="website-preview" class="field-help" role="status" aria-live="polite"></div></div>
-        </fieldset>
+        <h3>Your details</h3>
+        <p class="ws-sub">Your name and email are required. Organization and contact details are optional.</p>
+        <p id="profile-prefill-note" class="field-help" role="status" aria-live="polite" hidden></p>
         <fieldset class="intake-group">
           <legend>Your contact details</legend>
           <div class="two">
             <div class="field"><label for="w-name">Your name <span class="rq">*</span></label><input type="text" id="w-name" autocomplete="name" placeholder="Full name"></div>
             <div class="field"><label for="w-email">Email <span class="rq">*</span></label><input type="email" id="w-email" autocomplete="email" placeholder="you@organisation.org"></div>
           </div>
-          <div class="field"><label for="w-wa">WhatsApp <span class="optional">Optional</span></label><input type="tel" id="w-wa" autocomplete="tel" placeholder="Phone number with country code"></div>
         </fieldset>
-
+        <details class="intake-extra"><summary>Organization and contact details <span class="optional">Optional</span></summary>
+          <div class="field"><label for="w-applicant-type">Applying as</label><select id="w-applicant-type"><option value="individual" selected>An individual</option><option value="organisation">An organisation</option></select></div>
+          <div class="field"><label for="w-org">Applicant or organisation name <span class="optional">Optional</span></label><input type="text" id="w-org" autocomplete="organization" placeholder="Organisation name"></div>
+          <div class="field"><label for="w-reg">Registration number <span class="optional">Optional</span></label><input type="text" id="w-reg" aria-describedby="registration-help" placeholder="e.g. 1187734 · Lebanon"><p class="field-help" id="registration-help">Leave blank if you are not registered.</p></div>
+          <div class="field"><label for="w-web">Website <span class="optional">Optional</span></label><input type="text" id="w-web" inputmode="url" autocomplete="url" placeholder="www.yourorganisation.org"><div id="website-preview" class="field-help" role="status" aria-live="polite"></div></div>
+          <div class="field"><label for="w-wa">WhatsApp <span class="optional">Optional</span></label><input type="tel" id="w-wa" autocomplete="tel" placeholder="Phone number with country code"></div>
+        </details>
       </div>
 
       <div class="wiz-step" data-step="0">
         <h3>Start with the opportunity</h3>
         <p class="ws-sub">Paste your link. We’ll fetch the page details and fill what we can. Full reading of the brief and attachments starts after payment.</p>
+        <div id="catalogue-context" class="catalogue-context" role="status" aria-live="polite" hidden></div>
         <div class="field"><label for="w-grant">Opportunity link or brief <span class="rq">*</span></label><textarea id="w-grant" placeholder="https://... or paste the guidelines here"></textarea><div id="opportunity-paste-source" class="field-help" hidden></div></div>
         <div id="gpreview" class="gpreview" role="status" aria-live="polite" style="display:none"></div>
-        <p class="field-help opportunity-note">Your answers and proposal stay private. All four originality locks apply.</p>
+        <p class="field-help opportunity-note">Your answers and proposal stay private.</p>
         <p id="opportunity-filled" class="field-help detected-summary" role="status" aria-live="polite" hidden></p>
         <details class="intake-extra"><summary>Opportunity details <span class="optional">Review or edit detected details</span></summary>
         <div class="field"><label for="w-proposal-type">Proposal type <span class="detected-mark" id="w-proposal-type-detected" hidden>Detected from page · review</span></label><select id="w-proposal-type">
@@ -639,14 +551,14 @@ footer a:hover{color:var(--coral)}
         <div class="field"><label for="w-subject">What field is this proposal in? <span class="detected-mark" id="w-subject-detected" hidden>Detected from page · review</span></label><select id="w-subject">
           <option value="general">General / another field</option><option value="architecture">Architecture</option><option value="construction">Construction</option><option value="healthcare">Healthcare</option><option value="research">Research</option><option value="technology">Technology</option><option value="community">Community</option><option value="environment">Environment</option><option value="education">Education</option>
         </select></div>
+        </details>
         <div class="field" id="deadline-manual" style="display:none"><label for="w-deadline">Submission deadline <span class="optional">Optional</span></label><input type="date" id="w-deadline" aria-describedby="deadline-help"><p class="field-help" id="deadline-help">Enter the date you checked with the issuer. This will be labelled as your supplied date.</p></div>
         <div class="field" id="deadline-confirmation" style="display:none"><div class="checkrow"><input type="checkbox" id="w-deadline-confirm"><label for="w-deadline-confirm" id="deadline-confirm-label">I have checked the deadline.</label></div></div>
-        </details>
       </div>
 
       <div class="wiz-step" data-step="3">
-        <h3>Ready when you are</h3>
-        <p class="ws-sub">Your opportunity, your documents, one clear next step.</p>
+        <h3>Review your order</h3>
+        <p class="ws-sub">Check the opportunity, package, price and included documents before checkout.</p>
         <div id="suff-result"></div>
         <div class="sumbox" id="summary"></div>
         <div class="review-package" id="review-package"></div>
@@ -655,7 +567,13 @@ footer a:hover{color:var(--coral)}
     </div>
     <div class="wiz-foot">
       <button class="wiz-back" id="wiz-back">Back</button>
+      <button class="wiz-reset" id="wiz-reset" type="button">Start a different proposal</button>
       <button class="btn" id="wiz-next">Continue</button>
+      <div class="wiz-reset-confirm" id="wiz-reset-confirm" role="group" aria-labelledby="wiz-reset-title" hidden>
+        <p id="wiz-reset-title" tabindex="-1">Start a different proposal? The details entered for this one will be discarded.</p>
+        <button type="button" id="wiz-keep-current">Keep working</button>
+        <button type="button" id="wiz-confirm-reset">Start a new proposal</button>
+      </div>
     </div>
   </div>
 </div>
@@ -666,7 +584,177 @@ footer a:hover{color:var(--coral)}
 var ENDPOINT = "";
 // Activate only after the same-site membership credit bridge passes release checks.
 var MEMBERSHIP_CHECKOUT_PATH = "";
-var memberIntent = new URLSearchParams(window.location.search).get('membership') === '1';
+var prepareReference = new URLSearchParams(window.location.search).get('prepare') || '';
+var hasPrepareReference = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(prepareReference);
+var memberIntent = !hasPrepareReference && new URLSearchParams(window.location.search).get('membership') === '1';
+var focusedStart = window.location.pathname === '/start' || window.location.pathname === '/start/';
+function safeReturnTo(value) {
+  if(typeof value!=='string'||value.length>1024||!/^\/account\/dashboard(?:\?|$)/.test(value)||/[\\#\u0000-\u001f\u007f]/.test(value))return '';
+  try{
+    var parsed=new URL(value,window.location.origin||'https://ktebli.local');
+    if(parsed.pathname!=='/account/dashboard'||parsed.hash)return '';
+    var query=new URLSearchParams(), input=parsed.searchParams;
+    var allowed={tab:['discover','saved','alerts','profile'],kind:['all','procurement','grant','unknown'],source:['all','ppa','ungm','mawred','worldbank','cdr','grants-gov','sam-gov'],status:['all','current','needs_review','closed'],deadline:['all','future','today','past','unknown']};
+    Object.keys(allowed).forEach(function(key){var choice=input.get(key);if(choice&&allowed[key].includes(choice)&&choice!=='all'&&choice!=='discover')query.set(key,choice);});
+    var search=input.get('q');if(search&&search.length<=180&&!/[\u0000-\u001f\u007f]/.test(search))query.set('q',search);
+    var country=input.get('country');if(country&&/^[A-Z]{2}$/.test(country))query.set('country',country);
+    return '/account/dashboard'+(query.toString()?'?'+query.toString():'');
+  }catch(_){return '';}
+}
+var requestedReturnTo = safeReturnTo(new URLSearchParams(window.location.search).get('returnTo'));
+var returnTo = requestedReturnTo;
+var activePrepareReference = '';
+var TASK_DRAFT_KEY = 'ktebli-proposal-task-v1', TASK_DRAFT_AGE = 6 * 60 * 60 * 1000;
+var taskDraft = null, taskActive = false;
+var accountProfileReady = false, accountProfile = null, taskOwner = null, pendingProfileOpen = null, accountSessionEpoch = 0, accountRefreshPromise = null, accountNeedsRefresh = false, accountProofUnavailable = false, accountStartupPending = true;
+function profileLoading(loading) {
+  document.getElementById('profile-loading-message').textContent='Loading your saved details…';
+  document.getElementById('profile-retry').hidden=true;
+  document.getElementById('profile-loading').hidden = !loading;
+  ['.wiz-body','.wiz-foot','#wiz-dots','#wiz-context'].forEach(function(selector) { var panel=document.querySelector(selector);panel.hidden=loading;panel.style.display=loading?'none':''; });
+}
+function showProfileRetry() {
+  profileLoading(true);
+  document.getElementById('profile-loading-message').textContent='Could not check your account. Your saved details are kept private until we reconnect.';
+  document.getElementById('profile-retry').hidden=false;
+}
+function hasOwnedTaskDraft() {
+  try {
+    var raw=sessionStorage.getItem(TASK_DRAFT_KEY);if(!raw || raw.length>300000)return false;
+    var draft=JSON.parse(raw), now=Date.now();
+    return draft && draft.version===1 && typeof draft.owner==='string' && draft.owner.length>0 && Number.isFinite(draft.savedAt) && draft.savedAt<=now && now-draft.savedAt<=TASK_DRAFT_AGE;
+  } catch (_) { return false; }
+}
+function applyAccountProfile() {
+  var note=document.getElementById('profile-prefill-note');note.hidden=true;note.textContent='';
+  if (!accountProfile || ownerTestInvite) return;
+  var account=accountProfile.account, profile=accountProfile.profile || {}, filled=[];
+  [['w-name',account.name],['w-email',account.email],['w-org',profile.organization_name]].forEach(function(pair) {
+    var field=document.getElementById(pair[0]);
+    if(typeof pair[1]==='string' && pair[1].trim() && !field.value.trim() && !field.dataset.userEdited) {
+      field.value=pair[1].slice(0,5000); filled.push(pair[0]);
+    }
+  });
+  var applicant=document.getElementById('w-applicant-type');
+  if(!applicant.dataset.userSelected && !applicant.dataset.userEdited && !taskDraft && ['individual','company','ngo','public_body'].includes(profile.organization_type)) {
+    applicant.value=profile.organization_type==='individual'?'individual':'organisation';
+    applicant.dataset.userSelected='true';
+    applicant.dispatchEvent(new Event('change'));
+  }
+  note.hidden=!filled.length;
+  note.textContent=filled.length?'Saved account details added. Review or edit them for this proposal.':'';
+}
+async function loadAccountProfile() {
+  if(ownerTestInvite) return null;
+  var controller=new AbortController(), timeout;
+  try {
+    return await Promise.race([
+      fetch('/account/api/profile',{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async function(response) {
+        if(response.status===401)return null;
+        if(!response.ok)throw new Error('profile_unavailable');
+        var data=await response.json();
+        if(!data || !data.account || typeof data.account.id!=='string' || !data.account.id || data.account.id.length>200 || typeof data.account.email!=='string')throw new Error('profile_invalid');
+        return data;
+      }),
+      new Promise(function(_,reject){timeout=setTimeout(function(){controller.abort();reject(new Error('profile_timeout'));},5000);})
+    ]);
+  } catch (_) { return undefined; }
+  finally { clearTimeout(timeout); }
+}
+function suspendAccountProfile() {
+  if(ownerTestInvite)return;
+  accountNeedsRefresh=true;
+  // Conceal retained contact details until this tab verifies the session again.
+  profileLoading(true);
+}
+function revalidateAccountProfile() {
+  if(ownerTestInvite || document.visibilityState==='hidden' || !accountNeedsRefresh || accountRefreshPromise)return;
+  if(!accountProfileReady && !accountProofUnavailable)return; // Startup performs its own authenticated read first.
+  accountNeedsRefresh=false;accountProofUnavailable=false;
+  var previousOwner=taskOwner, epoch=++accountSessionEpoch;
+  saveTaskDraft();accountProfileReady=false;profileLoading(true);wiz.invalidateCheckout();
+  accountRefreshPromise=loadAccountProfile().then(function(data) {
+    if(epoch!==accountSessionEpoch)return;
+    if(accountStartupPending){finishAccountProfileStartup(data);return;}
+    if(data===undefined){accountProofUnavailable=true;return;}
+    accountProfile=data;taskOwner=data?data.account.id:null;
+    if(previousOwner!==taskOwner){clearTaskDraft();resetProposalTask();}
+  }).finally(function() {
+    accountRefreshPromise=null;
+    if(accountProofUnavailable){accountNeedsRefresh=true;showProfileRetry();return;}
+    accountProfileReady=true;
+    if(accountNeedsRefresh){revalidateAccountProfile();if(accountRefreshPromise || document.visibilityState==='hidden')return;}
+    profileLoading(false);
+    if(pendingProfileOpen){var tier=pendingProfileOpen.tier;pendingProfileOpen=null;wiz.open(tier);}
+  });
+}
+function readTaskDraft() {
+  if (ownerTestInvite) return null;
+  try {
+    var raw=sessionStorage.getItem(TASK_DRAFT_KEY);if(!raw||raw.length>300000){sessionStorage.removeItem(TASK_DRAFT_KEY);return null;}
+    var saved = JSON.parse(raw);
+    if (!validTaskDraft(saved)) { sessionStorage.removeItem(TASK_DRAFT_KEY); return null; }
+    return saved;
+  } catch (_) { try{sessionStorage.removeItem(TASK_DRAFT_KEY);}catch(__){} return null; }
+}
+function validTaskDraft(saved){
+  if(!saved||saved.version!==1||!Object.prototype.hasOwnProperty.call(saved,'owner')||saved.owner!==taskOwner||!Number.isFinite(saved.savedAt)||saved.savedAt>Date.now()||Date.now()-saved.savedAt>TASK_DRAFT_AGE||!Number.isInteger(saved.step)||saved.step<0||saved.step>3||!['draft','competitive','full'].includes(saved.tier))return false;
+  if(!saved.fields||typeof saved.fields!=='object'||Array.isArray(saved.fields)||Object.keys(saved.fields).length>100)return false;
+  for(var id in saved.fields){var field=document.getElementById(id),value=saved.fields[id];if(!field||!document.getElementById('wiz').contains(field)||!field.matches('input,textarea,select')||typeof value!=='string'||value.length>(id==='w-grant'?200000:5000)||field.type==='file')return false;}
+  if(saved.checks&&(!saved.checks||typeof saved.checks!=='object'||Array.isArray(saved.checks)||Object.keys(saved.checks).length>50))return false;
+  for(var check in saved.checks||{}){var control=document.getElementById(check);if(!control||!document.getElementById('wiz').contains(control)||control.type!=='checkbox'||typeof saved.checks[check]!=='boolean')return false;}
+  if(saved.rows&&(!saved.rows||typeof saved.rows!=='object'||Array.isArray(saved.rows)))return false;
+  for(var kind in saved.rows||{}){if(!Object.prototype.hasOwnProperty.call(REP,kind)||!Array.isArray(saved.rows[kind])||saved.rows[kind].length>20)return false;for(var row of saved.rows[kind]){if(typeof row==='string'){if(row.length>2000)return false;}else if(row&&typeof row==='object'&&!Array.isArray(row)){for(var key in row)if(!REP[kind].fields.some(function(pair){return pair[0]===key;})||typeof row[key]!=='string'||row[key].length>2000)return false;}else return false;}}
+  return true;
+}
+function clearTaskDraft() { taskDraft = null; taskActive = false; try { sessionStorage.removeItem(TASK_DRAFT_KEY); } catch (_) {} }
+function updateReturnLink() {
+  var link = document.getElementById('wiz-return');
+  if (!link) return;
+  link.href = returnTo || '/';
+  link.textContent = returnTo ? 'Back to opportunities' : 'Back to Ktebli';
+  link.hidden = !focusedStart && !returnTo;
+}
+function saveTaskDraft() {
+  if (ownerTestInvite || !taskActive || !accountProfileReady) return;
+  var fields = {}, checks = {}, selected = {};
+  document.querySelectorAll('#wiz input[id],#wiz textarea[id],#wiz select[id]').forEach(function(field) {
+    if (field.type === 'file' || field.type === 'radio' || field.type === 'hidden') return;
+    if (field.type === 'checkbox') checks[field.id] = field.checked;
+    else { fields[field.id] = field.value; if (field.dataset.userSelected || field.dataset.userEdited) selected[field.id] = {userSelected:field.dataset.userSelected==='true',userEdited:field.dataset.userEdited==='true'}; }
+  });
+  var rows = {};
+  Object.keys(REP).forEach(function(kind) { rows[kind] = collectRep(kind); });
+  var disclosures = {};
+  document.querySelectorAll('#wiz details').forEach(function(item,index) { disclosures[index] = item.open; });
+  taskDraft = {version:1,owner:taskOwner,savedAt:Date.now(),step:wiz.step,tier:wiz.tier,tierChosen:wiz.tierChosen,packageExplicit:wiz.packageExplicit,
+    fields:fields,checks:checks,selected:selected,rows:rows,disclosures:disclosures,prepare:activePrepareReference,returnTo:returnTo,memberIntent:memberIntent};
+  try { sessionStorage.setItem(TASK_DRAFT_KEY, JSON.stringify(taskDraft)); } catch (_) {}
+}
+function restoreTaskDraft(saved) {
+  if (!saved) return false;
+  taskActive = true;
+  activePrepareReference = /^[0-9a-f-]{36}$/i.test(saved.prepare || '') ? saved.prepare : '';
+  returnTo = requestedReturnTo || safeReturnTo(saved.returnTo);
+  memberIntent = !hasPrepareReference && (memberIntent || saved.memberIntent === true);
+  Object.keys(saved.fields || {}).forEach(function(id) { var field=document.getElementById(id); if (field && (field.matches('input,textarea,select')) && field.type !== 'file' && field.type !== 'hidden') { field.value=saved.fields[id]; if (saved.selected && saved.selected[id]) {if(saved.selected[id].userSelected)field.dataset.userSelected='true';if(saved.selected[id].userEdited)field.dataset.userEdited='true';} } });
+  Object.keys(saved.checks || {}).forEach(function(id) { var field=document.getElementById(id); if (field && field.type==='checkbox') field.checked=saved.checks[id]===true; });
+  Object.keys(REP).forEach(function(kind) {
+    var container=document.getElementById(REP[kind].c), rows=(saved.rows||{})[kind];
+    if (!container || !Array.isArray(rows)) return;
+    container.replaceChildren();
+    rows.forEach(function(value) { var row=repRow(kind); row.querySelectorAll('[data-k]').forEach(function(input) { input.value=typeof value==='string'?value:String(value[input.dataset.k]||''); }); container.appendChild(row); });
+  });
+  document.querySelectorAll('#wiz details').forEach(function(item,index) { if (saved.disclosures && Object.prototype.hasOwnProperty.call(saved.disclosures,index)) item.open=saved.disclosures[index]===true; });
+  wiz.step = Number.isInteger(saved.step) ? Math.max(0,Math.min(wiz.last,saved.step)) : 0;
+  wiz.tier = ['draft','competitive','full'].includes(saved.tier) ? saved.tier : 'competitive';
+  wiz.tierChosen = saved.tierChosen === true;
+  wiz.packageExplicit = saved.packageExplicit === true;
+  document.getElementById('w-deadline-confirm').checked=false;
+  syncCurrencyOther();
+  updateReturnLink();
+  return true;
+}
 
 // Server-owned Stripe tier links. Activate prepared links only after launch acceptance.
 var PAYLINKS = {
@@ -778,11 +866,17 @@ function renderSuff(j) {
 function goToPayment(email, token) {
   if (ownerTestInvite) {
     var testButton = document.getElementById('wiz-next'); testButton.disabled = true; testButton.textContent = 'Starting your Full test…';
-    fetch(FN + '/owner-test-checkout', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({invite:ownerTestInvite,checkout_token:token})})
+    var source=wiz.val('w-grant'),tier=wiz.tier,generation=++wiz.checkoutGeneration,controller=new AbortController();wiz.checkoutController=controller;wiz.checkoutPending=true;
+    function stillCurrent(){return wiz.checkoutGeneration===generation&&!controller.signal.aborted&&wiz.el.classList.contains('open')&&wiz.val('w-grant')===source&&wiz.tier===tier;}
+    fetch(FN + '/owner-test-checkout', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({invite:ownerTestInvite,checkout_token:token}),signal:controller.signal})
     .then(function(r) { return r.json(); }).then(function(result) {
+      if(!stillCurrent())return;
+      wiz.checkoutPending=false;wiz.checkoutController=null;
       if (!result.ok || !/^[0-9a-f-]{36}$/.test(result.order_token || '')) throw new Error('not_authorized');
       ownerTestInvite = ''; window.location.href = '/orders/' + result.order_token;
     }).catch(function() {
+      if(!stillCurrent())return;
+      wiz.checkoutPending=false;wiz.checkoutController=null;
       renderSuff({cleared:false,message:{headline:'We could not start this owner test.',intro:'The invitation may have expired, been revoked, or the intake may need another check. Nothing has been charged.'}});
       testButton.disabled = false; testButton.textContent = 'Try starting the Full test again';
     });
@@ -847,21 +941,82 @@ function renderReviewPackage(tier, type) {
   document.getElementById('review-package').innerHTML = h;
 }
 
+var catalogueHandoffEpoch = 0, catalogueHandoffPending = false, catalogueContextTitle = '', handoffConflict = false;
 var wiz = {
   el: document.getElementById('wiz'),
-  step: 0, last: 3, tier: 'competitive', files: [], intakeId: null, pendingToken: null, pendingEmail: null,
+  returnFocus: null,
+  closeTimer: null,
+  step: 0, last: 3, tier: 'competitive', tierChosen: false, packageExplicit: false, files: [], intakeId: null, pendingToken: null, pendingEmail: null, checkoutGeneration: 0, checkoutController: null, checkoutPending: false,
+  invalidateCheckout: function () {
+    this.checkoutGeneration++;
+    if (this.checkoutController) this.checkoutController.abort();
+    this.checkoutController=null;this.checkoutPending=false;this.pendingToken=null;this.pendingEmail=null;
+  },
   open: function (tier) {
-    this.tier = ownerTestInvite ? 'full' : (tier || 'competitive');
-    // Source discovery comes first even when a package has been preselected.
-    this.step = 0;
+    if (!accountProfileReady) {
+      pendingProfileOpen={tier:tier};
+      if(document.activeElement && document.activeElement!==document.body)this.returnFocus=document.activeElement;
+      this.el.classList.add('open');this.el.classList.remove('closing');this.el.removeAttribute('inert');this.el.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+      profileLoading(true);if(accountProofUnavailable)showProfileRetry();document.getElementById('wiz-close').focus();return;
+    }
+    hideResetConfirm(false);
+    if (!this.el.classList.contains('open') && document.activeElement && document.activeElement !== document.body) this.returnFocus = document.activeElement;
+    clearTimeout(this.closeTimer);
+    this.el.classList.remove('closing');
+    this.el.removeAttribute('inert');
+    this.el.setAttribute('aria-hidden', 'false');
+    catalogueHandoffEpoch++;
+    if(catalogueHandoffPending){catalogueHandoffPending=false;var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
+    if (!taskActive || ownerTestInvite) {
+      this.tier = ownerTestInvite ? 'full' : (tier || 'competitive');
+      this.tierChosen = !!tier || !!ownerTestInvite;
+      this.packageExplicit = !!tier || !!ownerTestInvite;
+      this.step = 0;
+    } else if (tier && !ownerTestInvite) {
+      this.invalidateCheckout();
+      this.tier = tier;
+      this.tierChosen = true;
+      this.packageExplicit = true;
+      this.pendingToken = null;
+      if (this.step === 1) this.step = 0;
+    }
+    taskActive = true;
     seedRepeaters();
     this.el.classList.add('open');
     document.body.style.overflow = 'hidden';
     this.render();
+    var firstField = this.step === 0 ? document.getElementById('w-grant') : this.el.querySelector('.wiz-step.on h3');
+    if (firstField) { if (firstField.tagName==='H3') firstField.tabIndex=-1; firstField.focus(); }
+    if (this.val('w-grant') && !analysisOk && !analyzing && (!hasPrepareReference || prepareReference===activePrepareReference)) analyzeGrant(false);
+    if (hasPrepareReference && prepareReference!==activePrepareReference && !catalogueHandoffPending) setTimeout(loadCatalogueHandoff,0);
+    updateReturnLink();
+    saveTaskDraft();
   },
   close: function () {
+    pendingProfileOpen=null;
+    hideResetConfirm(false);
+    this.invalidateCheckout();
+    saveTaskDraft();
+    if (focusedStart) { window.location.replace(returnTo || '/'); return; }
+    catalogueHandoffEpoch++;
+    if(catalogueHandoffPending){var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren();}
+    catalogueHandoffPending = false;
     this.el.classList.remove('open');
+    this.el.classList.add('closing');
+    this.el.setAttribute('aria-hidden', 'true');
+    this.el.setAttribute('inert', '');
+    clearTimeout(this.closeTimer);
+    var overlay = this.el;
+    var closeDelay = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 160;
+    this.closeTimer = setTimeout(function () { overlay.classList.remove('closing'); }, closeDelay);
     document.body.style.overflow = '';
+    var returnFocus = this.returnFocus;
+    this.returnFocus = null;
+    if (returnFocus && returnFocus.isConnected && typeof returnFocus.focus === 'function') returnFocus.focus();
+    else {
+      var fallbackFocus = document.querySelector('.navlinks a.btn') || document.querySelector('a[href="#start"].btn');
+      if (fallbackFocus && fallbackFocus.getClientRects().length) fallbackFocus.focus();
+    }
   },
   val: function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; },
   validate: function () {
@@ -871,7 +1026,10 @@ var wiz = {
       if (!/.+@.+\..+/.test(this.val('w-email'))) return focusAlert('w-email', 'That email does not look right.');
     }
     if (this.step === 0 && !this.val('w-grant')) return focusAlert('w-grant', 'Please paste the opportunity link or its requirements.');
+    if (this.step === 0 && analysisOk && deadlineRequiresManual && !validDeadline(this.val('w-deadline'))) return focusAlert('w-deadline', 'Enter the deadline you checked with the issuer before continuing.');
+    if (this.step === 0 && analysisOk && (deadlineRequiresManual || deadlineNeedsVerification) && !cb('w-deadline-confirm')) return focusAlert('w-deadline-confirm', 'Confirm that you checked the deadline with the issuer before continuing.');
     if (this.step === 0 && !canContinueIntake()) return focusAlert('w-grant', analyzing ? 'We’re checking the source reference.' : 'Complete the opportunity check before continuing.');
+    if (this.step === 1 && !this.tierChosen) return false;
     return true;
   },
   // The exact intake_answers shape (answers + facts), plus the top-level identity
@@ -924,32 +1082,61 @@ var wiz = {
       intake_id: this.intakeId || undefined
     };
   },
-  render: function () {
+  render: function (moveFocus) {
+    hideResetConfirm(false);
     var steps = this.el.querySelectorAll('.wiz-step');
     for (var i=0;i<steps.length;i++) steps[i].classList.toggle('on', Number(steps[i].dataset.step) === this.step);
     var dots = document.getElementById('wiz-dots'); dots.innerHTML = '';
-    for (var d=0; d<=this.last; d++){ var el=document.createElement('div'); el.className='d'+(d<=this.step?' on':''); dots.appendChild(el); }
+    var stepNames = ['Opportunity','Package','Your details','Review & pay'];
+    dots.setAttribute('aria-label', 'Step ' + (this.step + 1) + ' of ' + (this.last + 1) + ': ' + stepNames[this.step]);
+    for (var d=0; d<=this.last; d++){ var el=document.createElement('span'); el.className='d'+(d<=this.step?' on':''); el.textContent=stepNames[d]; el.setAttribute('aria-current', d===this.step?'step':'false'); dots.appendChild(el); }
+    var context=document.getElementById('wiz-context');context.replaceChildren();
+    if(this.tierChosen && !ownerTestInvite && this.step!==1){
+      var packageNote=document.createElement('span');packageNote.textContent=NAMES[this.tier]+' package · '+PRICES[this.tier];context.appendChild(packageNote);
+      var change=document.createElement('button');change.type='button';change.className='wiz-change';change.textContent='Change package';change.addEventListener('click',function(){wiz.step=1;wiz.packageExplicit=false;wiz.render(true);saveTaskDraft();});context.appendChild(change);
+    }
     var pk = this.el.querySelectorAll('.pkg label');
-    for (var k=0;k<pk.length;k++) pk[k].classList.toggle('sel', pk[k].getAttribute('data-tier') === this.tier);
+    for (var k=0;k<pk.length;k++) {
+      var selected = this.tierChosen && pk[k].getAttribute('data-tier') === this.tier;
+      pk[k].classList.toggle('sel', selected);
+      var radio = pk[k].querySelector('input[type="radio"]');
+      if (radio) radio.checked = selected;
+    }
     document.getElementById('wiz-back').style.visibility = this.step === 0 ? 'hidden' : 'visible';
+    document.getElementById('wiz-reset').hidden=!!ownerTestInvite;
     document.getElementById('wiz-back').textContent = 'Back';
-    document.getElementById('wiz-title').textContent = ownerTestInvite ? 'OWNER TEST · FULL · NO PAYMENT' : 'START YOUR PROPOSAL · ' + NAMES[this.tier].toUpperCase() + ' ' + PRICES[this.tier];
+    document.getElementById('wiz-title').textContent = ownerTestInvite ? 'OWNER TEST · FULL · NO PAYMENT' : this.step === 0 ? 'START YOUR PROPOSAL' : this.step === 1 ? 'CHOOSE A PACKAGE' : this.step === 2 ? 'YOUR DETAILS' : 'REVIEW & PAY';
     renderSuff(null); // a stale gate result never lingers across navigation
     this.pendingToken = null; // any navigation invalidates a held clearance -> re-check
     var next = document.getElementById('wiz-next');
-    setContinueEnabled(this.step !== 0 || canContinueIntake());
+    setContinueEnabled(this.step === 0 ? canContinueIntake() : this.step === 1 ? this.tierChosen : true);
     if (this.step === this.last) {
       this.summary();
       next.textContent = !analysisOk ? 'Check source status' : ownerTestInvite ? 'Start my Full test — no payment' : 'Pay ' + PRICES[this.tier] + ' — Ktebli gets to work';
     } else {
-      next.textContent = 'Continue';
+      next.textContent = this.step === 0 ? (this.tierChosen && this.packageExplicit ? 'Add your details' : 'Choose a package') : this.step === 1 ? 'Add your details' : 'Review order';
     }
+    if (moveFocus) {
+      this.el.scrollTop = 0;
+      var stepFocus = this.step === 0 ? document.getElementById('w-grant') : this.step === 1 ? (this.el.querySelector('.pkg input:checked') || this.el.querySelector('.pkg input')) : this.step === 2 ? document.getElementById('w-name') : this.el.querySelector('.wiz-step.on h3');
+      if (stepFocus) {
+        if (stepFocus.tagName === 'H3') stepFocus.setAttribute('tabindex', '-1');
+        stepFocus.focus({ preventScroll: true });
+      }
+    }
+    saveTaskDraft();
   },
   summary: function () {
     var rows = reviewRows(this);
     var h = '';
     rows.forEach(function (r) { h += '<div class="sumrow"><span class="sk">' + esch(r[0]) + '</span><span class="sv">' + esch(r[1] || '—') + '</span></div>'; });
     document.getElementById('summary').innerHTML = h;
+    if (catalogueContextTitle && this.val('w-grant') === catalogueContextSource) {
+      var catalogueSummary = document.createElement('p');
+      catalogueSummary.className = 'field-help';
+      catalogueSummary.textContent = 'Selected catalogue notice: ' + catalogueContextTitle + '. This is a source hint; confirm the issuer’s requirements and deadline.';
+      document.getElementById('summary').appendChild(catalogueSummary);
+    }
     renderReviewPackage(this.tier, this.val('w-proposal-type'));
     var note = 'Secure payment with Stripe. Next, add the work you propose and any helpful background on your order page. We read the full brief and attachments, then draft and check your package.';
     var pn = this.el.querySelector('.paynote');
@@ -957,7 +1144,14 @@ var wiz = {
     pn.textContent = ownerTestInvite ? 'Owner testing: no payment will be taken. The same source, evidence, originality and Full-tier quality checks apply. One test is available per private invitation.' : note;
   },
   pay: function () {
-    if (!analysisOk || lastAnalyzed !== this.val('w-grant')) { this.step = 0; this.render(); analyzeGrant(false); return; }
+    if (this.checkoutPending) return;
+    if (handoffConflict) { this.step=0; this.render(true); return; }
+    if (!analysisOk || lastAnalyzed !== this.val('w-grant')) {
+      if(!analyzing)analyzeGrant(false);
+      renderSuff({cleared:false,message:{headline:analyzing?'Rechecking the opportunity':'The opportunity needs another check.',intro:analyzing?'Your details remain here. Continue once the source check finishes.':'Use Back to review the source, then return to checkout.'}});
+      if(!analyzing){this.step=0;this.render(true);}
+      return;
+    }
 
     // Second click after a clearance that carried "to confirm" self-certs: the
     // customer has seen the list, proceed straight to the gated checkout.
@@ -965,11 +1159,16 @@ var wiz = {
     var data = this.collect();
     if (ownerTestInvite) data.owner_test_invite = ownerTestInvite;
     var self = this;
+    var source=data.grant, tier=data.tier, generation=++this.checkoutGeneration;
+    var controller=new AbortController();this.checkoutController=controller;this.checkoutPending=true;
+    function stillCurrent(){return self.checkoutGeneration===generation && !controller.signal.aborted && self.el.classList.contains('open') && self.val('w-grant')===source && self.tier===tier && !handoffConflict;}
     var btn = document.getElementById('wiz-next');
     btn.disabled = true; btn.textContent = 'Checking your answers…';
-    fetch(FN + '/save-intake', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) })
+    fetch(FN + '/save-intake', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data),signal:controller.signal })
       .then(function (r) { return r.json(); })
       .then(function (j) {
+        if(!stillCurrent())return;
+        self.checkoutPending=false;self.checkoutController=null;
         if (j && j.id) self.intakeId = j.id;
         if (j && j.reason === 'opportunity_analysis_required') { analysisOk = false; lastAnalyzed = ''; self.pendingToken = null; }
         if (j && j.cleared && j.checkout_token) {
@@ -994,6 +1193,8 @@ var wiz = {
         }
       })
       .catch(function () {
+        if(!stillCurrent())return;
+        self.checkoutPending=false;self.checkoutController=null;
         btn.disabled = false;
         btn.textContent = 'Pay ' + PRICES[wiz.tier] + ' — Ktebli gets to work';
         renderSuff({ cleared: false, message: { headline: 'We could not reach the checkout just now.', intro: 'Nothing has been charged. Please check your connection and try again.', items: [], reassurance: '' } });
@@ -1014,7 +1215,7 @@ document.querySelectorAll('a[href="#start"]').forEach(function (a) {
 // A public check creates a source reference or reads an existing cache entry.
 // Paid source review starts only after checkout or an authorized owner test.
 var lastAnalyzed = "", analyzing = false, analysisOk = false, analysisReady = false, analysisBackground = false, analyzedDeadline = "";
-function canContinueIntake() { return analysisOk && !!opportunityExtractionId && !!opportunityExtractionToken; }
+function canContinueIntake() { return !handoffConflict && analysisOk && !!opportunityExtractionId && !!opportunityExtractionToken; }
 var deadlineRequiresManual = false, deadlineNeedsVerification = false, deadlinePreviewPrefill = false;
 function deadlineForSubmission() {
   var field = document.getElementById('w-deadline'), value = field.value.trim();
@@ -1163,6 +1364,7 @@ function opportunityProgress(a) {
 }
 function showPreviewLoading(box, message) {
   box.replaceChildren(); box.style.display='block'; box.className=box.id==='gpreview'?'gpreview preview-loading':'field-help preview-loading'; box.setAttribute('aria-busy','true');
+  if (box.id === 'gpreview') { box.classList.remove('preview-entering'); void box.offsetWidth; box.classList.add('preview-entering'); }
   var label=document.createElement('span');label.className='preview-loading-label';label.textContent=message;box.appendChild(label);
   if(box.id==='gpreview') {var hint=document.createElement('p');hint.className='source-progress-note';hint.textContent='Fetching the page title, deadline and key details. Attachments are read after payment.';box.appendChild(hint);var lines=document.createElement('div');lines.className='preview-skeleton';lines.setAttribute('aria-hidden','true');for(var i=0;i<3;i++)lines.appendChild(document.createElement('span'));box.appendChild(lines);}
 }
@@ -1173,12 +1375,14 @@ function previewTags(box, values) {
   var tags=document.createElement('div');tags.className='preview-tags';values.filter(Boolean).forEach(function(value){var tag=document.createElement('span');tag.textContent=value.replace(/_/g,' ');tags.appendChild(tag);});if(values.filter(Boolean).length)box.appendChild(tags);
 }
 var opportunityPasteSource = '';
-function offerOpportunityPaste(box, preview) {
+function offerOpportunityPaste(box, preview, options) {
   var input=wiz.val('w-grant');
   if(!/^https?:\/\/\S+$/i.test(input)||preview&&preview.failure_reason==='unsupported_content')return;
-  var note=document.createElement('p');note.className='source-progress-note';
-  note.textContent=preview&&['login_required','verification_required'].includes(preview.failure_reason)?'This page needs a login or verification. Open it in your browser, copy the full page text, then paste it here.':'We couldn’t read this page. Open it in your browser, copy the full page text, then paste it here.';
-  box.appendChild(note);
+  if(!options || !options.suppressNote){
+    var note=document.createElement('p');note.className='source-progress-note';
+    note.textContent=preview&&['login_required','verification_required'].includes(preview.failure_reason)?'This page needs a login or verification. Open it in your browser, copy the full page text, then paste it here.':'We couldn’t read this page. Open it in your browser, copy the full page text, then paste it here.';
+    box.appendChild(note);
+  }
   var actions=document.createElement('div');actions.style.display='flex';actions.style.gap='16px';actions.style.flexWrap='wrap';actions.style.alignItems='center';
   var open=sourceLink(input,'Open source page');open.className='text-link';actions.appendChild(open);
   var paste=document.createElement('button');paste.type='button';paste.className='text-link';paste.textContent='Paste full page text';
@@ -1196,15 +1400,25 @@ function showOpportunityResult(a) {
   var currentBox=document.getElementById('gpreview');currentBox.setAttribute('aria-busy','false');
   if(a.awaiting_payment) {
     var p=a.quick_preview||{}, unavailable=p.status==='unavailable', funding=previewFunding(p.funding_excerpt,p.currency);currentBox.replaceChildren();currentBox.style.display='block';currentBox.className='gpreview';
+    void currentBox.offsetWidth; currentBox.classList.add('preview-entering');
     var name=document.createElement('div');name.className='gp-t';name.textContent=p.display_title||p.title||'Opportunity saved';currentBox.appendChild(name);
-    previewTags(currentBox,[p.proposal_type,p.subject]);
-    previewFact(currentBox,'Deadline',p.deadline_excerpt&&compactPreviewDeadline(p.deadline_excerpt));previewFact(currentBox,'Funding',funding||'Will be extracted from documents');
-    var note=document.createElement('p');note.className='source-progress-note';note.textContent=unavailable?'Link saved. You can paste a copy now. Full document reading starts after payment.':'Page details to review. Full document reading starts after payment.';currentBox.appendChild(note);
-    if(unavailable)offerOpportunityPaste(currentBox,p);
+    var note=document.createElement('p');note.className='source-progress-note';
+    note.textContent=unavailable?(p.failure_reason==='login_required'||p.failure_reason==='verification_required'?'This page needs a login or verification. Full document reading starts after payment.':'Link saved. We couldn’t read this page. Full document reading starts after payment.'):'Page preview only. Dates and amounts are unverified; full document reading starts after payment.';
+    currentBox.appendChild(note);
+    if(!unavailable){
+      previewTags(currentBox,[p.proposal_type,p.subject]);
+      previewFact(currentBox,'Deadline',p.deadline_excerpt?compactPreviewDeadline(p.deadline_excerpt):'Not confirmed from this page');
+      previewFact(currentBox,'Funding',funding||'Will be extracted from documents');
+    } else {
+      previewFact(currentBox,'Deadline','Not confirmed from this page');
+      offerOpportunityPaste(currentBox,p,{suppressNote:true});
+    }
     if(p.deadline_needs_verification&&p.deadline_warning){var warning=document.createElement('p');warning.className='deadline-warning';warning.setAttribute('role','alert');warning.textContent=p.deadline_warning;currentBox.appendChild(warning);}
     var more=document.createElement('details');more.className='preview-more';var summary=document.createElement('summary');summary.textContent='More details';more.appendChild(summary);
-    (p.deadline_candidates||[p.deadline_excerpt]).forEach(function(value){previewFact(more,'Source deadline',value);});previewFact(more,'Source funding',funding);previewFact(more,'Issuer',p.issuer);previewFact(more,'About',p.description||p.scope);if(funding)previewFact(more,'Funding currency',p.currency);previewFact(more,'Location',p.location);previewFact(more,'Public contact',p.contact_email||p.contact_phone);
-    if(!unavailable&&!p.deadline_excerpt)previewFact(more,'Deadline','Not confirmed from this page');
+    previewTags(more,[p.proposal_type,p.subject]);
+    if(unavailable){previewFact(more,'Funding',funding||'Will be extracted from documents');}
+    else {previewFact(more,'Source deadline',p.deadline_excerpt);previewFact(more,'Source funding',funding);}previewFact(more,'Issuer',p.issuer);previewFact(more,'About',p.description||p.scope);if(funding)previewFact(more,'Funding currency',p.currency);previewFact(more,'Location',p.location);previewFact(more,'Public contact',p.contact_email||p.contact_phone);
+    (p.deadline_candidates||[]).forEach(function(value){if(value!==p.deadline_excerpt)previewFact(more,'Other source date',value);});
     if(p.source_url)more.appendChild(sourceLink(p.source_url,'View source page'));
     if(p.raw_title&&p.raw_title!==p.display_title)previewFact(more,'Source title',p.raw_title);
     currentBox.appendChild(more);return;
@@ -1213,20 +1427,27 @@ function showOpportunityResult(a) {
   var oversized = a.reason === 'opportunity_writing_context_limit' || a.reason === 'packet_processing_limit';
   var box = document.getElementById('gpreview'); box.replaceChildren(); box.style.display = 'block';
   box.className = 'gpreview' + (a.status === 'blocked' ? ' err' : '');
+  void box.offsetWidth; box.classList.add('preview-entering');
   var heading = document.createElement('div'); heading.className = 'gp-t';
-  heading.textContent = a.status === 'ready' ? 'Requirements ready — saved source review' : a.awaiting_payment ? 'Source saved — full review starts after payment' : a.status === 'processing' ? 'Preparing the source review…' : oversized ? 'This document pack needs a larger review' : 'We need the complete source documents';
+  heading.textContent = a.status === 'ready' ? a.title || 'Source review ready' : a.awaiting_payment ? 'Source saved — full review starts after payment' : a.status === 'processing' ? 'Preparing the source review…' : oversized ? 'This document pack needs a larger review' : 'We need the complete source documents';
   box.appendChild(heading);
-  if (a.status === 'processing' || a.status === 'ready') box.appendChild(opportunityProgress(a));
-  if (a.quick_preview) {
+  if (a.status === 'processing') box.appendChild(opportunityProgress(a));
+  if (a.status === 'ready') {
+    var readyNote = document.createElement('p'); readyNote.className = 'source-progress-note'; readyNote.textContent = 'Source review complete. Check the summary and any deadline warning below.'; box.appendChild(readyNote);
+    previewFact(box,'Deadline',a.deadline||'Not confirmed in the source');
+    previewFact(box,'Funding',a.amount ? (a.currency ? a.currency+' ' : '')+a.amount : 'Not clearly stated in the source');
+    previewFact(box,'Scope',a.looking_for||'Not clearly stated in the source');
+  }
+  if (a.quick_preview && a.status !== 'ready') {
     var preview = a.quick_preview, previewUnavailable = preview.status === 'unavailable';
-    [['Opportunity',preview.title || 'Title will be checked after payment'],['Type',preview.proposal_type ? preview.proposal_type.replace(/_/g,' ') : 'To be confirmed'],['Deadline',preview.deadline_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['Funding',preview.funding_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['What to expect',preview.description || preview.expected]].forEach(function(pair) {
+    [['Opportunity',preview.title || 'Title will be checked after payment'],['Type',preview.proposal_type ? preview.proposal_type.replace(/_/g,' ') : 'To be confirmed'],['Deadline',preview.deadline_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['Funding',preview.funding_excerpt || (previewUnavailable ? 'We’ll check this after payment' : 'Not confirmed from this page')],['What to expect',preview.description || preview.expected]].filter(function(pair){return typeof pair[1] === 'string' && pair[1].trim();}).forEach(function(pair) {
       var row=document.createElement('p'); row.textContent=pair[0]+': '+pair[1]; box.appendChild(row);
     });
     var notice=document.createElement('p'); notice.className='source-progress-note'; notice.textContent=previewUnavailable?'Link saved. You can paste a copy now. Full document reading starts after payment.':'Quick page preview — unverified. Dates and amounts may refer to other events or fees. Full source checks happen after payment.';box.appendChild(notice);
     if(previewUnavailable)offerOpportunityPaste(box,preview);
   }
 
-  [['Issuer',a.issuer],['Opportunity',a.title],['Scope',a.looking_for],['Deadline',/^\d{4}-\d{2}-\d{2}$/.test(a.deadline || '') ? a.deadline : null]].forEach(function(pair) {
+  (a.status === 'ready' ? [['Issuer',a.issuer]] : [['Issuer',a.issuer],['Opportunity',a.title],['Scope',a.looking_for],['Deadline',/^\d{4}-\d{2}-\d{2}$/.test(a.deadline || '') ? a.deadline : null]]).forEach(function(pair) {
     if (!pair[1]) return;
     var row = document.createElement('div'); row.className = 'gp-r';
     var key = document.createElement('span'); key.className = 'gp-k'; key.textContent = pair[0];
@@ -1331,14 +1552,23 @@ function updateDeadlineField() {
   // manual deadline appears only when analysis could not supply one
   var show = analysisOk && (deadlineRequiresManual || !analyzedDeadline);
   document.getElementById('deadline-manual').style.display = show ? 'block' : 'none';
-  document.getElementById('deadline-help').textContent = deadlinePreviewPrefill && document.getElementById('w-deadline').dataset.autoDetected === 'true' ? 'Filled from your link. Please check the date and time with the issuer.' : 'Enter the date you checked with the issuer. This will be labelled as your supplied date.';
+  document.getElementById('deadline-help').textContent = deadlinePreviewPrefill && document.getElementById('w-deadline').dataset.autoDetected === 'true' ? 'Filled from your link. Please check the date and time with the issuer.' : deadlineRequiresManual ? 'Enter the date you checked with the issuer. We label it as your supplied date.' : 'Enter a date only if you have checked it with the issuer.';
+  var deadlineLabel = document.querySelector('label[for="w-deadline"] span');
+  if (deadlineLabel) { deadlineLabel.textContent = deadlineRequiresManual ? 'Required' : 'Optional'; deadlineLabel.className = deadlineRequiresManual ? 'rq' : 'optional'; }
+  document.getElementById('w-deadline').required = deadlineRequiresManual;
+  document.getElementById('w-deadline-confirm').required = analysisOk && (deadlineRequiresManual || deadlineNeedsVerification);
   document.getElementById('deadline-confirmation').style.display = analysisOk && (deadlineRequiresManual || deadlineNeedsVerification) ? 'block' : 'none';
-  document.getElementById('deadline-confirm-label').textContent = deadlineRequiresManual ? 'I have checked this date. I understand it is supplied by me, not verified by Ktebli.' : 'I understand Ktebli will plan for the earliest readable date, and I will verify the deadline with the issuer.';
+  document.getElementById('deadline-confirm-label').textContent = deadlineRequiresManual ? 'Required to continue: I checked this date with the issuer. It is supplied by me, not verified by Ktebli.' : 'Required to continue: I will verify the deadline with the issuer; Ktebli plans around the earliest readable date.';
 }
-document.getElementById('w-deadline-confirm').addEventListener('change',function(){ wiz.pendingToken=null; });
-document.getElementById('w-deadline').addEventListener('input',function(){ delete this.dataset.autoDetected; this.dataset.userSelected='true'; deadlinePreviewPrefill=false; document.getElementById('w-deadline-confirm').checked=false; wiz.pendingToken=null; updateDeadlineField(); });
+document.getElementById('w-deadline-confirm').addEventListener('change',function(){ wiz.pendingToken=null; if(wiz.step===0)setContinueEnabled(canContinueIntake()); });
+document.getElementById('w-deadline').addEventListener('input',function(){ delete this.dataset.autoDetected; this.dataset.userSelected='true'; deadlinePreviewPrefill=false; document.getElementById('w-deadline-confirm').checked=false; wiz.pendingToken=null; updateDeadlineField(); if(wiz.step===0)setContinueEnabled(canContinueIntake()); });
 var debounceT = null;
-document.getElementById('w-grant').addEventListener('input', function () {
+var catalogueContextSource = '';
+document.getElementById('w-grant').addEventListener('input', function (event) {
+  wiz.invalidateCheckout();
+  if(event.isTrusted){handoffConflict=false;activePrepareReference='';hasPrepareReference=false;prepareReference='';if(window.location.pathname==='/start'||window.location.pathname==='/start/'||window.location.pathname==='/')history.replaceState(null,'',window.location.pathname+(returnTo?'?returnTo='+encodeURIComponent(returnTo):''));}
+  if (catalogueHandoffPending) { catalogueHandoffPending=false; catalogueHandoffEpoch++; var pendingContext=document.getElementById('catalogue-context');pendingContext.hidden=true;pendingContext.replaceChildren(); }
+  if (catalogueContextSource && this.value.trim() !== catalogueContextSource) { catalogueContextSource='';catalogueContextTitle='';var catalogueContext=document.getElementById('catalogue-context');catalogueContext.hidden=true;catalogueContext.replaceChildren(); }
   if(/^https?:\/\//i.test(this.value.trim())){opportunityPasteSource='';var reference=document.getElementById('opportunity-paste-source');reference.hidden=true;reference.replaceChildren();this.placeholder='https://... or paste the guidelines here';}
   clearTimeout(analysisPoll); analysisSequence++; deadlineRequiresManual = false; deadlineNeedsVerification = false; resetDeadlineForSourceChange(); analysisOk = false; analysisReady = false; analysisBackground = false; opportunityExtractionId = ''; opportunityExtractionToken = ''; analyzedDeadline = ''; analyzing = false; lastAnalyzed = ''; setContinueEnabled(false); document.getElementById('gpreview').style.display = 'none';
   opportunityDetails = null; resetDetectedDetails();
@@ -1375,16 +1605,72 @@ document.getElementById('w-currency-other').addEventListener('input', function()
 // wizard controls
 document.getElementById('wiz-close').addEventListener('click', function(){ wiz.close(); });
 document.getElementById('wiz').addEventListener('click', function(e){ if (e.target === wiz.el) wiz.close(); });
-document.addEventListener('keydown', function(e){ if (e.key === 'Escape') wiz.close(); });
-document.getElementById('wiz-back').addEventListener('click', function(){ if (wiz.step>0){ wiz.step--; wiz.render(); } });
+document.addEventListener('keydown', function(e){
+  if (!wiz.el.classList.contains('open')) return;
+  if (e.key === 'Escape') { e.preventDefault(); if(!document.getElementById('wiz-reset-confirm').hidden){hideResetConfirm(true);return;} wiz.close(); return; }
+  if (e.key !== 'Tab') return;
+  var focusable = wiz.el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])');
+  var visible = Array.prototype.filter.call(focusable, function(el){
+    if (el.tabIndex < 0 || el.disabled || !el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return false;
+    for (var parent=el.parentElement; parent && parent!==wiz.el; parent=parent.parentElement) {
+      var parentStyle = getComputedStyle(parent);
+      if (parent.hidden || parentStyle.display === 'none' || parentStyle.visibility === 'hidden') return false;
+      if (parent.tagName === 'DETAILS' && !parent.open) {
+        var summary = parent.querySelector(':scope > summary');
+        if (!summary || !summary.contains(el)) return false;
+      }
+    }
+    return true;
+  });
+  if (!visible.length) { e.preventDefault(); document.getElementById('wiz-close').focus(); return; }
+  var first = visible[0], last = visible[visible.length - 1];
+  if (e.shiftKey && (document.activeElement === first || !wiz.el.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && (document.activeElement === last || !wiz.el.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+});
+document.getElementById('wiz-back').addEventListener('click', function(){ if (wiz.step>0){ wiz.invalidateCheckout();wiz.step = wiz.step===2 && wiz.packageExplicit ? 0 : wiz.step-1; wiz.render(true); } });
 document.getElementById('wiz-next').addEventListener('click', function(){
   if (wiz.step === wiz.last) { wiz.pay(); return; }
   if (!wiz.validate()) return;
-  wiz.step++; wiz.render();
+  wiz.invalidateCheckout();
+  wiz.step = wiz.step===0 && wiz.tierChosen && wiz.packageExplicit ? 2 : wiz.step+1; wiz.render(true);
 });
 document.querySelectorAll('.pkg label').forEach(function (l) {
-  l.addEventListener('click', function(){ wiz.tier = ownerTestInvite ? 'full' : l.getAttribute('data-tier'); wiz.render(); });
+  l.addEventListener('click', function(){ wiz.invalidateCheckout();wiz.tier = ownerTestInvite ? 'full' : l.getAttribute('data-tier'); wiz.tierChosen = true; wiz.packageExplicit=false; wiz.render(); });
 });
+function hideResetConfirm(restoreFocus){
+  var panel=document.getElementById('wiz-reset-confirm');if(!panel)return;
+  panel.hidden=true;if(restoreFocus)document.getElementById('wiz-reset').focus();
+}
+function resetProposalTask(){
+  hideResetConfirm(false);
+  wiz.invalidateCheckout();
+  clearTaskDraft();
+  clearTimeout(analysisPoll);analysisSequence++;analysisOk=false;analysisReady=false;analysisBackground=false;analyzing=false;lastAnalyzed='';analyzedDeadline='';opportunityExtractionId='';opportunityExtractionToken='';opportunityDetails=null;deadlineRequiresManual=false;deadlineNeedsVerification=false;deadlinePreviewPrefill=false;
+  catalogueHandoffEpoch++;catalogueHandoffPending=false;handoffConflict=false;catalogueContextSource='';catalogueContextTitle='';activePrepareReference='';prepareReference='';hasPrepareReference=false;memberIntent=false;
+  document.querySelectorAll('#wiz input,#wiz textarea,#wiz select').forEach(function(field){if(field.type==='checkbox'||field.type==='radio')field.checked=false;else if(field.type!=='file')field.value=field.tagName==='SELECT' ? (field.querySelector('option[selected]')||field.options[0]||{}).value||'' : '';delete field.dataset.userSelected;delete field.dataset.userEdited;delete field.dataset.detected;});
+  Object.keys(REP).forEach(function(kind){document.getElementById(REP[kind].c).replaceChildren();});seedRepeaters();
+  document.querySelectorAll('#wiz details').forEach(function(item){item.open=false;});
+  document.getElementById('gpreview').replaceChildren();document.getElementById('gpreview').style.display='none';document.getElementById('catalogue-context').hidden=true;document.getElementById('catalogue-context').replaceChildren();
+  document.getElementById('opportunity-paste-source').hidden=true;document.getElementById('opportunity-paste-source').replaceChildren();
+  wiz.step=0;wiz.tier='competitive';wiz.tierChosen=false;wiz.packageExplicit=false;wiz.files=[];wiz.intakeId=null;wiz.pendingToken=null;wiz.pendingEmail=null;
+  if(focusedStart)history.replaceState(null,'','/start'+(returnTo?'?returnTo='+encodeURIComponent(returnTo):''));
+  updateDeadlineField();syncCurrencyOther();applyAccountProfile();taskActive=true;wiz.render(true);
+}
+document.getElementById('wiz-reset').addEventListener('click',function(){
+  var hasWork=wiz.tierChosen||Array.prototype.some.call(document.querySelectorAll('#wiz input,#wiz textarea,#wiz select'),function(field){return field.type==='checkbox'?field.checked:field.type==='radio'||field.tagName==='SELECT'?false:!!field.value.trim();});
+  if(!hasWork){resetProposalTask();return;}
+  var panel=document.getElementById('wiz-reset-confirm');panel.hidden=false;document.getElementById('wiz-reset-title').focus();
+});
+document.getElementById('wiz-keep-current').addEventListener('click',function(){hideResetConfirm(true);});
+document.getElementById('wiz-confirm-reset').addEventListener('click',resetProposalTask);
+function changedTaskField(event){
+  if(event.target && event.target.matches("input,textarea,select") && event.isTrusted)event.target.dataset.userEdited="true";
+  if(event.target && event.target.matches && event.target.matches('input,textarea,select') && (wiz.checkoutPending||wiz.pendingToken)) wiz.invalidateCheckout();
+  saveTaskDraft();
+}
+document.getElementById('wiz').addEventListener('input',changedTaskField);
+document.getElementById('wiz').addEventListener('change',changedTaskField);
+document.getElementById('wiz').addEventListener('toggle',saveTaskDraft,true);
 
 // repeater "add" buttons for the list-shaped named facts
 [['add-people','people'],['add-programmes','programmes'],['add-results','results'],['add-partners','partners'],['add-links','links']].forEach(function (p) {
@@ -1414,7 +1700,71 @@ document.getElementById('w-web').addEventListener('blur',async function(){
 });
 document.getElementById('w-applicant-type').addEventListener('change',function(event){if(event.isTrusted)this.dataset.userSelected='true';document.querySelector('label[for="w-org"]').firstChild.textContent=this.value==='individual'?'Name to use on the proposal ':'Organisation name ';});
 
+function loadCatalogueHandoff() {
+  if (!hasPrepareReference || catalogueHandoffPending || prepareReference===activePrepareReference || !wiz.el.classList.contains('open')) return;
+  var prepareId=prepareReference, contextBox=document.getElementById('catalogue-context');
+  contextBox.hidden=false;contextBox.textContent='Loading the selected public notice…';
+  var handoffEpoch=catalogueHandoffEpoch, handoffInitialSource=document.getElementById('w-grant').value;
+  catalogueHandoffPending=true;
+  var handoffController=new AbortController();
+  var handoffTimeout=setTimeout(function(){handoffController.abort();},10000);
+  fetch('/account/api/opportunity-handoff?id='+encodeURIComponent(prepareId),{credentials:'same-origin',cache:'no-store',signal:handoffController.signal})
+    .then(function(response){if(!response.ok)throw new Error('handoff_unavailable');return response.json();})
+    .then(function(item){
+      if(handoffEpoch!==catalogueHandoffEpoch||!catalogueHandoffPending||!wiz.el.classList.contains('open')||document.getElementById('w-grant').value!==handoffInitialSource)return;
+      if(!item||typeof item.sourceUrl!=='string'||!/^https:\/\/[^\s]+$/.test(item.sourceUrl)||item.sourceUrl.length>2000)throw new Error('handoff_invalid');
+      catalogueHandoffPending=false;handoffConflict=false;activePrepareReference=prepareId;memberIntent=false;contextBox.replaceChildren();
+      var heading=document.createElement('strong');heading.textContent=item.title||'Selected opportunity';contextBox.appendChild(heading);
+      var meta=document.createElement('p');meta.textContent=(item.source||'Official source').toUpperCase()+' · '+(item.kind==='grant'?'Grant':item.kind==='procurement'?'Procurement':'Notice')+(item.deadline?' · Listed deadline '+item.deadline:' · Deadline not confirmed');contextBox.appendChild(meta);
+      if(item.description){var brief=document.createElement('p');brief.textContent=item.description;contextBox.appendChild(brief);}
+      var warning=document.createElement('p');warning.className='catalogue-warning';warning.textContent=item.status==='closed'?'This notice appears closed or past its listed deadline. Check the issuer before preparing a response.':item.deadlineConflict?'Published dates conflict. Check the issuer before continuing.':'Source context is a starting point. Verify the deadline and eligibility with the issuer before payment.';contextBox.appendChild(warning);
+      var original=document.createElement('a');original.href=item.sourceUrl;original.target='_blank';original.rel='noreferrer';original.textContent='Read original notice ↗';contextBox.appendChild(original);
+      var field=document.getElementById('w-grant');catalogueContextSource=item.sourceUrl;catalogueContextTitle=item.title||'';
+      if(field.value!==item.sourceUrl){field.value=item.sourceUrl;field.dispatchEvent(new Event('input',{bubbles:true}));}
+      else {analyzeGrant(false);saveTaskDraft();}
+    }).catch(function(){
+      if(handoffEpoch!==catalogueHandoffEpoch||!catalogueHandoffPending||!wiz.el.classList.contains('open'))return;
+      catalogueHandoffPending=false;handoffConflict=true;wiz.step=0;wiz.render(true);contextBox.replaceChildren();
+      var message=document.createElement('p');message.textContent=handoffInitialSource?'Could not load this selected notice. Your earlier proposal is still here. Continue it, or try loading the notice again.':'Could not load this notice. Try again, or paste its original link below.';contextBox.appendChild(message);
+      var retry=document.createElement('button');retry.type='button';retry.className='text-link';retry.textContent='Try loading the selected notice';retry.addEventListener('click',loadCatalogueHandoff);contextBox.appendChild(retry);
+      if(handoffInitialSource){
+        var earlier=document.createElement('button');earlier.type='button';earlier.className='text-link';earlier.textContent='Continue earlier proposal';earlier.addEventListener('click',function(){handoffConflict=false;hasPrepareReference=false;prepareReference=activePrepareReference;history.replaceState(null,'',window.location.pathname+(returnTo?'?returnTo='+encodeURIComponent(returnTo):''));contextBox.hidden=true;contextBox.replaceChildren();analyzeGrant(false);saveTaskDraft();});contextBox.appendChild(earlier);
+      }
+    }).finally(function(){clearTimeout(handoffTimeout);});
+}
+window.addEventListener('storage',function(event) {
+  if(event.key!=='ktebli-account-signout')return;
+  accountSessionEpoch++;accountProfile=null;taskOwner=null;clearTaskDraft();
+  accountProofUnavailable=false;accountNeedsRefresh=false;accountProfileReady=true;accountStartupPending=false;
+  resetProposalTask();profileLoading(false);
+});
+document.getElementById('profile-retry').addEventListener('click',function(){accountNeedsRefresh=true;revalidateAccountProfile();});
+window.addEventListener('blur',suspendAccountProfile);
+window.addEventListener('focus',revalidateAccountProfile);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')suspendAccountProfile();else revalidateAccountProfile();});
+// Recheck the session instead of exposing a previous account from the browser's page cache.
+window.addEventListener('pageshow',function(event){if(event.persisted)window.location.reload();});
+var initialAccountEpoch=accountSessionEpoch;
+function finishAccountProfileStartup(data) {
+  if(data===undefined && hasOwnedTaskDraft()){
+    accountProofUnavailable=true;accountNeedsRefresh=true;showProfileRetry();return;
+  }
+  accountStartupPending=false;accountProofUnavailable=false;
+  data=data || null;
+  accountProfile=data;taskOwner=data?data.account.id:null;accountProfileReady=true;
+  taskDraft=readTaskDraft();
+  if(taskDraft)restoreTaskDraft(taskDraft);
+  applyAccountProfile();
+  handoffConflict=hasPrepareReference && prepareReference!==activePrepareReference;
+  updateReturnLink();
+  if(accountNeedsRefresh){revalidateAccountProfile();if(accountRefreshPromise || document.visibilityState==='hidden')return;}
+  profileLoading(false);
+  if(pendingProfileOpen){var tier=pendingProfileOpen.tier;pendingProfileOpen=null;wiz.open(tier);}
+}
+loadAccountProfile().then(function(data){if(initialAccountEpoch!==accountSessionEpoch)data=null;finishAccountProfileStartup(data);});
+updateReturnLink();
 if (ownerTestInvite) wiz.open('full');
+else if (hasPrepareReference || focusedStart) wiz.open(null);
 else if (memberIntent) {
   var memberSource=new URLSearchParams(window.location.search).get('opportunity')||'';
   if (/^https:\/\/[^\s]+$/.test(memberSource) && memberSource.length<=2000) {

@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { gunzipSync, gzipSync } from "node:zlib";
 
-export type CrawlSource = "ppa" | "ungm-curated" | "mawred" | "worldbank";
+export type CrawlSource =
+  "ppa" | "ungm-curated" | "mawred" | "worldbank" | "grants-gov" | "sam-gov";
 export type CrawlPhase = "listing" | "backlog" | "imported";
 
 export function ppaNeedsListingRefresh(
@@ -11,8 +12,7 @@ export function ppaNeedsListingRefresh(
 ): boolean {
   return (
     phase === "imported" ||
-    (phase === "backlog" &&
-      lastRunAt.toISOString().slice(0, 10) !== now.toISOString().slice(0, 10))
+    lastRunAt.toISOString().slice(0, 10) !== now.toISOString().slice(0, 10)
   );
 }
 export const MAX_RAW_STATE_BYTES = 256 * 1024 * 1024;
@@ -37,6 +37,27 @@ export function validCrawlerState(
       !Array.isArray(value.entries) &&
       Array.isArray(value.seen),
     );
+  if (source === "grants-gov" || source === "sam-gov") {
+    const sources = value.sources as Record<string, unknown> | undefined;
+    const checkpoint = sources?.[source] as Record<string, unknown> | undefined;
+    return Boolean(
+      checkpoint &&
+      typeof checkpoint.status === "string" &&
+      Number.isSafeInteger(checkpoint.cursor) &&
+      (checkpoint.cursorUnit === "offset" ||
+        checkpoint.cursorUnit === "page") &&
+      Number.isSafeInteger(checkpoint.pages) &&
+      Array.isArray(checkpoint.fingerprints) &&
+      (checkpoint.pendingPage === null ||
+        (typeof checkpoint.pendingPage === "object" &&
+          !Array.isArray(checkpoint.pendingPage))) &&
+      typeof checkpoint.updatedAt === "string" &&
+      Array.isArray(checkpoint.seenIds) &&
+      checkpoint.records &&
+      typeof checkpoint.records === "object" &&
+      !Array.isArray(checkpoint.records),
+    );
+  }
   if (source === "ungm-curated")
     return Boolean(
       value.entries &&

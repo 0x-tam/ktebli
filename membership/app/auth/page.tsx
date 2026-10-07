@@ -1,259 +1,495 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/client";
 import { accountPath } from "@/lib/paths";
+import { safeAccountReturn } from "@/lib/navigation";
+import {
+  AuthRequestTimeoutError,
+  codeErrorMessage,
+  isCodeError,
+  runBoundedAuthCall,
+} from "@/lib/auth/flow";
+import "./auth.css";
+
+type Mode = "signIn" | "signUp" | "otp" | "verify";
+type Phase =
+  | "creating"
+  | "sending"
+  | "verifying"
+  | "signing-in"
+  | "confirming"
+  | "redirecting";
+
+const phaseMessage: Record<Phase, string> = {
+  creating: "Creating your account…",
+  sending: "Requesting your code…",
+  verifying: "Checking your code…",
+  "signing-in": "Signing you in…",
+  confirming: "Confirming your session…",
+  redirecting: "Opening your account…",
+};
+
+function failureMessage(error: unknown, fallback: string): string {
+  if (error instanceof AuthRequestTimeoutError) return error.message;
+  const issue = error as { code?: string; status?: number } | null;
+  if (issue?.status === 429 || issue?.code === "TOO_MANY_ATTEMPTS")
+    return "Too many attempts. Wait a little before trying again.";
+  if (issue?.code === "INVALID_EMAIL_OR_PASSWORD")
+    return "Email or password did not match.";
+  return fallback;
+}
 export default function AuthPage() {
-  const [mode, setMode] = useState<"signIn" | "signUp" | "otp" | "verify">(
-    "signIn",
-  );
+  const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<Phase | null>(null);
   const [message, setMessage] = useState("");
+  const [codeError, setCodeError] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
+  const inFlight = useRef(false);
+  const mounted = useRef(false);
+  const codeInput = useRef<HTMLInputElement>(null);
+  const busy = phase !== null;
+
+  useEffect(() => {
+    mounted.current = true;
+    let cancelled = false;
+    void runBoundedAuthCall(
+      (signal) => authClient.getSession({ fetchOptions: { signal } }),
+      5_000,
+    )
+      .then((session) => {
+        if (cancelled || !mounted.current) return;
+        if (session.data?.user?.emailVerified) openAccount();
+        else setCheckingSession(false);
+      })
+      .catch(() => {
+        if (!cancelled && mounted.current) setCheckingSession(false);
+      });
+    return () => {
+      cancelled = true;
+      mounted.current = false;
+    };
+  }, []);
+
+  function begin(nextPhase: Phase): boolean {
+    if (inFlight.current) return false;
+    inFlight.current = true;
+    setPhase(nextPhase);
+    setMessage("");
+    setCodeError("");
+    return true;
+  }
+
+  function finish() {
+    inFlight.current = false;
+    if (mounted.current) setPhase(null);
+  }
+
+  function focusCodeError() {
+    requestAnimationFrame(() => codeInput.current?.focus());
+  }
+
+  function openAccount() {
+    setPhase("redirecting");
+    const returnTo = safeAccountReturn(
+      new URLSearchParams(window.location.search).get("returnTo"),
+    );
+    window.location.assign(returnTo ?? accountPath("/dashboard"));
+  }
+  function selectMode(nextMode: "signIn" | "signUp") {
+    setMode(nextMode);
+    setMessage("");
+    setCodeError("");
+    setSent(false);
+    setCode("");
+  }
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    setBusy(true);
-    setMessage("");
+    const currentMode = mode;
+    const codeAttempt =
+      currentMode === "verify" || (currentMode === "otp" && sent);
+    const initialPhase: Phase =
+      currentMode === "signUp"
+        ? "creating"
+        : codeAttempt
+          ? "verifying"
+          : currentMode === "otp"
+            ? "sending"
+            : "signing-in";
+    if (!begin(initialPhase)) return;
+    let redirecting = false;
     try {
-      if (mode === "verify") {
-        const result = await authClient.emailOtp.verifyEmail({
-          email,
-          otp: code,
-        });
-        if (result.error)
-          throw new Error(result.error.message ?? "Could not verify email");
-        const session = await authClient.getSession();
+      if (currentMode === "verify") {
+        const result = await runBoundedAuthCall((signal) =>
+          authClient.emailOtp.verifyEmail({
+            email,
+            otp: code,
+            fetchOptions: { signal },
+          }),
+        );
+        if (!mounted.current) return;
+        if (result.error) throw result.error;
+        setPhase("confirming");
+        const session = await runBoundedAuthCall((signal) =>
+          authClient.getSession({ fetchOptions: { signal } }),
+        );
+        if (!mounted.current) return;
         if (session.data?.user?.emailVerified) {
-          window.location.assign(
-            accountPath(
-              sessionStorage.getItem("ktebli-member-checkout")
-                ? "/proposal-checkout"
-                : "/dashboard",
-            ),
-          );
+          openAccount();
+          redirecting = true;
         } else {
           setMode("signIn");
+          setCode("");
           setMessage("Email verified. Sign in to continue.");
         }
         return;
       }
-      if (mode === "otp" && !sent) {
-        const result = await authClient.emailOtp.sendVerificationOtp({
-          email,
-          type: "sign-in",
-        });
-        if (result.error)
-          throw new Error(result.error.message ?? "Could not send code");
+      if (currentMode === "otp" && !sent) {
+        const result = await runBoundedAuthCall((signal) =>
+          authClient.emailOtp.sendVerificationOtp({
+            email,
+            type: "sign-in",
+            fetchOptions: { signal },
+          }),
+        );
+        if (!mounted.current) return;
+        if (result.error) throw result.error;
         setSent(true);
-        setMessage("Check your email for a sign-in code.");
-        return;
-      }
-      if (mode === "signUp") {
-        const result = await authClient.signUp.email({ email, password, name });
-        if (result.error)
-          throw new Error(result.error.message ?? "Could not create account");
-        setMode("verify");
-        setCode("");
         setMessage(
-          "Account created. Enter the verification code sent to your email.",
+          "If this address can receive a sign-in code, check your inbox and spam.",
         );
         return;
       }
-      const result =
-        mode === "otp"
-          ? await authClient.signIn.emailOtp({ email, otp: code })
-          : await authClient.signIn.email({ email, password });
+      if (currentMode === "signUp") {
+        const result = await runBoundedAuthCall((signal) =>
+          authClient.signUp.email({
+            email,
+            password,
+            name,
+            fetchOptions: { signal },
+          }),
+        );
+        if (!mounted.current) return;
+        if (result.error) throw result.error;
+        setMode("verify");
+        setCode("");
+        setMessage(
+          "If this address needs verification, check your inbox and spam for a code. Already have an account? Select Sign in.",
+        );
+        return;
+      }
+      const result = await runBoundedAuthCall((signal) =>
+        currentMode === "otp"
+          ? authClient.signIn.emailOtp({
+              email,
+              otp: code,
+              fetchOptions: { signal },
+            })
+          : authClient.signIn.email({
+              email,
+              password,
+              fetchOptions: { signal },
+            }),
+      );
+      if (!mounted.current) return;
       if (result.error?.code === "EMAIL_NOT_VERIFIED") {
         setMode("verify");
         setCode("");
-        setMessage("Check your email for a verification code.");
+        setMessage(
+          "This address needs verification. Check your inbox or request a new code below.",
+        );
         return;
       }
-      if (result.error)
-        throw new Error(result.error.message ?? "Could not sign in");
+      if (result.error) throw result.error;
       if (!result.data?.user?.emailVerified) {
         setMode("verify");
         setCode("");
         setMessage("Verify your email to continue.");
         return;
       }
-      const session = await authClient.getSession();
+      setPhase("confirming");
+      const session = await runBoundedAuthCall((signal) =>
+        authClient.getSession({ fetchOptions: { signal } }),
+      );
+      if (!mounted.current) return;
       if (!session.data?.user?.emailVerified) {
         setMessage(
           "Your session could not be confirmed. Please sign in again.",
         );
         return;
       }
-      window.location.assign(
-        accountPath(
-          sessionStorage.getItem("ktebli-member-checkout")
-            ? "/proposal-checkout"
-            : "/dashboard",
-        ),
-      );
+      openAccount();
+      redirecting = true;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Please try again");
+      if (!mounted.current) return;
+      if (codeAttempt) {
+        setCodeError(
+          error instanceof AuthRequestTimeoutError
+            ? "Checking took too long. Your code may have worked; try signing in before requesting another."
+            : isCodeError(error)
+              ? codeErrorMessage(error)
+              : "We could not check that code. Please try again.",
+        );
+        focusCodeError();
+      } else {
+        setMessage(
+          failureMessage(
+            error,
+            "We could not complete this step. Please try again.",
+          ),
+        );
+      }
     } finally {
-      setBusy(false);
+      if (!redirecting) finish();
     }
   }
   async function resendVerification() {
-    setBusy(true);
-    setMessage("");
+    if (!begin("sending")) return;
     try {
-      const result = await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type: "email-verification",
-      });
-      if (result.error)
-        throw new Error(result.error.message ?? "Could not send code");
-      setMessage("A new verification code was sent to your email.");
+      const result = await runBoundedAuthCall((signal) =>
+        authClient.emailOtp.sendVerificationOtp({
+          email,
+          type: "email-verification",
+          fetchOptions: { signal },
+        }),
+      );
+      if (!mounted.current) return;
+      if (result.error) throw result.error;
+      setMessage(
+        "If this address needs verification, check your inbox and spam for a new code.",
+      );
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Please try again");
+      if (mounted.current)
+        setMessage(
+          failureMessage(
+            error,
+            "We could not request a new code. Try again later.",
+          ),
+        );
     } finally {
-      setBusy(false);
+      finish();
     }
   }
   return (
     <main className="auth-shell">
-      <Link className="brand" href="https://ktebli.vercel.app">
-        ktebli
-      </Link>
-      <section className="auth-card">
-        <p className="eyebrow">A LITTLE MORE POSSIBILITY</p>
-        <h1>
-          {mode === "signUp"
-            ? "Make yourself known."
-            : mode === "verify"
-              ? "Verify your email."
-              : mode === "otp"
-                ? "Check your inbox."
-                : "Welcome back."}
-        </h1>
-        <p className="muted">
-          Your next opportunity starts with a clearer picture of you.
+      <header className="auth-topbar">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a className="brand" href="/" aria-label="Ktebli home">
+          KTEBLI<span className="brand-mark">!</span>
+        </a>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a className="auth-back" href="/">
+          Back to Ktebli
+        </a>
+      </header>
+      {checkingSession ? (
+        <p className="auth-progress" role="status">
+          Checking your account…
         </p>
-        <div className="tabs">
-          {(["signIn", "signUp", "otp"] as const).map((value) => (
-            <button
-              className={mode === value ? "active" : ""}
-              key={value}
-              disabled={busy}
-              onClick={() => {
-                setMode(value);
-                setMessage("");
-                setSent(false);
-                setCode("");
-              }}
-            >
-              {value === "signIn"
-                ? "Sign in"
-                : value === "signUp"
-                  ? "Create account"
-                  : "Email code"}
-            </button>
-          ))}
+      ) : (
+        <div className="auth-layout">
+          <aside className="auth-intro">
+            <h2>Find opportunities in Lebanon.</h2>
+            <p className="muted">
+              Browse grants, tenders, and procurement notices. Choose a notice
+              to start a proposal.
+            </p>
+          </aside>
+          <section className="auth-card">
+            <h1>
+              {mode === "signUp"
+                ? "Create your account."
+                : mode === "verify"
+                  ? "Verify your email."
+                  : mode === "otp"
+                    ? sent
+                      ? "Check your inbox."
+                      : "Sign in by email code."
+                    : "Sign in to browse opportunities."}
+            </h1>
+            <p className="muted">
+              {mode === "signUp"
+                ? "Create a free account to browse public opportunities."
+                : mode === "verify"
+                  ? "Enter the code sent to your email address."
+                  : "Browse grants, tenders, and procurement notices in Lebanon."}
+            </p>
+            <div className="tabs" role="group" aria-label="Account access">
+              {(["signIn", "signUp"] as const).map((value) => (
+                <button
+                  className={mode === value ? "active" : ""}
+                  key={value}
+                  type="button"
+                  aria-pressed={mode === value}
+                  disabled={busy}
+                  onClick={() => selectMode(value)}
+                >
+                  {value === "signIn" ? "Sign in" : "Create account"}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={submit} aria-busy={busy}>
+              {mode === "signUp" && (
+                <label>
+                  Your name
+                  <input
+                    required
+                    disabled={busy}
+                    maxLength={120}
+                    autoComplete="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </label>
+              )}
+              <label>
+                Email address
+                <input
+                  required
+                  disabled={busy}
+                  type="email"
+                  maxLength={254}
+                  autoComplete="email"
+                  readOnly={mode === "verify"}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setSent(false);
+                    setCode("");
+                    setCodeError("");
+                    setMessage("");
+                  }}
+                />
+              </label>
+              {mode !== "otp" && mode !== "verify" && (
+                <label>
+                  Password
+                  <input
+                    required
+                    disabled={busy}
+                    type="password"
+                    minLength={8}
+                    maxLength={128}
+                    autoComplete={
+                      mode === "signUp" ? "new-password" : "current-password"
+                    }
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </label>
+              )}
+              {((mode === "otp" && sent) || mode === "verify") && (
+                <label>
+                  {mode === "verify" ? "Verification code" : "Email code"}
+                  <input
+                    ref={codeInput}
+                    required
+                    disabled={busy}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={12}
+                    aria-invalid={Boolean(codeError)}
+                    aria-describedby={codeError ? "auth-code-error" : undefined}
+                    value={code}
+                    onChange={(e) => {
+                      setCode(e.target.value);
+                      setCodeError("");
+                      setMessage("");
+                    }}
+                  />
+                  {codeError && (
+                    <span
+                      className="auth-code-error"
+                      id="auth-code-error"
+                      role="alert"
+                    >
+                      {codeError}
+                    </span>
+                  )}
+                </label>
+              )}
+              <button className="button auth-submit" disabled={busy}>
+                {busy
+                  ? phaseMessage[phase]
+                  : mode === "signUp"
+                    ? "Create account"
+                    : mode === "otp" && !sent
+                      ? "Send sign-in code"
+                      : mode === "otp"
+                        ? "Sign in with code"
+                        : mode === "verify"
+                          ? "Verify email"
+                          : "Sign in"}{" "}
+                {busy ? (
+                  <span className="auth-spinner" aria-hidden="true" />
+                ) : (
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M11.5 3.5h5v5M16.2 3.8 9 11" />
+                    <path d="M15 10.5v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h4" />
+                  </svg>
+                )}
+              </button>
+              {busy && (
+                <p className="auth-progress" role="status" aria-live="polite">
+                  {phaseMessage[phase]}
+                </p>
+              )}
+              {mode === "signUp" && (
+                <p className="fine">
+                  Before creating an account, read how your{" "}
+                  <Link href="/data-use">account data is used</Link>.
+                </p>
+              )}
+              {message && (
+                <p role="status" className="notice">
+                  {message}
+                </p>
+              )}
+            </form>
+            {mode === "verify" && (
+              <button
+                className="text-button"
+                type="button"
+                disabled={busy}
+                onClick={resendVerification}
+              >
+                Send a new code
+              </button>
+            )}
+            {mode === "signIn" && (
+              <button
+                className="text-button auth-alternative"
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setMode("otp");
+                  setSent(false);
+                  setCode("");
+                  setMessage("");
+                  setCodeError("");
+                }}
+              >
+                Sign in with an email code
+              </button>
+            )}
+            {mode === "otp" && (
+              <button
+                className="text-button auth-alternative"
+                type="button"
+                disabled={busy}
+                onClick={() => selectMode("signIn")}
+              >
+                Use your password instead
+              </button>
+            )}
+          </section>
         </div>
-        <form onSubmit={submit}>
-          {mode === "signUp" && (
-            <label>
-              Your name
-              <input
-                required
-                maxLength={120}
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-          )}
-          <label>
-            Email address
-            <input
-              required
-              type="email"
-              maxLength={254}
-              autoComplete="email"
-              readOnly={mode === "verify"}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setSent(false);
-                setCode("");
-              }}
-            />
-          </label>
-          {mode !== "otp" && mode !== "verify" && (
-            <label>
-              Password
-              <input
-                required
-                type="password"
-                minLength={8}
-                maxLength={128}
-                autoComplete={
-                  mode === "signUp" ? "new-password" : "current-password"
-                }
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-          )}
-          {((mode === "otp" && sent) || mode === "verify") && (
-            <label>
-              {mode === "verify" ? "Verification code" : "Email code"}
-              <input
-                required
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={12}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </label>
-          )}
-          <button className="button" disabled={busy}>
-            {busy
-              ? "Please wait…"
-              : mode === "signUp"
-                ? "Create account"
-                : mode === "otp" && !sent
-                  ? "Send sign-in code"
-                  : mode === "verify"
-                    ? "Verify email"
-                    : "Sign in"}{" "}
-            <span>↗</span>
-          </button>
-          {mode === "signUp" && (
-            <p className="fine">
-              Before creating an account, read how your{" "}
-              <Link href="/data-use">account data is used</Link>.
-            </p>
-          )}
-          {message && (
-            <p role="status" className="notice">
-              {message}
-            </p>
-          )}
-        </form>
-        {mode === "verify" && (
-          <button
-            className="text-button"
-            type="button"
-            disabled={busy}
-            onClick={resendVerification}
-          >
-            Send a new code
-          </button>
-        )}
-        <p className="fine">
-          Use “Email code” to sign in without your password.
-        </p>
-      </section>
+      )}
     </main>
   );
 }

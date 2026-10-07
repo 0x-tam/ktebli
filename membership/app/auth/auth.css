@@ -1,0 +1,57 @@
+.auth-card .auth-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+}
+.auth-card .auth-submit > svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.auth-card .auth-spinner {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-spin 0.8s linear infinite;
+}
+
+.auth-card .auth-progress {
+  margin: 9px 0 0;
+  color: var(--green);
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-card .auth-code-error {
+  display: block;
+  margin-top: 7px;
+  color: #9c3030;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.auth-card input[aria-invalid="true"] {
+  border-color: #9c3030;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card .auth-spinner {
+    animation: none;
+    border-right-color: currentColor;
+  }
+}

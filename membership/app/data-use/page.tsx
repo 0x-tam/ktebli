@@ -4,11 +4,12 @@ export default function DataUse() {
   return (
     <main className="landing">
       <nav className="topbar">
-        <Link className="brand" href="https://ktebli.vercel.app">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a className="brand" href="/">
           ktebli
-        </Link>
-        <Link className="button subtle" href="/auth">
-          Account ↗
+        </a>
+        <Link className="button subtle" href="/dashboard">
+          Account
         </Link>
       </nav>
       <section className="hero">
@@ -55,7 +56,8 @@ export default function DataUse() {
         </article>
       </section>
       <footer>
-        <Link href="https://ktebli.vercel.app">Home</Link> ·{" "}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Public home is outside this app's /account basePath. */}
+        <a href="/">Home</a> ·{" "}
         <Link href="/membership-details">Membership details</Link>
       </footer>
     </main>

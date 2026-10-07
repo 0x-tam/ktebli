@@ -1,0 +1,58 @@
+{
+  "review": "Independent final high-risk flow review",
+  "baseCommit": "5cf8f24e332cdd20232fc90f47cf3bc2d4368dc6",
+  "reviewedAt": "2026-10-07",
+  "verdict": "PASS",
+  "scope": "Read-only review of public one-off wizard, account/auth/dashboard/credit handoff, paid order draft and revision continuation. No deployment, payments, emails, or customer orders initiated by reviewer.",
+  "reviewedFileSha256": {
+    "index.html": "0ff883f8f1ede59c613891f0a90853c54bc180ad5fd4ba19c83a3a584e34cb22",
+    "order.html": "36905c695f8395b3fc735372fbab659b3154ae9467c98b33f0e280bb44721686",
+    "website.css": "d252019073c09cbe56e075c88009801ff420bb50636fd273fd9b64921a15b56d",
+    "vercel.json": "c76370526d7f377fbd76c60d77e5db596053c5096b9467e1dc796810cb5dcc8c",
+    "tests/website/opportunity_test.cjs": "dd00bed06c9ccc41717a70007e7f3aa9e89eee6a6954aefb591bb7bf234f8fa5",
+    "tests/website/continuity_test.cjs": "1e82a52f7b769d6d97f8b52215c83fd788659a41e277d634b53e07ea74b0adb7",
+    "membership/app/page.tsx": "7f074f3fc38f45586230b94c72d4471208f10e16476c4caedea552b9a5f55635",
+    "membership/app/auth/page.tsx": "18edd1a63854d94cfb726f5fe2490145677e3968f44a556d23cb296a47e76392",
+    "membership/app/dashboard/page.tsx": "44c482372817cc71121609870aa4b2be5d7132d2368ff3912a92aa251f807b83",
+    "membership/app/dashboard/workspace.tsx": "6121ed8027476203a0e9a95084a504a4e20cd7088bd5f8ef3d75c90b03393f04",
+    "membership/app/membership-details/page.tsx": "d8a1b9e2beaaa25f00a5a7dc8558ff208c5dd219d7016c59c05d99de5318dfe5",
+    "membership/app/data-use/page.tsx": "c92d68693a949301da14a76afae24be241084bd6222291dcc5e16c51d0d5698b",
+    "membership/app/proposal-checkout/page.tsx": "9fb0c40cf2f4aafba385909f9d71cb6a7251f2c13e9dd747d303147c3437cf2e",
+    "membership/app/proposal-checkout/checkout.tsx": "11796dc040d90355f8292ca44ef6fbc8148a31e23a1be8e1cfcd41b5e09c2152",
+    "membership/app/globals.css": "f996b1ff25c406b6a02ed3747e942e814efac00fff369b6e40c658796ab122d2",
+    "membership/app/api/billing/portal/route.ts": "62fccac4bdfa174335669d0eba51b7b3c5c13a39602e31c1b432ea7fdd57c397",
+    "membership/app/api/proposal-checkout/route.ts": "f906ab68feef883a211063e6964b69812ccf24c94269f9375950ff17f1d96801",
+    "membership/lib/navigation.ts": "3ba820550d2f7c91bbb58e7d7cdbf1bef9ce1956fc32a912140fb53c39a1f5e3",
+    "membership/lib/checkout-intent.ts": "3738a1510be1747e42efbfdaefbd970648d84ce569afa62b01ddd5e3937e9953",
+    "membership/lib/profile-draft.ts": "e37cfdf37a1006e4ca5a66538bfcde50a1a890f26b05a1558e5b7964de376263",
+    "membership/tests/navigation.test.ts": "fe4844530ff8fc2804b6fb18523a5d29c3e9e0dd67b0e98b20b552e47a963b8a",
+    "membership/tests/checkout-intent.test.ts": "25b071e975fae7857ce613fc9f2559e8064edf772f08d1e78532acc306e2b322",
+    "membership/tests/profile-draft.test.ts": "3c30d29b30df8d312aa0356ad8ba0c218228b3206397cf01e1e56544480cc90e"
+  },
+  "evidence": {
+    "public": "All 7 tests/website scripts passed independently on the final order.html hash; inline JavaScript and website.js syntax checks passed; static asset build passed; git diff --check passed.",
+    "account": "membership npm test: 33 passed, 1 optional local artifact skipped, 0 failed; typecheck, lint, and format:check passed independently. Parent reports full account build passed.",
+    "browser": "Parent reports focused public navigation, account profile Back/refresh with real metadata, paid-intake same-revision refresh and explicit changed-revision restore passed in local browser fixtures. Reviewer did not repeat these browser runs."
+  },
+  "findingsResolved": [
+    "Late public save-intake and owner-test responses are guarded against wizard/source/package changes; focused close uses replace navigation.",
+    "New prepare references cannot silently reuse an older saved source; public drafts are bounded and contain no token, file, or capability.",
+    "Auth and account returns are canonicalized to approved account paths; callback origin uses server configuration; credit checkout remains disabled without its server flag and requires an intentional Continue action.",
+    "Account board URL state and scoped profile draft survive Back/refresh; auth effect ignores stale StrictMode results; active dashboard requests and checkout requests have cleanup/stale-result guards.",
+    "Paid drafts use a hash of the order token as the storage key, bounded schema and TTL, server revision matching, explicit recovery of stale intake/revision text, and review before sending against newer files.",
+    "Uncertain revision requests remain blocked after refresh until a fresh status check and a second intentional retry action; newer server marker blocks submission. Earlier saved requests cannot be displaced by opening a blank form."
+  ],
+  "reactChecklist": {
+    "hooksAndCleanup": "Effects reviewed for dependencies and cleanup: auth cancellation, dashboard page/popstate listeners and timers, board AbortController/request sequencing, checkout timeout and AbortController cleanup.",
+    "stableKeys": "Opportunity, alert, tab, country, locale, and source lists use stable identifiers; index keys only appear in static evidence paragraphs.",
+    "accessibility": "Forms and navigation use labels, aria-current/pressed/busy/invalid, status or alert regions, and focus handling; revision and handoff notices expose status text.",
+    "draftSchema": "Public wizard, paid order, profile, and checkout-intent drafts are tab-scoped and time bounded. Public wizard and paid order drafts omit raw order tokens; the separate 30-minute checkout intent intentionally contains the validated order token needed for the explicit credit Continue action. Profile data is email scoped and size/schema validated.",
+    "clientSecrets": "No server API key, Stripe secret, bridge secret, or private environment value was added to client components or public drafts."
+  },
+  "residualLimitations": [
+    "The existing request-revision endpoint has no idempotency key. If a first request completes after the explicit status check, a user-approved retry can still create a second revision. The new UI warns about uncertainty and requires an additional deliberate retry; exactly-once behavior would require a separate backend change.",
+    "The optional live crawler artifact test was skipped because its local artifact is absent; checked-in refresh contract tests passed.",
+    "No live payment, webhook, email, or production deployment was exercised in this review."
+  ],
+  "noOpenReviewBlockers": true
+}

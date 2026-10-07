@@ -4,6 +4,28 @@ on:
   schedule:
     - cron: "17 2 * * *"
   workflow_dispatch:
+    inputs:
+      sources:
+        description: "Approved source scope (coverage stays source-specific)"
+        type: choice
+        default: all
+        options:
+          - all
+          - worldbank
+          - mawred
+          - ungm-curated
+          - ppa
+          - grants-gov
+      recent_details:
+        description: "PPA recent locale-detail request limit (1–500)"
+        type: choice
+        default: "300"
+        options: ["1", "10", "20", "50", "100", "300", "500"]
+      backlog_details:
+        description: "PPA historical locale-detail request limit (1–300)"
+        type: choice
+        default: "40"
+        options: ["1", "10", "20", "40", "100", "300"]
 
 permissions:
   contents: read
@@ -41,4 +63,7 @@ jobs:
         env:
           INGEST_DATABASE_URL: ${{ secrets.MEMBERSHIP_INGEST_DATABASE_URL }}
           MEMBERSHIP_EXPECTED_DB_HOST: ep-autumn-feather-b1fk17te.c-5.eu-central-1.aws.neon.tech
+          CATALOGUE_SOURCES: ${{ inputs.sources == 'all' && 'worldbank,mawred,ungm-curated,ppa,grants-gov' || inputs.sources || 'worldbank,mawred,ungm-curated,ppa,grants-gov' }}
+          CATALOGUE_RECENT_DETAILS: ${{ inputs.recent_details || '300' }}
+          CATALOGUE_BACKLOG_DETAILS: ${{ inputs.backlog_details || '40' }}
         run: npm run catalog:scheduled
