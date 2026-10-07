@@ -1,0 +1,43 @@
+{
+  "reviewedAtUtc": "2026-10-07T16:45:27Z",
+  "scope": "Independent source-only high-risk review of the proposed membership catalogue daily schedule; activation remains off",
+  "result": "PASS",
+  "openFindings": [],
+  "reviewedFilesSha256": {
+    ".github/workflows/membership-catalogue.yml": "694854edd392456a373b6d6ded115893748fe1dfe4677d3c921a8182e9ae5312",
+    "membership/tests/catalogue-workflow.test.ts": "133466a0c2d0cbd321da81c6b184c70cfde4ec94ade6432c9b11ec14f49dc400",
+    "membership/README.md": "e5f0c0909e069a7df8920f576a2c333fe149d89099048ca5d269d497dd3260ad"
+  },
+  "frozenFilesIdenticalInMainAndCleanCheckout": true,
+  "reviewedBehavior": {
+    "scheduledSources": ["worldbank", "mawred", "ungm-curated", "ppa"],
+    "scheduledPpaDetailLimits": { "recent": 20, "historical": 1 },
+    "manualSources": "all retains five sources; lebanon selects the four daily sources; every previous individual source remains available",
+    "manualPpaDefaults": { "recent": 300, "historical": 40 },
+    "preservedGuards": "Activation variable, 02:17 UTC cron, 90-minute job cap, 80-minute runner budget, membership-catalogue environment, pinned actions, Node 20.19.4, read-only repository permission, dedicated ingest secret, and fixed Neon host check remain unchanged",
+    "coverageClaims": "Documentation limits World Bank to its Lebanon-country API, Mawred to one official page, UNGM to 11 curated URLs, and PPA to complete paired listings with incomplete detail enrichment. Grants.gov remains manual, and its 100/851 partial run is explicitly incomplete. No bidder-eligibility, all-source completion, combined-run, or observed scheduled-run claim is made."
+  },
+  "independentChecks": {
+    "workflowTests": "PASS: 4 tests, 0 failures",
+    "typecheck": "PASS: npm run typecheck",
+    "scopedLint": "PASS: ESLint on membership/tests/catalogue-workflow.test.ts",
+    "scopedFormatting": "PASS: Prettier on workflow, test, and README",
+    "diffCheck": "PASS: git diff --check",
+    "diffInspection": "PASS: final workflow and README diff plus new test inspected",
+    "githubExpressionSemantics": "Compared with current official GitHub Actions documentation: workflow_dispatch choice inputs resolve to strings; string equality ignores case; empty values are falsy. The test harness was corrected to model case-insensitive equality before this final pass."
+  },
+  "qualificationEvidence": {
+    "path": "/private/tmp/ktebli-catalogue-main-qualification-2026-10-07.json",
+    "sha256": "2e411365be70db32e163992b8ef0cc98e7d851c78286e1f07c7635e457b2d7d8",
+    "individualFourSourceRuns": "PASS on protected main for World Bank, Mawred, curated UNGM, and PPA 20/1",
+    "grantsGov": "INCOMPLETE: 100 of 851 verified records imported; cursor 100 retained after page limit",
+    "combinedFourSourceRun": "NOT YET OBSERVED",
+    "scheduledRun": "NOT YET OBSERVED",
+    "activation": "OFF"
+  },
+  "sourceReferences": [
+    "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax",
+    "https://docs.github.com/en/actions/reference/workflows-and-actions/expressions"
+  ],
+  "reviewLimit": "This passes the frozen source change only. Protected-main publication and the combined four-source 20/1 qualification must occur before enabling the daily activation variable."
+}

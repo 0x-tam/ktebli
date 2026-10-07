@@ -11,6 +11,7 @@ on:
         default: all
         options:
           - all
+          - lebanon
           - worldbank
           - mawred
           - ungm-curated
@@ -63,7 +64,9 @@ jobs:
         env:
           INGEST_DATABASE_URL: ${{ secrets.MEMBERSHIP_INGEST_DATABASE_URL }}
           MEMBERSHIP_EXPECTED_DB_HOST: ep-autumn-feather-b1fk17te.c-5.eu-central-1.aws.neon.tech
-          CATALOGUE_SOURCES: ${{ inputs.sources == 'all' && 'worldbank,mawred,ungm-curated,ppa,grants-gov' || inputs.sources || 'worldbank,mawred,ungm-curated,ppa,grants-gov' }}
-          CATALOGUE_RECENT_DETAILS: ${{ inputs.recent_details || '300' }}
-          CATALOGUE_BACKLOG_DETAILS: ${{ inputs.backlog_details || '40' }}
+          # Daily scope uses the individually qualified sources and PPA bounds.
+          # Grants.gov catch-up remains an independent manual selection.
+          CATALOGUE_SOURCES: ${{ (github.event_name == 'schedule' || inputs.sources == 'lebanon') && 'worldbank,mawred,ungm-curated,ppa' || inputs.sources == 'all' && 'worldbank,mawred,ungm-curated,ppa,grants-gov' || inputs.sources || 'worldbank,mawred,ungm-curated,ppa' }}
+          CATALOGUE_RECENT_DETAILS: ${{ github.event_name == 'schedule' && '20' || inputs.recent_details || '300' }}
+          CATALOGUE_BACKLOG_DETAILS: ${{ github.event_name == 'schedule' && '1' || inputs.backlog_details || '40' }}
         run: npm run catalog:scheduled
